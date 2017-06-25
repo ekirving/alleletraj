@@ -6,32 +6,29 @@ import urllib
 import urllib2
 import xmltodict
 
+from collections import OrderedDict
+
 QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'
 QTLDB_CHUNK_SIZE = 10
 
-QTLDB_TRAIT_CLASSES = [
-    'Meat and Carcass',
-    'Health',
-    'Exterior',
-    'Production',
-    'Reproduction'
-]
+QTL_FILES = {
+    'pig':    'data/rel32/cM/pig.txt',
+    # 'cattle': 'data/rel32/cM/cattle.txt',
+    # 'horse':  'data/rel32/cM/horse.txt',
+}
 
-# TODO remove me
-import pprint
 
 class qtldb_api:
 
-    def __execute(self, request):
+    @staticmethod
+    def __execute(request):
         """
         Execute an API request.
         """
         xml = urllib2.urlopen(request).read()
 
-        # fix entity issue
+        # fix any unencoded ampersands
         xml = re.sub(r'\s&\s', '&amp;', xml)
-
-        print request
 
         return xmltodict.parse(xml, xml_attribs=True)
 
@@ -48,7 +45,8 @@ class qtldb_api:
         """
         Fetch records by free-text query.
         """
-        request = "{url}/iquery?s={s}&q={q}&h={h}".format(url=QTLDB_API_URL, s=species, q=urllib.quote_plus(query), h=type)
+        request = "{url}/iquery?s={s}&q={q}&h={h}".format(url=QTLDB_API_URL, s=species,
+                                                          q=urllib.quote_plus(query), h=type)
 
         return self.__execute(request)
 
@@ -76,16 +74,13 @@ class qtldb_api:
             for record in data['EFETCHresults']['QTL']:
                 yield record
 
-    def get_traits(self, species):
+    def get_traits(self, species, name):
 
-        traits = []
+        # get all trait
+        data = self.__iquery(species, name, 'traits')
 
-        for tclass in QTLDB_TRAIT_CLASSES:
-
-            # get all the traits
-            data = self.__iquery(species, tclass, 'traits')
-
-            if 'trait' in data['EqueryResults']:
-                for trait in data['EqueryResults']['trait']:
+        if 'trait' in data['EqueryResults']:
+            for trait in data['EqueryResults']['trait']:
+                if isinstance(trait, OrderedDict):
                     yield trait
 

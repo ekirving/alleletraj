@@ -5,6 +5,9 @@ import mysql.connector
 
 
 class db_conn:
+    """
+    Class for handling all the db connectivity.
+    """
 
     db_config = {
       'user':     'root',
@@ -23,7 +26,7 @@ class db_conn:
         self.cursor.close()
         self.cnx.close()
 
-    def __get_records(self, table, conds = None):
+    def __get_records(self, table, conds=None):
         """
         Helper function for fetching records
         """
@@ -34,15 +37,15 @@ class db_conn:
 
         self.cursor.execute(sql)
 
-    def get_records(self, table, conds=None):
+    def get_records(self, table, conds=None, key='id'):
         """
         Get all matching records
         """
         self.__get_records(table, conds)
 
-        return {item['id']: item for item in self.cursor}
+        return {item[key]: item for item in self.cursor}
 
-    def get_record(self, table, conds = None):
+    def get_record(self, table, conds=None):
         """
         Get a single record
         """
@@ -54,9 +57,15 @@ class db_conn:
         """
         Insert a new record
         """
-        sql = "INSERT INTO {table} (`{keys}`) VALUES ('{values}') ".format(
-            table=table, keys='`,`'.join(record.keys()), values="','".join(record.values()))
+        data = {
+            'table':  table,
+            'fields': "`,`".join(record.keys()),
+            'values': "','".join(record.values()),
+            'update': ",".join(["`{}`='{}'".format(key, value) for key, value in record.iteritems() if key != 'id'])
+        }
+
+        sql = "INSERT INTO {table} (`{fields}`) VALUES ('{values}') " \
+              "ON DUPLICATE KEY UPDATE {update}".format(**data)
 
         self.cursor.execute(sql)
         self.cnx.commit()
-

@@ -1,80 +1,46 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from db_conn import db_conn
-from qtldb_api import qtldb_api
+from db_conn import *
+from qtldb_api import *
+from qtldb_lib import *
 
-# make the db connection
+VERBOSE = True
+
 dbc = db_conn()
+api = qtldb_api()
 
-qtldb = qtldb_api()
+for species, qtldb_file in QTL_FILES.iteritems():
 
-qtl_dump = {
-    'pig': 'mapDwnLd46065CEZR.txt'
-}
+    # get a list of all the QTLDb IDs and trait names
+    data = extract_qtl_fields(qtldb_file, ['QTL_ID', 'Trait_name'])
 
-# TODO remove me
-itr = 0
+    # get all the existing traits, indexed by name
+    traits = dbc.get_records('traits', key='name')
 
+    # populate all the trait records
+    for name in set(data['Trait_name']):
+        if name not in traits:
+            if VERBOSE:
+                print "INFO: Missing trait '%s'" % name
 
-def extract_qtl_ids(dbfile):
-
-    ids = []
-
-    # get all the QTL IDs for this scope (i.e. species)
-    with open(dbfile, 'rU') as fin:
-        fin.readline()
-        for line in fin:
-            try:
-                ids.append(line.split()[0])
-            except IndexError:
-                # ignore badly formatted lines
-                pass
-
-    return ids
-
-
-def populate_traits(species):
-
-    # get all the existing traits
-    existing = dbc.get_records('traits')
-    print existing
-    # get all the trait types
-    for record in qtldb.get_traits(species):
-        traitid = int(record['@traitID'])
-
-        if traitid not in existing:
-            trait = {
-                'id':    record['@traitID'],
-                'class': record['traitClass'],
-                'type':  record['traitType'],
-                'name':  record['traitName']
-            }
-
-            dbc.save_record('traits', trait)
-
-
-for species, dbfile in qtl_dump.iteritems():
-
-    # get a list of all the QTLDb IDs
-    ids = extract_qtl_ids(dbfile)
-
-    populate_traits(species)
-
-    quit()
+            # get the trait record(s) from the API
+            for record in api.get_traits(species, name):
+                trait = {
+                    'id':    record['@traitID'],
+                    'class': record['traitClass'],
+                    'type':  record['traitType'],
+                    'name':  record['traitName']
+                }
+                dbc.save_record('traits', trait)
 
     # get the records
-    for record in qtldb.get_qtls(species, ids):
+    for record in api.get_qtls(species, data['QTL_ID']):
 
         # get the trait record
         trait = record.pop('trait')
 
         print trait
 
-        itr += 1
-
-        if itr > 10:
-            quit()
-        # http://www.animalgenome.org/cgi-bin/QTLdb/API/ifetch?q=1,15&s=pig
-
+        quit()
 

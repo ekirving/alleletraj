@@ -36,7 +36,7 @@ class qtldb_api:
 
             except xmltodict.expat.ExpatError as err:
                 # find the problem character and encode it
-                line, column = [int(s) for s in re.split(' |,', str(err)) if s.isdigit()]
+                line, column = [int(s) for s in re.split('[ ,]', str(err)) if s.isdigit()]
 
                 lines = xml.splitlines(True)
                 problem = list(lines[line-1])
@@ -103,3 +103,11 @@ class qtldb_api:
                 if isinstance(trait, OrderedDict):
                     yield trait
 
+    def get_publication(self, species, pubmedid):
+
+        # get all trait
+        data = self.__iquery(species, pubmedid, 'publications')
+
+        data['EqueryResults'].pop('@xmlns')
+
+        return data['EqueryResults']

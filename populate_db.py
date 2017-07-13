@@ -59,6 +59,13 @@ for species, qtldb_file in QTL_FILES.iteritems():
                      for field, value in record.pop('trait').iteritems() if value is not None)
         trait['name'] = record.pop('name')
 
+        # setup the pubmed record
+        pubmed = api.get_publication(species, record['pubmedID'])
+        pubmed['id'] = pubmed.pop('pubmed_ID')
+        pubmed['journal'] = pubmed['journal']['#text'][:-5]
+
+        dbc.save_record('pubmeds', pubmed)
+
         try:
             dbc.save_record('traits', trait)
 
@@ -100,5 +107,3 @@ for species, qtldb_file in QTL_FILES.iteritems():
             for key, value in qtl.iteritems():
                 print (key, value)
             raise e
-
-        print 'Added..'

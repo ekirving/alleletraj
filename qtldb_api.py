@@ -43,7 +43,7 @@ class qtldb_api:
 
                 if ord(problem[column]) == 177:
                     # handle weird encoding issue
-                    problem.pop(column)
+                    problem[column] = '&plusmn;'
 
                 problem[column-1] = escape(problem[column-1])
                 lines[line-1] = ''.join(problem)

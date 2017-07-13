@@ -54,10 +54,6 @@ for species, qtldb_file in QTL_FILES.iteritems():
     # get all the new records
     for record in api.get_qtls(species, new_ids):
 
-        # ignore placeholder values
-        for key, value in record.iteritems():
-            record[key] = None if value == '-' else value
-
         # setup the trait record
         trait = dict((field.replace('trait', '').lower(), value)
                      for field, value in record.pop('trait').iteritems() if value is not None)
@@ -91,8 +87,11 @@ for species, qtldb_file in QTL_FILES.iteritems():
                     else:
                         record[child_name] = child_value
 
+        # drop the source field
+        record.pop('source', None)
+
         # filter out any empty values
-        qtl = OrderedDict((key, value) for key, value in record.iteritems() if value is not None)
+        qtl = OrderedDict((key, value) for key, value in record.iteritems() if value is not None and value != '-')
 
         try:
             dbc.save_record('qtls', qtl)

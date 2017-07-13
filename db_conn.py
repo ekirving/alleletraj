@@ -67,5 +67,13 @@ class db_conn:
         sql = "INSERT INTO {table} (`{fields}`) VALUES ('{values}') " \
               "ON DUPLICATE KEY UPDATE {update}".format(**data)
 
-        self.cursor.execute(sql)
-        self.cnx.commit()
+
+        try:
+            self.cursor.execute(sql)
+            self.cnx.commit()
+
+        except Exception as e:
+            # dump the record before thowing the exception
+            for key, value in record.iteritems():
+                print key, ": ", value
+            raise e

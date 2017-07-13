@@ -40,6 +40,11 @@ class qtldb_api:
 
                 lines = xml.splitlines(True)
                 problem = list(lines[line-1])
+
+                if ord(problem[column]) == 177:
+                    # handle weird encoding issue
+                    problem.pop(column)
+
                 problem[column-1] = escape(problem[column-1])
                 lines[line-1] = ''.join(problem)
                 xml = ''.join(lines)

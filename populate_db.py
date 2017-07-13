@@ -34,8 +34,12 @@ for species, qtldb_file in QTL_FILES.iteritems():
         trait = dict((field.replace('trait', '').lower(), value)
                      for field, value in record.pop('trait').iteritems() if value is not None)
         trait['name'] = record.pop('name')
+        trait['type'] = api.get_trait_type(species, trait['id'], trait['name'])
 
         dbc.save_record('traits', trait)
+
+        # set the trait ID
+        record['traitID'] = trait['id']
 
         # setup the pubmed record
         pubmed = api.get_publication(species, record['pubmedID'])
@@ -44,9 +48,6 @@ for species, qtldb_file in QTL_FILES.iteritems():
         pubmed['journal'] = pubmed['journal']['#text'][:-5]
 
         dbc.save_record('pubmeds', pubmed)
-
-        # set the trait ID
-        record['traitID'] = trait['id']
 
         # flatten the other nested records
         for field, value in record.iteritems():
@@ -64,7 +65,7 @@ for species, qtldb_file in QTL_FILES.iteritems():
                     else:
                         record[child_name] = child_value
 
-        # drop the source field as the
+        # drop the source field as it is malformed
         record.pop('source', None)
 
         # filter out any empty values

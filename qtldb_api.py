@@ -93,15 +93,21 @@ class qtldb_api:
             for record in data['EFETCHresults']['QTL']:
                 yield record
 
-    def get_traits(self, species, name):
+    def get_trait_type(self, species, id, name):
 
         # get all trait
         data = self.__iquery(species, name, 'traits')
 
         if 'trait' in data['EqueryResults']:
-            for trait in data['EqueryResults']['trait']:
+            traits = data['EqueryResults']['trait']
+            if type(traits) is not list:
+                traits = [traits]
+
+            for trait in traits:
                 if isinstance(trait, OrderedDict):
-                    yield trait
+                    if trait['@traitID'] == id:
+                        return trait['traitType']
+        return None
 
     def get_publication(self, species, pubmedid):
 

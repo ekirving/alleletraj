@@ -7,6 +7,7 @@ import urllib2
 import xmltodict
 
 from collections import OrderedDict
+from xml.sax.saxutils import escape
 
 QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'
 QTLDB_CHUNK_SIZE = 10
@@ -27,10 +28,23 @@ class qtldb_api:
         """
         xml = urllib2.urlopen(request).read()
 
-        # fix any unencoded ampersands
-        xml = re.sub(r'\s&\s', '&amp;', xml)
+        result = None
 
-        return xmltodict.parse(xml, xml_attribs=True)
+        while not result:
+            try:
+                result = xmltodict.parse(xml, xml_attribs=True)
+
+            except xmltodict.expat.ExpatError as err:
+                # find the problem character and encode it
+                line, column = [int(s) for s in re.split(' |,', str(err)) if s.isdigit()]
+
+                lines = xml.splitlines(True)
+                problem = list(lines[line-1])
+                problem[column-1] = escape(problem[column-1])
+                lines[line-1] = ''.join(problem)
+                xml = ''.join(lines)
+
+        return result
 
     def __iinfo(self, species):
         """
@@ -66,7 +80,7 @@ class qtldb_api:
             chunk = ids[i:i + QTLDB_CHUNK_SIZE]
 
             # make a comma separated list
-            query = ','.join(chunk)
+            query = ','.join(map(str, chunk))
 
             # fetch the results
             data = self.__ifetch(species, query)

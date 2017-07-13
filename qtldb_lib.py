@@ -20,7 +20,9 @@ def extract_qtl_fields(dbfile, fields):
             try:
                 line = line.split('\t')
                 for idx, field in columns:
-                    data[field].append(line[idx])
+                    datum = line[idx].strip()
+                    if datum:
+                        data[field].append(datum)
             except IndexError:
                 # ignore badly formatted lines
                 pass

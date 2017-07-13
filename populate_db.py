@@ -48,29 +48,58 @@ for species, qtldb_file in QTL_FILES.iteritems():
     # get the new IDs
     new_ids = list(set(qtl_ids) - set(qtls.keys()))
 
-    # FIXME...
-    schema = defaultdict(set)
-    ctr = 0
+    if VERBOSE:
+        print "INFO: Found %s new QTLs to add" % len(new_ids)
 
     # get all the new records
     for record in api.get_qtls(species, new_ids):
 
-        # pprint.pprint(dict(record))
+        # ignore placeholder values
+        for key, value in record.iteritems():
+            record[key] = None if value == '-' else value
 
-        # insert the nested records
+        # setup the trait record
+        trait = dict((field.replace('trait', '').lower(), value)
+                     for field, value in record.pop('trait').iteritems() if value is not None)
+        trait['name'] = record.pop('name')
+
+        try:
+            dbc.save_record('traits', trait)
+
+        except Exception as e:
+            print "qtlID = %s" % record['id']
+            for key, value in trait.iteritems():
+                print (key, value)
+            raise e
+
+        # set the trait ID
+        record['traitID'] = trait['id']
+
+        # flatten the other nested records
         for field, value in record.iteritems():
 
             if type(value) is OrderedDict:
-                value = record.pop(field)
-                # pprint.pprint(dict(value))
-                schema[field] |= set(value.keys())
+                nested = record.pop(field)
 
-        # pprint.pprint(dict(record))
-        schema['qtl'] |= set(record.keys())
+                for child_name, child_value in nested.iteritems():
+                    # for doubly nested fields, use the parent name as a prefix
+                    if type(child_value) is OrderedDict:
+                        for key in child_value:
+                            record[child_name + '_' + key] = child_value[key]
+                    elif field in ['gene']:
+                        record[field + child_name.title()] = child_value
+                    else:
+                        record[child_name] = child_value
 
-        ctr += 1
+        # filter out any empty values
+        qtl = OrderedDict((key, value) for key, value in record.iteritems() if value is not None)
 
-        if ctr > 500:
-            break
+        try:
+            dbc.save_record('qtls', qtl)
 
-    pprint.pprint(dict(schema))
+        except Exception as e:
+            for key, value in qtl.iteritems():
+                print (key, value)
+            raise e
+
+        print 'Added..'

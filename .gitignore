@@ -26,3 +26,6 @@ commands.sh
 
 # serialised data
 *.pickle
+
+# sql queries
+*.spf

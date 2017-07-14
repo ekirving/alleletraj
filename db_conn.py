@@ -46,8 +46,7 @@ class db_conn:
         sql = "SELECT * FROM {table} ".format(table=table)
 
         if conds:
-            conds = self.__format_data(conds)
-            sub = [u"{}={}".format(key, value) for key, value in conds.iteritems()]
+            sub = [u"{}={}".format(key, value) for key, value in self.__format_data(conds).iteritems()]
             sql += "WHERE {conds}".format(conds=" AND ".join(sub))
 
         self.cursor.execute(sql)
@@ -57,6 +56,14 @@ class db_conn:
         Get all matching records
         """
         self.__get_records(table, conds)
+
+        return {item[key]: item for item in self.cursor}
+
+    def get_records_sql(self, sql, key='id'):
+        """
+        Get all matching records for a given SQL query
+        """
+        self.cursor.execute(sql)
 
         return {item[key]: item for item in self.cursor}
 

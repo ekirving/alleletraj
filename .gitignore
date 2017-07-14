@@ -23,3 +23,6 @@ seedms
 
 # temp file for raw commands
 commands.sh
+
+# serialised data
+*.pickle

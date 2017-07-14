@@ -46,8 +46,7 @@ for species, qtldb_file in QTL_FILES.iteritems():
         if not dbc.exists_record('traits', {'id': record['traitID']}):
 
             # setup the trait record
-            trait = dict((field.replace('trait', '').lower(), value) for field, value in trait.iteritems()
-                         if value is not None)
+            trait = dict((field.replace('trait', '').lower(), value) for field, value in trait.iteritems())
             trait['type'] = api.get_trait_type(species, trait['id'], trait['name'])
 
             dbc.save_record('traits', trait)
@@ -57,11 +56,16 @@ for species, qtldb_file in QTL_FILES.iteritems():
 
             # setup the pubmed record
             pubmed = api.get_publication(species, record['pubmedID'])
-            pubmed['id'] = pubmed.pop('pubmed_ID')
-            pubmed['year'] = re.search('\(([0-9]{4})\)', pubmed['authors']).group(1)
-            pubmed['journal'] = pubmed['journal']['#text'][:-5]
 
-            dbc.save_record('pubmeds', pubmed)
+            if pubmed:
+                pubmed['id'] = pubmed.pop('pubmed_ID')
+                pubmed['year'] = re.search('\(([0-9]{4})\)', pubmed['authors']).group(1)
+                pubmed['journal'] = pubmed['journal']['#text'][:-5]
+
+                dbc.save_record('pubmeds', pubmed)
+            else:
+                # some records have a bogus pubmedID
+                record['pubmedID'] = None
 
         # flatten the other nested records
         for field, value in record.iteritems():
@@ -79,11 +83,13 @@ for species, qtldb_file in QTL_FILES.iteritems():
                     else:
                         record[child_name] = child_value
 
-        # drop the source field as it is malformed
+        # drop the any lingering malformed fields
         record.pop('source', None)
+        record.pop('breeds', None)
+        record.pop('effects', None)
 
         # filter out any empty values
-        qtl = OrderedDict((key, value) for key, value in record.iteritems() if value is not None and value != '-')
+        qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')
 
         dbc.save_record('qtls', qtl)
 

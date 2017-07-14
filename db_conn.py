@@ -33,7 +33,7 @@ class db_conn:
 
         for key, value in params.iteritems():
             new_key = u"`{}`".format(key)
-            new_val = u"'{}'".format(self.cnx.converter.escape(value)) if value is not None else 'NULL'
+            new_val = u"'{}'".format(self.cnx.converter.escape(value)) if value is not None and value != '' else 'NULL'
 
             data[new_key] = new_val
 

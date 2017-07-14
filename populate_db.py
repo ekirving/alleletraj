@@ -88,6 +88,11 @@ for species, qtldb_file in QTL_FILES.iteritems():
         record.pop('breeds', None)
         record.pop('effects', None)
 
+        # handle malformed data
+        for field in ['linkageLoc_end', 'linkageLoc_peak', 'linkageLoc_start']:
+            if field in record:
+                record[field] = record[field].strip('()')
+
         # filter out any empty values
         qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')
 

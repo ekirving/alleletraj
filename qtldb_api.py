@@ -26,7 +26,7 @@ class qtldb_api:
         """
         Execute an API request.
         """
-        xml = urllib2.urlopen(request).read().decode("utf-8")
+        xml = urllib2.urlopen(request).read().decode("utf-8", 'ignore')
 
         result = None
 

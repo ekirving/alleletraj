@@ -20,6 +20,7 @@ MIN_MAPQ30 = 0.1
 
 DATA_FRAME_FILE = 'dataframe-pigs.pickle'
 
+pd.set_option('max_colwidth', 1000)
 
 def fetch_metadata():
 

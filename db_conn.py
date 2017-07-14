@@ -3,6 +3,7 @@
 
 import mysql.connector
 from pprint import pprint
+from collections import OrderedDict
 
 
 class db_conn:
@@ -57,7 +58,7 @@ class db_conn:
         """
         self.__get_records(table, conds)
 
-        return {item[key]: item for item in self.cursor}
+        return OrderedDict((item[key], item) for item in self.cursor)
 
     def get_records_sql(self, sql, key='id'):
         """
@@ -65,7 +66,7 @@ class db_conn:
         """
         self.cursor.execute(sql)
 
-        return {item[key]: item for item in self.cursor}
+        return OrderedDict((item[key], item) for item in self.cursor)
 
     def get_record(self, table, conds=None):
         """

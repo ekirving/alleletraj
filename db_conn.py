@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import mysql.connector
-
+from pprint import pprint
 
 class db_conn:
     """
@@ -26,6 +26,19 @@ class db_conn:
         self.cursor.close()
         self.cnx.close()
 
+    @staticmethod
+    def __format_data(params):
+
+        data = {}
+
+        for key, value in params.iteritems():
+            new_key = u"`{}`".format(key)
+            new_val = u"'{}'".format(value) if value is not None else 'NULL'
+
+            data[new_key] = new_val
+
+        return data
+
     def __get_records(self, table, conds=None):
         """
         Helper function for fetching records
@@ -33,7 +46,8 @@ class db_conn:
         sql = "SELECT * FROM {table} ".format(table=table)
 
         if conds:
-            sub = [u"`{}`='{}'".format(key, value) for key, value in conds.iteritems()]
+            conds = self.__format_data(conds)
+            sub = [u"{}={}".format(key, value) for key, value in conds.iteritems()]
             sql += "WHERE {conds}".format(conds=" AND ".join(sub))
 
         self.cursor.execute(sql)
@@ -66,14 +80,17 @@ class db_conn:
         """
         Insert a new record
         """
+        record = self.__format_data(record)
+
         data = {
             'table':  table,
-            'fields': u"`,`".join(record.keys()),
-            'values': u"','".join(record.values()),
-            'update': u",".join([u"`{}`='{}'".format(key, value) for key, value in record.iteritems() if key != 'id'])
+            'fields': u", ".join(record.keys()),
+            'values': u", ".join(record.values()),
+            'update': u", ".join([u"{}={}".format(key, value) for key, value in record.iteritems() if key != 'id'])
         }
 
-        sql = u"INSERT INTO {table} (`{fields}`) VALUES ('{values}') ON DUPLICATE KEY UPDATE {update}".format(**data)
+        sql = u"INSERT INTO {table} ({fields}) VALUES ({values}) " \
+              u"ON DUPLICATE KEY UPDATE {update}".format(**data)
 
         try:
             self.cursor.execute(sql)
@@ -82,8 +99,5 @@ class db_conn:
         except Exception as e:
             # dump the record before throwing the exception
             print "ERROR: db_conn.save_record()"
-
-            for key, value in record.iteritems():
-                print key, ": ", value
-
+            pprint(record)
             raise e

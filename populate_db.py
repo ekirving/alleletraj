@@ -12,11 +12,11 @@ api = qtldb_api()
 
 for species, qtldb_file in QTL_FILES.iteritems():
 
-    if VERBOSE:
-        print "INFO: Processing records for %s from file %s" % (species, qtldb_file)
-
     # get a list of all the QTLDb IDs from the tsv dump
     data = extract_qtl_fields(qtldb_file, ['QTL_ID'])
+
+    if VERBOSE:
+        print "INFO: Processing %s %s QTLs from '%s'" % (len(data), species, qtldb_file)
 
     # convert all the IDs to int
     qtl_ids = [int(qtl_id) for qtl_id in data['QTL_ID'] if qtl_id.isdigit()]

@@ -26,9 +26,11 @@ class qtldb_api:
         """
         Execute an API request.
         """
-        xml = urllib2.urlopen(request).read()
+        xml = urllib2.urlopen(request).read().decode("utf-8")
 
         result = None
+
+        loops = 0
 
         while not result:
             try:
@@ -41,13 +43,21 @@ class qtldb_api:
                 lines = xml.splitlines(True)
                 problem = list(lines[line-1])
 
-                if ord(problem[column]) == 177:
-                    # handle weird encoding issue
-                    problem[column] = '&plusmn;'
+                # handle entity encoding issues
+                problem[column - 1] = escape(problem[column - 1])
 
-                problem[column-1] = escape(problem[column-1])
+                # if ord(problem[column]) > 160:
+                #     # handle utf8 encoding issues
+                #     problem[column] = '&#%s;' % ord(problem[column])
+
                 lines[line-1] = ''.join(problem)
                 xml = ''.join(lines)
+
+                if loops > 100:
+                    # don't keep looping forever!
+                    raise err
+
+            loops += 1
 
         return result
 
@@ -93,7 +103,7 @@ class qtldb_api:
             for record in data['EFETCHresults']['QTL']:
                 yield record
 
-    def get_trait_type(self, species, id, name):
+    def get_trait_type(self, species, traitid, name):
 
         # get all trait
         data = self.__iquery(species, name, 'traits')
@@ -105,7 +115,7 @@ class qtldb_api:
 
             for trait in traits:
                 if isinstance(trait, OrderedDict):
-                    if trait['@traitID'] == id:
+                    if trait['@traitID'] == traitid:
                         return trait['traitType']
         return None
 

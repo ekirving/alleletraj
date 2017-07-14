@@ -4,6 +4,7 @@
 import mysql.connector
 from pprint import pprint
 
+
 class db_conn:
     """
     Class for handling all the db connectivity.
@@ -26,14 +27,13 @@ class db_conn:
         self.cursor.close()
         self.cnx.close()
 
-    @staticmethod
-    def __format_data(params):
+    def __format_data(self, params):
 
         data = {}
 
         for key, value in params.iteritems():
             new_key = u"`{}`".format(key)
-            new_val = u"'{}'".format(value) if value is not None else 'NULL'
+            new_val = u"'{}'".format(self.cnx.converter.escape(value)) if value is not None else 'NULL'
 
             data[new_key] = new_val
 

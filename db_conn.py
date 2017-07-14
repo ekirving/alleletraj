@@ -33,7 +33,8 @@ class db_conn:
         sql = "SELECT * FROM {table} ".format(table=table)
 
         if conds:
-            sql += "WHERE {conds}".format(conds="AND".join(conds))
+            sub = [u"`{}`='{}'".format(key, value) for key, value in conds.iteritems()]
+            sql += "WHERE {conds}".format(conds=" AND ".join(sub))
 
         self.cursor.execute(sql)
 
@@ -53,27 +54,36 @@ class db_conn:
 
         return self.cursor.fetchone()
 
+    def exists_record(self, table, conds=None):
+        """
+        Get a single record
+        """
+        self.__get_records(table, conds)
+
+        return self.cursor.fetchone() is not None
+
     def save_record(self, table, record):
         """
         Insert a new record
         """
         data = {
             'table':  table,
-            'fields': "`,`".join(record.keys()),
-            'values': "','".join(record.values()),
-            'update': ",".join(["`{}`='{}'".format(key, value) for key, value in record.iteritems() if key != 'id'])
+            'fields': u"`,`".join(record.keys()),
+            'values': u"','".join(record.values()),
+            'update': u",".join([u"`{}`='{}'".format(key, value) for key, value in record.iteritems() if key != 'id'])
         }
 
-        sql = "INSERT INTO {table} (`{fields}`) VALUES ('{values}') " \
-              "ON DUPLICATE KEY UPDATE {update}".format(**data)
-
+        sql = u"INSERT INTO {table} (`{fields}`) VALUES ('{values}') ON DUPLICATE KEY UPDATE {update}".format(**data)
 
         try:
             self.cursor.execute(sql)
             self.cnx.commit()
 
         except Exception as e:
-            # dump the record before thowing the exception
+            # dump the record before throwing the exception
+            print "ERROR: db_conn.save_record()"
+
             for key, value in record.iteritems():
                 print key, ": ", value
+
             raise e

@@ -16,7 +16,7 @@ for species, qtldb_file in QTL_FILES.iteritems():
     data = extract_qtl_fields(qtldb_file, ['QTL_ID'])
 
     if VERBOSE:
-        print "INFO: Processing %s %s QTLs from '%s'" % (len(data), species, qtldb_file)
+        print "INFO: Processing %s %s QTLs from '%s'" % (len(data['QTL_ID']), species, qtldb_file)
 
     # convert all the IDs to int
     qtl_ids = [int(qtl_id) for qtl_id in data['QTL_ID'] if qtl_id.isdigit()]
@@ -90,8 +90,8 @@ for species, qtldb_file in QTL_FILES.iteritems():
 
         # handle malformed data
         for field in ['linkageLoc_end', 'linkageLoc_peak', 'linkageLoc_start']:
-            if field in record:
-                record[field] = record[field].strip('()')
+            if field in record and record[field] is not None:
+                record[field] = re.sub('[^0-9.]', '', record[field])
 
         # filter out any empty values
         qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')

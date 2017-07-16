@@ -30,24 +30,24 @@ COVERAGE_FILE = 'coverage-pigs.pickle'
 # maximum length of the QTL to process (100 kb)
 MAX_QTL_LENGTH = 100000
 
-def fetch_coverage():
+def fetch_qtl_snps():
 
     try:
-        # load the coverage data
-        data = pickle.load(open(COVERAGE_FILE, 'r'))
+        # load the SNPs data
+        snps = pickle.load(open(COVERAGE_FILE, 'r'))
 
         print "INFO: Loaded data from '%s'" % COVERAGE_FILE
 
     except IOError:
         # file doesn't exist, so compute the coverage
-        data = check_coverage()
+        snps = check_qtl_snps()
 
-        pickle.dump(data, open(COVERAGE_FILE, 'w'))
+        pickle.dump(snps, open(COVERAGE_FILE, 'w'))
 
-    return data
+    return snps
 
 
-def check_coverage():
+def check_qtl_snps():
 
     # open a db connection
     dbc = db_conn()
@@ -59,6 +59,7 @@ def check_coverage():
             WHERE genomeLoc_start IS NOT NULL
               AND genomeLoc_end IS NOT NULL
               AND (genomeLoc_end - genomeLoc_start) <= %s
+              AND id = 453
             GROUP BY chromosome, genomeLoc_start, genomeLoc_end
             ORDER BY chromosome, genomeLoc_start""" % MAX_QTL_LENGTH
     )
@@ -134,7 +135,7 @@ def check_coverage():
 
                         # initialise the dictionary
                         if accession not in data[(chrom, pos)]:
-                            data[(chrom, pos)] = {accession: []}
+                            data[(chrom, pos)][accession] = []
 
                         # add the base to the list
                         data[(chrom, pos)][accession].append(base)
@@ -150,4 +151,7 @@ def check_coverage():
                 print "SUCCESS: Found a SNP at chr%s:%s with %s samples and alleles %s" % \
                       (chrom, pos, len(data[(chrom, pos)]), list(alleles))
 
-fetch_coverage()
+                pprint(data[(chrom, pos)])
+                # quit()
+
+fetch_qtl_snps()

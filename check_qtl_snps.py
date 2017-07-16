@@ -28,7 +28,8 @@ VERBOSE = False
 COVERAGE_FILE = 'coverage-pigs.pickle'
 
 # maximum length of the QTL to process (100 kb)
-MAX_QTL_LENGTH = 100000
+# MAX_QTL_LENGTH = 100000
+
 
 def fetch_qtl_snps():
 
@@ -54,14 +55,16 @@ def find_qtl_snps():
 
     # get a sorted list of unique QTLs
     qtls = dbc.get_records_sql(
-        """SELECT GROUP_CONCAT(id) AS id, chromosome as chr, genomeLoc_start as start, genomeLoc_end as end
-             FROM qtls
-            WHERE genomeLoc_start IS NOT NULL
-              AND genomeLoc_end IS NOT NULL
-              AND (genomeLoc_end - genomeLoc_start) <= %s
-              # AND id = 453
-            GROUP BY chromosome, genomeLoc_start, genomeLoc_end
-            ORDER BY CAST(IF(chromosome in ('X','Y'), 99, chromosome) AS UNSIGNED), genomeLoc_start""" % MAX_QTL_LENGTH
+        """
+        SELECT GROUP_CONCAT(id) AS id, chromosome as chr, genomeLoc_start as start, genomeLoc_end as end
+          FROM qtls
+         WHERE genomeLoc_start IS NOT NULL
+           AND genomeLoc_end IS NOT NULL
+          # AND (genomeLoc_end - genomeLoc_start) <= %s
+          # AND id = 453
+      GROUP BY chromosome, genomeLoc_start, genomeLoc_end
+      ORDER BY CAST(IF(chromosome in ('X','Y'), 99, chromosome) AS UNSIGNED), genomeLoc_start
+        """
     )
 
     print "INFO: Found %s unique QTLs" % len(qtls)
@@ -116,7 +119,7 @@ def find_qtl_snps():
                                 print "WARNING: chr%s:%s - skipping low mapq (%s)" % (chrom, pos, map_qual)
                             continue
 
-                        # get the read postion
+                        # get the read position
                         read_pos = pileupread.query_position
 
                         # skip low quality base calls
@@ -163,13 +166,11 @@ def find_qtl_snps():
                       (chrom, pos, len(data[(chrom, pos)]), list(alleles))
 
     # calculate some basic summary stats
-    totalqtls = len(snps)
-    totalsnps = sum([len(snps[qtl]) for qtl in snps])
+    total_qtls = len(snps)
+    total_snps = sum([len(snps[qtl]) for qtl in snps])
 
-    print "FINISHED: Found %s unique QTLs with %s SNPs (~%s SNPs/QTL)" % (totalqtls, totalsnps, totalsnps/totalqtls)
+    print "FINISHED: Found %s unique QTLs with %s SNPs (~%s SNPs/QTL)" % (total_qtls, total_snps, total_snps/total_qtls)
 
     return snps
 
-snps = fetch_qtl_snps()
-
-pprint(dict(snps))
+fetch_qtl_snps()

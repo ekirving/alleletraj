@@ -33,21 +33,21 @@ MAX_QTL_LENGTH = 100000
 def fetch_qtl_snps():
 
     try:
-        # load the SNPs data
+        # load the QTL SNPs data
         snps = pickle.load(open(COVERAGE_FILE, 'r'))
 
         print "INFO: Loaded data from '%s'" % COVERAGE_FILE
 
     except IOError:
-        # file doesn't exist, so compute the coverage
-        snps = check_qtl_snps()
+        # file doesn't exist, so find the QTL SNPs
+        snps = find_qtl_snps()
 
-        pickle.dump(snps, open(COVERAGE_FILE, 'w'))
+        # pickle.dump(snps, open(COVERAGE_FILE, 'w'))
 
     return snps
 
 
-def check_qtl_snps():
+def find_qtl_snps():
 
     # open a db connection
     dbc = db_conn()
@@ -59,7 +59,7 @@ def check_qtl_snps():
             WHERE genomeLoc_start IS NOT NULL
               AND genomeLoc_end IS NOT NULL
               AND (genomeLoc_end - genomeLoc_start) <= %s
-              AND id = 453
+              # AND id = 453
             GROUP BY chromosome, genomeLoc_start, genomeLoc_end
             ORDER BY chromosome, genomeLoc_start""" % MAX_QTL_LENGTH
     )
@@ -69,12 +69,17 @@ def check_qtl_snps():
     # fetch the metadata
     df = fetch_metadata()
 
-    print "INFO: Found %s samples to compute coverage for" % df.shape[0]
+    print "INFO: Found %s samples to find SNPs in" % df.shape[0]
+
+    # keep track of the SNPs we find
+    snps = defaultdict(dict)
 
     # process each QTL
     for ids, qtl in qtls.iteritems():
         # get the window coordinates
         chrom, start, end = str(qtl['chr']), qtl['start'], qtl['end'] + 1
+
+        # TODO if this is a very large window (i.e. > 100 Kb or 1 Mb) then chunk it
 
         print "INFO: Checking QTLs with window chr%s:%s-%s (%s)" % (chrom, start, end-1, ids)
 
@@ -101,14 +106,14 @@ def check_qtl_snps():
                         # skip alignments that don't have a base at this site (i.e. indels)
                         if pileupread.is_del or pileupread.is_refskip:
                             if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping indel site" % (chrom, pos)
+                                print "WARNING: chr%s:%s - skipping indel site" % (accession, chrom, pos)
                             continue
 
                         # skip low quality alignments
                         map_qual = pileupread.alignment.mapping_quality
                         if map_qual < MIN_MAPPING_QUAL:
                             if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping low mapq (%s)" % (chrom, pos, map_qual)
+                                print "WARNING: chr%s:%s - skipping low mapq (%s)" % (accession, chrom, pos, map_qual)
                             continue
 
                         # get the read postion
@@ -118,7 +123,7 @@ def check_qtl_snps():
                         base_qual = pileupread.alignment.query_qualities[read_pos]
                         if base_qual < MIN_BASE_QUAL:
                             if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping low baseq (%s)" % (chrom, pos, base_qual)
+                                print "WARNING: chr%s:%s - skipping low baseq (%s)" % (accession, chrom, pos, base_qual)
                             continue
 
                         # get the overall length of the read
@@ -127,7 +132,7 @@ def check_qtl_snps():
                         # soft clip bases near the edges of the read
                         if read_pos <= SOFT_CLIP_DIST or read_pos >= (read_length - SOFT_CLIP_DIST):
                             if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping soft clipped base (%s)" % (chrom, pos, read_pos)
+                                print "WARNING: chr%s:%s - skipping soft clipped base (%s)" % (accession, chrom, pos, read_pos)
                             continue
 
                         # get the aligned base for this read
@@ -140,18 +145,23 @@ def check_qtl_snps():
                         # add the base to the list
                         data[(chrom, pos)][accession].append(base)
 
-        # now check what overlap we have between the samples
+        # now check the coverage for multi-sample SNPs
         for chrom, pos in data:
 
             # get the unique list of alleles at this locus
             alleles = set(itertools.chain.from_iterable(data[(chrom, pos)].values()))
 
-            # TODO single sample variants?
-            if len(alleles) > 1 and len(data[(chrom, pos)]) > 1:
+            # TODO how should we handle single sample variants / are these informative?
+
+            # is this a multi-sample polymorphic SNP
+            if len(data[(chrom, pos)]) > 1 and len(alleles) > 1:
+
+                # add the locus to the SNPs dictionary
+                snps[ids][(chrom, pos)] = data[(chrom, pos)]
+
                 print "SUCCESS: Found a SNP at chr%s:%s with %s samples and alleles %s" % \
                       (chrom, pos, len(data[(chrom, pos)]), list(alleles))
 
-                pprint(data[(chrom, pos)])
-                # quit()
+    return snps
 
 fetch_qtl_snps()

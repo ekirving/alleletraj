@@ -58,7 +58,7 @@ def check_coverage():
              FROM qtls
             WHERE genomeLoc_start IS NOT NULL
               AND genomeLoc_end IS NOT NULL
-              AND (genomeLoc_end - genomeLoc_start) = %s
+              AND (genomeLoc_end - genomeLoc_start) <= %s
             GROUP BY chromosome, genomeLoc_start, genomeLoc_end
             ORDER BY chromosome, genomeLoc_start""" % MAX_QTL_LENGTH
     )

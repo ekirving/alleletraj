@@ -42,7 +42,7 @@ def fetch_qtl_snps():
         # file doesn't exist, so find the QTL SNPs
         snps = find_qtl_snps()
 
-        # pickle.dump(snps, open(COVERAGE_FILE, 'w'))
+        pickle.dump(snps, open(COVERAGE_FILE, 'w'))
 
     return snps
 
@@ -61,7 +61,7 @@ def find_qtl_snps():
               AND (genomeLoc_end - genomeLoc_start) <= %s
               # AND id = 453
             GROUP BY chromosome, genomeLoc_start, genomeLoc_end
-            ORDER BY chromosome, genomeLoc_start""" % MAX_QTL_LENGTH
+            ORDER BY CAST(IF(chromosome in ('X','Y'), 99, chromosome) AS UNSIGNED), genomeLoc_start""" % MAX_QTL_LENGTH
     )
 
     print "INFO: Found %s unique QTLs" % len(qtls)
@@ -106,14 +106,14 @@ def find_qtl_snps():
                         # skip alignments that don't have a base at this site (i.e. indels)
                         if pileupread.is_del or pileupread.is_refskip:
                             if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping indel site" % (accession, chrom, pos)
+                                print "WARNING: chr%s:%s - skipping indel site" % (chrom, pos)
                             continue
 
                         # skip low quality alignments
                         map_qual = pileupread.alignment.mapping_quality
                         if map_qual < MIN_MAPPING_QUAL:
                             if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping low mapq (%s)" % (accession, chrom, pos, map_qual)
+                                print "WARNING: chr%s:%s - skipping low mapq (%s)" % (chrom, pos, map_qual)
                             continue
 
                         # get the read postion
@@ -123,7 +123,7 @@ def find_qtl_snps():
                         base_qual = pileupread.alignment.query_qualities[read_pos]
                         if base_qual < MIN_BASE_QUAL:
                             if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping low baseq (%s)" % (accession, chrom, pos, base_qual)
+                                print "WARNING: chr%s:%s - skipping low baseq (%s)" % (chrom, pos, base_qual)
                             continue
 
                         # get the overall length of the read
@@ -132,7 +132,7 @@ def find_qtl_snps():
                         # soft clip bases near the edges of the read
                         if read_pos <= SOFT_CLIP_DIST or read_pos >= (read_length - SOFT_CLIP_DIST):
                             if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping soft clipped base (%s)" % (accession, chrom, pos, read_pos)
+                                print "WARNING: chr%s:%s - skipping soft clipped base (%s)" % (chrom, pos, read_pos)
                             continue
 
                         # get the aligned base for this read
@@ -162,6 +162,14 @@ def find_qtl_snps():
                 print "SUCCESS: Found a SNP at chr%s:%s with %s samples and alleles %s" % \
                       (chrom, pos, len(data[(chrom, pos)]), list(alleles))
 
+    # calculate some basic summary stats
+    totalqtls = len(snps)
+    totalsnps = sum([len(snps[qtl]) for qtl in snps])
+
+    print "FINISHED: Found %s unique QTLs with %s SNPs (~%s SNPs/QTL)" % (totalqtls, totalsnps, totalsnps/totalqtls)
+
     return snps
 
-fetch_qtl_snps()
+snps = fetch_qtl_snps()
+
+pprint(dict(snps))

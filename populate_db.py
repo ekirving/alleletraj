@@ -73,17 +73,17 @@ for species, qtldb_file in QTL_FILES.iteritems():
             if type(value) is OrderedDict:
                 nested = record.pop(field)
 
-                for child_name, child_value in nested.iteritems():
+                for nested_name, nested_value in nested.iteritems():
                     # for doubly nested fields, use the parent name as a prefix
-                    if type(child_value) is OrderedDict:
-                        for key in child_value:
-                            record[child_name + '_' + key] = child_value[key]
+                    if type(nested_value) is OrderedDict:
+                        for key in nested_value:
+                            record[nested_name + '_' + key] = nested_value[key]
                     elif field in ['gene']:
-                        record[field + child_name.title()] = child_value
+                        record[field + nested_name.title()] = nested_value
                     else:
-                        record[child_name] = child_value
+                        record[nested_name] = nested_value
 
-        # drop the any lingering malformed fields
+        # drop any lingering malformed fields
         record.pop('source', None)
         record.pop('breeds', None)
         record.pop('effects', None)

@@ -48,7 +48,7 @@ class db_conn:
 
         if conds:
             sub = [u"{}={}".format(key, value) for key, value in self.__format_data(conds).iteritems()]
-            sql += "WHERE {conds}".format(conds=" AND ".join(sub))
+            sql += u"WHERE {conds}".format(conds=u" AND ".join(sub))
 
         self.cursor.execute(sql)
 

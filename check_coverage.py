@@ -27,6 +27,8 @@ VERBOSE = False
 
 COVERAGE_FILE = 'coverage-pigs.pickle'
 
+# maximum length of the QTL to process (100 kb)
+MAX_QTL_LENGTH = 100000
 
 def fetch_coverage():
 
@@ -56,8 +58,9 @@ def check_coverage():
              FROM qtls
             WHERE genomeLoc_start IS NOT NULL
               AND genomeLoc_end IS NOT NULL
+              AND (genomeLoc_end - genomeLoc_start) = %s
             GROUP BY chromosome, genomeLoc_start, genomeLoc_end
-            ORDER BY chromosome, genomeLoc_start"""  # TODO remove this
+            ORDER BY chromosome, genomeLoc_start""" % MAX_QTL_LENGTH
     )
 
     print "INFO: Found %s unique QTLs" % len(qtls)
@@ -147,6 +150,4 @@ def check_coverage():
                 print "SUCCESS: Found a SNP at chr%s:%s with %s samples and alleles %s" % \
                       (chrom, pos, len(data[(chrom, pos)]), list(alleles))
 
-    return data
-
-data = fetch_coverage()
+fetch_coverage()

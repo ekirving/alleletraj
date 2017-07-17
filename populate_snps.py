@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from db_conn import db_conn
-from fetch_metadata import fetch_metadata
+from populate_samples import fetch_metadata
 
 from collections import defaultdict
 from pprint import pprint
@@ -14,6 +14,7 @@ import random
 # - there are many overlapping QTL windows (some very large windows span multiple smaller ones)
 # - there are many duplicate windows, ~8k (~44%)
 
+# show lots of debugging output
 VERBOSE = False
 
 # maximum length of the QTL to process (100 Kb)
@@ -36,65 +37,64 @@ def merge_intervals(ranges):
     yield tuple(saved)
 
 
-def populate_sample_coverage():
+def populate_snps():
     """
-    Extract the list of unique QTL intervals, scan all the samples for coverage and save the results to the databse.
+    Extract the list of unique QTL intervals, scan all the samples for coverage and save the results to the database.
     """
 
     # open a db connection
     dbc = db_conn()
 
     # get all the QTL intervals
-    results = dbc.get_records_sql(
-        """
+    results = dbc.get_records_sql("""
         SELECT DISTINCT chromosome as chrom, genomeLoc_start as start, genomeLoc_end as end
           FROM qtls
          WHERE (genomeLoc_end - genomeLoc_start) <= %s
-      ORDER BY chrom, start, end
-        """ % MAX_QTL_LENGTH, key=None
+      ORDER BY chrom, start, end""" % MAX_QTL_LENGTH, key=None
     )
 
-    intvals = defaultdict(list)
+    intervals = defaultdict(list)
 
     # group the intervals by chromosome
     for result in results:
-        intvals[result['chrom']].append((result['start'], result['end']))
+        intervals[result['chrom']].append((result['start'], result['end']))
 
     num_sites = 0
     num_intvals = 0
 
-    for chrom in intvals:
+    for chrom in intervals:
         # merge the intervals
-        intvals[chrom] = list(merge_intervals(intvals[chrom]))
+        intervals[chrom] = list(merge_intervals(intervals[chrom]))
 
         # count the intervals
-        num_intvals += len(intvals[chrom])
+        num_intvals += len(intervals[chrom])
 
-        # count the sites
-        num_sites += sum([intval[1]-intval[0] for intval in intvals[chrom]])
+        # count the sites across all intervals
+        num_sites += sum([intval[1]-intval[0] for intval in intervals[chrom]])
 
     print "INFO: Found {:,} intervals to scan, totalling {:,} bp".format(num_intvals, num_sites)
 
-    # TODO fetch the metadata
-    df = fetch_metadata()
+    # get all the samples w/ BAM files
+    samples = dbc.get_records_sql("SELECT * FROM samples "
+                                  "WHERE path IS NOT NULL")
 
-    print "INFO: Found %s samples to extract coverage for" % df.shape[0]
+    print "INFO: Found %s samples to extract coverage for" % len(samples)
 
     # process each interval
-    for chrom in intvals:
+    for chrom in intervals:
 
         print "INFO: Processing chromosome %s" % chrom
 
-        for start, end in intvals[chrom]:
+        for start, end in intervals[chrom]:
 
             if VERBOSE:
                 print "INFO: Checking interval chr%s:%s-%s" % (chrom, start, end)
 
             # check all the samples for coverage in this interval
-            for accession, sample in df.iterrows():
+            for sample_id, sample in samples.iteritems():
 
                 if VERBOSE:
-                    print "INFO: Checking sample %s" % accession
+                    print "INFO: Checking sample %s" % sample['accession']
 
                 # open the BAM file for reading
                 with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
@@ -116,7 +116,7 @@ def populate_sample_coverage():
 
                             # setup the record to insert
                             read = dict()
-                            read['sampleID'] = accession
+                            read['sampleID'] = sample_id
                             read['chrom'] = chrom
                             read['pos'] = pos
 
@@ -151,4 +151,4 @@ def populate_sample_coverage():
 
     print "FINISHED: Fully populated the database"
 
-populate_sample_coverage()
+populate_snps()

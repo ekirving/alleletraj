@@ -89,5 +89,3 @@ def populate_samples():
             sample['path'] = bam_files[accession]
 
         dbc.save_record('samples', sample)
-
-populate_samples()

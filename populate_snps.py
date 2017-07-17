@@ -2,10 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from db_conn import db_conn
-from populate_samples import fetch_metadata
 
 from collections import defaultdict
-from pprint import pprint
 
 import pysam as ps
 import random
@@ -80,15 +78,22 @@ def populate_snps():
 
     print "INFO: Found %s samples to extract coverage for" % len(samples)
 
+    # we're going to do a lot of inserts, so let's speed things up a little
+    dbc.cursor.execute("SET autocommit=0")
+    dbc.cursor.execute("SET unique_checks=0")
+    dbc.cursor.execute("SET foreign_key_checks=0")
+
     # process each interval
     for chrom in intervals:
 
-        print "INFO: Processing chromosome %s" % chrom
+        print "INFO: Processing chromosome %s (%s intervals)" % (chrom, len(intervals[chrom]))
 
         for start, end in intervals[chrom]:
 
             if VERBOSE:
                 print "INFO: Checking interval chr%s:%s-%s" % (chrom, start, end)
+            else:
+                print '.',
 
             # check all the samples for coverage in this interval
             for sample_id, sample in samples.iteritems():
@@ -149,6 +154,14 @@ def populate_snps():
                         for read in reads:
                             dbc.save_record('sample_reads', read)
 
-    print "FINISHED: Fully populated the database"
+                # commit this sample/interval
+                dbc.cnx.commit()
 
-populate_snps()
+        # finished this chrom
+        print "\n",
+
+    # now lets put it all back the way it was before
+    dbc.cursor.execute("SET unique_checks=1")
+    dbc.cursor.execute("SET foreign_key_checks=1")
+
+    print "FINISHED: Fully populated all the QTL coverage"

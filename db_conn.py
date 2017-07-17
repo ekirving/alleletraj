@@ -87,7 +87,7 @@ class db_conn:
 
         return self.cursor.fetchone() is not None
 
-    def save_record(self, table, record):
+    def save_record(self, table, record, autocommit=True):
         """
         Insert a new record
         """
@@ -105,7 +105,9 @@ class db_conn:
 
         try:
             self.cursor.execute(sql)
-            self.cnx.commit()
+
+            if autocommit:
+                self.cnx.commit()
 
         except Exception as e:
             # dump the record before throwing the exception

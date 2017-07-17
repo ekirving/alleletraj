@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: allele_trajectory
-# Generation Time: 2017-07-16 15:41:24 +0000
+# Generation Time: 2017-07-17 22:31:15 +0000
 # ************************************************************
 
 
@@ -47,7 +47,7 @@ CREATE TABLE `qtls` (
   `symbol` char(255) DEFAULT NULL,
   `pubmedID` int(11) unsigned DEFAULT NULL,
   `traitID` int(11) unsigned NOT NULL,
-  `chromosome` char(255) DEFAULT NULL,
+  `chromosome` char(2) DEFAULT NULL,
   `A1` char(255) DEFAULT NULL,
   `A2` char(255) DEFAULT NULL,
   `peak` char(255) DEFAULT NULL,
@@ -79,6 +79,51 @@ CREATE TABLE `qtls` (
   KEY `chromosome` (`chromosome`,`genomeLoc_start`,`genomeLoc_end`),
   CONSTRAINT `pubmed_fk` FOREIGN KEY (`pubmedID`) REFERENCES `pubmeds` (`id`),
   CONSTRAINT `trait_fk` FOREIGN KEY (`traitID`) REFERENCES `traits` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table sample_reads
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `sample_reads`;
+
+CREATE TABLE `sample_reads` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `sampleID` int(11) unsigned NOT NULL,
+  `chrom` varchar(2) NOT NULL DEFAULT '',
+  `pos` int(11) NOT NULL,
+  `base` varchar(1) NOT NULL DEFAULT '',
+  `mapq` int(11) NOT NULL,
+  `baseq` int(11) NOT NULL,
+  `dist` int(11) NOT NULL,
+  `random` tinyint(1) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sampleID` (`sampleID`,`chrom`,`pos`),
+  KEY `chrom` (`chrom`,`pos`),
+  CONSTRAINT `sample_fk` FOREIGN KEY (`sampleID`) REFERENCES `samples` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table samples
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `samples`;
+
+CREATE TABLE `samples` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `accession` varchar(255) DEFAULT NULL,
+  `map_reads` int(11) DEFAULT NULL,
+  `map_prcnt` float DEFAULT NULL,
+  `map_prcnt_q30` float DEFAULT NULL,
+  `age` varchar(255) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `country` varchar(255) DEFAULT NULL,
+  `status` varchar(255) DEFAULT NULL,
+  `path` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `accession` (`accession`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

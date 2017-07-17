@@ -1,4 +1,3 @@
-/media/jbod/raid5-sdb/laurent/full_run_results/Pig/AA522/AA522_rmdup.bam
 /media/jbod/raid5-sdb/laurent/full_run_results/Pig/mtDNA/bam/AA505/AA505_rmdup.bam
 /media/jbod/raid5-sdb/laurent/full_run_results/Pig/mtDNA/bam/AL1024/AL1024_rmdup.bam
 /media/jbod/raid5-sdb/laurent/full_run_results/Pig/mtDNA/bam/AA243/AA243_rmdup.bam
@@ -592,6 +591,7 @@
 /media/jbod/raid5-sdb/laurent/full_run_results/Pig/mtDNA/bam/AA353/AA353_rmdup.bam
 /media/jbod/raid5-sdb/laurent/full_run_results/Pig/mtDNA/bam/AA219/AA219_rmdup.bam
 /media/jbod/raid5-sdb/laurent/full_run_results/Pig/mtDNA/bam/AA631/AA631_rmdup.bam
+/media/jbod/raid5-sdb/laurent/full_run_results/Pig/AA522/AA522_rmdup.bam
 /media/jbod/raid5-sdb/laurent/full_run_results/Pig/AL718/AL718_rmdup.bam
 /media/jbod/raid5-sdb/laurent/full_run_results/Pig/AA119/AA119_rmdup.bam
 /media/jbod/raid5-sdb/laurent/full_run_results/Pig/KD025/KD025_rmdup.bam

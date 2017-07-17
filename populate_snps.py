@@ -8,6 +8,8 @@ from collections import defaultdict
 import pysam as ps
 import random
 
+from natsort import natsorted
+
 # observations about the QTL db
 # - there are many overlapping QTL windows (some very large windows span multiple smaller ones)
 # - there are many duplicate windows, ~8k (~44%)
@@ -83,11 +85,14 @@ def populate_snps():
     dbc.cursor.execute("SET unique_checks=0")
     dbc.cursor.execute("SET foreign_key_checks=0")
 
-    # process each interval
-    for chrom in intervals:
+    # sort the chromosomes into a normal order
+    chroms = natsorted(intervals.keys())
+
+    for chrom in chroms:
 
         print "INFO: Processing chromosome %s (%s intervals)" % (chrom, len(intervals[chrom]))
 
+        # process each interval
         for start, end in intervals[chrom]:
 
             if VERBOSE:

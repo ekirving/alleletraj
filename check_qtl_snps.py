@@ -7,169 +7,148 @@ from fetch_metadata import fetch_metadata
 from collections import defaultdict
 from pprint import pprint
 
-import itertools
 import pysam as ps
-
-import pickle
+import random
 
 # observations about the QTL db
 # - there are many overlapping QTL windows (some very large windows span multiple smaller ones)
 # - there are many duplicate windows, ~8k (~44%)
 
-# the minimum phred scaled genotype quality (30 = 99.9%)
-MIN_BASE_QUAL = 30
-MIN_MAPPING_QUAL = 30
-
-# number of bases to soft clip
-SOFT_CLIP_DIST = 5
-
 VERBOSE = False
-
-COVERAGE_FILE = 'coverage-pigs.pickle'
 
 # maximum length of the QTL to process (100 Kb)
 MAX_QTL_LENGTH = 100000
 
 
-def fetch_qtl_snps():
+def merge_intervals(ranges):
+    """
+    Merge overlapping intervals, so we only check each site once
+    """
+    saved = list(ranges[0])
+    for start, end in sorted([sorted(t) for t in ranges]):
+        if start <= saved[1]:
+            saved[1] = max(saved[1], end)
+        else:
+            yield tuple(saved)
+            saved[0] = start
+            saved[1] = end
 
-    try:
-        # load the QTL SNPs data
-        snps = pickle.load(open(COVERAGE_FILE, 'r'))
-
-        print "INFO: Loaded data from '%s'" % COVERAGE_FILE
-
-    except IOError:
-        # file doesn't exist, so find the QTL SNPs
-        snps = find_qtl_snps()
-
-        pickle.dump(snps, open(COVERAGE_FILE, 'w'))
-
-    return snps
+    yield tuple(saved)
 
 
-def find_qtl_snps():
+def populate_sample_coverage():
+    """
+    Extract the list of unique QTL intervals, scan all the samples for coverage and save the results to the databse.
+    """
 
     # open a db connection
     dbc = db_conn()
 
-    # get a sorted list of unique QTLs
-    qtls = dbc.get_records_sql(
+    # get all the QTL intervals
+    results = dbc.get_records_sql(
         """
-        SELECT GROUP_CONCAT(id) AS id, chromosome as chr, genomeLoc_start as start, genomeLoc_end as end
+        SELECT DISTINCT chromosome as chrom, genomeLoc_start as start, genomeLoc_end as end
           FROM qtls
-         WHERE genomeLoc_start IS NOT NULL
-           AND genomeLoc_end IS NOT NULL
-          AND (genomeLoc_end - genomeLoc_start) <= %s
-      GROUP BY chromosome, genomeLoc_start, genomeLoc_end
-      ORDER BY CAST(IF(chromosome in ('X','Y'), 99, chromosome) AS UNSIGNED), genomeLoc_start
-        """ % MAX_QTL_LENGTH
+         WHERE (genomeLoc_end - genomeLoc_start) <= %s
+      ORDER BY chrom, start, end
+        """ % MAX_QTL_LENGTH, key=None
     )
 
-    print "INFO: Found %s unique QTLs" % len(qtls)
+    intvals = defaultdict(list)
 
-    # fetch the metadata
+    # group the intervals by chromosome
+    for result in results:
+        intvals[result['chrom']].append((result['start'], result['end']))
+
+    num_sites = 0
+    num_intvals = 0
+
+    for chrom in intvals:
+        # merge the intervals
+        intvals[chrom] = list(merge_intervals(intvals[chrom]))
+
+        # count the intervals
+        num_intvals += len(intvals[chrom])
+
+        # count the sites
+        num_sites += sum([intval[1]-intval[0] for intval in intvals[chrom]])
+
+    print "INFO: Found {:,} intervals to scan, totalling {:,} bp".format(num_intvals, num_sites)
+
+    # TODO fetch the metadata
     df = fetch_metadata()
 
-    print "INFO: Found %s samples to find SNPs in" % df.shape[0]
+    print "INFO: Found %s samples to extract coverage for" % df.shape[0]
 
-    # keep track of the SNPs we find
-    snps = defaultdict(dict)
+    # process each interval
+    for chrom in intvals:
 
-    # process each QTL
-    for ids, qtl in qtls.iteritems():
-        # get the window coordinates
-        chrom, start, end = str(qtl['chr']), qtl['start'], qtl['end'] + 1
+        print "INFO: Processing chromosome %s" % chrom
 
-        # TODO if this is a very large window (i.e. > 100 Kb or 1 Mb) then chunk it
-
-        print "INFO: Checking QTLs with window chr%s:%s-%s (%s)" % (chrom, start, end-1, ids)
-
-        data = defaultdict(dict)
-
-        # check all the samples for coverage in this QTL
-        for accession, sample in df.iterrows():
+        for start, end in intvals[chrom]:
 
             if VERBOSE:
-                print "INFO: Checking sample %s" % accession
+                print "INFO: Checking interval chr%s:%s-%s" % (chrom, start, end)
 
-            # open the BAM file for reading
-            with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
+            # check all the samples for coverage in this interval
+            for accession, sample in df.iterrows():
 
-                # extract the qtl window
-                for pileupcolumn in bamfile.pileup(chrom, start, end):
+                if VERBOSE:
+                    print "INFO: Checking sample %s" % accession
 
-                    # what position are we at in the BAM file
-                    pos = pileupcolumn.reference_pos
+                # open the BAM file for reading
+                with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
 
-                    # iterate over all the reads for this site
-                    for pileupread in pileupcolumn.pileups:
+                    # extract the qtl window
+                    for pileupcolumn in bamfile.pileup(str(chrom), start, end+1):
 
-                        # skip alignments that don't have a base at this site (i.e. indels)
-                        if pileupread.is_del or pileupread.is_refskip:
-                            if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping indel site" % (chrom, pos)
-                            continue
+                        # what position are we at in the BAM file
+                        pos = pileupcolumn.reference_pos
 
-                        # skip low quality alignments
-                        map_qual = pileupread.alignment.mapping_quality
-                        if map_qual < MIN_MAPPING_QUAL:
-                            if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping low mapq (%s)" % (chrom, pos, map_qual)
-                            continue
+                        reads = []
 
-                        # get the read position
-                        read_pos = pileupread.query_position
+                        # iterate over all the reads for this site
+                        for pileupread in pileupcolumn.pileups:
 
-                        # skip low quality base calls
-                        base_qual = pileupread.alignment.query_qualities[read_pos]
-                        if base_qual < MIN_BASE_QUAL:
-                            if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping low baseq (%s)" % (chrom, pos, base_qual)
-                            continue
+                            # skip alignments that don't have a base at this site (i.e. indels)
+                            if pileupread.is_del or pileupread.is_refskip:
+                                continue
 
-                        # get the overall length of the read
-                        read_length = len(pileupread.alignment.query_sequence)
+                            # setup the record to insert
+                            read = dict()
+                            read['sampleID'] = accession
+                            read['chrom'] = chrom
+                            read['pos'] = pos
 
-                        # soft clip bases near the edges of the read
-                        if read_pos <= SOFT_CLIP_DIST or read_pos >= (read_length - SOFT_CLIP_DIST):
-                            if VERBOSE:
-                                print "WARNING: chr%s:%s - skipping soft clipped base (%s)" % (chrom, pos, read_pos)
-                            continue
+                            # get the read position
+                            read_pos = pileupread.query_position
 
-                        # get the aligned base for this read
-                        base = pileupread.alignment.query_sequence[read_pos]
+                            # get the aligned base for this read
+                            read['base'] = pileupread.alignment.query_sequence[read_pos]
 
-                        # initialise the dictionary
-                        if accession not in data[(chrom, pos)]:
-                            data[(chrom, pos)][accession] = []
+                            # get the map quality
+                            read['mapq'] = pileupread.alignment.mapping_quality
 
-                        # add the base to the list
-                        data[(chrom, pos)][accession].append(base)
+                            # get the base quality
+                            read['baseq'] = pileupread.alignment.query_qualities[read_pos]
 
-        # now check the coverage for multi-sample SNPs
-        for chrom, pos in data:
+                            # get the overall length of the read
+                            read_length = len(pileupread.alignment.query_sequence)
 
-            # get the unique list of alleles at this locus
-            alleles = set(itertools.chain.from_iterable(data[(chrom, pos)].values()))
+                            # how close is the base to the edge of the read
+                            read['dist'] = min(read_pos, read_length-read_pos)
 
-            # TODO how should we handle single sample variants / are these informative?
+                            reads.append(read)
 
-            # is this a multi-sample polymorphic SNP
-            if len(data[(chrom, pos)]) > 1 and len(alleles) > 1:
+                        if reads:
+                            # choose one read at random
+                            read = random.choice(reads)
+                            read['random'] = 1
 
-                # add the locus to the SNPs dictionary
-                snps[ids][(chrom, pos)] = data[(chrom, pos)]
+                        # save all the reads to the db
+                        for read in reads:
+                            dbc.save_record('sample_reads', read)
 
-                print "SUCCESS: Found a SNP at chr%s:%s with %s samples and alleles %s" % \
-                      (chrom, pos, len(data[(chrom, pos)]), list(alleles))
+    print "FINISHED: Fully populated the database"
 
-    # calculate some basic summary stats
-    total_qtls = len(snps)
-    total_snps = sum([len(snps[qtl]) for qtl in snps])
-
-    print "FINISHED: Found %s unique QTLs with %s SNPs (~%s SNPs/QTL)" % (total_qtls, total_snps, total_snps/total_qtls)
-
-    return snps
-
-fetch_qtl_snps()
+populate_sample_coverage()

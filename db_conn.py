@@ -66,7 +66,10 @@ class db_conn:
         """
         self.cursor.execute(sql)
 
-        return OrderedDict((item[key], item) for item in self.cursor)
+        if key is None:
+            return list(self.cursor)
+        else:
+            return OrderedDict((item[key], item) for item in self.cursor)
 
     def get_record(self, table, conds=None):
         """

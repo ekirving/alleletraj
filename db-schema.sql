@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: allele_trajectory
-# Generation Time: 2017-07-17 22:31:15 +0000
+# Generation Time: 2017-07-18 17:32:34 +0000
 # ************************************************************
 
 
@@ -97,11 +97,11 @@ CREATE TABLE `sample_reads` (
   `mapq` int(11) NOT NULL,
   `baseq` int(11) NOT NULL,
   `dist` int(11) NOT NULL,
-  `random` tinyint(1) NOT NULL DEFAULT '0',
+  `random` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `sampleID` (`sampleID`,`chrom`,`pos`),
   KEY `chrom` (`chrom`,`pos`),
   CONSTRAINT `sample_fk` FOREIGN KEY (`sampleID`) REFERENCES `samples` (`id`)
+  KEY `sampleID` (`sampleID`,`chrom`,`pos`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

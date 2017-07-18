@@ -102,6 +102,9 @@ def populate_coverage():
         for chrom in chroms:
             process_chrom((chrom, (intervals, samples)))
 
+    # add the indexs back in now that we're done
+    dbc.cursor.execute("ALTER TABLE sample_reads ADD INDEX (chrom, pos)")
+
     print "FINISHED: Fully populated all the QTL coverage"
 
 
@@ -186,3 +189,4 @@ def process_chrom(args):
     # now lets put it all back the way it was before
     dbc.cursor.execute("SET unique_checks=1")
     dbc.cursor.execute("SET foreign_key_checks=1")
+

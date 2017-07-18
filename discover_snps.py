@@ -111,6 +111,6 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                 
                       ) as sub
             GROUP BY sub.id
-            ORDER BY max_samples DESC, snps DESC""" % (tablename2, max_qtl))
+            ORDER BY max_samples DESC, snps DESC""" % (tablename, max_qtl))
 
     print "SUCCESS: Finished the SNP discovery"

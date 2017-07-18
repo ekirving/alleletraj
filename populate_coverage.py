@@ -27,7 +27,9 @@ MULTI_THREADED_SEARCH = True
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
+# the maximum number of rows to insert in a single operation
 MYSQL_CHUNK_SIZE = 50000
+
 
 def merge_intervals(ranges):
     """
@@ -45,7 +47,7 @@ def merge_intervals(ranges):
     yield tuple(saved)
 
 
-def populate_snps():
+def populate_coverage():
     """
     Extract the list of unique QTL intervals, scan all the samples for coverage and save the results to the database.
     """

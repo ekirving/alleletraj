@@ -27,6 +27,7 @@ MULTI_THREADED_SEARCH = False
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
+
 def merge_intervals(ranges):
     """
     Merge overlapping intervals, so we only check each site once
@@ -168,7 +169,8 @@ def process_chrom(chrom, intervals, samples):
                         # store the read so we can batch insert later
                         reads.append(read)
 
-            dbc.save_records('sample_reads', reads)
+                if reads:
+                    dbc.save_records('sample_reads', reads)
 
     # now lets put it all back the way it was before
     dbc.cursor.execute("SET unique_checks=1")

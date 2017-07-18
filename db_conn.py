@@ -118,25 +118,26 @@ class db_conn:
         Batch insert new records
         """
 
-        data = {
-            'table': table,
-            'fields': u", ".join(records[0].keys()),
-        }
-
-        sql = u"INSERT INTO {table} ({fields}) VALUES".format(**data)
-
-        values = []
-        for record in records:
-            values.append(u"({values})".format(values=u", ".join(self.__format_data(record).values())))
-
-        sql += u",".join(values)
-
         try:
+            data = {
+                'table': table,
+                'fields': u", ".join(self.__format_data(records[0]).keys()),
+            }
+
+            sql = u"INSERT INTO {table} ({fields}) VALUES".format(**data)
+
+            values = []
+            for record in records:
+                values.append(u"({values})".format(values=u", ".join(self.__format_data(record).values())))
+
+            sql += u",".join(values)
+
             self.cursor.execute(sql)
             self.cnx.commit()
 
         except Exception as e:
             # dump the record before throwing the exception
             print "ERROR: db_conn.save_record()"
-            pprint(record)
+            pprint(records)
+            pprint(sql)
             raise e

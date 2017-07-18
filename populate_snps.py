@@ -6,7 +6,8 @@ from db_conn import db_conn
 from collections import defaultdict
 
 import pysam as ps
-import random
+import multiprocessing as mp
+import itertools
 
 from natsort import natsorted
 
@@ -20,6 +21,11 @@ VERBOSE = False
 # maximum length of the QTL to process (100 Kb)
 MAX_QTL_LENGTH = 100000
 
+# should we use multi-threading to speed up record insertion
+MULTI_THREADED_SEARCH = False
+
+# no single worker should use more than 30% of the available cores
+MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
 def merge_intervals(ranges):
     """
@@ -80,93 +86,90 @@ def populate_snps():
 
     print "INFO: Found %s samples to extract coverage for" % len(samples)
 
+    # process the chromosomes in order
+    chroms = natsorted(intervals.keys())
+
+    if MULTI_THREADED_SEARCH:
+        # process the chromosomes with multi-threading to make this faster
+        pool = mp.Pool(MAX_CPU_CORES)
+        pool.map(process_chrom, itertools.izip(chroms, itertools.repeat(intervals, samples)))
+    else:
+        # process the chromosomes without multi-threading
+        for chrom in chroms:
+            process_chrom(chrom, intervals, samples)
+
+    print "FINISHED: Fully populated all the QTL coverage"
+
+
+def process_chrom(chrom, intervals, samples):
+
+    # open a db connection
+    dbc = db_conn()
+
     # we're going to do a lot of inserts, so let's speed things up a little
-    dbc.cursor.execute("SET autocommit=0")
     dbc.cursor.execute("SET unique_checks=0")
     dbc.cursor.execute("SET foreign_key_checks=0")
 
-    # sort the chromosomes into a normal order
-    chroms = natsorted(intervals.keys())
+    print "INFO: Processing chromosome %s (%s intervals)" % (chrom, len(intervals[chrom]))
 
-    for chrom in chroms:
+    # process each interval
+    for start, end in intervals[chrom]:
 
-        print "INFO: Processing chromosome %s (%s intervals)" % (chrom, len(intervals[chrom]))
+        print "INFO: Checking interval chr%s:%s-%s" % (chrom, start, end)
 
-        # process each interval
-        for start, end in intervals[chrom]:
+        # check all the samples for coverage in this interval
+        for sample_id, sample in samples.iteritems():
 
             if VERBOSE:
-                print "INFO: Checking interval chr%s:%s-%s" % (chrom, start, end)
-            else:
-                print '.',
+                print "INFO: Checking sample %s" % sample['accession']
 
-            # check all the samples for coverage in this interval
-            for sample_id, sample in samples.iteritems():
+            # open the BAM file for reading
+            with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
 
-                if VERBOSE:
-                    print "INFO: Checking sample %s" % sample['accession']
+                reads = []
 
-                # open the BAM file for reading
-                with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
+                # extract the qtl window
+                for pileupcolumn in bamfile.pileup(str(chrom), start, end + 1):
 
-                    # extract the qtl window
-                    for pileupcolumn in bamfile.pileup(str(chrom), start, end+1):
+                    # what position are we at in the BAM file
+                    pos = pileupcolumn.reference_pos
 
-                        # what position are we at in the BAM file
-                        pos = pileupcolumn.reference_pos
+                    # iterate over all the reads for this site
+                    for pileupread in pileupcolumn.pileups:
 
-                        reads = []
+                        # skip alignments that don't have a base at this site (i.e. indels)
+                        if pileupread.is_del or pileupread.is_refskip:
+                            continue
 
-                        # iterate over all the reads for this site
-                        for pileupread in pileupcolumn.pileups:
+                        # setup the record to insert
+                        read = dict()
+                        read['sampleID'] = sample_id
+                        read['chrom'] = chrom
+                        read['pos'] = pos
 
-                            # skip alignments that don't have a base at this site (i.e. indels)
-                            if pileupread.is_del or pileupread.is_refskip:
-                                continue
+                        # get the read position
+                        read_pos = pileupread.query_position
 
-                            # setup the record to insert
-                            read = dict()
-                            read['sampleID'] = sample_id
-                            read['chrom'] = chrom
-                            read['pos'] = pos
+                        # get the aligned base for this read
+                        read['base'] = pileupread.alignment.query_sequence[read_pos]
 
-                            # get the read position
-                            read_pos = pileupread.query_position
+                        # get the map quality
+                        read['mapq'] = pileupread.alignment.mapping_quality
 
-                            # get the aligned base for this read
-                            read['base'] = pileupread.alignment.query_sequence[read_pos]
+                        # get the base quality
+                        read['baseq'] = pileupread.alignment.query_qualities[read_pos]
 
-                            # get the map quality
-                            read['mapq'] = pileupread.alignment.mapping_quality
+                        # get the overall length of the read
+                        read_length = len(pileupread.alignment.query_sequence)
 
-                            # get the base quality
-                            read['baseq'] = pileupread.alignment.query_qualities[read_pos]
+                        # how close is the base to the edge of the read
+                        read['dist'] = min(read_pos, read_length - read_pos)
 
-                            # get the overall length of the read
-                            read_length = len(pileupread.alignment.query_sequence)
+                        # store the read so we can batch insert later
+                        reads.append(read)
 
-                            # how close is the base to the edge of the read
-                            read['dist'] = min(read_pos, read_length-read_pos)
-
-                            reads.append(read)
-
-                        if reads:
-                            # choose one read at random
-                            read = random.choice(reads)
-                            read['random'] = 1
-
-                        # save all the reads to the db
-                        for read in reads:
-                            dbc.save_record('sample_reads', read)
-
-                # commit this sample/interval
-                dbc.cnx.commit()
-
-        # finished this chrom
-        print "\n",
+            dbc.save_records('sample_reads', reads)
 
     # now lets put it all back the way it was before
     dbc.cursor.execute("SET unique_checks=1")
     dbc.cursor.execute("SET foreign_key_checks=1")
-
-    print "FINISHED: Fully populated all the QTL coverage"

@@ -87,7 +87,7 @@ class db_conn:
 
         return self.cursor.fetchone() is not None
 
-    def save_record(self, table, record, autocommit=True):
+    def save_record(self, table, record):
         """
         Insert a new record
         """
@@ -105,9 +105,35 @@ class db_conn:
 
         try:
             self.cursor.execute(sql)
+            self.cnx.commit()
 
-            if autocommit:
-                self.cnx.commit()
+        except Exception as e:
+            # dump the record before throwing the exception
+            print "ERROR: db_conn.save_record()"
+            pprint(record)
+            raise e
+
+    def save_records(self, table, records):
+        """
+        Batch insert new records
+        """
+
+        data = {
+            'table': table,
+            'fields': u", ".join(records[0].keys()),
+        }
+
+        sql = u"INSERT INTO {table} ({fields}) VALUES".format(**data)
+
+        values = []
+        for record in records:
+            values.append(u"({values})".format(values=u", ".join(self.__format_data(record).values())))
+
+        sql += u",".join(values)
+
+        try:
+            self.cursor.execute(sql)
+            self.cnx.commit()
 
         except Exception as e:
             # dump the record before throwing the exception

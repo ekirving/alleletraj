@@ -22,7 +22,7 @@ VERBOSE = False
 MAX_QTL_LENGTH = 100000
 
 # should we use multi-threading to speed up record insertion
-MULTI_THREADED_SEARCH = True
+MULTI_THREADED = True
 
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
@@ -93,7 +93,7 @@ def populate_coverage():
     # process the chromosomes in order
     chroms = natsorted(intervals.keys())
 
-    if MULTI_THREADED_SEARCH:
+    if MULTI_THREADED:
         # process the chromosomes with multi-threading to make this faster
         pool = mp.Pool(MAX_CPU_CORES)
         pool.map(process_chrom, itertools.izip(chroms, itertools.repeat((intervals, samples))))

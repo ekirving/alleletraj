@@ -27,6 +27,7 @@ MULTI_THREADED_SEARCH = True
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
+MYSQL_CHUNK_SIZE = 50000
 
 def merge_intervals(ranges):
     """
@@ -176,7 +177,9 @@ def process_chrom(args):
                         reads.append(read)
 
                 if reads:
-                    dbc.save_records('sample_reads', reads)
+                    # split bulk inserts into chunks so we don't exceed the max_allowed_packet size in the DB
+                    for chunk in [reads[i:i + MYSQL_CHUNK_SIZE] for i in xrange(0, len(reads), MYSQL_CHUNK_SIZE)]:
+                        dbc.save_records('sample_reads', chunk)
 
     # now lets put it all back the way it was before
     dbc.cursor.execute("SET unique_checks=1")

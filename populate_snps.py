@@ -22,7 +22,7 @@ VERBOSE = False
 MAX_QTL_LENGTH = 100000
 
 # should we use multi-threading to speed up record insertion
-MULTI_THREADED_SEARCH = False
+MULTI_THREADED_SEARCH = True
 
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
@@ -93,16 +93,22 @@ def populate_snps():
     if MULTI_THREADED_SEARCH:
         # process the chromosomes with multi-threading to make this faster
         pool = mp.Pool(MAX_CPU_CORES)
-        pool.map(process_chrom, itertools.izip(chroms, itertools.repeat(intervals, samples)))
+        pool.map(process_chrom, itertools.izip(chroms, itertools.repeat((intervals, samples))))
     else:
         # process the chromosomes without multi-threading
         for chrom in chroms:
-            process_chrom(chrom, intervals, samples)
+            process_chrom((chrom, (intervals, samples)))
 
     print "FINISHED: Fully populated all the QTL coverage"
 
 
-def process_chrom(chrom, intervals, samples):
+def process_chrom(args):
+    """
+    Scan all the intervals across this chromosome and add the covered bases to the DB.
+    """
+
+    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+    chrom, (intervals, samples) = args
 
     # open a db connection
     dbc = db_conn()

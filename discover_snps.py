@@ -73,16 +73,16 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
           SET snp = 1
         WHERE sample_reads.random = 1""")
 
-    print "INFO: Making a backup of these results"
-
-    # make a backup of these results
-    dbc.cursor.execute("""
-        CREATE TABLE %s
-              SELECT *
-                FROM sample_reads
-               WHERE snp = 1""" % tablename)
-
-    tablename2 = tablename + '_sum'
+    # print "INFO: Making a backup of these results"
+    #
+    # # make a backup of these results
+    # dbc.cursor.execute("""
+    #     CREATE TABLE %s
+    #           SELECT *
+    #             FROM sample_reads
+    #            WHERE snp = 1""" % tablename)
+    #
+    # tablename2 = tablename + '_sum'
 
     print "INFO: Calculating some summary stats"
 
@@ -113,4 +113,4 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
             GROUP BY sub.id
             ORDER BY max_samples DESC, snps DESC""" % (tablename2, max_qtl))
 
-    print "SUCCESS: Finsihed the SNP discovery"
+    print "SUCCESS: Finished the SNP discovery"

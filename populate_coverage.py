@@ -8,6 +8,7 @@ from collections import defaultdict
 import pysam as ps
 import multiprocessing as mp
 import itertools
+import mysql.connector
 
 from natsort import natsorted
 
@@ -189,25 +190,30 @@ def process_chrom(args):
         if VERBOSE:
             print "INFO: Cleaning interval chr%s:%s-%s" % (chrom, start, end)
 
-        # lock the table while we delete so there are no deadlock errors
-        dbc.cursor.execute("LOCK TABLES sample_reads WRITE")
+        pending = True
 
-        # finished the interval, lets delete the non-variant reads
-        dbc.cursor.execute("""
-            DELETE sample_reads
-              FROM sample_reads
-              JOIN (
-                      SELECT chrom, pos
-                        FROM sample_reads
-                       WHERE chrom = %s
-                         AND pos BETWEEN %s AND %s
-                    GROUP BY chrom, pos
-                      HAVING COUNT(DISTINCT base) = 1
+        while(pending):
 
-                    ) AS sub ON sub.chrom = sample_reads.chrom
-                            AND sub.pos = sample_reads.pos""" % (chrom, start, end)
-        )
+            try:
+                # finished the interval, lets delete the non-variant reads
+                dbc.cursor.execute("""
+                    DELETE sample_reads
+                      FROM sample_reads
+                      JOIN (
+                              SELECT chrom, pos
+                                FROM sample_reads
+                               WHERE chrom = %s
+                                 AND pos BETWEEN %s AND %s
+                            GROUP BY chrom, pos
+                              HAVING COUNT(DISTINCT base) = 1
+        
+                            ) AS sub ON sub.chrom = sample_reads.chrom
+                                    AND sub.pos = sample_reads.pos""" % (chrom, start, end)
+                )
+                dbc.cnx.commit()
 
-        dbc.cursor.execute("UNLOCK TABLES")
+                pending = False
 
-        dbc.cnx.commit()
+            except mysql.connector.errors.InternalError as e:
+                # this is caused by a deadlock error from multiple concurrent delete requests
+                pass

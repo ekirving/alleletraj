@@ -119,10 +119,6 @@ def process_chrom(args):
     # open a db connection
     dbc = db_conn()
 
-    # we're going to do a lot of inserts, so let's speed things up a little
-    dbc.cursor.execute("SET unique_checks=0")
-    dbc.cursor.execute("SET foreign_key_checks=0")
-
     print "INFO: Processing chromosome %s (%s intervals)" % (chrom, len(intervals[chrom]))
 
     # process each interval
@@ -146,6 +142,10 @@ def process_chrom(args):
 
                     # what position are we at in the BAM file
                     pos = pileupcolumn.reference_pos
+
+                    if pos < start or pos > end:
+                        # skip columns not in range (happens because of overlapping reads
+                        continue
 
                     # iterate over all the reads for this site
                     for pileupread in pileupcolumn.pileups:
@@ -186,23 +186,21 @@ def process_chrom(args):
                     for chunk in [reads[i:i + MYSQL_CHUNK_SIZE] for i in xrange(0, len(reads), MYSQL_CHUNK_SIZE)]:
                         dbc.save_records('sample_reads', chunk)
 
-            # finished the interval, lets delete the non-variant reads
-            dbc.cursor.execute("""
-                DELETE sample_reads
-                  FROM sample_reads
-                  JOIN (
-                          SELECT chrom, pos
-                            FROM sample_reads
-                           WHERE chrom = %s 
-                             AND pos BETWEEN %s AND %s
-                        GROUP BY chrom, pos
-                          HAVING COUNT(DISTINCT base) = 1
-                          
-                        ) AS sub ON sub.chrom = sample_reads.chrom 
-                                AND sub.pos = sample_reads.pos""" % (chrom, start, end)
-            )
+        print "INFO: Cleaning interval chr%s:%s-%s" % (chrom, start, end)
 
-    # now lets put it all back the way it was before
-    dbc.cursor.execute("SET unique_checks=1")
-    dbc.cursor.execute("SET foreign_key_checks=1")
+        # finished the interval, lets delete the non-variant reads
+        dbc.cursor.execute("""
+            DELETE sample_reads
+              FROM sample_reads
+              JOIN (
+                      SELECT chrom, pos
+                        FROM sample_reads
+                       WHERE chrom = %s
+                         AND pos BETWEEN %s AND %s
+                    GROUP BY chrom, pos
+                      HAVING COUNT(DISTINCT base) = 1
 
+                    ) AS sub ON sub.chrom = sample_reads.chrom
+                            AND sub.pos = sample_reads.pos""" % (chrom, start, end)
+        )
+        dbc.cnx.commit()

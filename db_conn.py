@@ -139,5 +139,5 @@ class db_conn:
             # dump the record before throwing the exception
             print "ERROR: db_conn.save_record()"
             # pprint(records)
-            pprint(sql)
+            # pprint(sql)
             raise e

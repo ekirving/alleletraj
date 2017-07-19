@@ -186,7 +186,8 @@ def process_chrom(args):
                     for chunk in [reads[i:i + MYSQL_CHUNK_SIZE] for i in xrange(0, len(reads), MYSQL_CHUNK_SIZE)]:
                         dbc.save_records('sample_reads', chunk)
 
-        print "INFO: Cleaning interval chr%s:%s-%s" % (chrom, start, end)
+        if VERBOSE:
+            print "INFO: Cleaning interval chr%s:%s-%s" % (chrom, start, end)
 
         # finished the interval, lets delete the non-variant reads
         dbc.cursor.execute("""

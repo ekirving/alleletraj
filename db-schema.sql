@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # https://github.com/sequelpro/sequelpro
 #
-# Host: 127.0.0.1 (MySQL 5.6.19)
+# Host: 127.0.0.1 (MySQL 5.5.55-0ubuntu0.14.04.1)
 # Database: allele_trajectory
-# Generation Time: 2017-07-18 17:32:34 +0000
+# Generation Time: 2017-07-19 22:05:50 +0000
 # ************************************************************
 
 
@@ -97,11 +97,11 @@ CREATE TABLE `sample_reads` (
   `mapq` int(11) NOT NULL,
   `baseq` int(11) NOT NULL,
   `dist` int(11) NOT NULL,
+  `quality` tinyint(1) DEFAULT NULL,
   `random` tinyint(1) DEFAULT NULL,
+  `snp` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `chrom` (`chrom`,`pos`),
-  CONSTRAINT `sample_fk` FOREIGN KEY (`sampleID`) REFERENCES `samples` (`id`)
-  KEY `sampleID` (`sampleID`,`chrom`,`pos`)
+  KEY `snp` (`snp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

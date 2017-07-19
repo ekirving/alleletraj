@@ -194,13 +194,15 @@ def process_chrom(args):
             DELETE sample_reads
               FROM sample_reads
               JOIN (
-                      SELECT chrom, pos
-                        FROM sample_reads
-                       WHERE chrom = %s
-                         AND pos BETWEEN %s AND %s
-                    GROUP BY chrom, pos
-                      HAVING COUNT(DISTINCT base) = 1
-
+                    SELECT * 
+                      FROM (
+                          SELECT chrom, pos
+                            FROM sample_reads
+                           WHERE chrom = %s
+                             AND pos BETWEEN %s AND %s
+                        GROUP BY chrom, pos
+                          HAVING COUNT(DISTINCT base) = 1
+                        ) as x
                     ) AS sub ON sub.chrom = sample_reads.chrom
                             AND sub.pos = sample_reads.pos""" % (chrom, start, end)
         )

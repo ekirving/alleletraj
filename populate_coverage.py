@@ -216,4 +216,5 @@ def process_chrom(args):
 
             except mysql.connector.errors.InternalError as e:
                 # this is caused by a deadlock error from multiple concurrent delete requests
+                print "WARNING: Deadlocked cleanup interval chr%s:%s-%s" % (chrom, start, end)
                 pass

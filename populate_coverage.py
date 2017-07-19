@@ -186,6 +186,22 @@ def process_chrom(args):
                     for chunk in [reads[i:i + MYSQL_CHUNK_SIZE] for i in xrange(0, len(reads), MYSQL_CHUNK_SIZE)]:
                         dbc.save_records('sample_reads', chunk)
 
+            # finished the interval, lets delete the non-variant reads
+            dbc.cursor.execute("""
+                DELETE sample_reads
+                  FROM sample_reads
+                  JOIN (
+                          SELECT chrom, pos
+                            FROM sample_reads
+                           WHERE chrom = %s 
+                             AND pos BETWEEN %s AND %s
+                        GROUP BY chrom, pos
+                          HAVING COUNT(DISTINCT base) = 1
+                          
+                        ) AS sub ON sub.chrom = sample_reads.chrom 
+                                AND sub.pos = sample_reads.pos""" % (chrom, start, end)
+            )
+
     # now lets put it all back the way it was before
     dbc.cursor.execute("SET unique_checks=1")
     dbc.cursor.execute("SET foreign_key_checks=1")

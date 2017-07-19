@@ -189,21 +189,25 @@ def process_chrom(args):
         if VERBOSE:
             print "INFO: Cleaning interval chr%s:%s-%s" % (chrom, start, end)
 
+        # lock the table while we delete so there are no deadlock errors
+        dbc.cursor.execute("LOCK TABLES sample_reads WRITE")
+
         # finished the interval, lets delete the non-variant reads
         dbc.cursor.execute("""
             DELETE sample_reads
               FROM sample_reads
               JOIN (
-                    SELECT * 
-                      FROM (
-                          SELECT chrom, pos
-                            FROM sample_reads
-                           WHERE chrom = %s
-                             AND pos BETWEEN %s AND %s
-                        GROUP BY chrom, pos
-                          HAVING COUNT(DISTINCT base) = 1
-                        ) as x
+                      SELECT chrom, pos
+                        FROM sample_reads
+                       WHERE chrom = %s
+                         AND pos BETWEEN %s AND %s
+                    GROUP BY chrom, pos
+                      HAVING COUNT(DISTINCT base) = 1
+
                     ) AS sub ON sub.chrom = sample_reads.chrom
                             AND sub.pos = sample_reads.pos""" % (chrom, start, end)
         )
+
+        dbc.cursor.execute("UNLOCK TABLES")
+
         dbc.cnx.commit()

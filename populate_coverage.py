@@ -127,6 +127,9 @@ def process_chrom(args):
 
         print "INFO: Checking interval chr%s:%s-%s" % (chrom, start, end)
 
+        allele = defaultdict(set)
+        reads = defaultdict(list)
+
         # check all the samples for coverage in this interval
         for sample_id, sample in samples.iteritems():
 
@@ -135,8 +138,6 @@ def process_chrom(args):
 
             # open the BAM file for reading
             with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
-
-                reads = []
 
                 # extract the qtl window
                 for pileupcolumn in bamfile.pileup(str(chrom), start, end + 1):
@@ -179,42 +180,17 @@ def process_chrom(args):
                         # how close is the base to the edge of the read
                         read['dist'] = min(read_pos, read_length - read_pos)
 
+                        # add this allele to the set
+                        allele[pos].add(read['base'])
+
                         # store the read so we can batch insert later
-                        reads.append(read)
+                        reads[pos].append(read)
 
-                if reads:
-                    # split bulk inserts into chunks so we don't exceed the max_allowed_packet size in the DB
-                    for chunk in [reads[i:i + MYSQL_CHUNK_SIZE] for i in xrange(0, len(reads), MYSQL_CHUNK_SIZE)]:
-                        dbc.save_records('sample_reads', chunk)
+        # check which sites have more than one allele
+        insert = [reads[pos] for pos in allele if len(allele[pos]) > 1]
 
-        if VERBOSE:
-            print "INFO: Cleaning interval chr%s:%s-%s" % (chrom, start, end)
-
-        pending = True
-
-        while(pending):
-
-            try:
-                # finished the interval, lets delete the non-variant reads
-                dbc.cursor.execute("""
-                    DELETE sample_reads
-                      FROM sample_reads
-                      JOIN (
-                              SELECT chrom, pos
-                                FROM sample_reads
-                               WHERE chrom = %s
-                                 AND pos BETWEEN %s AND %s
-                            GROUP BY chrom, pos
-                              HAVING COUNT(DISTINCT base) = 1
-        
-                            ) AS sub ON sub.chrom = sample_reads.chrom
-                                    AND sub.pos = sample_reads.pos""" % (chrom, start, end)
-                )
-                dbc.cnx.commit()
-
-                pending = False
-
-            except mysql.connector.errors.InternalError as e:
-                # this is caused by a deadlock error from multiple concurrent delete requests
-                print "WARNING: Deadlocked cleanup interval chr%s:%s-%s" % (chrom, start, end)
-                pass
+        if insert:
+            # split bulk inserts into chunks so we don't exceed the max_allowed_packet size in the DB
+            iterable = itertools.chain.from_iterable(insert)
+            for chunk in itertools.izip_longest(*[iter(iterable)] * MYSQL_CHUNK_SIZE):
+                dbc.save_records('sample_reads', chunk)

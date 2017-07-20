@@ -191,6 +191,7 @@ def process_chrom(args):
 
         if insert:
             # split bulk inserts into chunks so we don't exceed the max_allowed_packet size in the DB
-            iterable = itertools.chain.from_iterable(insert)
-            for chunk in itertools.izip_longest(*[iter(iterable)] * MYSQL_CHUNK_SIZE):
+            insert = list(itertools.chain.from_iterable(insert))
+            for chunk in [insert[i:i + MYSQL_CHUNK_SIZE] for i in xrange(0, len(insert), MYSQL_CHUNK_SIZE)]:
                 dbc.save_records('sample_reads', chunk)
+

@@ -23,7 +23,7 @@ VERBOSE = False
 MAX_QTL_LENGTH = 100000
 
 # should we use multi-threading to speed up record insertion
-MULTI_THREADED = False
+MULTI_THREADED = True
 
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)

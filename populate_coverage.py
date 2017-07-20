@@ -28,9 +28,6 @@ MULTI_THREADED = True
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
-# the maximum number of rows to insert in a single operation
-MYSQL_CHUNK_SIZE = 50000
-
 
 def merge_intervals(ranges):
     """
@@ -127,7 +124,8 @@ def process_chrom(args):
 
         print "INFO: Checking interval chr%s:%s-%s" % (chrom, start, end)
 
-        allele = defaultdict(set)
+        pos_alleles = defaultdict(set)
+        pos_samples = defaultdict(set)
         reads = defaultdict(list)
 
         # check all the samples for coverage in this interval
@@ -156,42 +154,45 @@ def process_chrom(args):
                         if pileupread.is_del or pileupread.is_refskip:
                             continue
 
-                        # setup the record to insert
-                        read = dict()
-                        read['sampleID'] = sample_id
-                        read['chrom'] = chrom
-                        read['pos'] = pos
-
                         # get the read position
                         read_pos = pileupread.query_position
 
                         # get the aligned base for this read
-                        read['base'] = pileupread.alignment.query_sequence[read_pos]
+                        base = pileupread.alignment.query_sequence[read_pos]
 
                         # get the map quality
-                        read['mapq'] = pileupread.alignment.mapping_quality
+                        mapq = pileupread.alignment.mapping_quality
 
                         # get the base quality
-                        read['baseq'] = pileupread.alignment.query_qualities[read_pos]
+                        baseq = pileupread.alignment.query_qualities[read_pos]
 
                         # get the overall length of the read
                         read_length = len(pileupread.alignment.query_sequence)
 
                         # how close is the base to the edge of the read
-                        read['dist'] = min(read_pos, read_length - read_pos)
+                        dist = min(read_pos, read_length - read_pos)
 
-                        # add this allele to the set
-                        allele[pos].add(read['base'])
+                        # add this allele and sample to the sets
+                        pos_alleles[pos].add(read['base'])
+                        pos_samples[pos].add(sample_id)
+
+                        # setup the record to insert, in this order
+                        read = (sample_id, chrom, pos, base, mapq, baseq, dist)
 
                         # store the read so we can batch insert later
                         reads[pos].append(read)
 
-        # check which sites have more than one allele
-        insert = [reads[pos] for pos in allele if len(allele[pos]) > 1]
+        # check which sites have more than one allele and sample
+        insert = [reads[pos] for pos in pos_alleles if len(pos_alleles[pos]) > 1 and len(pos_samples[pos]) > 1]
 
         if insert:
-            # split bulk inserts into chunks so we don't exceed the max_allowed_packet size in the DB
-            insert = list(itertools.chain.from_iterable(insert))
-            for chunk in [insert[i:i + MYSQL_CHUNK_SIZE] for i in xrange(0, len(insert), MYSQL_CHUNK_SIZE)]:
-                dbc.save_records('sample_reads', chunk)
+            # the column headers for the list of tuples
+            fields = ('sampleID', 'chrom', 'pos', 'base', 'mapq', 'baseq', 'dist')
+
+            # collapse the list of lists
+            insert = itertools.chain.from_iterable(insert)
+
+            # bulk insert the records
+            dbc.save_records('sample_reads', fields, insert)
+
 

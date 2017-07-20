@@ -2,8 +2,14 @@
 # -*- coding: utf-8 -*-
 
 import mysql.connector
+import itertools
+
 from pprint import pprint
 from collections import OrderedDict
+
+
+# the maximum number of rows to insert in a single operation
+MAX_INSERT_SIZE = 50000
 
 
 class db_conn:
@@ -113,31 +119,38 @@ class db_conn:
             pprint(record)
             raise e
 
-    def save_records(self, table, records):
+    def save_records(self, table, fields, records):
         """
         Batch insert new records
         """
 
-        data = {
-            'table': table,
-            'fields': u", ".join(self.__format_data(records[0]).keys()),
-        }
-
-        sql = u"INSERT INTO {table} ({fields}) VALUES".format(**data)
-
-        values = []
-        for record in records:
-            values.append(u"({values})".format(values=u", ".join(self.__format_data(record).values())))
-
-        sql += u",".join(values)
-
         try:
-            self.cursor.execute(sql)
-            self.cnx.commit()
+            while True:
+                # throws a StopIteration exception when we're done
+                first = records.next()
+
+                # split bulk inserts into chunks so we don't exceed the max_allowed_packet size in the DB
+                data = {
+                    'table': table,
+                    'fields': u", ".join("`{}`".format(field) for field in fields),
+                    'values': u", ".join(
+                        "('" + "','".join(record) + "')" for record in
+                        itertools.islice(itertools.chain([first], records), MAX_INSERT_SIZE))
+                }
+
+                sql = u"INSERT INTO {table} ({fields}) " \
+                      u"VALUES ({values})".format(**data)
+
+                self.cursor.execute(sql)
+                self.cnx.commit()
+
+        except StopIteration:
+            # we're done
+            pass
 
         except Exception as e:
             # dump the record before throwing the exception
-            print "ERROR: db_conn.save_record()"
+            print "ERROR: db_conn.save_records()"
             # pprint(records)
             # pprint(sql)
             raise e

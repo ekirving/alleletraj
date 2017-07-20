@@ -100,7 +100,7 @@ class db_conn:
         record = self.__format_data(record)
 
         data = {
-            'table':  table,
+            'table':  u"`{}`".format(table),
             'fields': u", ".join(record.keys()),
             'values': u", ".join(record.values()),
             'update': u", ".join([u"{}={}".format(key, value) for key, value in record.iteritems() if key != 'id'])
@@ -116,7 +116,7 @@ class db_conn:
         except Exception as e:
             # dump the record before throwing the exception
             print "ERROR: db_conn.save_record()"
-            pprint(record)
+            pprint(sql)
             raise e
 
     def save_records(self, table, fields, records):

@@ -173,7 +173,7 @@ def process_chrom(args):
                         dist = min(read_pos, read_length - read_pos)
 
                         # add this allele and sample to the sets
-                        pos_alleles[pos].add(read['base'])
+                        pos_alleles[pos].add(base)
                         pos_samples[pos].add(sample_id)
 
                         # setup the record to insert, in this order

@@ -134,12 +134,12 @@ class db_conn:
                     'table': table,
                     'fields': u", ".join("`{}`".format(field) for field in fields),
                     'values': u", ".join(
-                        "('" + "','".join(record) + "')" for record in
+                        "('" + "','".join(map(str, record)) + "')" for record in
                         itertools.islice(itertools.chain([first], records), MAX_INSERT_SIZE))
                 }
 
                 sql = u"INSERT INTO {table} ({fields}) " \
-                      u"VALUES ({values})".format(**data)
+                      u"VALUES {values}".format(**data)
 
                 self.cursor.execute(sql)
                 self.cnx.commit()
@@ -148,9 +148,9 @@ class db_conn:
             # we're done
             pass
 
-        except Exception as e:
-            # dump the record before throwing the exception
-            print "ERROR: db_conn.save_records()"
-            # pprint(records)
-            # pprint(sql)
-            raise e
+        # except Exception as e:
+        #     # dump the record before throwing the exception
+        #     print "ERROR: db_conn.save_records()"
+        #     pprint(list(records))
+        #     # pprint(sql)
+        #     raise e

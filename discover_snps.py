@@ -15,74 +15,85 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
 
     dbc = db_conn()
 
+    # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
+    chroms = dbc.get_records_sql("""
+        SELECT DISTINCT chrom
+          FROM intervals""")
+
+
     print "INFO: Starting SNP discovery for %s (%s, %s, %s)" % (tablename, min_baseq, min_mapq, min_dist)
 
-    # clear the derived columns
-    dbc.cursor.execute("""
-        UPDATE sample_reads
-           SET quality = NULL,
-               random = NULL,
-               snp = NULL""")
+    for chrom in chroms:
+        # clear the derived columns
+        dbc.cursor.execute("""
+            UPDATE sample_reads
+               SET quality = NULL,
+                   random = NULL,
+                   snp = NULL
+             WHERE chrom = %s""" % chrom)
+        dbc.cnx.commit()
 
     print "INFO: Applying quality filters"
 
-    # apply quality filters
-    dbc.cursor.execute("""
-        UPDATE sample_reads
-           SET quality = 1
-         WHERE baseq >= %s
-           AND mapq >= %s
-           AND dist > %s""" % (min_baseq, min_mapq, min_dist))
+    for chrom in chroms:
+        # apply quality filters
+        dbc.cursor.execute("""
+            UPDATE sample_reads
+               SET quality = 1
+             WHERE chrom = %s
+               AND baseq >= %s
+               AND mapq >= %s
+               AND dist > %s""" % (chrom, min_baseq, min_mapq, min_dist))
+        dbc.cnx.commit()
 
     print "INFO: Choosing a random read from those that pass quality filters"
 
-    if norand:
-        # use all the reads
-        dbc.cursor.execute("""
-                UPDATE sample_reads
-                   SET random = 1
-                 WHERE quality = 1""")
-    else:
+    for chrom in chroms:
         # choose a random read from those that pass quality filters
         dbc.cursor.execute("""
             UPDATE sample_reads
               JOIN (  
                       SELECT substring_index(group_concat(id ORDER BY rand()), ',', 1) id
                         FROM sample_reads
-                       WHERE quality = 1
+                       WHERE chrom = %s
+                         AND quality = 1
                     GROUP BY sampleID, chrom, pos
     
                    ) AS rand ON rand.id = sample_reads.id
-               SET random = 1""")
+               SET random = 1""" % chrom)
+        dbc.cnx.commit()
 
     print "INFO: Marking the sites which contain SNPs"
 
-    # mark the sites which contain SNPs
-    dbc.cursor.execute("""
-        UPDATE sample_reads
-          JOIN (
-                  SELECT chrom, pos 
-                    FROM sample_reads
-                   WHERE random = 1
-                GROUP BY chrom, pos
-                  HAVING COUNT(id) > 1
-                     AND COUNT(DISTINCT base) > 1
-                   
-                ) AS sub ON sub.chrom = sample_reads.chrom 
-                        AND sub.pos = sample_reads.pos
-          SET snp = 1
-        WHERE sample_reads.random = 1""")
+    for chrom in chroms:
+        # mark the sites which contain SNPs
+        dbc.cursor.execute("""
+            UPDATE sample_reads
+              JOIN (
+                      SELECT chrom, pos 
+                        FROM sample_reads
+                       WHERE chrom = %s
+                         AND random = 1
+                    GROUP BY chrom, pos
+                      HAVING COUNT(id) > 1
+                         AND COUNT(DISTINCT base) > 1
+                       
+                    ) AS sub ON sub.chrom = sample_reads.chrom 
+                            AND sub.pos = sample_reads.pos
+              SET snp = 1
+            WHERE sample_reads.random = 1""" % chrom)
+        dbc.cnx.commit()
 
-    # print "INFO: Making a backup of these results"
-    #
-    # # make a backup of these results
-    # dbc.cursor.execute("""
-    #     CREATE TABLE %s
-    #           SELECT *
-    #             FROM sample_reads
-    #            WHERE snp = 1""" % tablename)
-    #
-    # tablename2 = tablename + '_sum'
+    print "INFO: Making a backup of these results"
+
+    # make a backup of these results
+    dbc.cursor.execute("""
+        CREATE TABLE %s
+              SELECT *
+                FROM sample_reads
+               WHERE snp = 1""" % tablename)
+
+    tablename2 = tablename + '_sum'
 
     print "INFO: Calculating some summary stats"
 
@@ -112,5 +123,6 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                       ) as sub
             GROUP BY sub.id
             ORDER BY max_samples DESC, snps DESC""" % (tablename, max_qtl))
+    dbc.cnx.commit()
 
     print "SUCCESS: Finished the SNP discovery"

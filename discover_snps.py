@@ -18,7 +18,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
     chroms = dbc.get_records_sql("""
         SELECT DISTINCT chrom
-          FROM intervals""")
+          FROM intervals""", key='chrom')
 
 
     print "INFO: Starting SNP discovery for %s (%s, %s, %s)" % (tablename, min_baseq, min_mapq, min_dist)

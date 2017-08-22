@@ -1,0 +1,35 @@
+# performance tuning stuff
+# https://www.percona.com/blog/2007/11/01/innodb-performance-optimization-basics/
+
+sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf 
+
+	innodb_buffer_pool_size = 10G
+	innodb_log_file_size = 1G
+	innodb_log_buffer_size = 128M
+	innodb_flush_log_at_trx_commit = 2
+	innodb_flush_method = O_DIRECT
+	innodb_autoinc_lock_mode = 2
+
+	max_allowed_packet = 256M
+
+	datadir = /media/jbod/mysql-data
+	tmpdir = /media/jbod/mysql-tmp
+
+	query_cache_type = 1
+	query_cache_size = 128M
+
+# fix user home issue
+sudo usermod -d /var/lib/mysql/ mysql
+
+# edit the apparmor settings
+sudo vi /etc/apparmor.d/usr.sbin.mysqld
+
+  /media/jbod/mysql-data/ r,  
+  /media/jbod/mysql-data/** rw,
+
+  /media/jbod/mysql-tmp/ r,  
+  /media/jbod/mysql-tmp/** rw,
+
+# restart everything
+sudo service apparmor restart
+sudo service mysql restart

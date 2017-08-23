@@ -30,7 +30,10 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                SET quality = NULL,
                    random = NULL,
                    snp = NULL
-             WHERE chrom = %s""" % chrom)
+             WHERE chrom = '%s'
+               AND (quality IS NOT NULL
+                 OR random IS NOT NULL
+                 OR snp IS NOT NULL)""" % chrom)
         dbc.cnx.commit()
 
     print "INFO: Applying quality filters"
@@ -40,7 +43,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
         dbc.cursor.execute("""
             UPDATE sample_reads
                SET quality = 1
-             WHERE chrom = %s
+             WHERE chrom = '%s'
                AND baseq >= %s
                AND mapq >= %s
                AND dist > %s""" % (chrom, min_baseq, min_mapq, min_dist))
@@ -55,7 +58,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
               JOIN (  
                       SELECT substring_index(group_concat(id ORDER BY rand()), ',', 1) id
                         FROM sample_reads
-                       WHERE chrom = %s
+                       WHERE chrom = '%s'
                          AND quality = 1
                     GROUP BY sampleID, chrom, pos
     
@@ -72,7 +75,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
               JOIN (
                       SELECT chrom, pos 
                         FROM sample_reads
-                       WHERE chrom = %s
+                       WHERE chrom = '%s'
                          AND random = 1
                     GROUP BY chrom, pos
                       HAVING COUNT(id) > 1

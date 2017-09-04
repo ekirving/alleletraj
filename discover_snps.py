@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from db_conn import db_conn
+from time import time
+from datetime import timedelta
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_BASE_QUAL = 30
@@ -15,13 +17,14 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
 
     dbc = db_conn()
 
+    start = began = time()
+
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
     chroms = dbc.get_records_sql("""
         SELECT DISTINCT chrom
           FROM intervals""", key='chrom')
 
-
-    print "INFO: Starting SNP discovery for %s (%s, %s, %s)" % (tablename, min_baseq, min_mapq, min_dist)
+    print "INFO: Starting SNP discovery for %s (%s, %s, %s)... " % (tablename, min_baseq, min_mapq, min_dist),
 
     for chrom in chroms:
         # clear the derived columns
@@ -36,7 +39,10 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                  OR snp IS NOT NULL)""" % chrom)
         dbc.cnx.commit()
 
-    print "INFO: Applying quality filters"
+    print "complete (%s)." % timedelta(seconds=time() - start)
+    start = time()
+
+    print "INFO: Applying quality filters... ",
 
     for chrom in chroms:
         # apply quality filters
@@ -49,7 +55,10 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                AND dist > %s""" % (chrom, min_baseq, min_mapq, min_dist))
         dbc.cnx.commit()
 
-    print "INFO: Choosing a random read from those that pass quality filters"
+    print "complete (%s)." % timedelta(seconds=time() - start)
+    start = time()
+
+    print "INFO: Choosing a random read from those that pass quality filters... ",
 
     for chrom in chroms:
         # choose a random read from those that pass quality filters
@@ -66,7 +75,10 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                SET random = 1""" % chrom)
         dbc.cnx.commit()
 
-    print "INFO: Marking the sites which contain SNPs"
+    print "complete (%s)." % timedelta(seconds=time() - start)
+    start = time()
+
+    print "INFO: Marking the sites which contain SNPs... ",
 
     for chrom in chroms:
         # mark the sites which contain SNPs
@@ -87,7 +99,10 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
             WHERE sample_reads.random = 1""" % chrom)
         dbc.cnx.commit()
 
-    print "INFO: Making a backup of these results"
+    print "complete (%s)." % timedelta(seconds=time() - start)
+    start = time()
+
+    print "INFO: Making a backup of these results... "
 
     # make a backup of these results
     dbc.cursor.execute("""
@@ -96,9 +111,12 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                 FROM sample_reads
                WHERE snp = 1""" % tablename)
 
+    print "complete (%s)." % timedelta(seconds=time() - start)
+    start = time()
+
     tablename2 = tablename + '_sum'
 
-    print "INFO: Calculating some summary stats"
+    print "INFO: Calculating some summary stats... ",
 
     # calculate some summary stats
     dbc.cursor.execute("""
@@ -128,4 +146,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
             ORDER BY max_samples DESC, snps DESC""" % (tablename, max_qtl))
     dbc.cnx.commit()
 
-    print "SUCCESS: Finished the SNP discovery"
+    print "complete (%s)." % timedelta(seconds=time() - start)
+    start = time()
+
+    print "SUCCESS: Finished the SNP discovery (%s)" % timedelta(seconds=time() - began)

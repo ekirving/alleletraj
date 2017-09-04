@@ -24,7 +24,9 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
         SELECT DISTINCT chrom
           FROM intervals""", key='chrom')
 
-    print "INFO: Starting SNP discovery for %s (%s, %s, %s)... " % (tablename, min_baseq, min_mapq, min_dist),
+    print "INFO: Starting SNP discovery for %s (%s, %s, %s)" % (tablename, min_baseq, min_mapq, min_dist)
+
+    print "INFO: Resetting existing flags... ",
 
     for chrom in chroms:
         # clear the derived columns

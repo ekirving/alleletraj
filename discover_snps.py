@@ -113,6 +113,10 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
 
     print "INFO: Making a backup of these results... "
 
+    dbc.cursor.execute("""
+        DROP TABLE IF EXISTS %s""" % tablename)
+    dbc.cnx.commit()
+
     # make a backup of these results
     dbc.cursor.execute("""
         CREATE TABLE %s
@@ -126,6 +130,10 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
     tablename2 = tablename + '_sum'
 
     print "INFO: Calculating some summary stats... ",
+
+    dbc.cursor.execute("""
+        DROP TABLE IF EXISTS %s""" % tablename2)
+    dbc.cnx.commit()
 
     # calculate some summary stats
     dbc.cursor.execute("""

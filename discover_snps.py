@@ -17,6 +17,13 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
 
     dbc = db_conn()
 
+    # TODO run with just 1 chrom to benchmark
+    # TODO turn on query profiling - see https://dev.mysql.com/doc/refman/5.7/en/show-profile.html
+    # TODO set innodb_buffer_pool_size to 100 GB, then decrease when done - see https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool-resize.html
+    # TODO add indexes for all the group by conditions - see https://dev.mysql.com/doc/refman/5.7/en/table-scan-avoidance.html
+    # TODO try compressing the tables - see
+    # TODO try multi-threading the individual chrom queries (will this improve CPU utilisation?) * requires multiple connections
+
     start = began = time()
 
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
@@ -145,7 +152,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                 
                       ) as sub
             GROUP BY sub.id
-            ORDER BY max_samples DESC, snps DESC""" % (tablename, max_qtl))
+            ORDER BY max_samples DESC, snps DESC""" % (tablename2, max_qtl))
     dbc.cnx.commit()
 
     print "complete (%s)." % timedelta(seconds=time() - start)

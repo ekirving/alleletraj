@@ -17,10 +17,9 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
 
     dbc = db_conn()
 
-    # TODO run with just 1 chrom to benchmark
     # TODO turn on query profiling - see https://dev.mysql.com/doc/refman/5.7/en/show-profile.html
-    # TODO set innodb_buffer_pool_size to 100 GB, then decrease when done - see https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool-resize.html
     # TODO add indexes for all the group by conditions - see https://dev.mysql.com/doc/refman/5.7/en/table-scan-avoidance.html
+    # TODO set innodb_buffer_pool_size to 100 GB, then decrease when done - see https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool-resize.html
     # TODO try compressing the tables - see
     # TODO try multi-threading the individual chrom queries (will this improve CPU utilisation?) * requires multiple connections
 
@@ -48,7 +47,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                  OR snp IS NOT NULL)""" % chrom)
         dbc.cnx.commit()
 
-    print "complete (%s)." % timedelta(seconds=time() - start)
+    print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     print "INFO: Applying quality filters... ",
@@ -64,7 +63,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                AND dist > %s""" % (chrom, min_baseq, min_mapq, min_dist))
         dbc.cnx.commit()
 
-    print "complete (%s)." % timedelta(seconds=time() - start)
+    print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     print "INFO: Choosing a random read from those that pass quality filters... ",
@@ -78,13 +77,13 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                         FROM sample_reads
                        WHERE chrom = '%s'
                          AND quality = 1
-                    GROUP BY sampleID, chrom, pos
+                    GROUP BY chrom, pos, sampleID
     
                    ) AS rand ON rand.id = sample_reads.id
                SET random = 1""" % chrom)
         dbc.cnx.commit()
 
-    print "complete (%s)." % timedelta(seconds=time() - start)
+    print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     print "INFO: Marking the sites which contain SNPs... ",
@@ -108,10 +107,10 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
             WHERE sample_reads.random = 1""" % chrom)
         dbc.cnx.commit()
 
-    print "complete (%s)." % timedelta(seconds=time() - start)
+    print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
-    print "INFO: Making a backup of these results... "
+    print "INFO: Making a backup of these results... ",
 
     dbc.cursor.execute("""
         DROP TABLE IF EXISTS %s""" % tablename)
@@ -124,7 +123,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
                 FROM sample_reads
                WHERE snp = 1""" % tablename)
 
-    print "complete (%s)." % timedelta(seconds=time() - start)
+    print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     tablename2 = tablename + '_sum'
@@ -163,7 +162,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
             ORDER BY max_samples DESC, snps DESC""" % (tablename2, max_qtl))
     dbc.cnx.commit()
 
-    print "complete (%s)." % timedelta(seconds=time() - start)
+    print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     print "SUCCESS: Finished the SNP discovery (%s)" % timedelta(seconds=time() - began)

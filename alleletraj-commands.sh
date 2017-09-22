@@ -8,5 +8,12 @@ mysqldump -u root -p --single-transaction allele_trajectory \
 gunzip < allele_trajectory-fulldump.sql.gz \
 	| mysql -u root -p
 
+
+
 # run the SNP discovery
-nohup python -u build_database.py &> nohup-build.out &
+nohup python -u build_database.py &> nohup-step1.out &
+
+
+chrom, quality, random, snp
+chrom, baseq, mapq, dist
+chrom, pos, sampleID

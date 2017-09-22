@@ -22,6 +22,7 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
     # TODO set innodb_buffer_pool_size to 100 GB, then decrease when done - see https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool-resize.html
     # TODO try compressing the tables - see
     # TODO try multi-threading the individual chrom queries (will this improve CPU utilisation?) * requires multiple connections
+    # TODO try partitioning tables https://dev.mysql.com/doc/refman/5.7/en/partitioning-overview.html
 
     start = began = time()
 

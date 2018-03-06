@@ -1,33 +1,41 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import glob, itertools
+import glob, itertools, sys
 
 from Bio import SeqIO
 from collections import Counter
 
-# PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
-PATH = '/Users/Evan/Dropbox/Code/alleletraj/fasta'
+from db_conn import *
+
+PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
+# PATH = '/Users/Evan/Dropbox/Code/alleletraj/fasta'
+
+SPECIES = 'pig'
 
 OUTGROUP = 'SVSV01U01_Sverrucosus_rh.fa'
 
 EXCLUDE = 'Sverrucosus' # Sus verrucosus / Javan warty pig
 
+dbc = db_conn()
+
 # get all the fasta files (excluding the outgroup)
 fasta_files = [fasta for fasta in glob.glob(PATH + "/*.fa") if EXCLUDE not in fasta]
 
 data = {}
+chroms = set()
 
 for fasta in fasta_files:
     # load the fasta data
     data[fasta] = SeqIO.index(fasta, "fasta")
+
+    # extract the list of chromosomes from the fasta file
+    chroms |= set(data[fasta].keys())
+
     print "Loaded: {}".format(fasta)
 
 # load the outgroup data
 outgroup = SeqIO.index(PATH + '/' + OUTGROUP, "fasta")
-
-# get the list of chromosomes from the last fasta file
-chroms = data[fasta].keys()
 
 # possible values include:
 fasta_map = {
@@ -39,6 +47,7 @@ fasta_map = {
     'W': ['A', 'T'],
 }
 
+
 def decode_fasta(pileup):
     """
     Return list of haploid genotype calls
@@ -49,9 +58,9 @@ def decode_fasta(pileup):
     return sum([fasta_map.get(val, [val, val]) for val in pileup], [])
 
 
-for chrom in chroms:
+for chrom in sorted(chroms):
 
-    print "Processing chr{} in {} files".format(chrom, len(fasta_files))
+    print "Processing chr{}".format(chrom)
 
     # initialise the position counter
     pos = 0
@@ -71,7 +80,7 @@ for chrom in chroms:
         # how many alleles are there at this site
         num_alleles = len(set(haploids))
 
-        # we're looking for biallellic SNPs
+        # we're looking for biallelic SNPs
         if num_alleles == 2:
 
             # count the haploid observations
@@ -81,16 +90,31 @@ for chrom in chroms:
             ancestral = set(decode_fasta(list(outgroup[chrom].seq[pos - 1])))
 
             if len(ancestral) != 1:
-                print "WARNING: Unknown ancestral allele chr{}:{} = {}".format(chrom, pos, outgroup[chrom].seq[pos - 1])
+                print >> sys.stderr, "WARNING: Unknown ancestral allele chr{}:{} = {}".format(chrom, pos, outgroup[chrom].seq[pos - 1])
                 continue
 
             ancestral = ancestral.pop()
+            alleles = observations.keys()
 
-            if ancestral not in observations:
-                print "WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, pos, pileup, ancestral)
+            if ancestral not in alleles:
+                print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, pos, pileup, ancestral)
                 continue
 
-            print "Found %s, %s" % (observations, ancestral)
+            alleles.remove(ancestral)
+            derived = alleles.pop()
+
+            record = dict()
+            record['species'] = SPECIES
+            record['chrom'] = chrom
+            record['site'] = pos
+            record['ancestral'] = ancestral
+            record['ancestral_count'] = observations[ancestral]
+            record['derived'] = derived
+            record['derived_count'] = observations[derived]
+
+            dbc.save_record('modern_snps', record)
+
+            print '.',
 
         elif num_alleles > 2:
-            print "WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, pos + 1, pileup)
+            print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, pos + 1, pileup)

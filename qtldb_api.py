@@ -14,8 +14,8 @@ QTLDB_CHUNK_SIZE = 10
 
 QTL_FILES = {
     'pig':    'data/rel32/cM/pig.txt',
-    # 'cattle': 'data/rel32/cM/cattle.txt',
-    # 'horse':  'data/rel32/cM/horse.txt',
+    'cattle': 'data/rel32/cM/cattle.txt',
+    'horse':  'data/rel32/cM/horse.txt',
 }
 
 

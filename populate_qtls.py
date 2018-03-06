@@ -33,7 +33,7 @@ def populate_qtls():
         new_ids = list(set(qtl_ids) - set(qtls.keys()))
 
         if VERBOSE:
-            print "INFO: Found %s new QTLs to add" % len(new_ids)
+            print "INFO: Found %s new %s QTLs to add" % (len(new_ids), species)
 
         added = 0
 
@@ -92,6 +92,7 @@ def populate_qtls():
             record.pop('source', None)
             record.pop('breeds', None)
             record.pop('effects', None)
+            record.pop('statTests', None)
 
             # handle malformed data
             for field in ['linkageLoc_end', 'linkageLoc_peak', 'linkageLoc_start']:
@@ -101,9 +102,11 @@ def populate_qtls():
             # filter out any empty values
             qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')
 
+            qtl['species'] = species
+
             dbc.save_record('qtls', qtl)
 
             added += 1
 
             if VERBOSE and added % 100 == 0:
-                print "INFO: Added % 5d new QTLs" % added
+                print "INFO: Added %5d new QTLs" % added

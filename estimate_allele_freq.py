@@ -137,7 +137,7 @@ def process_chrom(chrom):
 
 if THREADS > 1:
     # process the chromosomes in parallel
-    pool = mp.ProcessingPool(THREADS)
+    pool = mp.Pool(THREADS)
     pool.map(process_chrom, CHROMS)
 else:
     for chrom in CHROMS:

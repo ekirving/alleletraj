@@ -21,7 +21,7 @@ else:
     # use real dataset
     PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
     CHROMS = [str(chrom) for chrom in range(1, 19)] + ['X', 'Y']
-    THREADS = 20
+    THREADS = 6
 
 
 SPECIES = 'pig'
@@ -64,7 +64,7 @@ def process_chrom(chrom):
     # add the outgroup to the front of the list
     fasta_files.insert(0, outgroup_fasta)
 
-    print "START: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files))
+    print "STARTED: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files))
 
     data = {}
 
@@ -111,7 +111,7 @@ def process_chrom(chrom):
             alleles = observations.keys()
 
             if ancestral not in alleles:
-                print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, site, pileup, ancestral)
+                print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, site, set(haploids), ancestral)
                 continue
 
             alleles.remove(ancestral)
@@ -130,7 +130,7 @@ def process_chrom(chrom):
             num_snps += 1
 
         elif num_alleles > 2:
-            print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, site + 1, pileup)
+            print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids))
 
     print "FINISHED: chr{} contained {} SNPs".format(chrom, num_snps)
 

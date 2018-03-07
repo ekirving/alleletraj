@@ -15,7 +15,7 @@ if socket.gethostname() == 'macbookpro.local':
     # use test dataset
     PATH = '/Users/Evan/Dropbox/Code/alleletraj/fasta'
     CHROMS = ['10', '11']
-    THREADS = 1
+    THREADS = 2
 
 else:
     # use real dataset
@@ -23,12 +23,9 @@ else:
     CHROMS = [str(chrom) for chrom in range(1, 19)] + ['X', 'Y']
     THREADS = 4
 
-
 SPECIES = 'pig'
 OUTGROUP = 'SVSV01U01_Sverrucosus_rh'
 EXCLUDE = 'Sverrucosus' # Sus verrucosus / Javan warty pig
-
-dbc = db_conn()
 
 # possible values include:
 fasta_map = {
@@ -48,12 +45,24 @@ def decode_fasta(pileup):
     return sum([fasta_map.get(val, [val, val]) for val in pileup if val != 'N'], [])
 
 
+def stream_fasta(fin):
+    """
+    Convert a file input into an iterable which returns a single character, filtering out newline characters
+    """
+    for character in itertools.chain.from_iterable(fin):
+        if character != "\n":
+            yield character
+
+
 def process_chrom(chrom):
     """
     Extract all the SNPs from a given chromosome and estiamte the allele frequency
     """
     site = 0
     num_snps = 0
+
+    # open a private connection to the database
+    dbc = db_conn()
 
     # get all the fasta files (excluding the outgroup)
     fasta_files = [fasta for fasta in glob.glob(PATH + "/*/{}.fa".format(chrom)) if EXCLUDE not in fasta]
@@ -66,19 +75,22 @@ def process_chrom(chrom):
 
     print "STARTED: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files))
 
-    data = {}
+    data = []
 
     for fasta in fasta_files:
         # load the fasta data
-        data[fasta] = SeqIO.index(fasta, "fasta")
+        fin = open(fasta, "rU")
+
+        # discard header row
+        fin.readline()
+
+        # wrap the file in an iterator
+        data.append(stream_fasta(fin))
 
         print "LOADED: {}".format(fasta)
 
-    # extract the sequence data from the current chrom in each fasta file
-    seqs = [data[fasta][chrom].seq for fasta in fasta_files]
-
     # zip the sequences together so we can iterate over them one site at a time
-    for pileup in itertools.izip(*seqs):
+    for pileup in itertools.izip_longest(*data, fillvalue='N'):
 
         # increment the counter
         site += 1

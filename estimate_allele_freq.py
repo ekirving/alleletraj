@@ -21,7 +21,7 @@ else:
     # use real dataset
     PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
     CHROMS = [str(chrom) for chrom in range(1, 19)] + ['X', 'Y']
-    THREADS = 4
+    THREADS = 20
 
 SPECIES = 'pig'
 OUTGROUP = 'SVSV01U01_Sverrucosus_rh'

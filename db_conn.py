@@ -148,9 +148,9 @@ class db_conn:
             # we're done
             pass
 
-        # except Exception as e:
-        #     # dump the record before throwing the exception
-        #     print "ERROR: db_conn.save_records()"
-        #     pprint(list(records))
-        #     # pprint(sql)
-        #     raise e
+        except Exception as e:
+            # dump the record before throwing the exception
+            print "ERROR: db_conn.save_records()"
+            pprint(list(records))
+            # pprint(sql)
+            raise e

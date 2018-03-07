@@ -1,26 +1,32 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import glob, itertools, sys
+import glob, itertools, sys, socket
 
 from Bio import SeqIO
 from collections import Counter
 
 from db_conn import *
 
-# PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
-PATH = '/Users/Evan/Dropbox/Code/alleletraj/fasta'
+# use the Pathos library for improved multi-processing
+import pathos.multiprocessing as mp
+
+if socket.gethostname() == 'macbookpro.local':
+    # use test dataset
+    PATH = '/Users/Evan/Dropbox/Code/alleletraj/fasta'
+    CHROMS = ['10', '11']
+    THREADS = 2
+
+else:
+    # use real dataset
+    PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
+    CHROMS = [str(chr) for chr in range(1,19)] + ['X', 'Y']
+    THREADS = 20
+
 
 SPECIES = 'pig'
-
 OUTGROUP = 'SVSV01U01_Sverrucosus_rh'
-
 EXCLUDE = 'Sverrucosus' # Sus verrucosus / Javan warty pig
-
-# pigs have 1-18, X & Y
-# CHROMS = [str(chr) for chr in range(1,19)] + ['X', 'Y']
-
-CHROMS = ['11']
 
 dbc = db_conn()
 
@@ -75,7 +81,7 @@ def process_chrom(chrom):
         site += 1
 
         # decode the fasta format
-        haploids = decode_fasta(list(pileup))
+        haploids = decode_fasta(pileup)
 
         # how many alleles are there at this site
         num_alleles = len(set(haploids))
@@ -87,7 +93,7 @@ def process_chrom(chrom):
             observations = Counter(haploids)
 
             # get the ancestral allele
-            ancestral = set(decode_fasta(list(outgroup[chrom].seq[site - 1])))
+            ancestral = set(decode_fasta(outgroup[chrom].seq[site - 1]))
 
             if len(ancestral) != 1:
                 print >> sys.stderr, "WARNING: Unknown ancestral allele chr{}:{} = {}".format(chrom, site, outgroup[chrom].seq[site - 1])
@@ -113,9 +119,6 @@ def process_chrom(chrom):
             record['derived_count'] = observations[derived]
 
             dbc.save_record('modern_snps', record)
-
-            print '.',
-
             num_snps += 1
 
         elif num_alleles > 2:
@@ -124,5 +127,6 @@ def process_chrom(chrom):
     print "FINISHED: chr{} contained {} SNPs".format(chrom, num_snps)
 
 
-for chrom in CHROMS:
-    process_chrom(chrom)
+# process the chromosomes in parallel
+pool = mp.ProcessingPool(THREADS)
+results = pool.map(process_chrom, CHROMS)

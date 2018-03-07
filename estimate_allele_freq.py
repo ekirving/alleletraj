@@ -20,7 +20,7 @@ if socket.gethostname() == 'macbookpro.local':
 else:
     # use real dataset
     PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
-    CHROMS = [str(chr) for chr in range(1,19)] + ['X', 'Y']
+    CHROMS = [str(chrom) for chrom in range(1, 19)] + ['X', 'Y']
     THREADS = 20
 
 
@@ -127,6 +127,10 @@ def process_chrom(chrom):
     print "FINISHED: chr{} contained {} SNPs".format(chrom, num_snps)
 
 
-# process the chromosomes in parallel
-pool = mp.ProcessingPool(THREADS)
-results = pool.map(process_chrom, CHROMS)
+if THREADS > 1:
+    # process the chromosomes in parallel
+    pool = mp.ProcessingPool(THREADS)
+    results = pool.map(process_chrom, CHROMS)
+else:
+    for chrom in CHROMS:
+        process_chrom(chrom)

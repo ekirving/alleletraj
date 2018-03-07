@@ -21,7 +21,7 @@ class db_conn:
       'user':     'root',
       'password': '',
       'host':     '127.0.0.1',
-      'database': 'allele_trajectory'
+      'database': 'allele_trajectory_old'
     }
 
     def __init__(self):

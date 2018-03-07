@@ -9,7 +9,7 @@ from collections import Counter
 from db_conn import *
 
 # use the Pathos library for improved multi-processing
-import pathos.multiprocessing as mp
+import multiprocessing as mp
 
 if socket.gethostname() == 'macbookpro.local':
     # use test dataset

@@ -56,7 +56,7 @@ def stream_fasta(fin):
 
 def process_chrom(chrom):
     """
-    Extract all the SNPs from a given chromosome and estiamte the allele frequency
+    Extract all the SNPs from a given chromosome and estimate the allele frequency
     """
     site = 0
     num_snps = 0

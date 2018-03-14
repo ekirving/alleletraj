@@ -5,6 +5,7 @@ from db_conn import *
 from qtldb_api import *
 from qtldb_lib import *
 
+# TODO make global variable
 VERBOSE = True
 
 

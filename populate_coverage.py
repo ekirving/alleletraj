@@ -133,10 +133,10 @@ def populate_intervals(species):
             record = {'species': species, 'chrom': chrom, 'start': start, 'end': end }
             dbc.save_record('intervals', record)
 
-    print "INFO: Found {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites)
+    print "INFO: Extracted {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites)
 
 
-def populate_coverage():
+def populate_coverage(species):
     """
     Extract the list of unique QTL intervals, scan all the samples for coverage and save the results to the database.
     """
@@ -144,18 +144,18 @@ def populate_coverage():
     # open a db connection
     dbc = db_conn()
 
-    # get all the intervals we've not finished processing yet
-    intervals = dbc.get_records('intervals', {'finished': 0})
-
-    print "INFO: Found {:,} intervals to scan".format(len(intervals))
+    # count all the intervals we've not finished processing yet
+    num_ints = dbc.count_records('intervals', {'species':species, 'finished': 0})
 
     # get all the samples w/ BAM files
     samples = dbc.get_records_sql(
-        "SELECT * FROM samples "
-        "WHERE path IS NOT NULL"
+        """SELECT *
+             FROM samples
+            WHERE species = '%s'
+              AND path IS NOT NULL""" % species
     )
 
-    print "INFO: Found {:,} samples to extract coverage for".format(len(samples))
+    print "INFO: Scanning {:,} {} intervals in {:,} samples".format(num_ints, species, len(samples))
 
     # before we start, tidy up any records from intervals that were not finished
     dbc.cursor.execute("""

@@ -46,6 +46,12 @@ class db_conn:
 
         return data
 
+    def __format_conditions(self, conds):
+
+        sub = [u"{}={}".format(key, value) for key, value in self.__format_data(conds).iteritems()]
+
+        return u"WHERE {conds}".format(conds=u" AND ".join(sub))
+
     def __get_records(self, table, conds=None):
         """
         Helper function for fetching records
@@ -53,8 +59,7 @@ class db_conn:
         sql = "SELECT * FROM {table} ".format(table=table)
 
         if conds:
-            sub = [u"{}={}".format(key, value) for key, value in self.__format_data(conds).iteritems()]
-            sql += u"WHERE {conds}".format(conds=u" AND ".join(sub))
+            sql += self.__format_conditions(conds)
 
         self.cursor.execute(sql)
 
@@ -65,8 +70,18 @@ class db_conn:
         sql = "DELETE FROM {table} ".format(table=table)
 
         if conds:
-            sub = [u"{}={}".format(key, value) for key, value in self.__format_data(conds).iteritems()]
-            sql += u"WHERE {conds}".format(conds=u" AND ".join(sub))
+            sql += self.__format_conditions(conds)
+
+        return self.cursor.execute(sql)
+
+    def __count_records(self, table, conds=None):
+        """
+        Helper function for counting records
+        """
+        sql = "SELECT COUNT(*) FROM {table} ".format(table=table)
+
+        if conds:
+            sql += self.__format_conditions(conds)
 
         self.cursor.execute(sql)
 
@@ -110,6 +125,14 @@ class db_conn:
         Delete all matching records
         """
         return self.__delete_records(table, conds)
+
+    def count_records(self, table, conds=None):
+        """
+        Count all matching records
+        """
+        self.__count_records(table, conds)
+
+        return self.cursor.fetchone()[u'COUNT(*)']
 
     def save_record(self, table, record):
         """

@@ -32,7 +32,11 @@ SHEET_COLS = OrderedDict([
 pd.set_option('max_colwidth', 1000)
 
 
-def fetch_metadata():
+def fetch_metadata(species):
+
+    if species != 'pig':
+        # TODO make this work for all species not just pigs
+        raise Exception('Not implemented yet for %' % species)
 
     # connect to GoogleSheets
     credentials = gs.get_credentials()
@@ -62,9 +66,9 @@ def fetch_metadata():
     return df
 
 
-def populate_samples():
+def populate_samples(species):
 
-    df = fetch_metadata()
+    df = fetch_metadata(species)
 
     # open a db connection
     dbc = db_conn()
@@ -72,15 +76,15 @@ def populate_samples():
     bam_files = {}
 
     # load the BAM file paths
-    with open('./pathtopigs.txt', 'r') as fin:
+    with open('./misc/pathtopigs.txt', 'r') as fin:
         for file_path in fin:
             # extract the accession code
             code = os.path.basename(file_path).split('_')[0]
             bam_files[code] = file_path.strip()
 
-    # check all the samples for coverage in this interval
     for accession, data in df.iterrows():
         sample = dict()
+        sample['species'] = species
         sample['accession'] = accession
         for field, value in data.iteritems():
             sample[SHEET_COLS[field]] = value if value != 'NA' else None

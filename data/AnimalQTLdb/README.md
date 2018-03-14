@@ -1,2 +1,2 @@
-Data downloaded from AnimalQTLdb Release 32
+Data downloaded from AnimalQTLdb
 https://www.animalgenome.org/cgi-bin/QTLdb/index

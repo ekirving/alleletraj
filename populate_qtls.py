@@ -110,3 +110,6 @@ def populate_qtls():
 
             if VERBOSE and added % 100 == 0:
                 print "INFO: Added %5d new QTLs" % added
+
+        if VERBOSE:
+            print "INFO: Finished adding %s new %s QTLs" % (len(new_ids), species)

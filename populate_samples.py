@@ -83,7 +83,7 @@ def populate_samples(species):
     bam_files = {}
 
     # load the BAM file paths
-    with open('./bam_files_{}.txt'.format(species), 'r') as fin:
+    with open('./data/bam_files_{}.txt'.format(species), 'r') as fin:
         for file_path in fin:
             # extract the accession code
             code = os.path.basename(file_path).split('_')[0]

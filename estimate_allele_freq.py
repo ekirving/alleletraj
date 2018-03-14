@@ -13,7 +13,7 @@ import multiprocessing as mp
 
 if socket.gethostname() == 'macbookpro.local':
     # use test dataset
-    PATH = '/Users/Evan/Dropbox/Code/alleletraj/fasta'
+    PATH = '/Users/Evan/Dropbox/Code/alleletraj/tmpdata/fasta'
     CHROMS = ['10', '11']
     THREADS = 2
 

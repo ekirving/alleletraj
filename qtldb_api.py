@@ -13,9 +13,9 @@ QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'
 QTLDB_CHUNK_SIZE = 10
 
 QTL_FILES = {
-    'pig':    'data/rel32/cM/pig.txt',
-    'cattle': 'data/rel32/cM/cattle.txt',
-    'horse':  'data/rel32/cM/horse.txt',
+    'pig':    'data/AnimalQTLdb/rel34/cM/pig.txt',
+    'cattle': 'data/AnimalQTLdb/rel34/cM/cattle.txt',
+    'horse':  'data/AnimalQTLdb/rel34/cM/horse.txt',
 }
 
 

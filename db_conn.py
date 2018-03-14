@@ -58,6 +58,18 @@ class db_conn:
 
         self.cursor.execute(sql)
 
+    def __delete_records(self, table, conds=None):
+        """
+        Helper function for deleting records
+        """
+        sql = "DELETE FROM {table} ".format(table=table)
+
+        if conds:
+            sub = [u"{}={}".format(key, value) for key, value in self.__format_data(conds).iteritems()]
+            sql += u"WHERE {conds}".format(conds=u" AND ".join(sub))
+
+        self.cursor.execute(sql)
+
     def get_records(self, table, conds=None, key='id'):
         """
         Get all matching records
@@ -92,6 +104,12 @@ class db_conn:
         self.__get_records(table, conds)
 
         return self.cursor.fetchone() is not None
+
+    def delete_records(self, table, conds=None):
+        """
+        Delete all matching records
+        """
+        return self.__delete_records(table, conds)
 
     def save_record(self, table, record):
         """

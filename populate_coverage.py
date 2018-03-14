@@ -82,6 +82,9 @@ def populate_intervals(species):
     # open a db connection
     dbc = db_conn()
 
+    # tidy up any existing intervals
+    dbc.delete_records('intervals', {'species':species})
+
     # get all the unique QTL peaks
     results = dbc.get_records_sql("""
         SELECT d.*
@@ -93,7 +96,7 @@ def populate_intervals(species):
            AND q.significance = 'Significant'     # only significant hits
            AND IFNULL(q.genomeLoc_end - q.genomeLoc_start, 0) <= {}
       GROUP BY d.id
-    """.format(species, MAX_QTL_LENGTH)
+    """.format(species, MAX_QTL_LENGTH), key=None
     )
 
     intervals = defaultdict(list)
@@ -116,21 +119,21 @@ def populate_intervals(species):
     num_intvals = 0
 
     for chrom in natsorted(intervals.keys()):
-        # merge the intervals
+        # merge overlapping intervals
         intervals[chrom] = list(merge_intervals(intervals[chrom]))
 
-        # count the intervals
+        # count the resulting merged intervals
         num_intvals += len(intervals[chrom])
 
         for start, end in intervals[chrom]:
-            # count the sites across all intervals
+            # sum the number of sites across all intervals
             num_sites += end - start
 
-            # add the intervals to the db
+            # add the merged intervals to the db
             record = {'species': species, 'chrom': chrom, 'start': start, 'end': end }
             dbc.save_record('intervals', record)
 
-    print "INFO: Found {:,} intervals, totalling {:,} bp".format(num_intvals, num_sites)
+    print "INFO: Found {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites)
 
 
 def populate_coverage():

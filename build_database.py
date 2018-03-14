@@ -8,10 +8,12 @@ from populate_samples import populate_samples
 from populate_coverage import *
 from discover_snps import discover_snps
 
-populate_qtls()
+SPECIES = ['pig', 'cattle', 'horse']
+
+# populate_qtls()
 # populate_samples()
-# for species in ['horse']:
-#     populate_intervals(species)
+for species in SPECIES:
+    populate_intervals(species)
 
 # populate_coverage()
 

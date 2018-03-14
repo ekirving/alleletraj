@@ -10,7 +10,9 @@ from discover_snps import discover_snps
 
 populate_qtls()
 # populate_samples()
-# populate_intervals()
+# for species in ['horse']:
+#     populate_intervals(species)
+
 # populate_coverage()
 
 # discover_snps('sample_reads_q20', min_baseq=20, min_mapq=20, min_dist=3, max_qtl=100000)

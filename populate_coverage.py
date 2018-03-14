@@ -23,6 +23,9 @@ VERBOSE = False
 # maximum length of the QTL to process (100 Kb)
 MAX_QTL_LENGTH = 100000
 
+# minimum depth of coverage to call diploid genotypes
+MIN_GENO_DEPTH = 10
+
 # should we use multi-threading to speed up record insertion
 MULTI_THREADED = True if socket.gethostname() != 'macbookpro.local' else False
 
@@ -157,7 +160,7 @@ def populate_coverage(species):
               AND path IS NOT NULL""" % species
     )
 
-    print "INFO: Scanning {:,} {} intervals in {:,} samples".format(len(intervals), species, len(samples))
+    print "INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species)
 
     # before we start, tidy up any records from intervals that were not finished
     dbc.cursor.execute("""
@@ -165,7 +168,8 @@ def populate_coverage(species):
           FROM sample_reads
           JOIN intervals 
             ON intervals.id = sample_reads.intervalID
-         WHERE intervals.finished = 0"""
+         WHERE intervals.species = '%s'
+           AND intervals.finished = 0""" % species
     )
     dbc.cnx.commit()
 
@@ -182,12 +186,12 @@ def populate_coverage(species):
     dbc.cursor.execute("ALTER TABLE sample_reads ADD INDEX (chrom, pos)")
     dbc.cnx.commit()
 
-    print "FINISHED: Fully populated all the QTL coverage"
+    print "FINISHED: Fully populated all the %s samples for %s intervals" % (species, len(intervals))
 
 
 def process_interval(args):
     """
-    Scan all the intervals across this chromosome and add the covered bases to the DB, as long as they are varible in
+    Scan all the intervals across this chromosome and add the covered bases to the DB, as long as they are variable in
     the modern data.
     """
 
@@ -200,7 +204,18 @@ def process_interval(args):
     # unpack the interval
     interval_id, chrom, start, end = interval['id'], interval['chrom'], interval['start'], interval['end']
 
-    print "INFO: Checking interval chr%s:%s-%s" % (chrom, start, end)
+    # get all the modern SNPs in this interval
+    snps = dbc.get_records_sql("""
+        SELECT msi.*
+          FROM intervals i
+          JOIN modern_snps_intervals msi 
+            ON msi.species = i.species
+           AND msi.chrom = i.chrom
+           AND msi.site between i.start and i.end
+         WHERE i.id = %s""" % interval_id, key=None
+    )
+
+    print "INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps))
 
     pos_alleles = defaultdict(set)
     pos_samples = defaultdict(set)
@@ -210,57 +225,60 @@ def process_interval(args):
     for sample_id, sample in samples.iteritems():
 
         if VERBOSE:
-            print "INFO: Checking sample %s" % sample['accession']
+            print "INFO: Checking %s sample %s" % (interval['species'], sample['accession'])
 
         # open the BAM file for reading
         with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
 
-            # TODO if more than 10 reads then call genotypes with bcftools
+            for snp in snps:
 
-            # extract the qtl window
-            for pileupcolumn in bamfile.pileup(str(chrom), start, end + 1):
+                for pileupcolumn in bamfile.pileup(snp['chrom'], snp['site'], snp['site'] + 1):
 
-                # what position are we at in the BAM file
-                pos = pileupcolumn.reference_pos
+                    # what position are we at in the BAM file
+                    pos = pileupcolumn.reference_pos
 
-                if pos < start or pos > end:
-                    # skip columns not in range (happens because of overlapping reads
-                    continue
-
-                # iterate over all the reads for this site
-                for pileupread in pileupcolumn.pileups:
-
-                    # skip alignments that don't have a base at this site (i.e. indels)
-                    if pileupread.is_del or pileupread.is_refskip:
+                    # skip bad columns (because pileup() returns the entire read if it overlaps the given region)
+                    if pos != snp['site']:
                         continue
 
-                    # get the read position
-                    read_pos = pileupread.query_position
+                    # TODO genotype this site properly
+                    if len(pileupcolumn.pileups) >= MIN_GENO_DEPTH:
+                        pass
 
-                    # get the aligned base for this read
-                    base = pileupread.alignment.query_sequence[read_pos]
+                    # iterate over all the reads for this site
+                    for pileupread in pileupcolumn.pileups:
 
-                    # get the map quality
-                    mapq = pileupread.alignment.mapping_quality
+                        # skip alignments that don't have a base at this site (i.e. indels)
+                        if pileupread.is_del or pileupread.is_refskip:
+                            continue
 
-                    # get the base quality
-                    baseq = pileupread.alignment.query_qualities[read_pos]
+                        # get the read position
+                        read_pos = pileupread.query_position
 
-                    # get the overall length of the read
-                    read_length = len(pileupread.alignment.query_sequence)
+                        # get the aligned base for this read
+                        base = pileupread.alignment.query_sequence[read_pos]
 
-                    # how close is the base to the edge of the read
-                    dist = min(read_pos, read_length - read_pos)
+                        # get the map quality
+                        mapq = pileupread.alignment.mapping_quality
 
-                    # add this allele and sample to the sets
-                    pos_alleles[pos].add(base)
-                    pos_samples[pos].add(sample_id)
+                        # get the base quality
+                        baseq = pileupread.alignment.query_qualities[read_pos]
 
-                    # setup the record to insert, in this order
-                    read = (interval_id, sample_id, chrom, pos, base, mapq, baseq, dist)
+                        # get the overall length of the read
+                        read_length = len(pileupread.alignment.query_sequence)
 
-                    # store the read so we can batch insert later
-                    reads[pos].append(read)
+                        # how close is the base to the edge of the read
+                        dist = min(read_pos, read_length - read_pos)
+
+                        # add this allele and sample to the sets
+                        pos_alleles[pos].add(base)
+                        pos_samples[pos].add(sample_id)
+
+                        # setup the record to insert, in this order
+                        read = (interval_id, sample_id, chrom, pos, base, mapq, baseq, dist)
+
+                        # store the read so we can batch insert later
+                        reads[pos].append(read)
 
     # check which sites have more than one allele and sample
     insert = [reads[pos] for pos in pos_alleles if len(pos_alleles[pos]) > 1 and len(pos_samples[pos]) > 1]

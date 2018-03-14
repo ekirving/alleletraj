@@ -11,10 +11,10 @@ from discover_snps import discover_snps
 SPECIES = ['pig'] #, 'cattle', 'horse']
 
 for species in SPECIES:
-    populate_qtls(species)
-    populate_intervals(species)
-    populate_samples(species)
-    # populate_coverage(species)
+    # populate_qtls(species)
+    # populate_intervals(species)
+    # populate_samples(species)
+    populate_coverage(species)
 
     # discover_snps('sample_reads_q20', min_baseq=20, min_mapq=20, min_dist=3, max_qtl=100000)
     # discover_snps('sample_reads_q30', min_baseq=30, min_mapq=30, min_dist=5, max_qtl=100000)

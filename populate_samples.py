@@ -96,7 +96,6 @@ def populate_samples(species):
         for field, value in data.iteritems():
             sample[SHEET_COLS[field]] = value if value != 'NA' else None
 
-        if accession in bam_files:
-            sample['path'] = bam_files[accession]
+        sample['path'] = bam_files[accession] if accession in bam_files else None
 
         dbc.save_record('samples', sample)

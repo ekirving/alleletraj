@@ -9,6 +9,7 @@ import pysam as ps
 import multiprocessing as mp
 import itertools
 import mysql.connector
+import socket
 
 from natsort import natsorted
 
@@ -23,7 +24,7 @@ VERBOSE = False
 MAX_QTL_LENGTH = 100000
 
 # should we use multi-threading to speed up record insertion
-MULTI_THREADED = True
+MULTI_THREADED = True if socket.gethostname() != 'macbookpro.local' else False
 
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
@@ -138,15 +139,16 @@ def populate_intervals(species):
 
 def populate_coverage(species):
     """
-    Extract the list of unique QTL intervals, scan all the samples for coverage and save the results to the database.
+    Scan all the samples for coverage of the QTLs and save the results to the database.
     """
 
     # open a db connection
     dbc = db_conn()
 
     # count all the intervals we've not finished processing yet
-    num_ints = dbc.count_records('intervals', {'species':species, 'finished': 0})
+    intervals = dbc.get_records('intervals', {'species': species, 'finished': 0})
 
+    # TODO this needs better filtering (location, domestic status, etc)
     # get all the samples w/ BAM files
     samples = dbc.get_records_sql(
         """SELECT *
@@ -155,7 +157,7 @@ def populate_coverage(species):
               AND path IS NOT NULL""" % species
     )
 
-    print "INFO: Scanning {:,} {} intervals in {:,} samples".format(num_ints, species, len(samples))
+    print "INFO: Scanning {:,} {} intervals in {:,} samples".format(len(intervals), species, len(samples))
 
     # before we start, tidy up any records from intervals that were not finished
     dbc.cursor.execute("""
@@ -163,7 +165,7 @@ def populate_coverage(species):
           FROM sample_reads
           JOIN intervals 
             ON intervals.id = sample_reads.intervalID
-         WHERE intervals.finished != 1"""
+         WHERE intervals.finished = 0"""
     )
     dbc.cnx.commit()
 
@@ -185,7 +187,8 @@ def populate_coverage(species):
 
 def process_interval(args):
     """
-    Scan all the intervals across this chromosome and add the covered bases to the DB.
+    Scan all the intervals across this chromosome and add the covered bases to the DB, as long as they are varible in
+    the modern data.
     """
 
     # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
@@ -194,6 +197,7 @@ def process_interval(args):
     # open a db connection
     dbc = db_conn()
 
+    # unpack the interval
     interval_id, chrom, start, end = interval['id'], interval['chrom'], interval['start'], interval['end']
 
     print "INFO: Checking interval chr%s:%s-%s" % (chrom, start, end)
@@ -210,6 +214,8 @@ def process_interval(args):
 
         # open the BAM file for reading
         with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
+
+            # TODO if more than 10 reads then call genotypes with bcftools
 
             # extract the qtl window
             for pileupcolumn in bamfile.pileup(str(chrom), start, end + 1):

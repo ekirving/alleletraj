@@ -212,14 +212,14 @@ def process_interval(args):
 
     # get all the modern SNPs in this interval
     snps = dbc.get_records_sql("""
-        SELECT ms.*
+        SELECT ms.site
           FROM intervals i
           JOIN modern_snps ms 
             ON ms.species = i.species
            AND ms.chrom = i.chrom
            AND ms.site between i.start and i.end
-         WHERE i.id = %s""" % interval_id, key=None
-    )
+         WHERE i.id = %s""" % interval_id, key='site'
+    ).keys()
 
     print "INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps))
 
@@ -239,57 +239,56 @@ def process_interval(args):
         # open the BAM file for reading
         with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
 
-            for snp in snps:
+            # get the full interval
+            for pileupcolumn in bamfile.pileup(chrom, start, end + 1):
 
-                for pileupcolumn in bamfile.pileup(snp['chrom'], snp['site'], snp['site'] + 1):
+                # what position are we at in the BAM file
+                pos = pileupcolumn.reference_pos
 
-                    # what position are we at in the BAM file
-                    pos = pileupcolumn.reference_pos
+                # skip all non-SNP sites
+                if pos not in snps:
+                    continue
 
-                    # skip out of range sites (because pileup() returns the entire read if it overlaps the given region)
-                    if pos != snp['site']:
+                if len(pileupcolumn.pileups) >= MIN_GENO_DEPTH:
+                    # TODO genotype this site properly
+                    pass
+
+                # iterate over all the reads for this site
+                for pileupread in pileupcolumn.pileups:
+
+                    # skip alignments that don't have a base at this site (i.e. indels)
+                    if pileupread.is_del or pileupread.is_refskip:
                         continue
 
-                    if len(pileupcolumn.pileups) >= MIN_GENO_DEPTH:
-                        # TODO genotype this site properly
-                        pass
+                    # get the read position
+                    read_pos = pileupread.query_position
 
-                    # iterate over all the reads for this site
-                    for pileupread in pileupcolumn.pileups:
+                    # get the aligned base for this read
+                    base = pileupread.alignment.query_sequence[read_pos]
 
-                        # skip alignments that don't have a base at this site (i.e. indels)
-                        if pileupread.is_del or pileupread.is_refskip:
-                            continue
+                    # get the map quality
+                    mapq = pileupread.alignment.mapping_quality
 
-                        # get the read position
-                        read_pos = pileupread.query_position
+                    if mapq < HARD_MAPQ_CUTOFF:
+                        continue
 
-                        # get the aligned base for this read
-                        base = pileupread.alignment.query_sequence[read_pos]
+                    # get the base quality
+                    baseq = pileupread.alignment.query_qualities[read_pos]
 
-                        # get the map quality
-                        mapq = pileupread.alignment.mapping_quality
+                    if baseq < HARD_BASEQ_CUTOFF:
+                        continue
 
-                        if mapq < HARD_MAPQ_CUTOFF:
-                            continue
+                    # get the overall length of the read
+                    read_length = len(pileupread.alignment.query_sequence)
 
-                        # get the base quality
-                        baseq = pileupread.alignment.query_qualities[read_pos]
+                    # how close is the base to the edge of the read
+                    dist = min(read_pos, read_length - read_pos)
 
-                        if baseq < HARD_BASEQ_CUTOFF:
-                            continue
+                    # setup the record to insert, in this order
+                    read = (interval_id, sample_id, chrom, pos, base, mapq, baseq, dist)
 
-                        # get the overall length of the read
-                        read_length = len(pileupread.alignment.query_sequence)
-
-                        # how close is the base to the edge of the read
-                        dist = min(read_pos, read_length - read_pos)
-
-                        # setup the record to insert, in this order
-                        read = (interval_id, sample_id, chrom, pos, base, mapq, baseq, dist)
-
-                        # store the read so we can batch insert later
-                        reads.append(read)
+                    # store the read so we can batch insert later
+                    reads.append(read)
 
         if reads:
             # count the total number of reads

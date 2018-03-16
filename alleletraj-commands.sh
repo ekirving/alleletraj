@@ -21,6 +21,14 @@ LOAD DATA LOCAL INFILE '/home/evan/dnSNP/dbsnp.horse_9796.data' INTO TABLE dbsnp
 LOAD DATA LOCAL INFILE '/home/evan/dnSNP/dbsnp.pig_9823.data' INTO TABLE dbsnp (rsnumber, chrom, site) SET species = 'pig';
 
 
+create table modern_snps_intervals
+select ms.*
+from intervals i
+join modern_snps ms 
+  on ms.species = i.species
+ and ms.chrom = i.chrom
+ and ms.site between i.start and i.end
+where i.species = 'pig';
 
 
 # run the SNP discovery

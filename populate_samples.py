@@ -78,7 +78,7 @@ def populate_samples(species):
     df = fetch_metadata(species)
 
     if VERBOSE:
-        print "INFO: Found %s %s samples to process" % (len(df), species)
+        print "INFO: Found %s %s samples to update" % (len(df), species)
 
     bam_files = {}
 
@@ -99,3 +99,6 @@ def populate_samples(species):
         sample['path'] = bam_files[accession] if accession in bam_files else None
 
         dbc.save_record('samples', sample)
+
+    if VERBOSE:
+        print "INFO: Finished updating %s %s samples" % (len(df), species)

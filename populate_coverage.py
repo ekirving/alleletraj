@@ -26,6 +26,12 @@ MAX_QTL_LENGTH = 100000
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10
 
+# minumum mapping quality (hard filtered)
+HARD_MAPQ_CUTOFF = 20
+
+# minimum base quality (hard filtered)
+HARD_BASEQ_CUTOFF = 20
+
 # should we use multi-threading to speed up record insertion
 MULTI_THREADED = True if socket.gethostname() != 'macbookpro.local' else False
 
@@ -261,8 +267,14 @@ def process_interval(args):
                         # get the map quality
                         mapq = pileupread.alignment.mapping_quality
 
+                        if mapq < HARD_MAPQ_CUTOFF:
+                            continue
+
                         # get the base quality
                         baseq = pileupread.alignment.query_qualities[read_pos]
+
+                        if baseq < HARD_BASEQ_CUTOFF:
+                            continue
 
                         # get the overall length of the read
                         read_length = len(pileupread.alignment.query_sequence)

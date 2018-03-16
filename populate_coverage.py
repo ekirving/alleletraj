@@ -212,12 +212,12 @@ def process_interval(args):
 
     # get all the modern SNPs in this interval
     snps = dbc.get_records_sql("""
-        SELECT msi.*
+        SELECT ms.*
           FROM intervals i
-          JOIN modern_snps_intervals msi 
-            ON msi.species = i.species
-           AND msi.chrom = i.chrom
-           AND msi.site between i.start and i.end
+          JOIN modern_snps ms 
+            ON ms.species = i.species
+           AND ms.chrom = i.chrom
+           AND ms.site between i.start and i.end
          WHERE i.id = %s""" % interval_id, key=None
     )
 

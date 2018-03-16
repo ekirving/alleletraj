@@ -291,10 +291,10 @@ def process_interval(args):
                         # store the read so we can batch insert later
                         reads.append(read)
 
-        # count the total number of reads
-        num_reads += len(reads)
-
         if reads:
+            # count the total number of reads
+            num_reads += len(reads)
+
             # bulk insert all the reads for this sample
             dbc.save_records('sample_reads', fields, reads)
 
@@ -302,5 +302,4 @@ def process_interval(args):
     interval['finished'] = 1
     dbc.save_record('intervals', interval)
 
-    if VERBOSE:
-        print "INFO: Found {} reads for interval chr{}:{}-{}".format(chrom, start, end)
+    print "INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end)

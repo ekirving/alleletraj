@@ -18,7 +18,7 @@ from natsort import natsorted
 # - there are many duplicate windows, ~8k (~44%)
 
 # show lots of debugging output
-VERBOSE = False
+VERBOSE = True
 
 # maximum length of the QTL to process (100 Kb)
 MAX_QTL_LENGTH = 100000
@@ -223,15 +223,18 @@ def process_interval(args):
 
     print "INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps))
 
-    pos_alleles = defaultdict(set)
-    pos_samples = defaultdict(set)
-    reads = defaultdict(list)
+    # the column headers for the list of tuples
+    fields = ('intervalID', 'sampleID', 'chrom', 'pos', 'base', 'mapq', 'baseq', 'dist')
+
+    num_reads = 0
 
     # check all the samples for coverage in this interval
     for sample_id, sample in samples.iteritems():
 
         if VERBOSE:
-            print "INFO: Checking %s sample %s" % (interval['species'], sample['accession'])
+            print "INFO: Scanning interval chr{}:{}-{} for sample {}".format(chrom, start, end, sample['accession'])
+
+        reads = list()
 
         # open the BAM file for reading
         with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
@@ -243,12 +246,12 @@ def process_interval(args):
                     # what position are we at in the BAM file
                     pos = pileupcolumn.reference_pos
 
-                    # skip bad columns (because pileup() returns the entire read if it overlaps the given region)
+                    # skip out of range sites (because pileup() returns the entire read if it overlaps the given region)
                     if pos != snp['site']:
                         continue
 
-                    # TODO genotype this site properly
                     if len(pileupcolumn.pileups) >= MIN_GENO_DEPTH:
+                        # TODO genotype this site properly
                         pass
 
                     # iterate over all the reads for this site
@@ -282,31 +285,22 @@ def process_interval(args):
                         # how close is the base to the edge of the read
                         dist = min(read_pos, read_length - read_pos)
 
-                        # add this allele and sample to the sets
-                        pos_alleles[pos].add(base)
-                        pos_samples[pos].add(sample_id)
-
                         # setup the record to insert, in this order
                         read = (interval_id, sample_id, chrom, pos, base, mapq, baseq, dist)
 
                         # store the read so we can batch insert later
-                        reads[pos].append(read)
+                        reads.append(read)
 
-    # check which sites have more than one allele and sample
-    insert = [reads[pos] for pos in pos_alleles if len(pos_alleles[pos]) > 1 and len(pos_samples[pos]) > 1]
+        # count the total number of reads
+        num_reads += len(reads)
 
-    if insert:
-        # the column headers for the list of tuples
-        fields = ('intervalID', 'sampleID', 'chrom', 'pos', 'base', 'mapq', 'baseq', 'dist')
-
-        # collapse the list of lists
-        insert = itertools.chain.from_iterable(insert)
-
-        # bulk insert the records
-        dbc.save_records('sample_reads', fields, insert)
+        if reads:
+            # bulk insert all the reads for this sample
+            dbc.save_records('sample_reads', fields, reads)
 
     # update the interval to show we're done
     interval['finished'] = 1
     dbc.save_record('intervals', interval)
 
-
+    if VERBOSE:
+        print "INFO: Found {} reads for interval chr{}:{}-{}".format(chrom, start, end)

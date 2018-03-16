@@ -165,6 +165,10 @@ class db_conn:
         Batch insert new records
         """
 
+        if type(records) is list:
+            # convert to an iterable
+            records = itertools.chain.from_iterable([records])
+
         try:
             while True:
                 # throws a StopIteration exception when we're done

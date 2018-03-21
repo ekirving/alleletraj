@@ -41,3 +41,15 @@ chrom, pos, sampleID
 
 
 parallel "samtools faidx {} 10:1116-1116" ::: /media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA/*/10.fa > tmp.log; grep -v '>' tmp.log | sort | uniq -c;
+
+
+age	
+confident	
+lower
+upper
+median
+
+nohup mysql < sample_reads_innodb_part.sql &> nohup_innodb_part.out &
+nohup mysql < sample_reads_innodb.sql &> nohup_innodb.out &
+nohup mysql < sample_reads_mysiam_part.sql &> nohup_mysiam_part.out &
+nohup mysql < sample_reads_mysiam.sql &> nohup_mysiam.out &

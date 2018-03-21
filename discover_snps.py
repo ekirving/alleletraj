@@ -5,6 +5,8 @@ from db_conn import db_conn
 from time import time
 from datetime import timedelta
 
+from populate_coverage import *
+
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_BASE_QUAL = 30
 MIN_MAPPING_QUAL = 30
@@ -13,7 +15,7 @@ MIN_MAPPING_QUAL = 30
 SOFT_CLIP_DIST = 5
 
 
-def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=False):
+def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
 
     dbc = db_conn()
 
@@ -27,14 +29,13 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
     start = began = time()
 
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    chroms = dbc.get_records_sql("""
-        SELECT DISTINCT chrom
-          FROM intervals""", key='chrom')
+    chroms = CHROM_SIZE[species].keys()
 
     print "INFO: Starting SNP discovery for %s (%s, %s, %s)" % (tablename, min_baseq, min_mapq, min_dist)
 
     print "INFO: Resetting existing flags... ",
 
+    # TODO add species filter
     for chrom in chroms:
         # clear the derived columns
         dbc.cursor.execute("""
@@ -164,6 +165,5 @@ def discover_snps(tablename, min_baseq, min_mapq, min_dist, max_qtl, norand=Fals
     dbc.cnx.commit()
 
     print "(%s)." % timedelta(seconds=time() - start)
-    start = time()
 
     print "SUCCESS: Finished the SNP discovery (%s)" % timedelta(seconds=time() - began)

@@ -188,9 +188,9 @@ def populate_coverage(species):
         for interval in intervals.values():
             process_interval((interval, samples))
 
-    # add the indexs back in now that we're done
-    dbc.cursor.execute("ALTER TABLE sample_reads ADD INDEX (chrom, pos)")
-    dbc.cnx.commit()
+    # TODO add the indexs back in now that we're done
+    # dbc.cursor.execute("ALTER TABLE sample_reads ADD INDEX (chrom, pos)")
+    # dbc.cnx.commit()
 
     print "FINISHED: Fully populated all the %s samples for %s intervals" % (species, len(intervals))
 

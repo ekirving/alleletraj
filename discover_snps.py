@@ -15,7 +15,7 @@ MIN_MAPPING_QUAL = 30
 SOFT_CLIP_DIST = 5
 
 
-def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
+def discover_snps(species, dataset, tablename, min_baseq, min_mapq, min_dist, max_qtl):
 
     dbc = db_conn()
 
@@ -39,14 +39,14 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
     for chrom in chroms:
         # clear the derived columns
         dbc.cursor.execute("""
-            UPDATE sample_reads
+            UPDATE %s
                SET quality = NULL,
                    random = NULL,
                    snp = NULL
              WHERE chrom = '%s'
                AND (quality IS NOT NULL
                  OR random IS NOT NULL
-                 OR snp IS NOT NULL)""" % chrom)
+                 OR snp IS NOT NULL)""" % (dataset, chrom))
         dbc.cnx.commit()
 
     print "(%s)." % timedelta(seconds=time() - start)
@@ -57,12 +57,12 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
     for chrom in chroms:
         # apply quality filters
         dbc.cursor.execute("""
-            UPDATE sample_reads
+            UPDATE %s
                SET quality = 1
              WHERE chrom = '%s'
                AND baseq >= %s
                AND mapq >= %s
-               AND dist > %s""" % (chrom, min_baseq, min_mapq, min_dist))
+               AND dist > %s""" % (dataset, chrom, min_baseq, min_mapq, min_dist))
         dbc.cnx.commit()
 
     print "(%s)." % timedelta(seconds=time() - start)
@@ -73,16 +73,16 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
     for chrom in chroms:
         # choose a random read from those that pass quality filters
         dbc.cursor.execute("""
-            UPDATE sample_reads
+            UPDATE %s
               JOIN (  
                       SELECT substring_index(group_concat(id ORDER BY rand()), ',', 1) id
-                        FROM sample_reads
+                        FROM %s
                        WHERE chrom = '%s'
                          AND quality = 1
                     GROUP BY chrom, pos, sampleID
     
-                   ) AS rand ON rand.id = sample_reads.id
-               SET random = 1""" % chrom)
+                   ) AS rand ON rand.id = %s.id
+               SET random = 1""" % (dataset, dataset, chrom, dataset))
         dbc.cnx.commit()
 
     print "(%s)." % timedelta(seconds=time() - start)
@@ -93,20 +93,20 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
     for chrom in chroms:
         # mark the sites which contain SNPs
         dbc.cursor.execute("""
-            UPDATE sample_reads
+            UPDATE %s
               JOIN (
                       SELECT chrom, pos 
-                        FROM sample_reads
+                        FROM %s
                        WHERE chrom = '%s'
                          AND random = 1
                     GROUP BY chrom, pos
                       HAVING COUNT(id) > 1
                          AND COUNT(DISTINCT base) > 1
                        
-                    ) AS sub ON sub.chrom = sample_reads.chrom 
-                            AND sub.pos = sample_reads.pos
+                    ) AS sub ON sub.chrom = %s.chrom 
+                            AND sub.pos = %s.pos
               SET snp = 1
-            WHERE sample_reads.random = 1""" % chrom)
+            WHERE %s.random = 1""" % (dataset, dataset, chrom, dataset, dataset, dataset))
         dbc.cnx.commit()
 
     print "(%s)." % timedelta(seconds=time() - start)
@@ -122,8 +122,8 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
     dbc.cursor.execute("""
         CREATE TABLE %s
               SELECT *
-                FROM sample_reads
-               WHERE snp = 1""" % tablename)
+                FROM %s
+               WHERE snp = 1""" % (tablename, dataset))
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
@@ -152,7 +152,7 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
                             FROM qtls q
                             JOIN traits t
                               ON t.id = q.traitID
-                            JOIN sample_reads sr
+                            JOIN %s sr
                               ON sr.chrom = q.chromosome
                              AND sr.snp = 1
                              AND sr.pos BETWEEN q.genomeLoc_start and q.genomeLoc_end 
@@ -161,7 +161,7 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
                 
                       ) as sub
             GROUP BY sub.id
-            ORDER BY max_samples DESC, snps DESC""" % (tablename2, max_qtl))
+            ORDER BY max_samples DESC, snps DESC""" % (tablename2, dataset, max_qtl))
     dbc.cnx.commit()
 
     print "(%s)." % timedelta(seconds=time() - start)

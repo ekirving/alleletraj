@@ -159,7 +159,7 @@ def process_chrom(chrom):
             record['derived'] = derived
             record['derived_count'] = observations[derived]
 
-            dbc.save_record('modern_snps_complete', record)
+            dbc.save_record('modern_snps', record)
             num_snps += 1
 
         elif num_alleles > 2:

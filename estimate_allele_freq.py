@@ -8,8 +8,10 @@ from collections import Counter
 
 from db_conn import *
 
-# use the Pathos library for improved multi-processing
 import multiprocessing as mp
+
+# show lots of debugging output
+VERBOSE = False
 
 if socket.gethostname() == 'macbookpro.local':
     # use test dataset
@@ -108,7 +110,8 @@ def process_chrom(chrom):
         # wrap the file in an iterator
         data.append(stream_fasta(fin))
 
-        print "LOADED: {}".format(fasta)
+        if VERBOSE:
+            print "LOADED: {}".format(fasta)
 
     # zip the sequences together so we can iterate over them one site at a time
     for pileup in itertools.izip_longest(*data, fillvalue='N'):
@@ -137,14 +140,16 @@ def process_chrom(chrom):
             ancestral = set(decode_fasta(outgroup_allele))
 
             if len(ancestral) != 1:
-                print >> sys.stderr, "WARNING: Unknown ancestral allele chr{}:{} = {}".format(chrom, site, outgroup_allele)
+                if VERBOSE:
+                    print >> sys.stderr, "WARNING: Unknown ancestral allele chr{}:{} = {}".format(chrom, site, outgroup_allele)
                 continue
 
             ancestral = ancestral.pop()
             alleles = observations.keys()
 
             if ancestral not in alleles:
-                print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, site, set(haploids), ancestral)
+                if VERBOSE:
+                    print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, site, set(haploids), ancestral)
                 continue
 
             alleles.remove(ancestral)
@@ -163,7 +168,8 @@ def process_chrom(chrom):
             num_snps += 1
 
         elif num_alleles > 2:
-            print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids))
+            if VERBOSE:
+                print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids))
 
     print "FINISHED: chr{} contained {} SNPs".format(chrom, num_snps)
 

@@ -18,7 +18,7 @@ from natsort import natsorted
 # - there are many duplicate windows, ~8k (~44%)
 
 # show lots of debugging output
-VERBOSE = True
+VERBOSE = False
 
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10

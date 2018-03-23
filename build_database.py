@@ -11,7 +11,7 @@ from discover_snps import discover_snps
 SPECIES = ['pig'] #, 'cattle', 'horse']
 
 for species in SPECIES:
-    populate_qtls(species)
+    # populate_qtls(species)
     # TODO add estimate allele freq
     # populate_intervals(species)
     # populate_interval_snps(species)

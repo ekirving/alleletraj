@@ -19,7 +19,7 @@ VERBOSE = True
 
 # details of the GoogleSheet
 SHEET_ID = '154wbTEcAUPz4d5v7QLLSwIKTdK8AxXP5US-riCjt2og'
-SHEET_TABS = ['Europe and NE Pigs', 'SE Asian Pigs']
+SHEET_TABS = ['Europe and NE Pigs']  #, 'SE Asian Pigs']
 SHEET_COLS = OrderedDict([
     ('Extract No.',      'accession'),
     ('Mapped Reads',     'map_reads'),

@@ -136,34 +136,34 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
         DROP TABLE IF EXISTS %s""" % tablename2)
     dbc.cnx.commit()
 
-    # calculate some summary stats
-    dbc.cursor.execute("""
-        CREATE TABLE %s
-              SELECT id, name, Pvalue, significance, length, 
-                     COUNT(id) AS snps, 
-                     MAX(num_samples) max_samples, 
-                     AVG(num_samples) avg_samples
-                FROM (
-                          SELECT q.id, t.name, 
-                                   q.genomeLoc_end-q.genomeLoc_start AS length, 
-                                   q.pubmedID, q.Pvalue, q.significance, 
-                                   sr.chrom, sr.pos,
-                                   COUNT(DISTINCT sr.sampleID) num_samples
-                            FROM qtls q
-                            JOIN traits t
-                              ON t.id = q.traitID
-                            JOIN sample_reads sr
-                              ON sr.chrom = q.chromosome
-                             AND sr.snp = 1
-                             AND sr.pos BETWEEN q.genomeLoc_start and q.genomeLoc_end 
-                            WHERE (genomeLoc_end - genomeLoc_start) <= %s
-                         GROUP BY q.id, sr.chrom, sr.pos
-                
-                      ) as sub
-            GROUP BY sub.id
-            ORDER BY max_samples DESC, snps DESC""" % (tablename2, max_qtl))
-    dbc.cnx.commit()
-
-    print "(%s)." % timedelta(seconds=time() - start)
+    # # calculate some summary stats
+    # dbc.cursor.execute("""
+    #     CREATE TABLE %s
+    #           SELECT id, name, Pvalue, significance, length,
+    #                  COUNT(id) AS snps,
+    #                  MAX(num_samples) max_samples,
+    #                  AVG(num_samples) avg_samples
+    #             FROM (
+    #                       SELECT q.id, t.name,
+    #                                q.genomeLoc_end-q.genomeLoc_start AS length,
+    #                                q.pubmedID, q.Pvalue, q.significance,
+    #                                sr.chrom, sr.pos,
+    #                                COUNT(DISTINCT sr.sampleID) num_samples
+    #                         FROM qtls q
+    #                         JOIN traits t
+    #                           ON t.id = q.traitID
+    #                         JOIN sample_reads sr
+    #                           ON sr.chrom = q.chromosome
+    #                          AND sr.snp = 1
+    #                          AND sr.pos BETWEEN q.genomeLoc_start and q.genomeLoc_end
+    #                         WHERE (genomeLoc_end - genomeLoc_start) <= %s
+    #                      GROUP BY q.id, sr.chrom, sr.pos
+    #
+    #                   ) as sub
+    #         GROUP BY sub.id
+    #         ORDER BY max_samples DESC, snps DESC""" % (tablename2, max_qtl))
+    # dbc.cnx.commit()
+    #
+    # print "(%s)." % timedelta(seconds=time() - start)
 
     print "SUCCESS: Finished the SNP discovery (%s)" % timedelta(seconds=time() - began)

@@ -73,6 +73,11 @@ CHROM_SIZE = {
                '25': 41496684, '26': 50169583, '27': 44118849, '28': 43231948, '29': 48376377, 'X': 121952644},
 }
 
+# TODO ...
+EUROPE = ['Armenia', 'Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Faroes', 'France', 'Georgia',
+          'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Moldova', 'Netherlands', 'Poland', 'Portugal', 'Romania',
+          'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
+
 
 def merge_intervals(ranges):
     """
@@ -160,19 +165,22 @@ def populate_coverage(species):
     # count all the intervals we've not finished processing yet
     intervals = dbc.get_records('intervals', {'species': species, 'finished': 0})
 
-    # TODO this needs better filtering (location, domestic status, etc)
+    # make a list of permissible countries
+    countries = "','".join(EUROPE)
+
     # get all the samples w/ BAM files
     samples = dbc.get_records_sql(
         """SELECT *
              FROM samples
             WHERE species = '%s'
-              AND path IS NOT NULL""" % species
+              AND country IN ('%s')
+              AND path IS NOT NULL""" % (species, countries)
     )
 
     print "INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species)
 
     # before we start, tidy up any records from intervals that were not finished
-    dbc.cursor.execute("""
+    dbc.execute_sql("""
         DELETE sample_reads
           FROM sample_reads
           JOIN intervals 
@@ -180,7 +188,6 @@ def populate_coverage(species):
          WHERE intervals.species = '%s'
            AND intervals.finished = 0""" % species
     )
-    dbc.cnx.commit()
 
     if MULTI_THREADED:
         # process the chromosomes with multi-threading to make this faster
@@ -190,10 +197,6 @@ def populate_coverage(species):
         # process the chromosomes without multi-threading
         for interval in intervals.values():
             process_interval((interval, samples))
-
-    # TODO add the indexs back in now that we're done
-    # dbc.cursor.execute("ALTER TABLE sample_reads ADD INDEX (chrom, pos)")
-    # dbc.cnx.commit()
 
     print "FINISHED: Fully populated all the %s samples for %s intervals" % (species, len(intervals))
 
@@ -217,16 +220,16 @@ def process_interval(args):
     snps = dbc.get_records_sql("""
         SELECT ms.site
           FROM intervals i
-          JOIN modern_snps ms 
-            ON ms.species = i.species
-           AND ms.chrom = i.chrom
-           AND ms.site between i.start and i.end
-         WHERE i.id = %s""" % interval_id, key='site'
+          JOIN intervals_snps s
+            ON s.interval_id = i.id
+          JOIN modern_snps ms
+            ON ms.id = s.modsnp_id
+         WHERE i.id =%s""" % interval_id, key='site'
     ).keys()
 
     print "INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps))
 
-    # the column headers for the list of tuples
+    # the column headers for batch inserting into the db
     fields = ('intervalID', 'sampleID', 'chrom', 'pos', 'base', 'mapq', 'baseq', 'dist')
 
     num_reads = 0
@@ -235,7 +238,7 @@ def process_interval(args):
     for sample_id, sample in samples.iteritems():
 
         if VERBOSE:
-            print "INFO: Scanning interval chr{}:{}-{} for sample {}".format(chrom, start, end, sample['accession'])
+            print "INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession'])
 
         reads = list()
 

@@ -112,6 +112,8 @@ def populate_interval_snps(species):
 
     dbc = db_conn()
 
+    print "INFO: Populating all the {} interval SNPs".format(species)
+
     # insert linking records to make future queries much quicker
     dbc.execute_sql("""
         INSERT INTO intervals_snps (interval_id, modsnp_id)

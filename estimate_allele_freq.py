@@ -155,6 +155,9 @@ def process_chrom(chrom):
             alleles.remove(ancestral)
             derived = alleles.pop()
 
+            # calculate the minor allele frequency (maf)
+            maf = observations[derived] / (observations[ancestral] + observations[derived])
+
             record = dict()
             record['species'] = SPECIES
             record['chrom'] = chrom
@@ -163,6 +166,7 @@ def process_chrom(chrom):
             record['ancestral_count'] = observations[ancestral]
             record['derived'] = derived
             record['derived_count'] = observations[derived]
+            record['maf'] = maf
 
             dbc.save_record('modern_snps', record)
             num_snps += 1

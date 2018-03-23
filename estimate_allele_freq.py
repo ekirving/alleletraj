@@ -178,10 +178,16 @@ def process_chrom(chrom):
     print "FINISHED: chr{} contained {} SNPs".format(chrom, num_snps)
 
 
-if THREADS > 1:
-    # process the chromosomes in parallel
-    pool = mp.Pool(THREADS)
-    pool.map(process_chrom, CHROMS)
-else:
-    for chrom in CHROMS:
-        process_chrom(chrom)
+def estimate_allele_freq(species):
+
+    if species != 'pig':
+        # TODO make this work for all species not just pigs
+        raise Exception('Not implemented yet for %' % species)
+
+    if THREADS > 1:
+        # process the chromosomes in parallel
+        pool = mp.Pool(THREADS)
+        pool.map(process_chrom, CHROMS)
+    else:
+        for chrom in CHROMS:
+            process_chrom(chrom)

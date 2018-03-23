@@ -65,8 +65,8 @@ def call_ancient_snps(species, chrom):
 
     dbc.execute_sql("""
         UPDATE sample_reads
-          JOIN species
-            ON species.id = sample_reads.sampleID
+          JOIN samples
+            ON samples.id = sample_reads.sampleID
           JOIN (
                   SELECT sr.chrom, sr.pos 
                     FROM samples s

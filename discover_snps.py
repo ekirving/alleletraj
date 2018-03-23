@@ -6,6 +6,7 @@ from time import time
 from datetime import timedelta
 
 from populate_coverage import *
+from populate_qtls import *
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_BASE_QUAL = 30
@@ -116,7 +117,7 @@ def discover_snps(species):
     start = began = time()
 
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    chroms = ['1']  # CHROM_SIZE[species].keys() # TODO fix this...
+    chroms = CHROM_SIZE[species].keys()
 
     print "INFO: Starting SNP discovery for %s" % species
 
@@ -153,9 +154,6 @@ def discover_snps(species):
     start = time()
 
     # print "INFO: Calculating some summary stats... ",
-    #
-    # dbc.execute_sql("""
-    #     DROP TABLE IF EXISTS %s""" % tablename2)
     #
     # # calculate some summary stats
     # dbc.execute_sql("""

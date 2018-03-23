@@ -138,17 +138,25 @@ class db_conn:
         """
         Insert a new record
         """
-        record = self.__format_data(record)
+        formatted = self.__format_data(record)
 
         data = {
-            'table':  u"`{}`".format(table),
-            'fields': u", ".join(record.keys()),
-            'values': u", ".join(record.values()),
-            'update': u", ".join([u"{}={}".format(key, value) for key, value in record.iteritems() if key != 'id'])
+            'table': u"`{}`".format(table),
+            'fields': u", ".join(formatted.keys()),
+            'values': u", ".join(formatted.values()),
+            'update': u", ".join([u"{}={}".format(key, value) for key, value in formatted.iteritems() if key != u'`id`'])
         }
 
-        sql = u"INSERT INTO {table} ({fields}) VALUES ({values}) " \
-              u"ON DUPLICATE KEY UPDATE {update}".format(**data)
+        if 'id' in record:
+            data['id'] = record['id']
+
+            # update an existing record
+            sql = u"UPDATE {table} SET {update} " \
+                  u"WHERE `id` = {id}".format(**data)
+        else:
+            # insert new record
+            sql = u"INSERT INTO {table} ({fields}) VALUES ({values}) " \
+                  u"ON DUPLICATE KEY UPDATE {update}".format(**data)
 
         try:
             self.cursor.execute(sql)

@@ -154,6 +154,27 @@ def populate_intervals(species):
     print "INFO: Extracted {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites)
 
 
+def populate_interval_snps(species):
+    """
+    Now we have ascertained all the modern SNPs, let's find those that intersect with the unique intervals.
+    """
+
+    dbc = db_conn()
+
+    # insert linking records to make future queries much quicker
+    dbc.execute_sql("""
+        INSERT INTO intervals_snps (interval_id, modsnp_id)
+             SELECT i.id, ms.id
+               FROM intervals i
+               JOIN modern_snps ms 
+                 ON ms.species = i.species
+                AND ms.chrom = i.chrom
+                AND ms.site BETWEEN i.start AND i.end
+              WHERE i.species = '%s'
+                AND ms.maf >= %s""" % (species, MIN_MAF)
+    )
+
+
 def populate_coverage(species):
     """
     Scan all the samples for coverage of the QTLs and save the results to the database.
@@ -308,24 +329,3 @@ def process_interval(args):
     dbc.save_record('intervals', interval)
 
     print "INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end)
-
-
-def populate_interval_snps(species):
-    """
-    Now we have ascertained all the modern SNPs, let's find those that intersect with the unique intervals.
-    """
-
-    dbc = db_conn()
-
-    # insert linking records to make future queries much quicker
-    dbc.execute_sql("""
-        INSERT INTO intervals_snps (interval_id, modsnp_id)
-             SELECT i.id, ms.id
-               FROM intervals i
-               JOIN modern_snps ms 
-                 ON ms.species = i.species
-                AND ms.chrom = i.chrom
-                AND ms.site BETWEEN i.start AND i.end
-              WHERE i.species = '%s'
-                AND ms.maf >= %s""" % (species, MIN_MAF)
-    )

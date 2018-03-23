@@ -199,3 +199,10 @@ class db_conn:
             pprint(list(records))
             # pprint(sql)
             raise e
+
+    def execute_sql(self, sql):
+        """
+        Execute a given SQL query
+        """
+        self.cursor.execute(sql)
+        self.cnx.commit()

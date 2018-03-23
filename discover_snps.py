@@ -15,6 +15,24 @@ MIN_MAPPING_QUAL = 30
 SOFT_CLIP_DIST = 5
 
 
+def reset_flags(species, chrom):
+    """
+    Reset all the analysis flags to NULL
+    """
+    dbc = db_conn()
+
+    dbc.execute_sql("""
+         UPDATE sample_reads
+           JOIN samples
+             ON samples.id = sample_reads.sampleID
+            SET quality = NULL,
+                random = NULL,
+                snp = NULL
+          WHERE species = '%s'
+            AND chrom = '%s'
+          """ % (species, chrom))
+
+
 def apply_quality_filters(species, chrom):
     """
     Apply MIN_BASE_QUAL, MIN_MAPPING_QUAL and SOFT_CLIP_DIST quality filters.
@@ -82,9 +100,10 @@ def call_ancient_snps(species, chrom):
                 ) AS sub ON sub.chrom = sample_reads.chrom 
                         AND sub.pos = sample_reads.pos
           SET sample_reads.snp = 1
-        WHERE samples.species = '%s' 
+        WHERE samples.species = '%s'
+          AND sample_reads.chrom = '%s' 
           AND sample_reads.random = 1
-        """ % (species, chrom, species))
+        """ % (species, chrom, species, chrom))
 
 
 def discover_snps(species):
@@ -96,11 +115,15 @@ def discover_snps(species):
 
     start = began = time()
 
-    # TODO fix this...
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    chroms = ['1']  # CHROM_SIZE[species].keys()
+    chroms = ['1']  # CHROM_SIZE[species].keys() # TODO fix this...
 
     print "INFO: Starting SNP discovery for %s" % species
+
+    print "INFO: Resetting analysis flags... ",
+
+    for chrom in chroms:
+        reset_flags(species, chrom)
 
     print "INFO: Applying quality filters... ",
 

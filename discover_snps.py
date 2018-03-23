@@ -125,6 +125,9 @@ def discover_snps(species):
     for chrom in chroms:
         reset_flags(species, chrom)
 
+    print "(%s)." % timedelta(seconds=time() - start)
+    start = time()
+
     print "INFO: Applying quality filters... ",
 
     for chrom in chroms:

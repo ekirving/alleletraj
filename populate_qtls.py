@@ -107,6 +107,8 @@ def populate_qtls(species):
 
         qtl['species'] = species
 
+        # TODO add code to compute qtl window size...
+
         dbc.save_record('qtls', qtl)
 
         added += 1

@@ -35,6 +35,9 @@ HARD_BASEQ_CUTOFF = 20
 # should we use multi-threading to speed up record insertion
 MULTI_THREADED = True if socket.gethostname() != 'macbookpro.local' else False
 
+# the minimum minor allele frequency of modern SNPs to include
+MIN_MAF = 0.05
+
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
@@ -302,3 +305,24 @@ def process_interval(args):
     dbc.save_record('intervals', interval)
 
     print "INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end)
+
+
+def populate_interval_snps(species):
+    """
+    Now we have ascertained all the modern SNPs, let's find those that intersect with the unique intervals.
+    """
+
+    dbc = db_conn()
+
+    # insert linking records to make future queries much quicker
+    dbc.execute_sql("""
+        INSERT INTO intervals_snps (interval_id, modsnp_id)
+             SELECT i.id, ms.id
+               FROM intervals i
+               JOIN modern_snps ms 
+                 ON ms.species = i.species
+                AND ms.chrom = i.chrom
+                AND ms.site BETWEEN i.start AND i.end
+              WHERE i.species = '%s'
+                AND ms.maf >= %s""" % (species, MIN_MAF)
+    )

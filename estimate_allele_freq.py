@@ -25,8 +25,6 @@ else:
     CHROMS = [str(chrom) for chrom in range(1, 19)] + ['X', 'Y']
     THREADS = 20
 
-MIN_MAF = 0.05
-
 SPECIES = 'pig'
 
 OUTGROUP = 'SVSV01U01_Sverrucosus_rh'  # Sus verrucosus / Javan warty pig
@@ -180,27 +178,6 @@ def process_chrom(chrom):
     print "FINISHED: chr{} contained {} SNPs".format(chrom, num_snps)
 
 
-def intersect_modern_snps():
-    """
-    Now we have ascertained all the modern SNPs, let's find those that intersect with the unique intervals.
-    """
-
-    dbc = db_conn()
-
-    # insert linking records to make future queries much quicker
-    dbc.execute_sql("""
-        INSERT INTO intervals_snps (interval_id, modsnp_id)
-             SELECT i.id, ms.id
-               FROM intervals i
-               JOIN modern_snps ms 
-                 ON ms.species = i.species
-                AND ms.chrom = i.chrom
-                AND ms.site BETWEEN i.start AND i.end
-              WHERE i.species = 'pig'
-                AND ms.maf >= %s""" % MIN_MAF
-    )
-
-
 if THREADS > 1:
     # process the chromosomes in parallel
     pool = mp.Pool(THREADS)
@@ -208,6 +185,3 @@ if THREADS > 1:
 else:
     for chrom in CHROMS:
         process_chrom(chrom)
-
-# now intersect the SNPs with the intervals
-intersect_modern_snps()

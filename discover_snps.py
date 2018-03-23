@@ -15,55 +15,97 @@ MIN_MAPPING_QUAL = 30
 SOFT_CLIP_DIST = 5
 
 
-def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
+def apply_quality_filters(species, chrom):
+    """
+    Apply MIN_BASE_QUAL, MIN_MAPPING_QUAL and SOFT_CLIP_DIST quality filters.
+    """
+    dbc = db_conn()
+
+    dbc.execute_sql("""
+        UPDATE sample_reads
+          JOIN samples 
+            ON samples.id = sample_reads.sampleID
+           SET sample_reads.quality = 1
+         WHERE samples.species = '%s'
+           AND sample_reads.chrom = '%s'
+           AND sample_reads.baseq >= %s
+           AND sample_reads.mapq >= %s
+           AND sample_reads.dist > %s
+           """ % (species, chrom, MIN_BASE_QUAL, MIN_MAPPING_QUAL, SOFT_CLIP_DIST))
+
+
+def choose_random_read(species, chrom):
+    """
+    Choose a random read from those that pass quality filters
+    """
+    dbc = db_conn()
+
+    dbc.execute_sql("""
+        UPDATE sample_reads
+          JOIN (  
+                  SELECT substring_index(group_concat(sr.id ORDER BY rand()), ',', 1) id
+                    FROM samples s
+                    JOIN sample_reads sr
+                      ON sr.sampleID = s.id
+                   WHERE s.species = '%s'
+                     AND sr.chrom = '%s'
+                     AND sr.quality = 1
+                GROUP BY sr.chrom, sr.pos, sr.sampleID
+
+               ) AS rand ON rand.id = sample_reads.id
+           SET random = 1
+           """ % (species, chrom))
+
+
+def call_ancient_snps(species, chrom):
+    """
+    Mark the sites which contain SNPs
+    """
+    dbc = db_conn()
+
+    dbc.execute_sql("""
+        UPDATE sample_reads
+          JOIN species
+            ON species.id = sample_reads.sampleID
+          JOIN (
+                  SELECT sr.chrom, sr.pos 
+                    FROM samples s
+                    JOIN sample_reads sr
+                      ON sr.sampleID = s.id
+                   WHERE s.species = '%s'
+                     AND sr.chrom = '%s'
+                     AND sr.random = 1
+                GROUP BY sr.chrom, sr.pos
+                  HAVING COUNT(sr.sampleID) > 1
+                     AND COUNT(DISTINCT sr.base) > 1
+
+                ) AS sub ON sub.chrom = sample_reads.chrom 
+                        AND sub.pos = sample_reads.pos
+          SET sample_reads.snp = 1
+        WHERE samples.species = '%s' 
+          AND sample_reads.random = 1
+        """ % (species, chrom, species))
+
+
+def discover_snps(species):
 
     dbc = db_conn()
 
-    # TODO turn on query profiling - see https://dev.mysql.com/doc/refman/5.7/en/show-profile.html
-    # TODO add indexes for all the group by conditions - see https://dev.mysql.com/doc/refman/5.7/en/table-scan-avoidance.html
-    # TODO set innodb_buffer_pool_size to 100 GB, then decrease when done - see https://dev.mysql.com/doc/refman/5.7/en/innodb-buffer-pool-resize.html
-    # TODO try compressing the tables - see
-    # TODO try multi-threading the individual chrom queries (will this improve CPU utilisation?) * requires multiple connections
+    # TODO try multi-threading the individual chrom queries (will this improve CPU utilisation?)
     # TODO try partitioning tables https://dev.mysql.com/doc/refman/5.7/en/partitioning-overview.html
 
     start = began = time()
 
+    # TODO fix this...
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    chroms = CHROM_SIZE[species].keys()
+    chroms = ['1']  # CHROM_SIZE[species].keys()
 
-    print "INFO: Starting SNP discovery for %s (%s, %s, %s)" % (tablename, min_baseq, min_mapq, min_dist)
-
-    print "INFO: Resetting existing flags... ",
-
-    # TODO add species filter
-    for chrom in chroms:
-        # clear the derived columns
-        dbc.cursor.execute("""
-            UPDATE sample_reads
-               SET quality = NULL,
-                   random = NULL,
-                   snp = NULL
-             WHERE chrom = '%s'
-               AND (quality IS NOT NULL
-                 OR random IS NOT NULL
-                 OR snp IS NOT NULL)""" % chrom)
-        dbc.cnx.commit()
-
-    print "(%s)." % timedelta(seconds=time() - start)
-    start = time()
+    print "INFO: Starting SNP discovery for %s" % species
 
     print "INFO: Applying quality filters... ",
 
     for chrom in chroms:
-        # apply quality filters
-        dbc.cursor.execute("""
-            UPDATE sample_reads
-               SET quality = 1
-             WHERE chrom = '%s'
-               AND baseq >= %s
-               AND mapq >= %s
-               AND dist > %s""" % (chrom, min_baseq, min_mapq, min_dist))
-        dbc.cnx.commit()
+        apply_quality_filters(species, chrom)
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
@@ -71,19 +113,7 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
     print "INFO: Choosing a random read from those that pass quality filters... ",
 
     for chrom in chroms:
-        # choose a random read from those that pass quality filters
-        dbc.cursor.execute("""
-            UPDATE sample_reads
-              JOIN (  
-                      SELECT substring_index(group_concat(id ORDER BY rand()), ',', 1) id
-                        FROM sample_reads
-                       WHERE chrom = '%s'
-                         AND quality = 1
-                    GROUP BY chrom, pos, sampleID
-    
-                   ) AS rand ON rand.id = sample_reads.id
-               SET random = 1""" % chrom)
-        dbc.cnx.commit()
+        choose_random_read(species, chrom)
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
@@ -91,53 +121,18 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
     print "INFO: Marking the sites which contain SNPs... ",
 
     for chrom in chroms:
-        # mark the sites which contain SNPs
-        dbc.cursor.execute("""
-            UPDATE sample_reads
-              JOIN (
-                      SELECT chrom, pos 
-                        FROM sample_reads
-                       WHERE chrom = '%s'
-                         AND random = 1
-                    GROUP BY chrom, pos
-                      HAVING COUNT(id) > 1
-                         AND COUNT(DISTINCT base) > 1
-                       
-                    ) AS sub ON sub.chrom = sample_reads.chrom 
-                            AND sub.pos = sample_reads.pos
-              SET snp = 1
-            WHERE sample_reads.random = 1""" % chrom)
-        dbc.cnx.commit()
+        call_ancient_snps(species, chrom)
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
-    print "INFO: Making a backup of these results... ",
-
-    dbc.cursor.execute("""
-        DROP TABLE IF EXISTS %s""" % tablename)
-    dbc.cnx.commit()
-
-    # make a backup of these results
-    dbc.cursor.execute("""
-        CREATE TABLE %s
-              SELECT *
-                FROM sample_reads
-               WHERE snp = 1""" % tablename)
-
-    print "(%s)." % timedelta(seconds=time() - start)
-    start = time()
-
-    tablename2 = tablename + '_sum'
-
-    print "INFO: Calculating some summary stats... ",
-
-    dbc.cursor.execute("""
-        DROP TABLE IF EXISTS %s""" % tablename2)
-    dbc.cnx.commit()
-
+    # print "INFO: Calculating some summary stats... ",
+    #
+    # dbc.execute_sql("""
+    #     DROP TABLE IF EXISTS %s""" % tablename2)
+    #
     # # calculate some summary stats
-    # dbc.cursor.execute("""
+    # dbc.execute_sql("""
     #     CREATE TABLE %s
     #           SELECT id, name, Pvalue, significance, length,
     #                  COUNT(id) AS snps,
@@ -162,8 +157,7 @@ def discover_snps(species, tablename, min_baseq, min_mapq, min_dist, max_qtl):
     #                   ) as sub
     #         GROUP BY sub.id
     #         ORDER BY max_samples DESC, snps DESC""" % (tablename2, max_qtl))
-    # dbc.cnx.commit()
     #
     # print "(%s)." % timedelta(seconds=time() - start)
 
-    print "SUCCESS: Finished the SNP discovery (%s)" % timedelta(seconds=time() - began)
+    print "SUCCESS: Finished the %s SNP discovery (%s)" % (species, timedelta(seconds=time() - began))

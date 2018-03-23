@@ -58,8 +58,7 @@ def populate_qtls(species):
     # get a list of all the QTLDb IDs from the tsv dump
     data = extract_qtl_fields(qtldb_file, ['QTL_ID'])
 
-    if VERBOSE:
-        print "INFO: Processing %s %s QTLs from '%s'" % (len(data['QTL_ID']), species, qtldb_file)
+    print "INFO: Processing %s %s QTLs from '%s'" % (len(data['QTL_ID']), species, qtldb_file)
 
     # convert all the IDs to int
     qtl_ids = [int(qtl_id) for qtl_id in data['QTL_ID'] if qtl_id.isdigit()]
@@ -161,7 +160,7 @@ def compute_qtl_windows(species):
 
     # get all the QTL windows
     results = dbc.get_records_sql("""
-        SELECT q.id, d.chrom, d.site
+        SELECT DISTINCT q.id, d.chrom, d.site
           FROM qtls q
           JOIN dbsnp d on d.rsnumber = q.peak
          WHERE q.species = '{}' 
@@ -169,8 +168,9 @@ def compute_qtl_windows(species):
            AND q.associationType = 'Association'  # only GWAS studies
            AND q.significance = 'Significant'     # only significant hits
            AND IFNULL(q.genomeLoc_end - q.genomeLoc_start, 0) <= {}
-      GROUP BY d.id
     """.format(species, MAX_QTL_LENGTH), key=None)
+
+    print "INFO: Computing window sizes for {:,} {} QTLs".format(len(results), species)
 
     # set offset to be half the max QTL length
     offset = MAX_QTL_LENGTH / 2

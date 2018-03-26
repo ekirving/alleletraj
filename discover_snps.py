@@ -107,12 +107,58 @@ def call_ancient_snps(species, chrom):
         """ % (species, chrom, species, chrom))
 
 
+def calculate_summary_stats(species, chrom):
+    """
+    Calculate some summary stats
+    """
+    dbc = db_conn()
+
+    # remove any existing stats for this chromosome
+    dbc.delete_records('qtl_stats', {'species': species, 'chrom': chrom})
+
+
+    dbc.execute_sql("""
+     INSERT INTO qtl_stats
+          SELECT species, qtl_id, class, type, name, Pvalue, significance,
+                 COUNT(qtl_id) AS snps,
+                 MAX(num_samples) max_samples,
+                 AVG(num_samples) avg_samples,
+                 MAX(num_reads) max_reads,
+                 AVG(num_reads) avg_reads
+            FROM (
+                      SELECT q.species, q.id AS qtl_id, q.pubmedID, q.Pvalue, q.significance,
+                             t.class, t.type, t.name,
+                             sr.chrom, sr.pos,
+                             COUNT(DISTINCT sr.sampleID) num_samples,
+                             COUNT(sr.id) num_reads
+                        FROM qtls q
+                        JOIN traits t
+                          ON t.id = q.traitID
+                        JOIN sample_reads sr
+                          ON sr.chrom = q.chromosome
+                         AND sr.snp = 1
+                         AND sr.pos BETWEEN q.start and q.end
+                       WHERE q.species = '%s'
+                         AND q.valid = 1
+                         AND sr.chrom = '%s'
+                    GROUP BY q.id, sr.chrom, sr.pos
+
+                  ) as snps
+        GROUP BY snps.qtl_id
+        ORDER BY max_samples DESC, snps DESC""" % (species, chrom))
+
+
 def discover_snps(species):
+    """
+    Run queries to mark callable SNPs in the ancient populations.
+
+    Uses mysql table partitioning (w/ MyISAM engine) at the chromosome level to prevent disk swapping caused by massive
+    RAM usage for tables with billions of records.
+    """
 
     dbc = db_conn()
 
     # TODO try multi-threading the individual chrom queries (will this improve CPU utilisation?)
-    # TODO try partitioning tables https://dev.mysql.com/doc/refman/5.7/en/partitioning-overview.html
 
     start = began = time()
 
@@ -153,35 +199,11 @@ def discover_snps(species):
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
-    # print "INFO: Calculating some summary stats... ",
-    #
-    # # calculate some summary stats
-    # dbc.execute_sql("""
-    #     CREATE TABLE %s
-    #           SELECT id, name, Pvalue, significance, length,
-    #                  COUNT(id) AS snps,
-    #                  MAX(num_samples) max_samples,
-    #                  AVG(num_samples) avg_samples
-    #             FROM (
-    #                       SELECT q.id, t.name,
-    #                                q.genomeLoc_end-q.genomeLoc_start AS length,
-    #                                q.pubmedID, q.Pvalue, q.significance,
-    #                                sr.chrom, sr.pos,
-    #                                COUNT(DISTINCT sr.sampleID) num_samples
-    #                         FROM qtls q
-    #                         JOIN traits t
-    #                           ON t.id = q.traitID
-    #                         JOIN sample_reads sr
-    #                           ON sr.chrom = q.chromosome
-    #                          AND sr.snp = 1
-    #                          AND sr.pos BETWEEN q.genomeLoc_start and q.genomeLoc_end
-    #                         WHERE (genomeLoc_end - genomeLoc_start) <= %s
-    #                      GROUP BY q.id, sr.chrom, sr.pos
-    #
-    #                   ) as sub
-    #         GROUP BY sub.id
-    #         ORDER BY max_samples DESC, snps DESC""" % (tablename2, max_qtl))
-    #
-    # print "(%s)." % timedelta(seconds=time() - start)
+    print "INFO: Calculating some summary stats... ",
+
+    for chrom in chroms:
+        calculate_summary_stats(species, chrom)
+
+    print "(%s)." % timedelta(seconds=time() - start)
 
     print "SUCCESS: Finished the %s SNP discovery (%s)" % (species, timedelta(seconds=time() - began))

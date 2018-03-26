@@ -62,7 +62,7 @@ def choose_random_read(species, chrom):
     dbc.execute_sql("""
         UPDATE sample_reads
           JOIN (  
-                  SELECT substring_index(group_concat(sr.id ORDER BY rand()), ',', 1) id
+                  SELECT SUBSTRING_INDEX(GROUP_CONCAT(sr.id ORDER BY RAND()), ',',  1) id
                     FROM samples s
                     JOIN sample_reads sr
                       ON sr.sampleID = s.id
@@ -70,7 +70,7 @@ def choose_random_read(species, chrom):
                      AND sr.chrom = '%s'
                      AND sr.quality = 1
                 GROUP BY sr.chrom, sr.pos, sr.sampleID
-
+                
                ) AS rand ON rand.id = sample_reads.id
            SET random = 1
            """ % (species, chrom))
@@ -118,8 +118,9 @@ def calculate_summary_stats(species, chrom):
 
 
     dbc.execute_sql("""
-     INSERT INTO qtl_stats
-          SELECT species, qtl_id, class, type, name, Pvalue, significance,
+     INSERT INTO qtl_stats (species, qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, 
+                            avg_samples, max_reads, avg_reads)
+          SELECT species, qtl_id, chrom, class, type, name, Pvalue, significance,
                  COUNT(qtl_id) AS snps,
                  MAX(num_samples) max_samples,
                  AVG(num_samples) avg_samples,
@@ -144,8 +145,7 @@ def calculate_summary_stats(species, chrom):
                     GROUP BY q.id, sr.chrom, sr.pos
 
                   ) as snps
-        GROUP BY snps.qtl_id
-        ORDER BY max_samples DESC, snps DESC""" % (species, chrom))
+        GROUP BY snps.qtl_id""" % (species, chrom))
 
 
 def discover_snps(species):

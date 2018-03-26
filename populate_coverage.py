@@ -198,7 +198,7 @@ def process_interval(args):
             ON s.interval_id = i.id
           JOIN modern_snps ms
             ON ms.id = s.modsnp_id
-         WHERE i.id =%s""" % interval_id, key='site'
+         WHERE i.id = %s""" % interval_id, key='site'
     ).keys()
 
     print "INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps))

@@ -8,7 +8,6 @@ from collections import defaultdict
 import pysam as ps
 import multiprocessing as mp
 import itertools
-import mysql.connector
 import socket
 
 from natsort import natsorted
@@ -39,9 +38,9 @@ MIN_MAF = 0.05
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
 # TODO ...
-EUROPE = ['Armenia', 'Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Faroes', 'France', 'Georgia',
-          'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Moldova', 'Netherlands', 'Poland', 'Portugal', 'Romania',
-          'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
+EUROPE = ['Armenia', 'Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Faroes', 'France',
+          'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Moldova', 'Netherlands', 'Poland', 'Portugal',
+          'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
 
 
 def merge_intervals(ranges):
@@ -72,11 +71,9 @@ def populate_intervals(species):
     results = dbc.get_records_sql("""
         SELECT q.chromosome AS chrom, q.start, q.end
           FROM qtls q
-         WHERE q.species = '{}'
+         WHERE q.species = '%s'
            AND q.valid = 1
-      GROUP BY q.chromosome, q.start, q.end
-    """.format(species), key=None
-    )
+      GROUP BY q.chromosome, q.start, q.end""" % species, key=None)
 
     intervals = defaultdict(list)
 
@@ -99,7 +96,7 @@ def populate_intervals(species):
             num_sites += end - start
 
             # add the merged intervals to the db
-            record = {'species': species, 'chrom': chrom, 'start': start, 'end': end }
+            record = {'species': species, 'chrom': chrom, 'start': start, 'end': end}
             dbc.save_record('intervals', record)
 
     print "INFO: Extracted {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites)
@@ -124,8 +121,7 @@ def populate_interval_snps(species):
                 AND ms.chrom = i.chrom
                 AND ms.site BETWEEN i.start AND i.end
               WHERE i.species = '%s'
-                AND ms.maf >= %s""" % (species, MIN_MAF)
-    )
+                AND ms.maf >= %s""" % (species, MIN_MAF))
 
 
 def populate_coverage(species):
@@ -148,8 +144,7 @@ def populate_coverage(species):
              FROM samples
             WHERE species = '%s'
               AND country IN ('%s')
-              AND path IS NOT NULL""" % (species, countries)
-    )
+              AND path IS NOT NULL""" % (species, countries))
 
     print "INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species)
 
@@ -160,8 +155,7 @@ def populate_coverage(species):
           JOIN intervals 
             ON intervals.id = sample_reads.intervalID
          WHERE intervals.species = '%s'
-           AND intervals.finished = 0""" % species
-    )
+           AND intervals.finished = 0""" % species)
 
     if MULTI_THREADED:
         # process the chromosomes with multi-threading to make this faster
@@ -198,8 +192,7 @@ def process_interval(args):
             ON s.interval_id = i.id
           JOIN modern_snps ms
             ON ms.id = s.modsnp_id
-         WHERE i.id = %s""" % interval_id, key='site'
-    ).keys()
+         WHERE i.id = %s""" % interval_id, key='site').keys()
 
     print "INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps))
 

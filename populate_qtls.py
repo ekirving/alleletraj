@@ -180,7 +180,7 @@ def compute_qtl_windows(species):
         chom_size = CHROM_SIZE[species][result['chrom']]
 
         # calculate the bounded window size
-        start = result['site'] - offset if result['site'] > offset else 0
+        start = result['site'] - offset if result['site'] > offset else 1
         end = result['site'] + offset if result['site'] + offset < chom_size else chom_size
 
         # update the QTL record

@@ -331,7 +331,8 @@ def process_interval(args):
             # see https://samtools.github.io/bcftools/bcftools.html#mpileup
             cmd = "bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bam} " \
                   " | bcftools call --multiallelic-caller --output-type v " \
-                  " | bcftools view --exclude-types indels,bnd,other --output-file {vcf}".format(**params)
+                  " | bcftools view --exclude-types indels,bnd,other " \
+                  " | bcftools norm --rm-dup none --fasta-ref {ref} --output {vcf}".format(**params)
 
             # run the base calling
             run_cmd([cmd], shell=True)

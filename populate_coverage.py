@@ -348,7 +348,16 @@ def process_interval(args):
                     geno = rec.samples[sample['accession']]['GT']
 
                     # decode the GT notation into allele calls (e.g. 0/0, 0/1, 1/1)
-                    alleles = [rec.alleles[idx] for idx in geno]
+                    try:
+                        alleles = [rec.alleles[idx] for idx in geno]
+                    except:
+                        print "-----"
+                        print region
+                        print "rec.alleles = {}".format(rec.alleles)
+                        print "geno = {}".format(geno)
+
+                        quit()
+
 
                     for allele in alleles:
                         # compose the read records

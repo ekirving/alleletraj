@@ -21,7 +21,7 @@ from natsort import natsorted
 VERBOSE = False
 
 # minimum depth of coverage to call diploid genotypes
-MIN_GENO_DEPTH = 3
+MIN_GENO_DEPTH = 10
 
 # TODO what about the others species
 # location of reference genome
@@ -321,19 +321,19 @@ def process_interval(args):
             with open(pos_file, 'w') as fout:
                 fout.write("\n".join("{}\t{}".format(chrom, pos) for pos in diploid))
 
-            # TODO benchmark this with --targets-file
-            # see https://samtools.github.io/bcftools/bcftools.html#mpileup
+            # filter on interval
+            region = "{}:{}-{}".format(chrom, start, end)
 
-            # call bases with bcftools
-            cmd = "bcftools mpileup --regions-file {} --fasta-ref {} {} \
-                    | bcftools call --multiallelic-caller --output-type v".format(pos_file, REF_FILE, sample['path'])
+            # call bases with bcftools...
+            # uses both --region (random access) and --targets (streaming) for optimal speed
+            # see https://samtools.github.io/bcftools/bcftools.html#mpileup
+            cmd = "bcftools mpileup --region {} --targets-file {} --fasta-ref {} {} " \
+                  " | bcftools call --multiallelic-caller --output-type v " \
+                  " | bcftools view --types snps --output-file {}".format(region, pos_file, REF_FILE, sample['path'],
+                                                                          vcf_file)
 
             # run the base calling
-            vcf = run_cmd([cmd], shell=True)
-
-            # save the vcf to disk
-            with open(vcf_file, 'w') as fout:
-                fout.write(vcf)
+            run_cmd([cmd], shell=True)
 
             # parse the results with pysam
             for rec in ps.VariantFile(vcf_file).fetch():
@@ -348,7 +348,7 @@ def process_interval(args):
                         'sampleID': sample_id,
                         'chrom':    rec.chrom,
                         'pos':      rec.pos,
-                        'genoq':    rec.qual,
+                        'genoq':    int(rec.qual),
                         'base':     allele
                     }
 

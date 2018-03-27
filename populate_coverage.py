@@ -324,13 +324,14 @@ def process_interval(args):
             # filter on interval
             region = "{}:{}-{}".format(chrom, start, end)
 
-            # call bases with bcftools...
+            params = {'region': region, 'targets': pos_file, 'ref': REF_FILE, 'bam': sample['path'], 'vcf': vcf_file}
+
+            # call bases with bcftools (and drop indels and other junk)
             # uses both --region (random access) and --targets (streaming) for optimal speed
             # see https://samtools.github.io/bcftools/bcftools.html#mpileup
-            cmd = "bcftools mpileup --region {} --targets-file {} --fasta-ref {} {} " \
+            cmd = "bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bam} " \
                   " | bcftools call --multiallelic-caller --output-type v " \
-                  " | bcftools view --types snps --output-file {}".format(region, pos_file, REF_FILE, sample['path'],
-                                                                          vcf_file)
+                  " | bcftools view --exclude-types indels,bnd,other --output-file {vcf}".format(**params)
 
             # run the base calling
             run_cmd([cmd], shell=True)
@@ -338,8 +339,11 @@ def process_interval(args):
             # parse the results with pysam
             for rec in ps.VariantFile(vcf_file).fetch():
 
-                # get the alleles for this site
-                alleles = rec.alleles if len(rec.alleles) > 1 else rec.alleles * 2
+                # get the genotype call for this site
+                geno = rec.samples[sample['accession']]['GT']
+
+                # decode the GT notation into allele calls (e.g. 0/0, 0/1, 1/1)
+                alleles = [rec.alleles[idx] for idx in geno]
 
                 for allele in alleles:
                     # compose the read records

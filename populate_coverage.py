@@ -198,7 +198,7 @@ def populate_coverage(species):
         for interval in intervals.values():
             process_interval((interval, samples))
 
-    print "FINISHED: Fully populated all the %s samples for %s intervals" % (species, len(intervals))
+    print "FINISHED: Fully populated all the {} samples for {:,} intervals".format(species, len(intervals))
 
 
 def process_interval(args):

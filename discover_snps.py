@@ -11,6 +11,7 @@ from populate_qtls import *
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_BASE_QUAL = 30
 MIN_MAPPING_QUAL = 30
+MIN_GENO_QUAL = 30
 
 # number of bases to soft clip
 SOFT_CLIP_DIST = 5
@@ -27,7 +28,7 @@ def reset_flags(species, chrom):
            JOIN samples
              ON samples.id = sample_reads.sampleID
             SET quality = NULL,
-                random = NULL,
+                called = NULL,
                 snp = NULL
           WHERE species = '%s'
             AND chrom = '%s'
@@ -72,8 +73,26 @@ def choose_random_read(species, chrom):
                 GROUP BY sr.chrom, sr.pos, sr.sampleID
                 
                ) AS rand ON rand.id = sample_reads.id
-           SET random = 1
+           SET called = 1
            """ % (species, chrom))
+
+
+def apply_genotype_filters(species, chrom):
+    """
+    Apply MIN_GENO_QUAL quality filter.
+    """
+    dbc = db_conn()
+
+    dbc.execute_sql("""
+        UPDATE sample_reads
+          JOIN samples 
+            ON samples.id = sample_reads.sampleID
+           SET sample_reads.quality = 1,
+               sample_reads.called = 1 
+         WHERE samples.species = '%s'
+           AND sample_reads.chrom = '%s'
+           AND sample_reads.genoq >= %s
+           """ % (species, chrom, MIN_GENO_QUAL))
 
 
 def call_ancient_snps(species, chrom):
@@ -93,7 +112,7 @@ def call_ancient_snps(species, chrom):
                       ON sr.sampleID = s.id
                    WHERE s.species = '%s'
                      AND sr.chrom = '%s'
-                     AND sr.random = 1
+                     AND sr.called = 1
                 GROUP BY sr.chrom, sr.pos
                   HAVING COUNT(sr.sampleID) > 1
                      AND COUNT(DISTINCT sr.base) > 1
@@ -103,7 +122,7 @@ def call_ancient_snps(species, chrom):
           SET sample_reads.snp = 1
         WHERE samples.species = '%s'
           AND sample_reads.chrom = '%s' 
-          AND sample_reads.random = 1
+          AND sample_reads.called = 1
         """ % (species, chrom, species, chrom))
 
 
@@ -115,7 +134,6 @@ def calculate_summary_stats(species, chrom):
 
     # remove any existing stats for this chromosome
     dbc.delete_records('qtl_stats', {'species': species, 'chrom': chrom})
-
 
     dbc.execute_sql("""
      INSERT INTO qtl_stats (species, qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, 
@@ -156,8 +174,6 @@ def discover_snps(species):
     RAM usage for tables with billions of records.
     """
 
-    dbc = db_conn()
-
     # TODO try multi-threading the individual chrom queries (will this improve CPU utilisation?)
 
     start = began = time()
@@ -187,6 +203,14 @@ def discover_snps(species):
 
     for chrom in chroms:
         choose_random_read(species, chrom)
+
+    print "(%s)." % timedelta(seconds=time() - start)
+    start = time()
+
+    print "INFO: Applying genotype quality filters to diploid calls... ",
+
+    for chrom in chroms:
+        apply_genotype_filters(species, chrom)
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()

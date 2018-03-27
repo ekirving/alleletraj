@@ -353,6 +353,9 @@ def process_interval(args):
                     except:
                         print "-----"
                         print region
+                        print "sample_id = {}".format(sample_id)
+                        print "vcf_file = {}".format(vcf_file)
+                        print "rec.pos = {}".format(rec.pos)
                         print "rec.alleles = {}".format(rec.alleles)
                         print "geno = {}".format(geno)
 

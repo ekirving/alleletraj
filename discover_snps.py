@@ -114,7 +114,7 @@ def call_ancient_snps(species, chrom):
                      AND sr.chrom = '%s'
                      AND sr.called = 1
                 GROUP BY sr.chrom, sr.pos
-                  HAVING COUNT(sr.sampleID) > 1
+                  HAVING COUNT(DISTINCT sr.sampleID) > 1
                      AND COUNT(DISTINCT sr.base) > 1
 
                 ) AS sub ON sub.chrom = sample_reads.chrom 

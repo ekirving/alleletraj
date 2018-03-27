@@ -17,11 +17,14 @@ MIN_GENO_QUAL = 30
 SOFT_CLIP_DIST = 5
 
 
-def reset_flags(species, chrom):
+def reset_flags(args):
     """
     Reset all the analysis flags to NULL
     """
     dbc = db_conn()
+
+    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+    (species, chrom) = args
 
     dbc.execute_sql("""
          UPDATE sample_reads
@@ -35,11 +38,14 @@ def reset_flags(species, chrom):
           """ % (species, chrom))
 
 
-def apply_quality_filters(species, chrom):
+def apply_quality_filters(args):
     """
     Apply MIN_BASE_QUAL, MIN_MAPPING_QUAL and SOFT_CLIP_DIST quality filters.
     """
     dbc = db_conn()
+
+    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+    (species, chrom) = args
 
     dbc.execute_sql("""
         UPDATE sample_reads
@@ -54,11 +60,14 @@ def apply_quality_filters(species, chrom):
            """ % (species, chrom, MIN_BASE_QUAL, MIN_MAPPING_QUAL, SOFT_CLIP_DIST))
 
 
-def choose_random_read(species, chrom):
+def choose_random_read(args):
     """
     Choose a random read from those that pass quality filters
     """
     dbc = db_conn()
+
+    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+    (species, chrom) = args
 
     dbc.execute_sql("""
         UPDATE sample_reads
@@ -74,14 +83,18 @@ def choose_random_read(species, chrom):
                 
                ) AS rand ON rand.id = sample_reads.id
            SET called = 1
-           """ % (species, chrom))
+         WHERE chrom = '%s'
+           """ % (species, chrom, chrom))
 
 
-def apply_genotype_filters(species, chrom):
+def apply_genotype_filters(args):
     """
     Apply MIN_GENO_QUAL quality filter.
     """
     dbc = db_conn()
+
+    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+    (species, chrom) = args
 
     dbc.execute_sql("""
         UPDATE sample_reads
@@ -95,11 +108,14 @@ def apply_genotype_filters(species, chrom):
            """ % (species, chrom, MIN_GENO_QUAL))
 
 
-def call_ancient_snps(species, chrom):
+def call_ancient_snps(args):
     """
     Mark the sites which contain SNPs
     """
     dbc = db_conn()
+
+    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+    (species, chrom) = args
 
     dbc.execute_sql("""
         UPDATE sample_reads
@@ -126,11 +142,14 @@ def call_ancient_snps(species, chrom):
         """ % (species, chrom, species, chrom))
 
 
-def calculate_summary_stats(species, chrom):
+def calculate_summary_stats(args):
     """
     Calculate some summary stats
     """
     dbc = db_conn()
+
+    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+    (species, chrom) = args
 
     # remove any existing stats for this chromosome
     dbc.delete_records('qtl_stats', {'species': species, 'chrom': chrom})
@@ -174,7 +193,8 @@ def discover_snps(species):
     RAM usage for tables with billions of records.
     """
 
-    # TODO try multi-threading the individual chrom queries (will this improve CPU utilisation?)
+    # process the chromosomes with multi-threading to make this faster
+    pool = mp.Pool(MAX_CPU_CORES)
 
     start = began = time()
 
@@ -185,48 +205,67 @@ def discover_snps(species):
 
     print "INFO: Resetting analysis flags... ",
 
-    for chrom in chroms:
-        reset_flags(species, chrom)
+    if MULTI_THREADED:
+        pool.map(reset_flags, itertools.izip(itertools.repeat(species), chroms))
+    else:
+        for chrom in chroms:
+            reset_flags((species, chrom))
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     print "INFO: Applying quality filters... ",
 
-    for chrom in chroms:
-        apply_quality_filters(species, chrom)
+    if MULTI_THREADED:
+        pool.map(apply_quality_filters, itertools.izip(itertools.repeat(species), chroms))
+    else:
+        for chrom in chroms:
+            apply_quality_filters((species, chrom))
+
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     print "INFO: Choosing a random read from those that pass quality filters... ",
 
-    for chrom in chroms:
-        choose_random_read(species, chrom)
+    if MULTI_THREADED:
+        pool.map(choose_random_read, itertools.izip(itertools.repeat(species), chroms))
+    else:
+        for chrom in chroms:
+            choose_random_read((species, chrom))
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     print "INFO: Applying genotype quality filters to diploid calls... ",
 
-    for chrom in chroms:
-        apply_genotype_filters(species, chrom)
+    if MULTI_THREADED:
+        pool.map(apply_genotype_filters, itertools.izip(itertools.repeat(species), chroms))
+    else:
+        for chrom in chroms:
+            apply_genotype_filters((species, chrom))
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     print "INFO: Marking the sites which contain SNPs... ",
 
-    for chrom in chroms:
-        call_ancient_snps(species, chrom)
+    if MULTI_THREADED:
+        pool.map(call_ancient_snps, itertools.izip(itertools.repeat(species), chroms))
+    else:
+        for chrom in chroms:
+            call_ancient_snps((species, chrom))
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
     print "INFO: Calculating some summary stats... ",
 
-    for chrom in chroms:
-        calculate_summary_stats(species, chrom)
+    if MULTI_THREADED:
+        pool.map(calculate_summary_stats, itertools.izip(itertools.repeat(species), chroms))
+    else:
+        for chrom in chroms:
+            calculate_summary_stats((species, chrom))
 
     print "(%s)." % timedelta(seconds=time() - start)
 

@@ -203,6 +203,20 @@ def populate_coverage(species):
     print "FINISHED: Fully populated all the {} samples for {:,} intervals".format(species, len(intervals))
 
 
+def pool_map(pool, func, params):
+    """
+    Wrapper for multiprocessing.Pool().map() which binds the stack trace to any exceptions which occur inside the pool.
+    """
+
+    def traceback_call(params):
+        try:
+            func(params)
+        except Exception:
+            raise Exception("".join(traceback.format_exception(*sys.exc_info())))
+
+    return pool.map(traceback_call, params)
+
+
 def process_interval(args):
     """
     Scan all the intervals across this chromosome and add the covered bases to the DB, as long as they are variable in

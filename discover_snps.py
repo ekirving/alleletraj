@@ -198,37 +198,37 @@ def discover_snps(species):
 
     print "INFO: Starting SNP discovery for %s" % species
 
-    print "INFO: Resetting analysis flags... ",
-
-    for chrom in chroms:
-        reset_flags(species, chrom)
-
-    print "(%s)." % timedelta(seconds=time() - start)
-    start = time()
-
-    print "INFO: Applying quality filters... ",
-
-    for chrom in chroms:
-        apply_quality_filters(species, chrom)
-
-    print "(%s)." % timedelta(seconds=time() - start)
-    start = time()
-
-    print "INFO: Choosing a random read from those that pass quality filters... ",
-
-    for chrom in chroms:
-        choose_random_read(species, chrom)
-
-    print "(%s)." % timedelta(seconds=time() - start)
-    start = time()
-
-    print "INFO: Applying genotype quality filters to diploid calls... ",
-
-    for chrom in chroms:
-        apply_genotype_filters(species, chrom)
-
-    print "(%s)." % timedelta(seconds=time() - start)
-    start = time()
+    # print "INFO: Resetting analysis flags... ",
+    #
+    # for chrom in chroms:
+    #     reset_flags(species, chrom)
+    #
+    # print "(%s)." % timedelta(seconds=time() - start)
+    # start = time()
+    #
+    # print "INFO: Applying quality filters... ",
+    #
+    # for chrom in chroms:
+    #     apply_quality_filters(species, chrom)
+    #
+    # print "(%s)." % timedelta(seconds=time() - start)
+    # start = time()
+    #
+    # print "INFO: Choosing a random read from those that pass quality filters... ",
+    #
+    # for chrom in chroms:
+    #     choose_random_read(species, chrom)
+    #
+    # print "(%s)." % timedelta(seconds=time() - start)
+    # start = time()
+    #
+    # print "INFO: Applying genotype quality filters to diploid calls... ",
+    #
+    # for chrom in chroms:
+    #     apply_genotype_filters(species, chrom)
+    #
+    # print "(%s)." % timedelta(seconds=time() - start)
+    # start = time()
 
     print "INFO: Marking the sites which contain SNPs... ",
 

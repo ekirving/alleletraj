@@ -8,6 +8,7 @@ from populate_samples import populate_samples
 from populate_coverage import *
 from estimate_allele_freq import *
 from discover_snps import discover_snps
+from analyse_qtls import analyse_qtls
 
 SPECIES = ['pig'] #, 'cattle', 'horse']
 

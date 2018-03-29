@@ -124,12 +124,12 @@ def call_ancient_snps(species, chrom):
                      ) AS a
     
                      # make sure they have the same 2 alleles as the modern SNPs
-                JOIN modern_snps as ms 
-                  ON ms.species = a.species
-                 AND ms.chrom = a.chrom
-                 AND ms.site = a.pos 
-                 AND FIND_IN_SET(ms.ancestral, a.alleles)
-                 AND FIND_IN_SET(ms.derived, a.alleles)
+                    JOIN modern_snps as ms 
+                      ON ms.species = a.species
+                     AND ms.chrom = a.chrom
+                     AND ms.site = a.pos 
+                     AND FIND_IN_SET(ms.ancestral, a.alleles)
+                     AND FIND_IN_SET(ms.derived, a.alleles)
 
                 ) AS snp ON snp.chrom = sample_reads.chrom 
                         AND snp.pos = sample_reads.pos
@@ -141,46 +141,6 @@ def call_ancient_snps(species, chrom):
         """ % (species, chrom, species, chrom))
 
 
-def calculate_summary_stats(species, chrom):
-    """
-    Calculate some summary stats
-    """
-    dbc = db_conn()
-
-    # remove any existing stats for this chromosome
-    dbc.delete_records('qtl_stats', {'species': species, 'chrom': chrom})
-
-    dbc.execute_sql("""
-     INSERT INTO qtl_stats (species, qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, 
-                            avg_samples, max_reads, avg_reads)
-          SELECT species, qtl_id, chrom, class, type, name, Pvalue, significance,
-                 COUNT(qtl_id) AS snps,
-                 MAX(num_samples) max_samples,
-                 AVG(num_samples) avg_samples,
-                 MAX(num_reads) max_reads,
-                 AVG(num_reads) avg_reads
-            FROM (
-                      SELECT q.species, q.id AS qtl_id, q.pubmedID, q.Pvalue, q.significance,
-                             t.class, t.type, t.name,
-                             sr.chrom, sr.pos,
-                             COUNT(DISTINCT sr.sampleID) num_samples,
-                             COUNT(sr.id) num_reads
-                        FROM qtls q
-                        JOIN traits t
-                          ON t.id = q.traitID
-                        JOIN sample_reads sr
-                          ON sr.chrom = q.chromosome
-                         AND sr.snp = 1
-                         AND sr.pos BETWEEN q.start and q.end
-                       WHERE q.species = '%s'
-                         AND q.valid = 1
-                         AND sr.chrom = '%s'
-                    GROUP BY q.id, sr.chrom, sr.pos
-
-                  ) as snps
-        GROUP BY snps.qtl_id""" % (species, chrom))
-
-
 def discover_snps(species):
     """
     Run queries to mark callable SNPs in the ancient populations.
@@ -189,8 +149,6 @@ def discover_snps(species):
     RAM usage for tables with billions of records.
     """
 
-    # TODO try multi-threading the individual chrom queries (will this improve CPU utilisation?)
-
     start = began = time()
 
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
@@ -198,50 +156,42 @@ def discover_snps(species):
 
     print "INFO: Starting SNP discovery for %s" % species
 
-    # print "INFO: Resetting analysis flags... ",
-    #
-    # for chrom in chroms:
-    #     reset_flags(species, chrom)
-    #
-    # print "(%s)." % timedelta(seconds=time() - start)
-    # start = time()
-    #
-    # print "INFO: Applying quality filters... ",
-    #
-    # for chrom in chroms:
-    #     apply_quality_filters(species, chrom)
-    #
-    # print "(%s)." % timedelta(seconds=time() - start)
-    # start = time()
-    #
-    # print "INFO: Choosing a random read from those that pass quality filters... ",
-    #
-    # for chrom in chroms:
-    #     choose_random_read(species, chrom)
-    #
-    # print "(%s)." % timedelta(seconds=time() - start)
-    # start = time()
-    #
-    # print "INFO: Applying genotype quality filters to diploid calls... ",
-    #
-    # for chrom in chroms:
-    #     apply_genotype_filters(species, chrom)
-    #
-    # print "(%s)." % timedelta(seconds=time() - start)
-    # start = time()
+    print "INFO: Resetting analysis flags... ",
+
+    for chrom in chroms:
+        reset_flags(species, chrom)
+
+    print "(%s)." % timedelta(seconds=time() - start)
+    start = time()
+
+    print "INFO: Applying quality filters... ",
+
+    for chrom in chroms:
+        apply_quality_filters(species, chrom)
+
+    print "(%s)." % timedelta(seconds=time() - start)
+    start = time()
+
+    print "INFO: Choosing a random read from those that pass quality filters... ",
+
+    for chrom in chroms:
+        choose_random_read(species, chrom)
+
+    print "(%s)." % timedelta(seconds=time() - start)
+    start = time()
+
+    print "INFO: Applying genotype quality filters to diploid calls... ",
+
+    for chrom in chroms:
+        apply_genotype_filters(species, chrom)
+
+    print "(%s)." % timedelta(seconds=time() - start)
+    start = time()
 
     print "INFO: Marking the sites which contain SNPs... ",
 
     for chrom in chroms:
         call_ancient_snps(species, chrom)
-
-    print "(%s)." % timedelta(seconds=time() - start)
-    start = time()
-
-    print "INFO: Calculating some summary stats... ",
-
-    for chrom in chroms:
-        calculate_summary_stats(species, chrom)
 
     print "(%s)." % timedelta(seconds=time() - start)
 

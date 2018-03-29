@@ -125,11 +125,6 @@ def analyse_qtls(species):
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
 
-
-
-
-
-    analyse_qtl_snps(species, chrom)
-
+    # TODO more analysis...
 
     print "SUCCESS: Finished the %s SNP discovery (%s)" % (species, timedelta(seconds=time() - began))

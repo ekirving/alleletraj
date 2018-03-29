@@ -18,5 +18,6 @@ for species in SPECIES:
     # estimate_allele_freq(species)
     # populate_interval_snps(species)
     # populate_samples(species)
-    populate_coverage(species)
-    discover_snps(species)
+    # populate_coverage(species)
+    # discover_snps(species)
+    analyse_qtls(species)

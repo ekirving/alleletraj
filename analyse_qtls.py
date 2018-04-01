@@ -7,9 +7,13 @@ from datetime import timedelta
 from natsort import natsorted
 
 from populate_qtls import *
+from populate_coverage import *
 
-# the number of SNPs to model per QTL
-SNPS_PER_QTL = 3
+# the minimum number of reads per SNP
+MIN_READS_PER_SNP = 3
+
+# the maximum number of SNPs per QTL
+MAX_SNPS_PER_QTL = 3
 
 
 def calculate_summary_stats(species, chrom):
@@ -64,54 +68,73 @@ def populate_qtl_snps(species, chrom):
         INSERT INTO qtls_snps (qtl_id, modsnp_id)
              SELECT q.id, ms.id
                FROM qtls q
-               JOIN modern_snps ms 
+               JOIN modern_snps ms
                  ON ms.species = q.species
                 AND ms.chrom = q.chromosome
                 AND ms.site BETWEEN q.start AND q.end
               WHERE q.species = '{species}'
-                AND q.chromosome = '{chrom}'""".format(species=species, chrom=chrom))
+                AND q.chromosome = '{chrom}'
+                AND q.valid = 1
+                AND ms.maf >= {maf}""".format(species=species, chrom=chrom, maf=MIN_MAF))
 
 
 def analyse_qtl_snps(species, chrom):
     """
-    Find the best SNPs for each QTL, and link their sample reads to the QTL.
+    Find the best SNPs for each QTL
     """
     dbc = db_conn()
 
     # TODO remove any existing records for this chromosome
-    # dbc.delete_records('qtl_reads', {'species': species, 'chrom': chrom})
 
+    # count the number of reads for each SNP
     dbc.execute_sql("""
-     INSERT INTO qtl_reads (qtl_id, read_id)
-          SELECT qtl_id, sr.id read_id
-            FROM sample_reads sr
-            JOIN (
-                    # for each QTL, get the best SNPs (i.e. those with the most reads)
-                    SELECT snp.qtl_id, snp.chrom,
-                           SUBSTRING_INDEX(GROUP_CONCAT(snp.pos ORDER BY snp.num_reads DESC), ',',  {num_snps}) sites
-                      FROM (
-                              # for each QTL, get the count of reads for each SNP
-                              SELECT q.id AS qtl_id,
-                                     sr.chrom, sr.pos,
-                                     COUNT(sr.id) num_reads
-                                FROM qtls q
-                                JOIN sample_reads sr
-                                  ON sr.chrom = q.chromosome
-                                 AND sr.pos BETWEEN q.start and q.end
-                               WHERE q.species = '{species}'
-                                 AND q.valid = 1
-                                 AND sr.chrom = '{chrom}'
-                                 AND sr.snp = 1
-                            GROUP BY q.id, sr.chrom, sr.pos
-                            
-                            ) AS snp
-                   GROUP BY qtl_id
-                   
-                 ) AS best
-                   ON sr.chrom = best.chrom
-                  AND FIND_IN_SET(sr.pos, best.sites)
-           WHERE sr.chrom = '{chrom}'
-             AND sr.snp = 1""".format(num_snps=SNPS_PER_QTL, species=species, chrom=chrom))
+        UPDATE qtls_snps
+          JOIN (
+                  SELECT qs.id,
+                         COUNT(sr.id) num_reads
+                    FROM qtls q
+                    JOIN qtls_snps qs
+                      ON qs.qtl_id = q.id
+                    JOIN modern_snps ms
+                      ON ms.id = qs.modsnp_id
+                    JOIN sample_reads sr
+                      ON sr.chrom = ms.chrom
+                     AND sr.pos = ms.site
+                     AND sr.snp = 1
+                    JOIN samples s
+                      ON s.id = sr.sampleID
+                     AND s.species = q.species
+                   WHERE q.species = '{species}'
+                     AND q.chromosome = '{chrom}'
+                     AND q.valid = 1
+                GROUP BY qs.id
+
+                ) AS num
+                  ON num.id = qtls_snps.id
+
+           SET qtls_snps.num_reads = num.num_reads""".format(species=species, chrom=chrom))
+
+    # choose the best SNPs for each QTL
+    dbc.execute_sql("""
+        UPDATE qtls_snps
+          JOIN (
+                  SELECT qtl_id,
+                         SUBSTRING_INDEX(GROUP_CONCAT(qs.id ORDER BY num_reads DESC), ',',  {max_snps}) qtl_snps
+                    FROM qtls q
+                    JOIN qtls_snps qs
+                      ON qs.qtl_id = q.id
+                   WHERE q.species = '{species}'
+                     AND q.chromosome = '{chrom}'
+                     AND q.valid = 1
+                     AND qs.num_reads >= {min_reads}
+                GROUP BY qtl_id
+
+                ) AS best
+                  ON FIND_IN_SET(qtls_snps.id, best.qtl_snps)
+
+            SET qtls_snps.best = 1""".format(species=species, chrom=chrom,
+                                             min_reads=MIN_READS_PER_SNP,
+                                             max_snps=MAX_SNPS_PER_QTL))
 
 
 def analyse_qtls(species):

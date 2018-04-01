@@ -4,6 +4,7 @@
 from db_conn import db_conn
 from time import time
 from datetime import timedelta
+from natsort import natsorted
 
 from populate_qtls import *
 
@@ -49,6 +50,26 @@ def calculate_summary_stats(species, chrom):
 
                   ) as snps
         GROUP BY snps.qtl_id""".format(species=species, chrom=chrom))
+
+
+def populate_qtl_snps(species, chrom):
+    """
+    Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
+    """
+
+    dbc = db_conn()
+
+    # insert linking records to make future queries much quicker
+    dbc.execute_sql("""
+        INSERT INTO qtls_snps (qtl_id, modsnp_id)
+             SELECT q.id, ms.id
+               FROM qtls q
+               JOIN modern_snps ms 
+                 ON ms.species = q.species
+                AND ms.chrom = q.chromosome
+                AND ms.site BETWEEN q.start AND q.end
+              WHERE q.species = '{species}'
+                AND q.chromosome = '{chrom}'""".format(species=species, chrom=chrom))
 
 
 def analyse_qtl_snps(species, chrom):
@@ -101,7 +122,7 @@ def analyse_qtls(species):
     start = began = time()
 
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    chroms = CHROM_SIZE[species].keys()
+    chroms = natsorted(CHROM_SIZE[species].keys())
 
     print "INFO: Starting QTL analysis for %s" % species
 
@@ -114,6 +135,13 @@ def analyse_qtls(species):
     #
     # print "(%s)." % timedelta(seconds=time() - start)
     # start = time()
+
+    # -----------------------------------------------
+    print "INFO: Populating the {} QTL SNPs...",
+    # -----------------------------------------------
+
+    for chrom in chroms:
+        populate_qtl_snps(species, chrom)
 
     # -----------------------------------------------
     print "INFO: Analysing QTL SNPs... ",

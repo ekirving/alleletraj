@@ -369,6 +369,6 @@ def process_interval(args):
 
         print "INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end)
 
-    except:
+    except Exception:
         # Put all exception text into an exception and raise that
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))

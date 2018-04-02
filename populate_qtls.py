@@ -72,6 +72,14 @@ def populate_qtls(species):
     if VERBOSE:
         print "INFO: Found %s new %s QTLs to add" % (len(new_ids), species)
 
+    # rename these fields
+    key_map = {
+        'pubmedID':   'pubmed_id',
+        'traitID':    'trait_id',
+        'geneID':     'gene_id',
+        'chromosome': 'chrom'
+    }
+
     added = 0
 
     # get all the new records
@@ -83,10 +91,10 @@ def populate_qtls(species):
         trait['name'] = record.pop('name')
 
         # set the tait foreign key on the main record
-        record['traitID'] = trait['traitID']
+        record['trait_id'] = trait['traitID']
 
         # does the trait exist
-        if not dbc.exists_record('traits', {'id': record['traitID']}):
+        if not dbc.exists_record('traits', {'id': record['trait_id']}):
 
             # setup the trait record
             trait = dict((field.replace('trait', '').lower(), value) for field, value in trait.iteritems())
@@ -95,10 +103,10 @@ def populate_qtls(species):
             dbc.save_record('traits', trait)
 
         # does the publication exist
-        if not dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
+        if not dbc.exists_record('pubmeds', {'id': record['pubmed_id']}):
 
             # setup the pubmed record
-            pubmed = api.get_publication(species, record['pubmedID'])
+            pubmed = api.get_publication(species, record['pubmed_id'])
 
             if pubmed:
                 pubmed['id'] = pubmed.pop('pubmed_ID')
@@ -107,8 +115,8 @@ def populate_qtls(species):
 
                 dbc.save_record('pubmeds', pubmed)
             else:
-                # some records have a bogus pubmedID
-                record['pubmedID'] = None
+                # some records have a bogus pubmed_id
+                record['pubmed_id'] = None
 
         # flatten the other nested records
         for field, value in record.iteritems():
@@ -136,6 +144,11 @@ def populate_qtls(species):
         for field in ['linkageLoc_end', 'linkageLoc_peak', 'linkageLoc_start']:
             if field in record and record[field] is not None:
                 record[field] = re.sub('[^0-9.]', '', record[field])
+
+        # rename some fields
+        for key in record:
+            if key in key_map:
+                record[key_map[key]] = record.pop(key)
 
         # filter out any empty values
         qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')

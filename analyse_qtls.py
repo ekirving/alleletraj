@@ -35,22 +35,22 @@ def calculate_summary_stats(species, chrom):
                  MAX(num_reads) max_reads,
                  AVG(num_reads) avg_reads
             FROM (
-                      SELECT q.species, q.id AS qtl_id, q.pubmedID, q.Pvalue, q.significance,
+                      SELECT q.species, q.id AS qtl_id, q.pubmed_id, q.Pvalue, q.significance,
                              t.class, t.type, t.name,
-                             sr.chrom, sr.pos,
-                             COUNT(DISTINCT sr.sampleID) num_samples,
+                             sr.chrom, sr.site,
+                             COUNT(DISTINCT sr.sample_id) num_samples,
                              COUNT(sr.id) num_reads
                         FROM qtls q
                         JOIN traits t
-                          ON t.id = q.traitID
+                          ON t.id = q.trait_id
                         JOIN sample_reads sr
-                          ON sr.chrom = q.chromosome
+                          ON sr.chrom = q.chrom
                          AND sr.snp = 1
-                         AND sr.pos BETWEEN q.start and q.end
+                         AND sr.site BETWEEN q.start and q.end
                        WHERE q.species = '{species}'
                          AND q.valid = 1
                          AND sr.chrom = '{chrom}'
-                    GROUP BY q.id, sr.chrom, sr.pos
+                    GROUP BY q.id, sr.chrom, sr.site
 
                   ) as snps
         GROUP BY snps.qtl_id""".format(species=species, chrom=chrom))
@@ -70,10 +70,10 @@ def populate_qtl_snps(species, chrom):
                FROM qtls q
                JOIN modern_snps ms
                  ON ms.species = q.species
-                AND ms.chrom = q.chromosome
+                AND ms.chrom = q.chrom
                 AND ms.site BETWEEN q.start AND q.end
               WHERE q.species = '{species}'
-                AND q.chromosome = '{chrom}'
+                AND q.chrom = '{chrom}'
                 AND q.valid = 1
                 AND ms.maf >= {maf}""".format(species=species, chrom=chrom, maf=MIN_MAF))
 
@@ -99,13 +99,13 @@ def analyse_qtl_snps(species, chrom):
                       ON ms.id = qs.modsnp_id
                     JOIN sample_reads sr
                       ON sr.chrom = ms.chrom
-                     AND sr.pos = ms.site
+                     AND sr.site = ms.site
                      AND sr.snp = 1
                     JOIN samples s
-                      ON s.id = sr.sampleID
+                      ON s.id = sr.sample_id
                      AND s.species = q.species
                    WHERE q.species = '{species}'
-                     AND q.chromosome = '{chrom}'
+                     AND q.chrom = '{chrom}'
                      AND q.valid = 1
                 GROUP BY qs.id
 
@@ -130,7 +130,7 @@ def analyse_qtl_snps(species, chrom):
                     JOIN modern_snps ms
                       ON ms.id = qs.modsnp_id
                    WHERE q.species = '{species}'
-                     AND q.chromosome = '{chrom}'
+                     AND q.chrom = '{chrom}'
                      AND q.valid = 1
                      AND qs.num_reads IS NOT NULL
                 GROUP BY qtl_id

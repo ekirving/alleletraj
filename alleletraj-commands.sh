@@ -37,7 +37,7 @@ nohup python -u build_database.py &> nohup-step1.out &
 
 chrom, quality, random, snp
 chrom, baseq, mapq, dist
-chrom, pos, sampleID
+chrom, site, sample_id
 
 
 parallel "samtools faidx {} 10:1116-1116" ::: /media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA/*/10.fa > tmp.log; grep -v '>' tmp.log | sort | uniq -c;

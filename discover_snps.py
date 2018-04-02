@@ -26,7 +26,7 @@ def reset_flags(species, chrom):
     dbc.execute_sql("""
          UPDATE sample_reads
            JOIN samples
-             ON samples.id = sample_reads.sampleID
+             ON samples.id = sample_reads.sample_id
             SET quality = NULL,
                 called = NULL,
                 snp = NULL
@@ -44,7 +44,7 @@ def apply_quality_filters(species, chrom):
     dbc.execute_sql("""
         UPDATE sample_reads
           JOIN samples 
-            ON samples.id = sample_reads.sampleID
+            ON samples.id = sample_reads.sample_id
            SET sample_reads.quality = 1
          WHERE samples.species = '%s'
            AND sample_reads.chrom = '%s'
@@ -66,11 +66,11 @@ def choose_random_read(species, chrom):
                   SELECT SUBSTRING_INDEX(GROUP_CONCAT(sr.id ORDER BY RAND()), ',',  1) id
                     FROM samples s
                     JOIN sample_reads sr
-                      ON sr.sampleID = s.id
+                      ON sr.sample_id = s.id
                    WHERE s.species = '%s'
                      AND sr.chrom = '%s'
                      AND sr.quality = 1
-                GROUP BY sr.chrom, sr.pos, sr.sampleID
+                GROUP BY sr.chrom, sr.site, sr.sample_id
                 
                ) AS rand ON rand.id = sample_reads.id
            SET called = 1
@@ -86,7 +86,7 @@ def apply_genotype_filters(species, chrom):
     dbc.execute_sql("""
         UPDATE sample_reads
           JOIN samples 
-            ON samples.id = sample_reads.sampleID
+            ON samples.id = sample_reads.sample_id
            SET sample_reads.quality = 1,
                sample_reads.called = 1 
          WHERE samples.species = '%s'
@@ -104,21 +104,21 @@ def call_ancient_snps(species, chrom):
     dbc.execute_sql("""
         UPDATE sample_reads
           JOIN samples
-            ON samples.id = sample_reads.sampleID
+            ON samples.id = sample_reads.sample_id
           JOIN (
                 # get the good SNPs
-                SELECT a.chrom, a.pos
+                SELECT a.chrom, a.site
                 FROM (
                       # get all the ancient callable biallelic sites
-                      SELECT s.species, sr.chrom, sr.pos, 
+                      SELECT s.species, sr.chrom, sr.site, 
                              GROUP_CONCAT(DISTINCT sr.base) AS alleles
                         FROM samples s
                         JOIN sample_reads sr
-                          ON sr.sampleID = s.id
+                          ON sr.sample_id = s.id
                        WHERE s.species = '%s'
                          AND sr.chrom = '%s'
                          AND sr.called = 1
-                    GROUP BY sr.chrom, sr.pos
+                    GROUP BY sr.chrom, sr.site
                       HAVING COUNT(DISTINCT sr.base) = 2
 
                      ) AS a
@@ -127,12 +127,12 @@ def call_ancient_snps(species, chrom):
                     JOIN modern_snps as ms 
                       ON ms.species = a.species
                      AND ms.chrom = a.chrom
-                     AND ms.site = a.pos 
+                     AND ms.site = a.site 
                      AND FIND_IN_SET(ms.ancestral, a.alleles)
                      AND FIND_IN_SET(ms.derived, a.alleles)
 
                 ) AS snp ON snp.chrom = sample_reads.chrom 
-                        AND snp.pos = sample_reads.pos
+                        AND snp.site = sample_reads.site
                         
           SET sample_reads.snp = 1
         WHERE samples.species = '%s'

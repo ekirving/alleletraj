@@ -103,7 +103,7 @@ class qtldb_api:
             for record in data['EFETCHresults']['QTL']:
                 yield record
 
-    def get_trait_type(self, species, traitid, name):
+    def get_trait_type(self, species, trait_id, name):
 
         # get all trait
         data = self.__iquery(species, name, 'traits')
@@ -115,7 +115,7 @@ class qtldb_api:
 
             for trait in traits:
                 if isinstance(trait, OrderedDict):
-                    if trait['@traitID'] == traitid:
+                    if trait['@traitID'] == trait_id:
                         return trait['traitType']
         return None
 

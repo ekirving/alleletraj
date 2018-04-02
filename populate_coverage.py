@@ -103,16 +103,16 @@ def populate_intervals(species):
 
     # get all the unique QTL windows
     results = dbc.get_records_sql("""
-        SELECT q.chromosome AS chrom, q.start, q.end
+        SELECT q.chrom AS chrom, q.start, q.end
           FROM qtls q
          WHERE q.species = '%s'
            AND q.valid = 1
-      GROUP BY q.chromosome, q.start, q.end""" % species, key=None)
+      GROUP BY q.chrom, q.start, q.end""" % species, key=None)
 
     intervals = defaultdict(list)
 
     for result in results:
-        # group the intervals by chromosome
+        # group the intervals by chrom
         intervals[result['chrom']].append((result['start'], result['end']))
 
     num_sites = 0
@@ -187,7 +187,7 @@ def populate_coverage(species):
         DELETE sample_reads
           FROM sample_reads
           JOIN intervals 
-            ON intervals.id = sample_reads.intervalID
+            ON intervals.id = sample_reads.interval_id
          WHERE intervals.species = '%s'
            AND intervals.finished = 0""" % species)
 
@@ -233,7 +233,7 @@ def process_interval(args):
         print "INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps))
 
         # the column headers for batch inserting into the db
-        fields = ('intervalID', 'sampleID', 'chrom', 'pos', 'base', 'mapq', 'baseq', 'dist')
+        fields = ('interval_id', 'sample_id', 'chrom', 'site', 'base', 'mapq', 'baseq', 'dist')
 
         num_reads = 0
 
@@ -257,15 +257,15 @@ def process_interval(args):
 
                     # what position are we at in the BAM file
                     # http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
-                    pos = pileupcolumn.reference_pos + 1  # IMPORTANT `pos` is 0 based !!!!
+                    site = pileupcolumn.reference_pos + 1  # IMPORTANT `reference_pos` is 0 based !!!!
 
                     # skip all non-SNP sites
-                    if pos not in snps:
+                    if site not in snps:
                         continue
 
                     if len(pileupcolumn.pileups) >= MIN_GENO_DEPTH:
                         # add the current position to the list of sites to call properly
-                        diploid.append(pos)
+                        diploid.append(site)
 
                     else:
                         # iterate over all the reads for this site
@@ -300,7 +300,7 @@ def process_interval(args):
                             dist = min(read_pos, read_length - read_pos)
 
                             # setup the record to insert, in this order
-                            read = (interval_id, sample_id, chrom, pos, base, mapq, baseq, dist)
+                            read = (interval_id, sample_id, chrom, site, base, mapq, baseq, dist)
 
                             # store the read so we can batch insert later
                             reads.append(read)
@@ -323,7 +323,7 @@ def process_interval(args):
 
                 # save all the callable positions to a file
                 with open(pos_file, 'w') as fout:
-                    fout.write("\n".join("{}\t{}".format(chrom, pos) for pos in diploid))
+                    fout.write("\n".join("{}\t{}".format(chrom, site) for site in diploid))
 
                 # filter on interval
                 region = "{}:{}-{}".format(chrom, start, end)
@@ -353,10 +353,10 @@ def process_interval(args):
                     for allele in alleles:
                         # compose the read records
                         read = {
-                            'intervalID': interval_id,
-                            'sampleID': sample_id,
+                            'interval_id': interval_id,
+                            'sample_id': sample_id,
                             'chrom':    rec.chrom,
-                            'pos':      rec.pos,
+                            'site':     rec.pos,
                             'genoq':    int(rec.qual),
                             'base':     allele
                         }

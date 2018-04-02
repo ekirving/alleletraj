@@ -9,11 +9,11 @@ from natsort import natsorted
 from populate_qtls import *
 from populate_coverage import *
 
-# the minimum number of reads per SNP
-MIN_READS_PER_SNP = 3
+# TODO the minimum number of reads per SNP
+MIN_READS_PER_SNP = 12
 
-# the maximum number of SNPs per QTL
-MAX_SNPS_PER_QTL = 3
+# the number of SNPs to model per QTL
+SNPS_PER_QTL = 3
 
 
 def calculate_summary_stats(species, chrom):
@@ -114,27 +114,31 @@ def analyse_qtl_snps(species, chrom):
 
            SET qtls_snps.num_reads = num.num_reads""".format(species=species, chrom=chrom))
 
-    # choose the best SNPs for each QTL
+    # choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
     dbc.execute_sql("""
         UPDATE qtls_snps
           JOIN (
                   SELECT qtl_id,
-                         SUBSTRING_INDEX(GROUP_CONCAT(qs.id ORDER BY num_reads DESC), ',',  {max_snps}) qtl_snps
+                         SUBSTRING_INDEX(
+                             GROUP_CONCAT(qs.id ORDER BY num_reads DESC, ABS(d.site-ms.site) ASC), 
+                             ',', {num_snps}) qtl_snps
                     FROM qtls q
+                    JOIN dbsnp d
+                      ON d.rsnumber = q.peak
                     JOIN qtls_snps qs
                       ON qs.qtl_id = q.id
+                    JOIN modern_snps ms
+                      ON ms.id = qs.modsnp_id
                    WHERE q.species = '{species}'
                      AND q.chromosome = '{chrom}'
                      AND q.valid = 1
-                     AND qs.num_reads >= {min_reads}
+                     AND qs.num_reads IS NOT NULL
                 GROUP BY qtl_id
 
                 ) AS best
                   ON FIND_IN_SET(qtls_snps.id, best.qtl_snps)
 
-            SET qtls_snps.best = 1""".format(species=species, chrom=chrom,
-                                             min_reads=MIN_READS_PER_SNP,
-                                             max_snps=MAX_SNPS_PER_QTL))
+            SET qtls_snps.best = 1""".format(species=species, chrom=chrom, num_snps=SNPS_PER_QTL))
 
 
 def analyse_qtls(species):
@@ -160,14 +164,16 @@ def analyse_qtls(species):
     # start = time()
 
     # -----------------------------------------------
-    print "INFO: Populating the {} QTL SNPs...",
+    print "INFO: Populating {} QTL SNPs... ".format(species),
     # -----------------------------------------------
 
     for chrom in chroms:
         populate_qtl_snps(species, chrom)
+    print "(%s)." % timedelta(seconds=time() - start)
+    start = time()
 
     # -----------------------------------------------
-    print "INFO: Analysing QTL SNPs... ",
+    print "INFO: Analysing {} QTL SNPs... ".format(species),
     # -----------------------------------------------
 
     for chrom in chroms:

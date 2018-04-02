@@ -86,33 +86,33 @@ def analyse_qtl_snps(species, chrom):
 
     # TODO remove any existing records for this chromosome
 
-    # count the number of reads for each SNP
-    dbc.execute_sql("""
-        UPDATE qtls_snps
-          JOIN (
-                  SELECT qs.id,
-                         COUNT(sr.id) num_reads
-                    FROM qtls q
-                    JOIN qtls_snps qs
-                      ON qs.qtl_id = q.id
-                    JOIN modern_snps ms
-                      ON ms.id = qs.modsnp_id
-                    JOIN sample_reads sr
-                      ON sr.chrom = ms.chrom
-                     AND sr.pos = ms.site
-                     AND sr.snp = 1
-                    JOIN samples s
-                      ON s.id = sr.sampleID
-                     AND s.species = q.species
-                   WHERE q.species = '{species}'
-                     AND q.chromosome = '{chrom}'
-                     AND q.valid = 1
-                GROUP BY qs.id
-
-                ) AS num
-                  ON num.id = qtls_snps.id
-
-           SET qtls_snps.num_reads = num.num_reads""".format(species=species, chrom=chrom))
+    # # count the number of reads for each SNP
+    # dbc.execute_sql("""
+    #     UPDATE qtls_snps
+    #       JOIN (
+    #               SELECT qs.id,
+    #                      COUNT(sr.id) num_reads
+    #                 FROM qtls q
+    #                 JOIN qtls_snps qs
+    #                   ON qs.qtl_id = q.id
+    #                 JOIN modern_snps ms
+    #                   ON ms.id = qs.modsnp_id
+    #                 JOIN sample_reads sr
+    #                   ON sr.chrom = ms.chrom
+    #                  AND sr.pos = ms.site
+    #                  AND sr.snp = 1
+    #                 JOIN samples s
+    #                   ON s.id = sr.sampleID
+    #                  AND s.species = q.species
+    #                WHERE q.species = '{species}'
+    #                  AND q.chromosome = '{chrom}'
+    #                  AND q.valid = 1
+    #             GROUP BY qs.id
+    #
+    #             ) AS num
+    #               ON num.id = qtls_snps.id
+    #
+    #        SET qtls_snps.num_reads = num.num_reads""".format(species=species, chrom=chrom))
 
     # choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
     dbc.execute_sql("""
@@ -162,15 +162,15 @@ def analyse_qtls(species):
     #
     # print "(%s)." % timedelta(seconds=time() - start)
     # start = time()
-
-    # -----------------------------------------------
-    print "INFO: Populating {} QTL SNPs... ".format(species),
-    # -----------------------------------------------
-
-    for chrom in chroms:
-        populate_qtl_snps(species, chrom)
-    print "(%s)." % timedelta(seconds=time() - start)
-    start = time()
+    #
+    # # -----------------------------------------------
+    # print "INFO: Populating {} QTL SNPs... ".format(species),
+    # # -----------------------------------------------
+    #
+    # for chrom in chroms:
+    #     populate_qtl_snps(species, chrom)
+    # print "(%s)." % timedelta(seconds=time() - start)
+    # start = time()
 
     # -----------------------------------------------
     print "INFO: Analysing {} QTL SNPs... ".format(species),

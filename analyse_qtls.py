@@ -136,7 +136,8 @@ def analyse_qtl_snps(species, chrom):
                 GROUP BY qtl_id
 
                 ) AS best
-                  ON FIND_IN_SET(qtls_snps.id, best.qtl_snps)
+                  ON qtls_snps.qtl_id = best.qtl_id
+                 AND FIND_IN_SET(qtls_snps.id, best.qtl_snps)
 
             SET qtls_snps.best = 1""".format(species=species, chrom=chrom, num_snps=SNPS_PER_QTL))
 

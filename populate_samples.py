@@ -18,14 +18,12 @@ from db_conn import db_conn
 VERBOSE = True
 
 # details of the GoogleSheet
-SHEET_ID = '154wbTEcAUPz4d5v7QLLSwIKTdK8AxXP5US-riCjt2og'
-SHEET_TABS = ['Europe and NE Pigs']  #, 'SE Asian Pigs']
+SHEET_ID = '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI'
+SHEET_TABS = ['Everything for the paper - updated']
 SHEET_COLS = OrderedDict([
     ('Extract No.',      'accession'),
-    ('Mapped Reads',     'map_reads'),
-    ('% Mapped',         'map_prcnt'),
-    ('% Mapped-Q30',     'map_prcnt_q30'),
     ('Age',              'age'),
+    ('Period',           'period'),
     ('Location',         'location'),
     ('Country',          'country'),
     ('Wild/Dom Status',  'status')

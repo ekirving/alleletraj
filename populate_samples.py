@@ -76,6 +76,32 @@ def fetch_metadata(species):
     return df
 
 
+def confirm_age_mapping(species):
+    """
+    Make sure that all the free-text dates have proper numeric mappings
+    """
+
+    dbc = db_conn()
+
+    print "INFO: Confirming {} age mappings".format(species)
+
+    missing = dbc.get_records_sql("""
+        SELECT s.*
+          FROM samples s
+     LEFT JOIN sample_dates sd
+            ON s.age <=> sd.age
+         WHERE s.species = '%s'
+           AND sd.id IS NULL""" % species)
+
+    if missing:
+        print "ERROR: Not all sample ages have numeric mappings!"
+
+        for id, sample in missing.iteritems():
+            print "%s - '%s'" % (sample['accession'], sample['age'])
+
+        quit()
+
+
 def mark_valid_samples(species):
     """
     Samples are valid if they are from Europe and have a BAM file.
@@ -137,8 +163,11 @@ def populate_samples(species):
             bam_file['path'] = path
             dbc.save_record('sample_files', bam_file)
 
-    # mark the valid samples
-    mark_valid_samples(species)
+    # make sure that all the free-text dates have proper numeric mappings
+    confirm_age_mapping(species)
 
+    # samples are valid if they are from Europe and have a BAM file
+    mark_valid_samples(species)
+    
     if VERBOSE:
         print "INFO: Finished updating %s %s samples" % (len(df), species)

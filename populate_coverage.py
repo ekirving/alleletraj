@@ -240,6 +240,7 @@ def process_interval(args):
             # buffer the reads so we can bulk insert them into the db
             reads = list()
 
+            # TODO what about when there are multiple BAM files!?
             # keep a list of sites which have sufficient coverage to perform diploid base calls
             diploid = list()
 

@@ -165,7 +165,14 @@ def populate_coverage(species):
     intervals = dbc.get_records('intervals', {'species': species, 'finished': 0})
 
     # get all the valid samples
-    samples = dbc.get_records('samples', {'species':species, 'valid':1})
+    samples = dbc.get_records_sql(
+        """SELECT s.*, GROUP_CONCAT(sf.path) paths
+             FROM samples s
+             JOIN sample_files sf
+               ON sf.sample_id = s.id
+            WHERE s.species = '%s'
+              AND s.valid = 1
+         GROUP BY s.id;""" % (species))
 
     print "INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species)
 
@@ -236,61 +243,64 @@ def process_interval(args):
             # keep a list of sites which have sufficient coverage to perform diploid base calls
             diploid = list()
 
-            # open the BAM file for reading
-            with ps.AlignmentFile(sample['path'], 'rb') as bamfile:
+            # there may be multiple BAM files for each sample
+            for path in sample['paths'].splt(','):
 
-                # get the full interval
-                for pileupcolumn in bamfile.pileup(chrom, start, end + 1):
+                # open the BAM file for reading
+                with ps.AlignmentFile(path, 'rb') as bamfile:
 
-                    # what position are we at in the BAM file
-                    # http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
-                    site = pileupcolumn.reference_pos + 1  # IMPORTANT `reference_pos` is 0 based !!!!
+                    # get the full interval
+                    for pileupcolumn in bamfile.pileup(chrom, start, end + 1):
 
-                    # skip all non-SNP sites
-                    if site not in snps:
-                        continue
+                        # IMPORTANT `reference_pos` is 0 based !!!!
+                        # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
+                        site = pileupcolumn.reference_pos + 1
 
-                    if len(pileupcolumn.pileups) >= MIN_GENO_DEPTH:
-                        # add the current position to the list of sites to call properly
-                        diploid.append(site)
+                        # skip all non-SNP sites
+                        if site not in snps:
+                            continue
 
-                    else:
-                        # iterate over all the reads for this site
-                        for pileupread in pileupcolumn.pileups:
+                        if len(pileupcolumn.pileups) >= MIN_GENO_DEPTH:
+                            # add the current position to the list of sites to call properly
+                            diploid.append(site)
 
-                            # skip alignments that don't have a base at this site (i.e. indels)
-                            if pileupread.is_del or pileupread.is_refskip:
-                                continue
+                        else:
+                            # iterate over all the reads for this site
+                            for pileupread in pileupcolumn.pileups:
 
-                            # get the read position
-                            read_pos = pileupread.query_position
+                                # skip alignments that don't have a base at this site (i.e. indels)
+                                if pileupread.is_del or pileupread.is_refskip:
+                                    continue
 
-                            # get the aligned base for this read
-                            base = pileupread.alignment.query_sequence[read_pos]
+                                # get the read position
+                                read_pos = pileupread.query_position
 
-                            # get the map quality
-                            mapq = pileupread.alignment.mapping_quality
+                                # get the aligned base for this read
+                                base = pileupread.alignment.query_sequence[read_pos]
 
-                            if mapq < HARD_MAPQ_CUTOFF:
-                                continue
+                                # get the map quality
+                                mapq = pileupread.alignment.mapping_quality
 
-                            # get the base quality
-                            baseq = pileupread.alignment.query_qualities[read_pos]
+                                if mapq < HARD_MAPQ_CUTOFF:
+                                    continue
 
-                            if baseq < HARD_BASEQ_CUTOFF:
-                                continue
+                                # get the base quality
+                                baseq = pileupread.alignment.query_qualities[read_pos]
 
-                            # get the overall length of the read
-                            read_length = len(pileupread.alignment.query_sequence)
+                                if baseq < HARD_BASEQ_CUTOFF:
+                                    continue
 
-                            # how close is the base to the edge of the read
-                            dist = min(read_pos, read_length - read_pos)
+                                # get the overall length of the read
+                                read_length = len(pileupread.alignment.query_sequence)
 
-                            # setup the record to insert, in this order
-                            read = (interval_id, sample_id, chrom, site, base, mapq, baseq, dist)
+                                # how close is the base to the edge of the read
+                                dist = min(read_pos, read_length - read_pos)
 
-                            # store the read so we can batch insert later
-                            reads.append(read)
+                                # setup the record to insert, in this order
+                                read = (interval_id, sample_id, chrom, site, base, mapq, baseq, dist)
+
+                                # store the read so we can batch insert later
+                                reads.append(read)
 
             # save all the single reads to the db
             if reads:

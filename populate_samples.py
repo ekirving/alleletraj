@@ -168,6 +168,6 @@ def populate_samples(species):
 
     # samples are valid if they are from Europe and have a BAM file
     mark_valid_samples(species)
-    
+
     if VERBOSE:
         print "INFO: Finished updating %s %s samples" % (len(df), species)

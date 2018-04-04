@@ -44,10 +44,6 @@ MIN_MAF = 0.05
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
-# list of permissible countries in Europe
-EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Estonia', 'Faroes', 'France',
-          'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Poland',
-          'Portugal', 'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
 
 def run_cmd(cmd, shell=False):
     """
@@ -168,16 +164,8 @@ def populate_coverage(species):
     # count all the intervals we've not finished processing yet
     intervals = dbc.get_records('intervals', {'species': species, 'finished': 0})
 
-    # make a list of permissible countries
-    countries = "','".join(EUROPE)
-
-    # get all the samples w/ BAM files
-    samples = dbc.get_records_sql(
-        """SELECT *
-             FROM samples
-            WHERE species = '%s'
-              AND country IN ('%s')
-              AND path IS NOT NULL""" % (species, countries))
+    # get all the valid samples
+    samples = dbc.get_records('samples', {'species':species, 'valid':1})
 
     print "INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species)
 

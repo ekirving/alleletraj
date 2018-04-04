@@ -5,9 +5,7 @@ import os
 import httplib2
 import pandas as pd
 
-from pprint import pprint
-
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 # custom module
 import google_sheets as gs
@@ -17,17 +15,32 @@ from db_conn import db_conn
 # TODO make global variable
 VERBOSE = True
 
-# details of the GoogleSheet
+# Pigs_allTo20042016_shared / old Google sheet
+# SHEET_ID = '154wbTEcAUPz4d5v7QLLSwIKTdK8AxXP5US-riCjt2og'
+# SHEET_TABS = ['Europe and NE Pigs']  #, 'SE Asian Pigs']
+# SHEET_NA = 'NA'
+
+# Pig_Table_Final_05_03_18 / new Google sheet
 SHEET_ID = '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI'
 SHEET_TABS = ['Everything for the paper - updated']
+SHEET_NA = 'n/a'
+
 SHEET_COLS = OrderedDict([
     ('Extract No.',      'accession'),
+    ('Total Reads',      'map_reads'),
+    ('% Mapped',         'map_prcnt'),
+    # ('% Mapped-Q30',     'map_prcnt_q30'),
     ('Age',              'age'),
     ('Period',           'period'),
     ('Location',         'location'),
     ('Country',          'country'),
     ('Wild/Dom Status',  'status')
 ])
+
+# list of permissible countries in Europe
+EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Estonia', 'Faroes', 'France',
+          'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Poland',
+          'Portugal', 'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
 
 # make sure we can properly inspect the data if we want to
 pd.set_option('max_colwidth', 1000)
@@ -63,6 +76,27 @@ def fetch_metadata(species):
     return df
 
 
+def mark_valid_samples(species):
+    """
+    Samples are valid if they are from Europe and have a BAM file.
+    """
+
+    dbc = db_conn()
+
+    print "INFO: Marking valid {} samples".format(species)
+
+    # make a list of permissible countries
+    countries = "','".join(EUROPE)
+
+    dbc.execute_sql("""
+        UPDATE samples
+          JOIN sample_files
+            ON sample_files.sample_id = samples.id
+           SET valid = 1
+         WHERE species = '%s'
+           AND country IN ('%s')""" % (species, countries))
+
+
 def populate_samples(species):
 
     if species != 'pig':
@@ -76,27 +110,35 @@ def populate_samples(species):
     df = fetch_metadata(species)
 
     if VERBOSE:
-        print "INFO: Found %s %s samples to update" % (len(df), species)
+        print "INFO: Updating %s %s samples" % (len(df), species)
 
-    bam_files = {}
+    bam_files = defaultdict(list)
 
     # load the BAM file paths
     with open('./data/bam_files_{}.txt'.format(species), 'r') as fin:
         for file_path in fin:
             # extract the accession code
-            code = os.path.basename(file_path).split('_')[0]
-            bam_files[code] = file_path.strip()
+            accession = os.path.basename(file_path).replace('_rmdup.bam', '').strip()
+            bam_files[accession].append(file_path.strip())
 
     for accession, data in df.iterrows():
-        sample = dict()
+        sample = dbc.get_record('samples', {'accession': accession}) or dict()
         sample['species'] = species
         sample['accession'] = accession
         for field, value in data.iteritems():
-            sample[SHEET_COLS[field]] = value if value != 'NA' else None
-
-        sample['path'] = bam_files[accession] if accession in bam_files else None
+            sample[SHEET_COLS[field]] = value if value != SHEET_NA else None
 
         dbc.save_record('samples', sample)
+
+        # save the BAM file paths
+        for path in bam_files[accession]:
+            bam_file = dict()
+            bam_file['sample_id'] = sample['id']
+            bam_file['path'] = path
+            dbc.save_record('sample_files', bam_file)
+
+    # mark the valid samples
+    mark_valid_samples(species)
 
     if VERBOSE:
         print "INFO: Finished updating %s %s samples" % (len(df), species)

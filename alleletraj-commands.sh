@@ -21,6 +21,9 @@ LOAD DATA LOCAL INFILE '/home/evan/dnSNP/dbsnp.horse_9796.data' INTO TABLE dbsnp
 LOAD DATA LOCAL INFILE '/home/evan/dnSNP/dbsnp.pig_9823.data' INTO TABLE dbsnp (rsnumber, chrom, site) SET species = 'pig';
 
 
+LOAD DATA LOCAL INFILE '/Users/Evan/Downloads/PigsAgeMapping.tsv' INTO TABLE age_mapping IGNORE 1 LINES (age, confident, lower, upper, median);
+
+
 create table modern_snps_intervals
 select ms.*
 from intervals i

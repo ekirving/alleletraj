@@ -44,11 +44,10 @@ MIN_MAF = 0.05
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
-# TODO ...
-EUROPE = ['Armenia', 'Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Faroes', 'France',
-          'Georgia', 'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Moldova', 'Netherlands', 'Poland', 'Portugal',
-          'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
-
+# list of permissible countries in Europe
+EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Estonia', 'Faroes', 'France',
+          'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Poland',
+          'Portugal', 'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
 
 def run_cmd(cmd, shell=False):
     """

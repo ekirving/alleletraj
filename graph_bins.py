@@ -3,7 +3,7 @@
 
 from db_conn import db_conn
 
-import csv
+import unicodecsv as csv
 
 species = 'pig'
 
@@ -30,8 +30,7 @@ for bin_lower in range(BIN_START, BIN_END, - BIN_WIDTH):
                 @overlap / @width AS perct_overlap
            FROM (
                   # get the most precise dates for each sample, and the normalised wild/dom status
-                  SELECT s.id, 
-                         s.accession,
+                  SELECT s.accession,
                          s.map_prcnt,
                          CASE
                              WHEN s.status LIKE '%domestic%' THEN 'Domestic'
@@ -49,26 +48,25 @@ for bin_lower in range(BIN_START, BIN_END, - BIN_WIDTH):
                       ON c14.accession = s.accession
                    WHERE s.species = '{species}'
                      AND s.valid = 1
-              
+
                 ) as age
-                
+
           WHERE lower >= {binupper}
             AND upper <= {binlower}
          HAVING overlap/width >= {binpercent}""".format(species=species,
                                                         uncert=MEDIAN_AGE_UNCERT,
                                                         binpercent=BIN_PERCENT,
                                                         binlower=bin_lower,
-                                                        binupper=bin_upper))
+                                                        binupper=bin_upper), key=None)
 
-    tsv_file = ""
+    tsv_path = "tsv/sample_bin-{lower:05d}-{upper:05d}.tsv".format(lower=bin_lower, upper=bin_upper)
+    fields = ['accession', 'map_prcnt', 'status', 'age', 'confident', 'lower', 'upper', 'width', 'overlap', 'perct_overlap']
 
-    # write the table to disk
-    with open('eggs.csv', 'rb') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter=' ', quotechar='|')
-        for row in spamreader:
-            print ', '.join(row)
+    # write the data to disk
+    with open(tsv_path, "wb") as tsv_file:
+        writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
+        writer.writeheader()
 
-    print bin_lower, bin_upper
-    print samples.keys()
-    # quit()
+        for sample in samples:
+            writer.writerow(sample)
 

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from db_conn import db_conn
+from populate_coverage import run_cmd
 
 import unicodecsv as csv
 
@@ -35,7 +36,7 @@ for bin_lower in range(BIN_START, BIN_END, - BIN_WIDTH):
                          CASE
                              WHEN s.status LIKE '%domestic%' THEN 'Domestic'
                              WHEN s.status LIKE '%wild%'     THEN 'Wild'
-                             ELSE NULL
+                             ELSE 'NA'
                          END AS status,
                          s.age,
                          COALESCE(c14.confident, sd.confident) confident,
@@ -59,14 +60,23 @@ for bin_lower in range(BIN_START, BIN_END, - BIN_WIDTH):
                                                         binlower=bin_lower,
                                                         binupper=bin_upper), key=None)
 
-    tsv_path = "tsv/sample_bin-{lower:05d}-{upper:05d}.tsv".format(lower=bin_lower, upper=bin_upper)
-    fields = ['accession', 'map_prcnt', 'status', 'age', 'confident', 'lower', 'upper', 'width', 'overlap', 'perct_overlap']
+    stub = "sample_bin-{lower:05d}-{upper:05d}".format(lower=bin_lower, upper=bin_upper)
+    label = "{lower:,} - {upper:,} BP".format(lower=bin_lower, upper=bin_upper)
+
+    if not samples:
+        print "WARNING: No samples for bin {label}".format(label=label)
+        continue
 
     # write the data to disk
-    with open(tsv_path, "wb") as tsv_file:
+    with open("tsv/{stub}.tsv".format(stub=stub), "wb") as tsv_file:
+        fields = ['accession', 'map_prcnt', 'status', 'age', 'confident', 'lower', 'upper', 'width', 'overlap',
+                  'perct_overlap']
+
         writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
         writer.writeheader()
-
         for sample in samples:
             writer.writerow(sample)
+
+    # now generate the plot
+    run_cmd(['Rscript', 'rscript/plot-bin-mapping.R', stub, label])
 

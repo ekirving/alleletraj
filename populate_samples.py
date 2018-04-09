@@ -125,7 +125,8 @@ def mark_valid_samples(species):
             ON sample_files.sample_id = samples.id
            SET valid = 1
          WHERE species = '{species}'
-           AND country IN ('{europe}')""".format(species=species, europe=europe))
+           AND country IN ('{europe}')
+           AND COALESCE(neolithic, '') != 'Y'""".format(species=species, europe=europe))
 
 
 def populate_samples(species):

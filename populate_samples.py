@@ -18,7 +18,7 @@ VERBOSE = True
 # Pigs_allTo20042016_shared / old Google sheet
 # SHEET_ID = '154wbTEcAUPz4d5v7QLLSwIKTdK8AxXP5US-riCjt2og'
 # SHEET_TABS = ['Europe and NE Pigs']  #, 'SE Asian Pigs']
-# SHEET_NA = 'NA'
+# SHEET_NA = ['NA']
 
 # Pig_Table_Final_05_03_18 / new Google sheet
 SHEET_ID = '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI'

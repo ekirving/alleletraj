@@ -10,7 +10,7 @@ from populate_qtls import *
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_BASE_QUAL = 30
-MIN_MAPPING_QUAL = 30
+MIN_MAP_QUAL = 30
 MIN_GENO_QUAL = 30
 
 # number of bases to soft clip
@@ -30,9 +30,9 @@ def reset_flags(species, chrom):
             SET quality = NULL,
                 called = NULL,
                 snp = NULL
-          WHERE species = '%s'
-            AND chrom = '%s'
-          """ % (species, chrom))
+          WHERE species = '{species}'
+            AND chrom = '{chrom}'
+          """.format(species=species, chrom=chrom))
 
 
 def apply_quality_filters(species, chrom):
@@ -46,12 +46,12 @@ def apply_quality_filters(species, chrom):
           JOIN samples 
             ON samples.id = sample_reads.sample_id
            SET sample_reads.quality = 1
-         WHERE samples.species = '%s'
-           AND sample_reads.chrom = '%s'
-           AND sample_reads.baseq >= %s
-           AND sample_reads.mapq >= %s
-           AND sample_reads.dist > %s
-           """ % (species, chrom, MIN_BASE_QUAL, MIN_MAPPING_QUAL, SOFT_CLIP_DIST))
+         WHERE samples.species = '{species}'
+           AND sample_reads.chrom = '{chrom}'
+           AND sample_reads.baseq >= {baseq}
+           AND sample_reads.mapq >= {mapq}
+           AND sample_reads.dist > {clip}
+           """.format(species=species, chrom=chrom, baseq=MIN_BASE_QUAL, mapq=MIN_MAP_QUAL, clip=SOFT_CLIP_DIST))
 
 
 def choose_random_read(species, chrom):
@@ -67,14 +67,14 @@ def choose_random_read(species, chrom):
                     FROM samples s
                     JOIN sample_reads sr
                       ON sr.sample_id = s.id
-                   WHERE s.species = '%s'
-                     AND sr.chrom = '%s'
+                   WHERE s.species = '{species}'
+                     AND sr.chrom = '{chrom}'
                      AND sr.quality = 1
                 GROUP BY sr.chrom, sr.site, sr.sample_id
                 
                ) AS rand ON rand.id = sample_reads.id
            SET called = 1
-           """ % (species, chrom))
+           """.format(species=species, chrom=chrom))
 
 
 def apply_genotype_filters(species, chrom):
@@ -89,10 +89,10 @@ def apply_genotype_filters(species, chrom):
             ON samples.id = sample_reads.sample_id
            SET sample_reads.quality = 1,
                sample_reads.called = 1 
-         WHERE samples.species = '%s'
-           AND sample_reads.chrom = '%s'
-           AND sample_reads.genoq >= %s
-           """ % (species, chrom, MIN_GENO_QUAL))
+         WHERE samples.species = '{species}'
+           AND sample_reads.chrom = '{chrom}'
+           AND sample_reads.genoq >= {genoq}
+           """.format(species=species, chrom=chrom, genoq=MIN_GENO_QUAL))
 
 
 def call_ancient_snps(species, chrom):
@@ -115,8 +115,8 @@ def call_ancient_snps(species, chrom):
                         FROM samples s
                         JOIN sample_reads sr
                           ON sr.sample_id = s.id
-                       WHERE s.species = '%s'
-                         AND sr.chrom = '%s'
+                       WHERE s.species = '{species}'
+                         AND sr.chrom = '{chrom}'
                          AND sr.called = 1
                     GROUP BY sr.chrom, sr.site
                       HAVING COUNT(DISTINCT sr.base) = 2
@@ -135,10 +135,10 @@ def call_ancient_snps(species, chrom):
                         AND snp.site = sample_reads.site
                         
           SET sample_reads.snp = 1
-        WHERE samples.species = '%s'
-          AND sample_reads.chrom = '%s' 
+        WHERE samples.species = '{species}'
+          AND sample_reads.chrom = '{chrom}' 
           AND sample_reads.called = 1
-        """ % (species, chrom, species, chrom))
+        """.format(species=species, chrom=chrom))
 
 
 def discover_snps(species):

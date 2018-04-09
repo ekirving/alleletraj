@@ -39,16 +39,43 @@ GOOGLE_SHEET = {
     }
 }
 
-# list of junk input to maks with NULL
-SHEET_NA = ['n/a', 'NA', '-', '?']
+# list of junk input to mask with NULL
+SHEET_NA = ['n/a', 'NA', '-', '?', 'NULL', 'None', '...', '']
+
+AGE_MAP = {
+
+    'pig': {
+        'id': '1bH5u_qDaFXJdTyybeahqgF7je17td0FdyOMs_tlECdA',
+        'tabs': ['Age Map'],
+        'cols': OrderedDict([
+            ('Age',         'age'),
+            ('Confident',   'confident'),
+            ('Lower (BP)',  'lower'),
+            ('Upper (BP)',  'upper'),
+            ('Median (BP)', 'median'),
+        ])
+    }
+}
+
+C14_SHEET = {
+
+    'pig': {
+        'id': '1odoL9hQh87bLLe3yipbo-CKKXLvIgb5n_kfoqSALHi8',
+        'tabs': ['All Dates'],
+        'cols': OrderedDict([
+            ('Extract_No',              'accession'),
+            ('From Cal BP (Int Cal13)', 'lower'),
+            ('To Cal BP',               'upper'),
+        ])
+    }
+#
+}
+
 
 # list of permissible countries in Europe
 EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Estonia', 'Faroes', 'France',
           'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Poland',
           'Portugal', 'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
-
-# make sure we can properly inspect the data if we want to
-pd.set_option('max_colwidth', 1000)
 
 
 def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
@@ -81,6 +108,28 @@ def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
     return records
 
 
+def sync_c14_dates(species):
+    """
+    Fetch all the C14 dates
+    """
+
+    dbc = db_conn()
+
+    print "INFO: Synchronising {} C14 dates".format(species)
+
+    # get the google sheet details
+    sheet = C14_SHEET[species]
+
+    # fetch all the manual age mappings
+    records = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
+
+    # update the `sample_dates` table
+    for record in records:
+        if record['accession'] is not None:
+            record['confident'] = 'Yes'
+            dbc.save_record('sample_dates_c14', record)
+
+
 def confirm_age_mapping(species):
     """
     Make sure that all the free-text dates have proper numeric mappings
@@ -90,12 +139,25 @@ def confirm_age_mapping(species):
 
     print "INFO: Confirming {} age mappings".format(species)
 
+    # get the google sheet details
+    sheet = AGE_MAP[species]
+
+    # fetch all the manual age mappings
+    records = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
+
+    # update the `sample_dates` table
+    for record in records:
+        if record['age'] is not None:
+            dbc.save_record('sample_dates', record)
+
+    # check if any samples have an age which is unmapped
     missing = dbc.get_records_sql("""
         SELECT s.*
           FROM samples s
      LEFT JOIN sample_dates sd
-            ON s.age <=> sd.age
+            ON s.age = sd.age
          WHERE s.species = '{species}'
+           AND s.age IS NOT NULL
            AND sd.id IS NULL""".format(species=species))
 
     if missing:
@@ -160,12 +222,15 @@ def populate_samples(species):
         sample['species'] = species
         dbc.save_record('samples', sample)
 
-        # save the BAM file paths
-        for path in bam_files[accession]:
-            bam_file = dict()
-            bam_file['sample_id'] = sample['id']  # TODO not set on first pass
-            bam_file['path'] = path
-            dbc.save_record('sample_files', bam_file)
+        # TODO save the BAM file paths
+        # for path in bam_files[accession]:
+        #     bam_file = dict()
+        #     bam_file['sample_id'] = sample['id']  # TODO not set on first pass
+        #     bam_file['path'] = path
+        #     dbc.save_record('sample_files', bam_file)
+
+    # fetch all the C14 dates
+    sync_c14_dates(species)
 
     # make sure that all the free-text dates have proper numeric mappings
     confirm_age_mapping(species)

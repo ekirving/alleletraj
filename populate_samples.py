@@ -18,25 +18,28 @@ VERBOSE = True
 # Pigs_allTo20042016_shared / old Google sheet
 # SHEET_ID = '154wbTEcAUPz4d5v7QLLSwIKTdK8AxXP5US-riCjt2og'
 # SHEET_TABS = ['Europe and NE Pigs']  #, 'SE Asian Pigs']
-# SHEET_NA = ['NA']
 
-# Pig_Table_Final_05_03_18 / new Google sheet
-SHEET_ID = '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI'
-SHEET_TABS = ['Everything for the paper - updated']
+SHEET = {
+    # Pig_Table_Final_05_03_18 / new Google sheet
+    'pig': {
+        'id':   '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI',
+        'tabs': ['Everything for the paper - updated'],
+        'cols': OrderedDict([
+                    ('Extract No.',       'accession'),
+                    ('Total Reads',       'map_reads'),
+                    ('% Mapped',          'map_prcnt'),
+                    ('Age',               'age'),
+                    ('Period',            'period'),
+                    ('Neolithic (Y/N/W)', 'neolithic'),
+                    ('Location',          'location'),
+                    ('Country',           'country'),
+                    ('Wild/Dom Status',   'status'),
+                    ('GMM Status',        'gmm_status')
+                ])
+    }
+}
+
 SHEET_NA = ['n/a', 'NA', '-', '?']
-
-SHEET_COLS = OrderedDict([
-    ('Extract No.',      'accession'),
-    ('Total Reads',      'map_reads'),
-    ('% Mapped',         'map_prcnt'),
-    # ('% Mapped-Q30',     'map_prcnt_q30'),
-    ('Age',              'age'),
-    ('Period',           'period'),
-    ('Location',         'location'),
-    ('Country',          'country'),
-    ('Wild/Dom Status',  'status'),
-    ('GMM Status',       'gmm_status')
-])
 
 # list of permissible countries in Europe
 EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Estonia', 'Faroes', 'France',
@@ -47,7 +50,7 @@ EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 
 pd.set_option('max_colwidth', 1000)
 
 
-def fetch_metadata(species):
+def fetch_metadata(sheet_id, sheet_tabs, sheet_columns):
 
     # connect to GoogleSheets
     credentials = gs.get_credentials()
@@ -58,15 +61,15 @@ def fetch_metadata(species):
     # fetch the sample metadata
     frames = []
 
-    for tab in SHEET_TABS:
+    for tab in sheet_tabs:
         # get the tab of data from the GoogleSheet
-        values = service.spreadsheets().values().get(spreadsheetId=SHEET_ID, range=tab).execute().get('values', [])
+        values = service.spreadsheets().values().get(spreadsheetId=sheet_id, range=tab).execute().get('values', [])
 
         # convert it into a data frame
         df = pd.DataFrame.from_records(values[1:], columns=values[0])
 
         # add to the list
-        frames.append(df[SHEET_COLS.keys()])
+        frames.append(df[sheet_columns.keys()])
 
     # merge the data frames
     df = pd.concat(frames)
@@ -126,15 +129,15 @@ def mark_valid_samples(species):
 
 def populate_samples(species):
 
+    # open a db connection
+    dbc = db_conn()
+
     if species != 'pig':
         # TODO make this work for all species not just pigs
         raise Exception('Not implemented yet for %' % species)
 
-    # open a db connection
-    dbc = db_conn()
-
     # fetch all the samples from the GoogleDoc spreadsheet
-    df = fetch_metadata(species)
+    df = fetch_metadata(SHEET[species]['id'], SHEET[species]['tab'], SHEET[species]['cols'])
 
     if VERBOSE:
         print "INFO: Updating %s %s samples" % (len(df), species)
@@ -153,7 +156,7 @@ def populate_samples(species):
         sample['species'] = species
         sample['accession'] = accession
         for field, value in data.iteritems():
-            sample[SHEET_COLS[field]] = value if value not in SHEET_NA else None
+            sample[SHEET[species]['cols'][field]] = value if value not in SHEET_NA else None
 
         dbc.save_record('samples', sample)
 

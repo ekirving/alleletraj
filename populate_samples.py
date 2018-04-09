@@ -91,14 +91,14 @@ def confirm_age_mapping(species):
           FROM samples s
      LEFT JOIN sample_dates sd
             ON s.age <=> sd.age
-         WHERE s.species = '%s'
-           AND sd.id IS NULL""" % species)
+         WHERE s.species = '{species}'
+           AND sd.id IS NULL""".format(species=species))
 
     if missing:
         print "ERROR: Not all sample ages have numeric mappings!"
 
         for id, sample in missing.iteritems():
-            print "%s - '%s'" % (sample['accession'], sample['age'])
+            print "{} - '{}'".format(sample['accession'], sample['age'])
 
         quit()
 
@@ -113,15 +113,15 @@ def mark_valid_samples(species):
     print "INFO: Marking valid {} samples".format(species)
 
     # make a list of permissible countries
-    countries = "','".join(EUROPE)
+    europe = "','".join(EUROPE)
 
     dbc.execute_sql("""
         UPDATE samples
           JOIN sample_files
             ON sample_files.sample_id = samples.id
            SET valid = 1
-         WHERE species = '%s'
-           AND country IN ('%s')""" % (species, countries))
+         WHERE species = '{species}'
+           AND country IN ('{europe}')""".format(species=species, europe=europe))
 
 
 def populate_samples(species):

@@ -100,9 +100,9 @@ def populate_intervals(species):
     results = dbc.get_records_sql("""
         SELECT q.chrom AS chrom, q.start, q.end
           FROM qtls q
-         WHERE q.species = '%s'
+         WHERE q.species = '{species}'
            AND q.valid = 1
-      GROUP BY q.chrom, q.start, q.end""" % species, key=None)
+      GROUP BY q.chrom, q.start, q.end""".format(species=species), key=None)
 
     intervals = defaultdict(list)
 
@@ -149,8 +149,8 @@ def populate_interval_snps(species):
                  ON ms.species = i.species
                 AND ms.chrom = i.chrom
                 AND ms.site BETWEEN i.start AND i.end
-              WHERE i.species = '%s'
-                AND ms.maf >= %s""" % (species, MIN_MAF))
+              WHERE i.species = '{species}'
+                AND ms.maf >= {minmaf}""".format(species=species, minmaf=MIN_MAF))
 
 
 def populate_coverage(species):
@@ -170,9 +170,9 @@ def populate_coverage(species):
              FROM samples s
              JOIN sample_files sf
                ON sf.sample_id = s.id
-            WHERE s.species = '%s'
+            WHERE s.species = '{species}'
               AND s.valid = 1
-         GROUP BY s.id;""" % (species))
+         GROUP BY s.id;""".format(species=species))
 
     print "INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species)
 
@@ -182,8 +182,8 @@ def populate_coverage(species):
           FROM sample_reads
           JOIN intervals 
             ON intervals.id = sample_reads.interval_id
-         WHERE intervals.species = '%s'
-           AND intervals.finished = 0""" % species)
+         WHERE intervals.species = '{species}'
+           AND intervals.finished = 0""".format(species=species))
 
     if MULTI_THREADED:
         # process the chromosomes with multi-threading to make this faster
@@ -222,7 +222,7 @@ def process_interval(args):
                 ON s.interval_id = i.id
               JOIN modern_snps ms
                 ON ms.id = s.modsnp_id
-             WHERE i.id = %s""" % interval_id, key='site').keys()
+             WHERE i.id = {id}""".format(id=interval_id), key='site').keys()
 
         print "INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps))
 

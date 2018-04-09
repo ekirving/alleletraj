@@ -6,6 +6,8 @@ import httplib2
 
 from collections import OrderedDict, defaultdict
 
+from pprint import pprint
+
 # custom module
 import google_sheets as gs
 
@@ -213,21 +215,29 @@ def populate_samples(species):
 
     # load the BAM file paths
     with open('./data/bam_files_{}.txt'.format(species), 'r') as fin:
-        for file_path in fin:
+        for line in fin:
             # extract the accession code
-            accession = os.path.basename(file_path).replace('_rmdup.bam', '').strip()
-            bam_files[accession].append(file_path.strip())
+            accession = os.path.basename(line).replace('_rmdup.bam', '').strip()
+            bam_files[accession].append(line.strip())
 
     for sample in samples:
+        accession = sample['accession']
+
+        # save the sample record
         sample['species'] = species
         dbc.save_record('samples', sample)
 
-        # TODO save the BAM file paths
-        # for path in bam_files[accession]:
-        #     bam_file = dict()
-        #     bam_file['sample_id'] = sample['id']  # TODO not set on first pass
-        #     bam_file['path'] = path
-        #     dbc.save_record('sample_files', bam_file)
+        # fetch the sample ID
+        sample = dbc.get_record('samples', {'accession': accession})
+
+        # save the BAM file paths
+        for path in bam_files[accession]:
+            bam_file = dict()
+            bam_file['sample_id'] = sample['id']
+            bam_file['path'] = path
+
+            if not dbc.exists_record('sample_files', bam_file):
+                dbc.save_record('sample_files', bam_file)
 
     # fetch all the C14 dates
     sync_c14_dates(species)

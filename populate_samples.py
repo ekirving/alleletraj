@@ -23,7 +23,7 @@ VERBOSE = True
 # Pig_Table_Final_05_03_18 / new Google sheet
 SHEET_ID = '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI'
 SHEET_TABS = ['Everything for the paper - updated']
-SHEET_NA = 'n/a'
+SHEET_NA = ['n/a', 'NA', '-', '?']
 
 SHEET_COLS = OrderedDict([
     ('Extract No.',      'accession'),
@@ -34,7 +34,8 @@ SHEET_COLS = OrderedDict([
     ('Period',           'period'),
     ('Location',         'location'),
     ('Country',          'country'),
-    ('Wild/Dom Status',  'status')
+    ('Wild/Dom Status',  'status'),
+    ('GMM Status',       'gmm_status')
 ])
 
 # list of permissible countries in Europe
@@ -152,14 +153,14 @@ def populate_samples(species):
         sample['species'] = species
         sample['accession'] = accession
         for field, value in data.iteritems():
-            sample[SHEET_COLS[field]] = value if value != SHEET_NA else None
+            sample[SHEET_COLS[field]] = value if value not in SHEET_NA else None
 
         dbc.save_record('samples', sample)
 
         # save the BAM file paths
         for path in bam_files[accession]:
             bam_file = dict()
-            bam_file['sample_id'] = sample['id']
+            bam_file['sample_id'] = sample['id']  # TODO not set on first pass
             bam_file['path'] = path
             dbc.save_record('sample_files', bam_file)
 

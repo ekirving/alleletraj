@@ -3,7 +3,6 @@
 
 import os
 import httplib2
-import pandas as pd
 
 from collections import OrderedDict, defaultdict
 
@@ -19,8 +18,9 @@ VERBOSE = True
 # SHEET_ID = '154wbTEcAUPz4d5v7QLLSwIKTdK8AxXP5US-riCjt2og'
 # SHEET_TABS = ['Europe and NE Pigs']  #, 'SE Asian Pigs']
 
-SHEET = {
-    # Pig_Table_Final_05_03_18 / new Google sheet
+GOOGLE_SHEET = {
+
+    # Pig_Table_Final_05_03_18
     'pig': {
         'id':   '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI',
         'tabs': ['Everything for the paper - updated'],
@@ -39,6 +39,7 @@ SHEET = {
     }
 }
 
+# list of junk input to maks with NULL
 SHEET_NA = ['n/a', 'NA', '-', '?']
 
 # list of permissible countries in Europe
@@ -50,34 +51,34 @@ EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 
 pd.set_option('max_colwidth', 1000)
 
 
-def fetch_metadata(sheet_id, sheet_tabs, sheet_columns):
+def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
+    """
+    Fetch a given list of tabs and columns from a Google Sheet.
+    """
 
     # connect to GoogleSheets
     credentials = gs.get_credentials()
     http = credentials.authorize(httplib2.Http())
-    discoveryUrl = 'https://sheets.googleapis.com/$discovery/rest?version=v4'
-    service = gs.discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discoveryUrl)
+    discovery_url = 'https://sheets.googleapis.com/$discovery/rest?version=v4'
+    service = gs.discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discovery_url)
 
-    # fetch the sample metadata
-    frames = []
+    records = []
+
+    # convert junk values into None
+    mask_null = lambda x: x if x not in SHEET_NA else None
 
     for tab in sheet_tabs:
         # get the tab of data from the GoogleSheet
         values = service.spreadsheets().values().get(spreadsheetId=sheet_id, range=tab).execute().get('values', [])
 
-        # convert it into a data frame
-        df = pd.DataFrame.from_records(values[1:], columns=values[0])
+        fields = values[0]
 
-        # add to the list
-        frames.append(df[sheet_columns.keys()])
+        # fetch the requested columns
+        for row in values[1:]:
+            records.append(dict([(sheet_columns[fields[idx]], mask_null(value))
+                                 for idx, value in enumerate(row) if fields[idx] in sheet_columns]))
 
-    # merge the data frames
-    df = pd.concat(frames)
-
-    # assign row names
-    df = df.set_index(df['Extract No.'])
-
-    return df
+    return records
 
 
 def confirm_age_mapping(species):
@@ -136,11 +137,14 @@ def populate_samples(species):
         # TODO make this work for all species not just pigs
         raise Exception('Not implemented yet for %' % species)
 
+    # get the google sheet details
+    sheet = GOOGLE_SHEET[species]
+
     # fetch all the samples from the GoogleDoc spreadsheet
-    df = fetch_metadata(SHEET[species]['id'], SHEET[species]['tab'], SHEET[species]['cols'])
+    samples = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
 
     if VERBOSE:
-        print "INFO: Updating %s %s samples" % (len(df), species)
+        print "INFO: Updating %s %s samples" % (len(samples), species)
 
     bam_files = defaultdict(list)
 
@@ -151,13 +155,8 @@ def populate_samples(species):
             accession = os.path.basename(file_path).replace('_rmdup.bam', '').strip()
             bam_files[accession].append(file_path.strip())
 
-    for accession, data in df.iterrows():
-        sample = dbc.get_record('samples', {'accession': accession}) or dict()
+    for sample in samples:
         sample['species'] = species
-        sample['accession'] = accession
-        for field, value in data.iteritems():
-            sample[SHEET[species]['cols'][field]] = value if value not in SHEET_NA else None
-
         dbc.save_record('samples', sample)
 
         # save the BAM file paths
@@ -174,4 +173,4 @@ def populate_samples(species):
     mark_valid_samples(species)
 
     if VERBOSE:
-        print "INFO: Finished updating %s %s samples" % (len(df), species)
+        print "INFO: Finished updating %s %s samples" % (len(samples), species)

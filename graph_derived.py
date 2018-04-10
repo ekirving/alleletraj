@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+from db_conn import db_conn
+from populate_coverage import run_cmd
+
+import unicodecsv as csv
+
+species = 'pig'
+
+# open a db connection
+dbc = db_conn()
+
+# sql fragment to calcualte the median age of each sample
+median = "COALESCE(sd.median, (COALESCE(c14.lower, sd.lower)+COALESCE(c14.upper, sd.upper))/2)"
+
+# get the dates of the oldest sample and oldest observation of the derived allele for every QTL SNP
+snps = dbc.get_records_sql("""
+     SELECT qs.modsnp_id,
+            t.class AS trait,
+            ms.ancestral,
+            ms.derived,
+            ms.maf,
+            MAX({median}) AS oldest_sample,
+            MAX(IF(sr.base = ms.derived, {median}, NULL)) AS oldest_derived
+       FROM qtls_snps qs
+       JOIN qtls q
+         ON q.id = qs.qtl_id
+       JOIN traits t
+         ON t.id = q.trait_id
+       JOIN modern_snps ms
+         ON ms.id = qs.modsnp_id
+       JOIN sample_reads sr
+         ON sr.chrom = ms.chrom
+        AND sr.site = ms.site
+        AND sr.snp = 1
+       JOIN samples s
+         ON s.id = sr.sample_id
+  LEFT JOIN sample_dates sd
+         ON s.age = sd.age
+  LEFT JOIN sample_dates_c14 c14
+         ON c14.accession = s.accession
+      WHERE qs.num_reads IS NOT NULL
+   GROUP BY qs.modsnp_id""".format(median=median), key=None)
+
+with open("tsv/all-snps-ages.tsv", "wb") as tsv_file:
+
+    fields = ['modsnp_id', 'trait', 'ancestral', 'derived', 'maf', 'oldest_sample', 'oldest_derived']
+    writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
+    writer.writeheader()
+
+    # write the data to disk
+    for snp in snps:
+        writer.writerow(snp)
+
+# now generate the plot
+# run_cmd(['Rscript', 'rscript/plot-bin-mapping.R', stub, label])

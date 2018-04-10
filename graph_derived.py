@@ -16,7 +16,7 @@ median = "COALESCE(sd.median, (COALESCE(c14.lower, sd.lower)+COALESCE(c14.upper,
 
 # get the age of every covered snp
 reads = dbc.get_records_sql("""
-    SELECT sr.id,
+    SELECT sr.id AS read_id,
            {median} AS median
       FROM samples s
       JOIN sample_reads sr

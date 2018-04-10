@@ -18,6 +18,10 @@ dat <- read.table(paste0("tsv/", stub, ".tsv"), header=TRUE, sep ='\t') #, strin
 # drop any NA data
 dat <- na.omit(dat)
 
+# transversions only (i.e. no transitions [A <-> G] and [C <-> T]
+# dat <- dat[!(dat$ancestral %in% c('A', 'G') & dat$derived %in% c('A', 'G')),]
+# dat <- dat[!(dat$ancestral %in% c('C', 'T') & dat$derived %in% c('C', 'T')),]
+
 pdf(file=paste0("pdf/", stub, ".pdf"), width = 8, height = 7)
 
 ggplot(dat, aes(x = oldest_derived, y = oldest_sample, fill=trait)) +

@@ -18,8 +18,7 @@ dat <- read.table(paste0("tsv/", stub, ".tsv"), header=TRUE, sep ='\t') #, strin
 # drop any NA data
 dat <- na.omit(dat)
 
-# pdf(file=paste0("pdf/", stub, ".pdf"), width = 7, height = 7)
-png(filename=paste0("pdf/", stub, ".png"), width = 600, height = 600, units = "px")
+pdf(file=paste0("pdf/", stub, ".pdf"), width = 8, height = 7)
 
 ggplot(dat, aes(x = oldest_derived, y = oldest_sample, fill=trait)) +
     geom_abline(color='grey') +
@@ -32,8 +31,8 @@ ggplot(dat, aes(x = oldest_derived, y = oldest_sample, fill=trait)) +
     ) +
     ggtitle(label) +
     scale_fill_discrete(name="QTL Trait Class") +
-    scale_x_continuous(limits = c(0, 8000), breaks = seq(0, 8000, by = 500)) +
-    scale_y_continuous(limits = c(0, 8000), breaks = seq(0, 8000, by = 500)) +
+    scale_x_continuous(limits = c(0, 13000), breaks = seq(0, 13000, by = 1000)) +
+    scale_y_continuous(limits = c(0, 13000), breaks = seq(0, 13000, by = 1000)) +
     xlab("Earliest derived allele (BP)") +
     ylab("Earliest sample (BP)")
 

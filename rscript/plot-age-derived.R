@@ -19,8 +19,8 @@ dat <- read.table(paste0("tsv/", stub, ".tsv"), header=TRUE, sep ='\t') #, strin
 dat <- na.omit(dat)
 
 # transversions only (i.e. no transitions [A <-> G] and [C <-> T]
-dat <- dat[!(dat$ancestral %in% c('A', 'G') & dat$derived %in% c('A', 'G')),]
-dat <- dat[!(dat$ancestral %in% c('C', 'T') & dat$derived %in% c('C', 'T')),]
+# dat <- dat[!(dat$ancestral %in% c('A', 'G') & dat$derived %in% c('A', 'G')),]
+# dat <- dat[!(dat$ancestral %in% c('C', 'T') & dat$derived %in% c('C', 'T')),]
 
 # load the sample median ages
 age <- read.table("tsv/sample-median-age.tsv", header=TRUE, sep ='\t')
@@ -46,16 +46,3 @@ ggplot(dat) +
     ylab("Earliest sample (BP)")
 
 dev.off()
-
-
-# ggplot(data=age, aes(median)) +
-#     geom_histogram(binwidth = 250) +
-#     labs(title="Histogram for Sample median age") +
-#     labs(x="Years BP", y="Count") +
-#     theme(
-#         plot.title = element_text(hjust = 0.5),
-#         legend.key = element_blank(),
-#         axis.text.x = element_text(angle = 90, vjust = 0.5),
-#         panel.background = element_blank()
-#     ) +
-#     scale_x_continuous(limits = c(0, 13000), breaks = seq(0, 13000, by = 1000))

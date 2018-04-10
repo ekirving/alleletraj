@@ -54,4 +54,4 @@ with open("tsv/all-snps-ages.tsv", "wb") as tsv_file:
         writer.writerow(snp)
 
 # now generate the plot
-# run_cmd(['Rscript', 'rscript/plot-bin-mapping.R', stub, label])
+run_cmd(['Rscript', 'rscript/plot-age-derived.R', 'all-snps-ages' 'Derived Allele vs. Sample Age'])

@@ -1,0 +1,40 @@
+#!/usr/bin/env Rscript
+library(ggplot2)
+library(reshape2)
+
+# get the command line arguments
+args <- commandArgs(trailingOnly = TRUE)
+stub=args[1]
+label=args[2]
+
+# TODO remove when done testing
+# setwd('/Users/Evan/Dropbox/Code/alleletraj')
+# stub = 'all-snps-ages'
+# label = 'Derived Allele vs. Sample Age'
+
+# read the data file
+dat <- read.table(paste0("tsv/", stub, ".tsv"), header=TRUE, sep ='\t') #, stringsAsFactors=F)
+
+# drop any NA data
+dat <- na.omit(dat)
+
+# pdf(file=paste0("pdf/", stub, ".pdf"), width = 7, height = 7)
+png(filename=paste0("pdf/", stub, ".png"), width = 600, height = 600, units = "px")
+
+ggplot(dat, aes(x = oldest_derived, y = oldest_sample, fill=trait)) +
+    geom_abline(color='grey') +
+    geom_point(size=2, shape=21) +
+    theme(
+        plot.title = element_text(hjust = 0.5),
+        legend.key = element_blank(),
+        axis.text.x = element_text(angle = 90, vjust = 0.5),
+        panel.background = element_blank()
+    ) +
+    ggtitle(label) +
+    scale_fill_discrete(name="QTL Trait Class") +
+    scale_x_continuous(limits = c(0, 8000), breaks = seq(0, 8000, by = 500)) +
+    scale_y_continuous(limits = c(0, 8000), breaks = seq(0, 8000, by = 500)) +
+    xlab("Earliest derived allele (BP)") +
+    ylab("Earliest sample (BP)")
+
+dev.off()

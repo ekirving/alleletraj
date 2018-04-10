@@ -29,7 +29,7 @@ pdf(file=paste0("pdf/", stub, ".pdf"), width = 8, height = 7)
 
 ggplot(dat) +
     geom_abline(color='grey') +
-    geom_histogram(data=age,binwidth = 500, aes(x = median, weight = 130), alpha = 0.3) +
+    geom_histogram(data=age,binwidth = 250, aes(x = median, weight = 130), alpha = 0.3) +
     geom_point(size=2, shape=21, aes(x = oldest_derived, y = oldest_sample, fill=trait)) +
     theme(
         plot.title = element_text(hjust = 0.5),
@@ -39,10 +39,23 @@ ggplot(dat) +
     ) +
     ggtitle(label) +
     scale_fill_discrete(name="QTL Trait Class") +
-    scale_x_continuous(limits = c(0, 13000), breaks = seq(0, 13000, by = 1000)) +
-    scale_y_continuous(limits = c(0, 13000), breaks = seq(0, 13000, by = 1000),
+    scale_x_continuous(limits = c(0, 13150), breaks = seq(0, 13000, by = 1000)) +
+    scale_y_continuous(limits = c(0, 13150), breaks = seq(0, 13000, by = 1000),
                        sec.axis = sec_axis(~./130, name = "Sample count")) +
     xlab("Earliest derived allele (BP)") +
     ylab("Earliest sample (BP)")
 
 dev.off()
+
+
+# ggplot(data=age, aes(median)) +
+#     geom_histogram(binwidth = 250) +
+#     labs(title="Histogram for Sample median age") +
+#     labs(x="Years BP", y="Count") +
+#     theme(
+#         plot.title = element_text(hjust = 0.5),
+#         legend.key = element_blank(),
+#         axis.text.x = element_text(angle = 90, vjust = 0.5),
+#         panel.background = element_blank()
+#     ) +
+#     scale_x_continuous(limits = c(0, 13000), breaks = seq(0, 13000, by = 1000))

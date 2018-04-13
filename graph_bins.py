@@ -50,8 +50,8 @@ with open("tsv/all-bins.tsv", "wb") as tsv_file:
                              COALESCE(c14.lower, sd.lower, sd.median + {uncert}) lower,
                              COALESCE(c14.upper, sd.upper, sd.median - {uncert}) upper
                         FROM samples s
-                        JOIN sample_dates sd
-                          ON s.age <=> sd.age
+                   LEFT JOIN sample_dates sd
+                          ON s.age = sd.age
                    LEFT JOIN sample_dates_c14 c14
                           ON c14.accession = s.accession
                        WHERE s.species = '{species}'

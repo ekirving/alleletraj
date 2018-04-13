@@ -26,7 +26,7 @@ dat <- na.omit(dat)
 age <- read.table("tsv/all-snps-counts.tsv", header=TRUE, sep ='\t')
 
 # count the number of SNPs covered in 100 year bins
-age.hist <- hist(age$median, breaks = seq(0, 13000, by=100), plot=FALSE)
+# age.hist <- hist(age$median, breaks = seq(0, 13000, by=100), plot=FALSE)
 
 # log10 transform the result, as high coverage samples have millions of SNPs
 # age.log10 <- data.frame(age.hist$mids, log10(age.hist$counts)*500)

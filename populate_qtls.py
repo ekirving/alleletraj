@@ -75,7 +75,7 @@ def populate_qtls(species):
     # rename these fields
     key_map = {
         'pubmedID':   'pubmed_id',
-        'geneID':     'gene_id',
+        'geneId':     'gene_id',
         'chromosome': 'chrom'
     }
 

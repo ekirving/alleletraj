@@ -176,12 +176,12 @@ def compute_qtl_windows(species):
         SELECT DISTINCT q.id, d.chrom, d.site
           FROM qtls q
           JOIN dbsnp d on d.rsnumber = q.peak
-         WHERE q.species = '{}' 
+         WHERE q.species = '{species}' 
            AND q.peak like 'rs%'                  # only QTLs with a dbsnp peak
            AND q.associationType = 'Association'  # only GWAS studies
            AND q.significance = 'Significant'     # only significant hits
-           AND IFNULL(q.genomeLoc_end - q.genomeLoc_start, 0) <= {}
-    """.format(species, MAX_QTL_LENGTH), key=None)
+           AND IFNULL(q.genomeLoc_end - q.genomeLoc_start, 0) <= {max}
+           """.format(species=species, max=MAX_QTL_LENGTH), key=None)
 
     print "INFO: Computing window sizes for {:,} {} QTLs".format(len(results), species)
 
@@ -201,4 +201,20 @@ def compute_qtl_windows(species):
 
         dbc.save_record('qtls', qtl)
 
+
+def cache_dbsnp_rsnumbers(species):
+
+    # open a db connection
+    dbc = db_conn()
+
+    # copy all the rsnumbers we need into a new table (saves on costly lookups in `dbsnp_complete` which exceeds RAM)
+    dbc.execute_sql("""
+        INSERT INTO dbsnp
+        SELECT DISTINCT dc.*
+          FROM dbsnp_complete dc
+          JOIN qtls q
+            ON q.peak = dc.rsnumber
+         WHERE q.species = '{species}'
+           AND q.valid = 1
+           """.format(species))
 

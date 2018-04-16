@@ -114,7 +114,7 @@ def populate_qtls(species):
             pubmed = api.get_publication(species, record['pubmed_id'])
 
             if pubmed:
-                pubmed['id'] = pubmed.pop('pubmedID')
+                pubmed['id'] = pubmed.pop('pubmed_ID')
                 pubmed['year'] = re.search('\(([0-9]{4})\)', pubmed['authors']).group(1)
                 pubmed['journal'] = pubmed['journal']['#text'][:-5]
 

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from db_conn import db_conn
+from discover_snps import *
 
 from collections import defaultdict
 
@@ -238,11 +239,7 @@ def process_interval(args):
                 print "INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession'])
 
             # buffer the reads so we can bulk insert them into the db
-            reads = list()
-
-            # TODO what about when there are multiple BAM files!?
-            # keep a list of sites which have sufficient coverage to perform diploid base calls
-            diploid = list()
+            reads = defaultdict(list)
 
             # there may be multiple BAM files for each sample
             for path in sample['paths'].splt(','):
@@ -261,57 +258,46 @@ def process_interval(args):
                         if site not in snps:
                             continue
 
-                        if len(pileupcolumn.pileups) >= MIN_GENO_DEPTH:
-                            # add the current position to the list of sites to call properly
-                            diploid.append(site)
+                        # iterate over all the reads for this site
+                        for pileupread in pileupcolumn.pileups:
 
-                        else:
-                            # iterate over all the reads for this site
-                            for pileupread in pileupcolumn.pileups:
+                            # skip alignments that don't have a base at this site (i.e. indels)
+                            if pileupread.is_del or pileupread.is_refskip:
+                                continue
 
-                                # skip alignments that don't have a base at this site (i.e. indels)
-                                if pileupread.is_del or pileupread.is_refskip:
-                                    continue
+                            # get the read position
+                            read_pos = pileupread.query_position
 
-                                # get the read position
-                                read_pos = pileupread.query_position
+                            # get the aligned base for this read
+                            base = pileupread.alignment.query_sequence[read_pos]
 
-                                # get the aligned base for this read
-                                base = pileupread.alignment.query_sequence[read_pos]
+                            # get the map quality
+                            mapq = pileupread.alignment.mapping_quality
 
-                                # get the map quality
-                                mapq = pileupread.alignment.mapping_quality
+                            if mapq < HARD_MAPQ_CUTOFF:
+                                continue
 
-                                if mapq < HARD_MAPQ_CUTOFF:
-                                    continue
+                            # get the base quality
+                            baseq = pileupread.alignment.query_qualities[read_pos]
 
-                                # get the base quality
-                                baseq = pileupread.alignment.query_qualities[read_pos]
+                            if baseq < HARD_BASEQ_CUTOFF:
+                                continue
 
-                                if baseq < HARD_BASEQ_CUTOFF:
-                                    continue
+                            # get the overall length of the read
+                            read_length = len(pileupread.alignment.query_sequence)
 
-                                # get the overall length of the read
-                                read_length = len(pileupread.alignment.query_sequence)
+                            # how close is the base to the edge of the read
+                            dist = min(read_pos, read_length - read_pos)
 
-                                # how close is the base to the edge of the read
-                                dist = min(read_pos, read_length - read_pos)
+                            # setup the record to insert, in this order
+                            read = (interval_id, sample_id, chrom, site, base, mapq, baseq, dist)
 
-                                # setup the record to insert, in this order
-                                read = (interval_id, sample_id, chrom, site, base, mapq, baseq, dist)
+                            # store the read so we can batch insert later
+                            reads[(chrom, site)].append(read)
 
-                                # store the read so we can batch insert later
-                                reads.append(read)
+            # now we're buffered all the reads, lets call diploid genotypes on those that pass our depth threshold
+            diploid = [idx for idx in reads if len(reads[idx]) >= MIN_GENO_DEPTH]
 
-            # save all the single reads to the db
-            if reads:
-                # count the total number of reads
-                num_reads += len(reads)
-
-                # bulk insert all the reads for this sample
-                dbc.save_records('sample_reads', fields, reads)
-
-            # make diploid base calls on sites with > MIN_GENO_DEPTH
             if diploid:
 
                 print "INFO: Calling diploid bases in {:,} sites for sample {}".format(len(diploid), sample_id)
@@ -321,20 +307,22 @@ def process_interval(args):
 
                 # save all the callable positions to a file
                 with open(pos_file, 'w') as fout:
-                    fout.write("\n".join("{}\t{}".format(chrom, site) for site in diploid))
+                    fout.write("\n".join("{}\t{}".format(chrom, site) for (chrom, site) in diploid))
 
-                # filter on interval
+                # restrict the callable region using the interval start and end
                 region = "{}:{}-{}".format(chrom, start, end)
 
-                params = {'region': region, 'targets': pos_file, 'ref': REF_FILE, 'bam': sample['path'], 'vcf': vcf_file}
+                # use all the BAM files
+                bam_files = " ".join(sample['path'].split(','))
+
+                params = {'region': region, 'targets': pos_file, 'ref': REF_FILE, 'bams': bam_files, 'vcf': vcf_file}
 
                 # call bases with bcftools (and drop indels and other junk)
                 # uses both --region (random access) and --targets (streaming) for optimal speed
                 # see https://samtools.github.io/bcftools/bcftools.html#mpileup
-                cmd = "bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bam} " \
+                cmd = "bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bams} " \
                       " | bcftools call --multiallelic-caller --output-type v " \
-                      " | bcftools view --exclude-types indels,bnd,other " \
-                      " | bcftools norm --rm-dup none --fasta-ref {ref} --output {vcf}".format(**params)
+                      " | bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}".format(**params)
 
                 # run the base calling
                 run_cmd([cmd], shell=True)
@@ -344,6 +332,10 @@ def process_interval(args):
 
                     # get the genotype call for this site
                     geno = rec.samples[sample['accession']]['GT']
+
+                    if geno >= MIN_GENO_QUAL:
+                        # the genotype is good, so drop the raw reads
+                        reads.pop((rec.chrom, rec.pos))
 
                     # decode the GT notation into allele calls (e.g. 0/0, 0/1, 1/1)
                     alleles = [rec.alleles[idx] for idx in geno if idx is not None]
@@ -360,6 +352,13 @@ def process_interval(args):
                         }
 
                         dbc.save_record('sample_reads', read)
+
+        # count the total number of reads
+        num_reads += len(reads)
+
+        # bulk insert all the reads for this sample
+        if reads:
+            dbc.save_records('sample_reads', fields, reads)
 
         # update the interval to show we're done
         interval['finished'] = 1

@@ -86,7 +86,7 @@ def populate_qtls(species):
     for record in api.get_qtls(species, new_ids):
 
         # TODO when resultset is len() = 1 then this throws an error
-        # extract the nest trait record
+        # extract the nested trait record
         trait = record.pop('trait')
         trait['name'] = record.pop('name')
 

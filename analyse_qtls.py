@@ -158,20 +158,21 @@ def analyse_qtls(species):
     # print "INFO: Calculating some summary stats... ",
     # # -----------------------------------------------
     #
+    # # TODO refactor to use qtl_snps
     # for chrom in chroms:
     #     calculate_summary_stats(species, chrom)
     #
     # print "(%s)." % timedelta(seconds=time() - start)
     # start = time()
-    #
-    # # -----------------------------------------------
-    # print "INFO: Populating {} QTL SNPs... ".format(species),
-    # # -----------------------------------------------
-    #
-    # for chrom in chroms:
-    #     populate_qtl_snps(species, chrom)
-    # print "(%s)." % timedelta(seconds=time() - start)
-    # start = time()
+
+    # -----------------------------------------------
+    print "INFO: Populating {} QTL SNPs... ".format(species),
+    # -----------------------------------------------
+
+    for chrom in chroms:
+        populate_qtl_snps(species, chrom)
+    print "(%s)." % timedelta(seconds=time() - start)
+    start = time()
 
     # -----------------------------------------------
     print "INFO: Analysing {} QTL SNPs... ".format(species),
@@ -182,7 +183,5 @@ def analyse_qtls(species):
 
     print "(%s)." % timedelta(seconds=time() - start)
     start = time()
-
-    # TODO more analysis...
 
     print "SUCCESS: Finished the %s SNP discovery (%s)" % (species, timedelta(seconds=time() - began))

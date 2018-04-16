@@ -147,16 +147,17 @@ class db_conn:
             'update': u", ".join([u"{}={}".format(key, value) for key, value in formatted.iteritems() if key != u'`id`'])
         }
 
-        if 'id' in record:
-            data['id'] = record['id']
+        # if 'id' in record:
+        #     data['id'] = record['id']
+        #
+        #     # update an existing record
+        #     sql = u"UPDATE {table} SET {update} " \
+        #           u"WHERE `id` = {id}".format(**data)
+        # else:
 
-            # update an existing record
-            sql = u"UPDATE {table} SET {update} " \
-                  u"WHERE `id` = {id}".format(**data)
-        else:
-            # insert new record
-            sql = u"INSERT INTO {table} ({fields}) VALUES ({values}) " \
-                  u"ON DUPLICATE KEY UPDATE {update}".format(**data)
+        # insert new record
+        sql = u"INSERT INTO {table} ({fields}) VALUES ({values}) " \
+              u"ON DUPLICATE KEY UPDATE {update}".format(**data)
 
         try:
             self.cursor.execute(sql)

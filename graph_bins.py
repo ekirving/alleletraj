@@ -43,6 +43,9 @@ with open("tsv/all-bins.tsv", "wb") as tsv_file:
                              CASE
                                  WHEN COALESCE(s.gmm_status, s.status) LIKE '%wild%'     THEN 'Wild'
                                  WHEN COALESCE(s.gmm_status, s.status) LIKE '%domestic%' THEN 'Domestic'
+                                 WHEN SUBSTR(`group`, 3, 1) = 'W' THEN 'Wild'
+                                 WHEN SUBSTR(`group`, 3, 1) = 'D' THEN 'Domestic'
+                                 WHEN haplogroup = 'Y1' THEN 'Domestic' # TODO what about Y2?
                                  ELSE 'NA'
                              END AS status,
                              s.age,

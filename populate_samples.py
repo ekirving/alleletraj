@@ -35,7 +35,9 @@ GOOGLE_SHEET = {
                     ('Location',          'location'),
                     ('Country',           'country'),
                     ('Wild/Dom Status',   'status'),
-                    ('GMM Status',        'gmm_status')
+                    ('GMM Status',        'gmm_status'),
+                    ('Group',             'group'),
+                    ('Haplogroup',        'haplogroup'),
                 ])
     }
 }
@@ -225,7 +227,7 @@ def populate_samples(species):
         sample['species'] = species
         dbc.save_record('samples', sample)
 
-        # fetch the sample ID
+        # fetch the sample record (so we can link the BAM files to the ID)
         sample = dbc.get_record('samples', {'accession': accession})
 
         # save the BAM file paths

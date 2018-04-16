@@ -85,6 +85,11 @@ def populate_qtls(species):
     # get all the new records
     for record in api.get_qtls(species, new_ids):
 
+        # rename some fields
+        for key in record:
+            if key in key_map:
+                record[key_map[key]] = record.pop(key)
+
         # TODO when resultset is len() = 1 then this throws an error
         # extract the nested trait record
         trait = record.pop('trait')
@@ -109,7 +114,7 @@ def populate_qtls(species):
             pubmed = api.get_publication(species, record['pubmed_id'])
 
             if pubmed:
-                pubmed['id'] = pubmed.pop('pubmed_ID')
+                pubmed['id'] = pubmed.pop('pubmedID')
                 pubmed['year'] = re.search('\(([0-9]{4})\)', pubmed['authors']).group(1)
                 pubmed['journal'] = pubmed['journal']['#text'][:-5]
 
@@ -144,11 +149,6 @@ def populate_qtls(species):
         for field in ['linkageLoc_end', 'linkageLoc_peak', 'linkageLoc_start']:
             if field in record and record[field] is not None:
                 record[field] = re.sub('[^0-9.]', '', record[field])
-
-        # rename some fields
-        for key in record:
-            if key in key_map:
-                record[key_map[key]] = record.pop(key)
 
         # filter out any empty values
         qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')

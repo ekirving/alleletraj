@@ -75,7 +75,6 @@ def populate_qtls(species):
     # rename these fields
     key_map = {
         'pubmedID':   'pubmed_id',
-        'traitID':    'trait_id',
         'geneID':     'gene_id',
         'chromosome': 'chrom'
     }
@@ -91,10 +90,10 @@ def populate_qtls(species):
         trait['name'] = record.pop('name')
 
         # set the tait foreign key on the main record
-        record['traitID'] = trait['traitID']
+        record['trait_id'] = trait['traitID']
 
         # does the trait exist
-        if not dbc.exists_record('traits', {'id': record['traitID']}):
+        if not dbc.exists_record('traits', {'id': record['trait_id']}):
 
             # setup the trait record
             trait = dict((field.replace('trait', '').lower(), value) for field, value in trait.iteritems())

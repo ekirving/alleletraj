@@ -165,6 +165,23 @@ def populate_qtls(species):
         print "INFO: Finished adding %s new %s QTLs" % (len(new_ids), species)
 
 
+def cache_dbsnp_rsnumbers(species):
+
+    # open a db connection
+    dbc = db_conn()
+
+    # copy all the rsnumbers we need into a new table (saves on costly lookups in `dbsnp_complete` which exceeds RAM)
+    dbc.execute_sql("""
+        INSERT IGNORE INTO dbsnp
+        SELECT DISTINCT dc.*
+          FROM dbsnp_complete dc
+          JOIN qtls q
+            ON q.peak LIKE 'rs%'
+           AND q.peak = dc.rsnumber
+         WHERE q.species = '{species}'
+           """.format(species=species))
+
+
 def compute_qtl_windows(species):
 
     # open a db connection
@@ -174,9 +191,9 @@ def compute_qtl_windows(species):
     results = dbc.get_records_sql("""
         SELECT DISTINCT q.id, d.chrom, d.site
           FROM qtls q
-          JOIN dbsnp d on d.rsnumber = q.peak
+          JOIN dbsnp d 
+            ON d.rsnumber = q.peak                # only QTLs with a dbsnp peak
          WHERE q.species = '{species}' 
-           AND q.peak like 'rs%'                  # only QTLs with a dbsnp peak
            AND q.associationType = 'Association'  # only GWAS studies
            AND q.significance = 'Significant'     # only significant hits
            AND IFNULL(q.genomeLoc_end - q.genomeLoc_start, 0) <= {max}
@@ -199,21 +216,4 @@ def compute_qtl_windows(species):
         qtl = {'id': result['id'], 'valid': 1, 'start': start, 'end': end}
 
         dbc.save_record('qtls', qtl)
-
-
-def cache_dbsnp_rsnumbers(species):
-
-    # open a db connection
-    dbc = db_conn()
-
-    # copy all the rsnumbers we need into a new table (saves on costly lookups in `dbsnp_complete` which exceeds RAM)
-    dbc.execute_sql("""
-        INSERT INTO dbsnp
-        SELECT DISTINCT dc.*
-          FROM dbsnp_complete dc
-          JOIN qtls q
-            ON q.peak = dc.rsnumber
-         WHERE q.species = '{species}'
-           AND q.valid = 1
-           """.format(species=species))
 

@@ -14,8 +14,8 @@ SPECIES = ['pig'] #, 'cattle', 'horse']
 
 for species in SPECIES:
     populate_qtls(species)
-    compute_qtl_windows(species)
     cache_dbsnp_rsnumbers(species)
+    compute_qtl_windows(species)
     populate_intervals(species)
     # estimate_allele_freq(species)
     populate_interval_snps(species)

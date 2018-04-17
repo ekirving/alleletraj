@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import glob, itertools, sys, socket
+from __future__ import print_function
 
-from Bio import SeqIO
+import sys, socket
 from collections import Counter
 
 from db_conn import *
@@ -22,7 +22,7 @@ if socket.gethostname() == 'macbookpro.local':
 else:
     # use real dataset
     PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
-    CHROMS = [str(chrom) for chrom in range(1, 19)] + ['X', 'Y']
+    CHROMS = [str(c) for c in range(1, 19)] + ['X', 'Y']
     THREADS = 20
 
 SPECIES = 'pig'
@@ -96,7 +96,7 @@ def process_chrom(chrom):
     # add the outgroup to the front of the list
     fasta_files.insert(0, outgroup_fasta)
 
-    print "STARTED: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files))
+    print("STARTED: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files)))
 
     data = []
 
@@ -111,7 +111,7 @@ def process_chrom(chrom):
         data.append(stream_fasta(fin))
 
         if VERBOSE:
-            print "LOADED: {}".format(fasta)
+            print("LOADED: {}".format(fasta))
 
     # zip the sequences together so we can iterate over them one site at a time
     for pileup in itertools.izip_longest(*data, fillvalue='N'):
@@ -141,7 +141,8 @@ def process_chrom(chrom):
 
             if len(ancestral) != 1:
                 if VERBOSE:
-                    print >> sys.stderr, "WARNING: Unknown ancestral allele chr{}:{} = {}".format(chrom, site, outgroup_allele)
+                    print("WARNING: Unknown ancestral allele chr{}:{} = {}".format(chrom, site, outgroup_allele),
+                          file=sys.stderr)
                 continue
 
             ancestral = ancestral.pop()
@@ -149,7 +150,8 @@ def process_chrom(chrom):
 
             if ancestral not in alleles:
                 if VERBOSE:
-                    print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, site, set(haploids), ancestral)
+                    print("WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, site, set(haploids),
+                                                                                          ancestral), file=sys.stderr)
                 continue
 
             alleles.remove(ancestral)
@@ -173,16 +175,17 @@ def process_chrom(chrom):
 
         elif num_alleles > 2:
             if VERBOSE:
-                print >> sys.stderr, "WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids))
+                print("WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids)),
+                      file=sys.stderr)
 
-    print "FINISHED: chr{} contained {} SNPs".format(chrom, num_snps)
+    print("FINISHED: chr{} contained {} SNPs".format(chrom, num_snps))
 
 
 def estimate_allele_freq(species):
 
     if species != 'pig':
         # TODO make this work for all species not just pigs
-        raise Exception('Not implemented yet for %' % species)
+        raise Exception('Not implemented yet for {}'.format(species))
 
     if THREADS > 1:
         # process the chromosomes in parallel

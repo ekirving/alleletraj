@@ -28,4 +28,3 @@ def extract_qtl_fields(dbfile, fields):
                 pass
 
     return data
-

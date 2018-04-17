@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import os
 import httplib2
 
 from collections import OrderedDict, defaultdict
-
-from pprint import pprint
 
 # custom module
 import google_sheets as gs
@@ -71,7 +71,6 @@ C14_SHEET = {
             ('To Cal BP',               'upper'),
         ])
     }
-#
 }
 
 
@@ -118,7 +117,7 @@ def sync_c14_dates(species):
 
     dbc = db_conn()
 
-    print "INFO: Synchronising {} C14 dates".format(species)
+    print("INFO: Synchronising {} C14 dates".format(species))
 
     # get the google sheet details
     sheet = C14_SHEET[species]
@@ -140,7 +139,7 @@ def confirm_age_mapping(species):
 
     dbc = db_conn()
 
-    print "INFO: Confirming {} age mappings".format(species)
+    print("INFO: Confirming {} age mappings".format(species))
 
     # get the google sheet details
     sheet = AGE_MAP[species]
@@ -164,10 +163,10 @@ def confirm_age_mapping(species):
            AND sd.id IS NULL""".format(species=species))
 
     if missing:
-        print "ERROR: Not all sample ages have numeric mappings!"
+        print("ERROR: Not all sample ages have numeric mappings!")
 
         for id, sample in missing.iteritems():
-            print "{} - '{}'".format(sample['accession'], sample['age'])
+            print("{} - '{}'".format(sample['accession'], sample['age']))
 
         quit()
 
@@ -179,7 +178,7 @@ def mark_valid_samples(species):
 
     dbc = db_conn()
 
-    print "INFO: Marking valid {} samples".format(species)
+    print("INFO: Marking valid {} samples".format(species))
 
     # make a list of permissible countries
     europe = "','".join(EUROPE)
@@ -200,7 +199,7 @@ def populate_samples(species):
 
     if species != 'pig':
         # TODO make this work for all species not just pigs
-        raise Exception('Not implemented yet for %' % species)
+        raise Exception('Not implemented yet for {}'.format(species))
 
     # get the google sheet details
     sheet = GOOGLE_SHEET[species]
@@ -209,7 +208,7 @@ def populate_samples(species):
     samples = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
 
     if VERBOSE:
-        print "INFO: Updating %s %s samples" % (len(samples), species)
+        print("INFO: Updating {} {} samples".format(len(samples), species))
 
     bam_files = defaultdict(list)
 
@@ -249,4 +248,4 @@ def populate_samples(species):
     mark_valid_samples(species)
 
     if VERBOSE:
-        print "INFO: Finished updating %s %s samples" % (len(samples), species)
+        print("INFO: Finished updating {} {} samples".format(len(samples), species))

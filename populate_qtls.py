@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 from db_conn import *
 from qtldb_api import *
 from qtldb_lib import *
@@ -58,7 +59,7 @@ def populate_qtls(species):
     # get a list of all the QTLDb IDs from the tsv dump
     data = extract_qtl_fields(qtldb_file, ['QTL_ID'])
 
-    print "INFO: Processing %s %s QTLs from '%s'" % (len(data['QTL_ID']), species, qtldb_file)
+    print("INFO: Processing %s %s QTLs from '%s'" % (len(data['QTL_ID']), species, qtldb_file))
 
     # convert all the IDs to int
     qtl_ids = [int(qtl_id) for qtl_id in data['QTL_ID'] if qtl_id.isdigit()]
@@ -70,7 +71,7 @@ def populate_qtls(species):
     new_ids = list(set(qtl_ids) - set(qtls.keys()))
 
     if VERBOSE:
-        print "INFO: Found %s new %s QTLs to add" % (len(new_ids), species)
+        print("INFO: Found %s new %s QTLs to add" % (len(new_ids), species))
 
     # rename these fields
     key_map = {
@@ -159,10 +160,10 @@ def populate_qtls(species):
         added += 1
 
         if VERBOSE and added % 100 == 0:
-            print "INFO: Added %5d new QTLs" % added
+            print("INFO: Added %5d new QTLs" % added)
 
     if VERBOSE:
-        print "INFO: Finished adding %s new %s QTLs" % (len(new_ids), species)
+        print("INFO: Finished adding %s new %s QTLs" % (len(new_ids), species))
 
 
 def cache_dbsnp_rsnumbers(species):
@@ -204,7 +205,7 @@ def compute_qtl_windows(species):
            AND IFNULL(q.genomeLoc_end - q.genomeLoc_start, 0) <= {max}
            """.format(species=species, max=MAX_QTL_LENGTH), key=None)
 
-    print "INFO: Computing window sizes for {:,} {} QTLs".format(len(results), species)
+    print("INFO: Computing window sizes for {:,} {} QTLs".format(len(results), species))
 
     # set offset to be half the max QTL length
     offset = MAX_QTL_LENGTH / 2

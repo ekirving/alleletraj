@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
 from db_conn import db_conn
-from populate_coverage import run_cmd
 
 import unicodecsv as csv
 
@@ -74,7 +74,7 @@ with open("tsv/all-bins.tsv", "wb") as tsv_file:
         label = "{lower:,} - {upper:,} BP".format(lower=bin_lower, upper=bin_upper)
 
         if not samples:
-            print "WARNING: No samples for bin {label}".format(label=label)
+            print("WARNING: No samples for bin {label}".format(label=label))
             continue
 
         # write the data to disk
@@ -84,4 +84,3 @@ with open("tsv/all-bins.tsv", "wb") as tsv_file:
 
         # now generate the plot
         # run_cmd(['Rscript', 'rscript/plot-bin-mapping.R', stub, label])
-

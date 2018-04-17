@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from db_conn import db_conn
-from discover_snps import *
+from __future__ import print_function
 
+from discover_snps import *
 from collections import defaultdict
 
 import pysam as ps
@@ -99,7 +99,7 @@ def populate_intervals(species):
 
     # get all the unique QTL windows
     results = dbc.get_records_sql("""
-        SELECT q.chrom AS chrom, q.start, q.end
+        SELECT q.chrom, q.start, q.end
           FROM qtls q
          WHERE q.species = '{species}'
            AND q.valid = 1
@@ -129,7 +129,7 @@ def populate_intervals(species):
             record = {'species': species, 'chrom': chrom, 'start': start, 'end': end}
             dbc.save_record('intervals', record)
 
-    print "INFO: Extracted {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites)
+    print("INFO: Extracted {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites))
 
 
 def populate_interval_snps(species):
@@ -139,7 +139,7 @@ def populate_interval_snps(species):
 
     dbc = db_conn()
 
-    print "INFO: Populating all the {} interval SNPs".format(species)
+    print("INFO: Populating all the {} interval SNPs".format(species))
 
     # process the query by chromosome to avoid buffering
     chroms = natsorted(CHROM_SIZE[species].keys())
@@ -180,7 +180,7 @@ def populate_coverage(species):
               AND s.valid = 1
          GROUP BY s.id;""".format(species=species))
 
-    print "INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species)
+    print("INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species))
 
     # before we start, tidy up any records from intervals that were not finished
     dbc.execute_sql("""
@@ -200,7 +200,7 @@ def populate_coverage(species):
         for interval in intervals.values():
             process_interval((interval, samples))
 
-    print "FINISHED: Fully populated all the {} samples for {:,} intervals".format(species, len(intervals))
+    print("FINISHED: Fully populated all the {} samples for {:,} intervals".format(species, len(intervals)))
 
 
 def process_interval(args):
@@ -230,7 +230,7 @@ def process_interval(args):
                 ON ms.id = s.modsnp_id
              WHERE i.id = {id}""".format(id=interval_id), key='site').keys()
 
-        print "INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps))
+        print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
         # the column headers for batch inserting into the db
         fields = ('interval_id', 'sample_id', 'chrom', 'site', 'base', 'mapq', 'baseq', 'dist')
@@ -241,7 +241,7 @@ def process_interval(args):
         for sample_id, sample in samples.iteritems():
 
             if VERBOSE:
-                print "INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession'])
+                print("INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession']))
 
             # buffer the reads so we can bulk insert them into the db
             reads = defaultdict(list)
@@ -299,7 +299,7 @@ def process_interval(args):
 
             if diploid:
 
-                print "INFO: Calling diploid bases in {:,} sites for sample {}".format(len(diploid), sample_id)
+                print("INFO: Calling diploid bases in {:,} sites for sample {}".format(len(diploid), sample_id))
 
                 pos_file = 'vcf/diploid-int{}-sample{}.tsv'.format(interval_id, sample_id)
                 vcf_file = 'vcf/diploid-int{}-sample{}.vcf'.format(interval_id, sample_id)
@@ -321,7 +321,8 @@ def process_interval(args):
                 # see https://samtools.github.io/bcftools/bcftools.html#mpileup
                 cmd = "bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bams} " \
                       " | bcftools call --multiallelic-caller --output-type v " \
-                      " | bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}".format(**params)
+                      " | bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}" \
+                      .format(**params)
 
                 # run the base calling
                 run_cmd([cmd], shell=True)
@@ -368,7 +369,7 @@ def process_interval(args):
         interval['finished'] = 1
         dbc.save_record('intervals', interval)
 
-        print "INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end)
+        print("INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end))
 
     except Exception:
         # Put all exception text into an exception and raise that

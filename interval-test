@@ -37,7 +37,10 @@ samples = dbc.get_records_sql(
 
 print "INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species)
 
+began = time()
 
 # process the chromosomes without multi-threading
 for interval in intervals.values():
+    start = time()
     process_interval((interval, samples))
+    print "(%s)." % timedelta(seconds=time() - start)

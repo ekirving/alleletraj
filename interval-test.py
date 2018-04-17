@@ -23,7 +23,7 @@ intervals = dbc.get_records_sql("""
     SELECT *
       FROM intervals
      WHERE id IN ({list})
-    """.format(list=",".join(interval_ids)))
+    """.format(list=",".join([str(id) for id in interval_ids])))
 
 # get all the valid samples
 samples = dbc.get_records_sql(

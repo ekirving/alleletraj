@@ -141,17 +141,22 @@ def populate_interval_snps(species):
 
     print "INFO: Populating all the {} interval SNPs".format(species)
 
+    # process the query by chromosome to avoid buffering
+    chroms = natsorted(CHROM_SIZE[species].keys())
+
     # insert linking records to make future queries much quicker
-    dbc.execute_sql("""
-        INSERT INTO intervals_snps (interval_id, modsnp_id)
-             SELECT i.id, ms.id
-               FROM intervals i
-               JOIN modern_snps ms 
-                 ON ms.species = i.species
-                AND ms.chrom = i.chrom
-                AND ms.site BETWEEN i.start AND i.end
-              WHERE i.species = '{species}'
-                AND ms.maf >= {minmaf}""".format(species=species, minmaf=MIN_MAF))
+    for chrom in chroms:
+        dbc.execute_sql("""
+            INSERT INTO intervals_snps (interval_id, modsnp_id)
+                 SELECT i.id, ms.id
+                   FROM intervals i
+                   JOIN modern_snps ms 
+                     ON ms.species = i.species
+                    AND ms.chrom = i.chrom
+                    AND ms.site BETWEEN i.start AND i.end
+                  WHERE i.species = '{species}'
+                    AND i.chrom = '{chrom}'
+                    AND ms.maf >= {minmaf}""".format(species=species, chrom=chrom, minmaf=MIN_MAF))
 
 
 def populate_coverage(species):

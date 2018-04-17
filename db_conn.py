@@ -134,9 +134,9 @@ class db_conn:
 
         return self.cursor.fetchone()[u'COUNT(*)']
 
-    def save_record(self, table, record):
+    def save_record(self, table, record, insert=None):
         """
-        Insert a new record
+        Insert/update a record
         """
         formatted = self.__format_data(record)
 
@@ -147,17 +147,16 @@ class db_conn:
             'update': u", ".join([u"{}={}".format(key, value) for key, value in formatted.iteritems() if key != u'`id`'])
         }
 
-        # if 'id' in record:
-        #     data['id'] = record['id']
-        #
-        #     # update an existing record
-        #     sql = u"UPDATE {table} SET {update} " \
-        #           u"WHERE `id` = {id}".format(**data)
-        # else:
+        if 'id' in record and not insert:
+            data['id'] = record['id']
 
-        # insert new record
-        sql = u"INSERT INTO {table} ({fields}) VALUES ({values}) " \
-              u"ON DUPLICATE KEY UPDATE {update}".format(**data)
+            # update an existing record
+            sql = u"UPDATE {table} SET {update} " \
+                  u"WHERE `id` = {id}".format(**data)
+        else:
+            # insert new record
+            sql = u"INSERT INTO {table} ({fields}) VALUES ({values}) " \
+                  u"ON DUPLICATE KEY UPDATE {update}".format(**data)
 
         try:
             self.cursor.execute(sql)

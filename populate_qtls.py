@@ -99,7 +99,7 @@ def populate_qtls(species):
             trait = dict((field.replace('trait', '').lower(), value) for field, value in trait.iteritems())
             trait['type'] = api.get_trait_type(species, trait['id'], trait['name'])
 
-            dbc.save_record('traits', trait)
+            dbc.save_record('traits', trait, insert=True)
 
         # does the publication exist
         if not dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
@@ -112,7 +112,7 @@ def populate_qtls(species):
                 pubmed['year'] = re.search('\(([0-9]{4})\)', pubmed['authors']).group(1)
                 pubmed['journal'] = pubmed['journal']['#text'][:-5]
 
-                dbc.save_record('pubmeds', pubmed)
+                dbc.save_record('pubmeds', pubmed, insert=True)
             else:
                 # some records have a bogus pubmed ID
                 record['pubmedID'] = None
@@ -154,7 +154,7 @@ def populate_qtls(species):
 
         qtl['species'] = species
 
-        dbc.save_record('qtls', qtl)
+        dbc.save_record('qtls', qtl, insert=True)
 
         added += 1
 

@@ -9,9 +9,6 @@ from natsort import natsorted
 from populate_qtls import *
 from populate_coverage import *
 
-# TODO the minimum number of reads per SNP
-MIN_READS_PER_SNP = 12
-
 # the number of SNPs to model per QTL
 SNPS_PER_QTL = 3
 

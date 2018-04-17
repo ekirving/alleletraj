@@ -97,7 +97,7 @@ def populate_qtls(species):
 
             # setup the trait record
             trait = dict((field.replace('trait', '').lower(), value) for field, value in trait.iteritems())
-            trait['type'] = api.get_trait_type(species, trait['id'], trait['name'])
+            trait['type'] = api.get_trait_type(species, trait['id'], trait['name'])  # TODO this is broken!!
 
             dbc.save_record('traits', trait, insert=True)
 
@@ -166,19 +166,24 @@ def populate_qtls(species):
 
 
 def cache_dbsnp_rsnumbers(species):
+    """
+    Copy all the rsnumbers we need into a new table (saves on costly lookups in `dbsnp_complete` which exceeds RAM)
 
+    Some rsnumbers are not aligned to a reference assembly (e.g. rs80925675, rs81336441, rs80834854, etc.), and others
+    refer to the wrong species (e.g. rs42923240)
+    """
     # open a db connection
     dbc = db_conn()
 
-    # copy all the rsnumbers we need into a new table (saves on costly lookups in `dbsnp_complete` which exceeds RAM)
     dbc.execute_sql("""
         INSERT IGNORE INTO dbsnp
         SELECT DISTINCT dc.*
           FROM dbsnp_complete dc
           JOIN qtls q
-            ON q.peak LIKE 'rs%'
-           AND q.peak = dc.rsnumber
+            ON q.peak = dc.rsnumber
+           AND q.species = dc.species
          WHERE q.species = '{species}'
+           and q.peak LIKE 'rs%'
            """.format(species=species))
 
 

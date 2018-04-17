@@ -353,8 +353,9 @@ def process_interval(args):
                         dbc.save_record('sample_reads', read)
 
             # apply hard filters before inserting (otherwise we swamp the DB with too many low quality reads)
-            reads = [read for read in reads if read[fields.index('mapq')] >= HARD_MAPQ_CUTOFF
-                                           and read[fields.index('baseq')] >= HARD_BASEQ_CUTOFF]
+            reads = [read for pos in reads.values() for read in pos
+                        if read[fields.index('mapq')] >= HARD_MAPQ_CUTOFF and
+                           read[fields.index('baseq')] >= HARD_BASEQ_CUTOFF]
 
             # count the total number of reads
             num_reads += len(reads)

@@ -247,7 +247,7 @@ def process_interval(args):
             reads = defaultdict(list)
 
             # there may be multiple BAM files for each sample
-            for path in sample['paths'].splt(','):
+            for path in sample['paths'].split(','):
 
                 # open the BAM file for reading
                 with ps.AlignmentFile(path, 'rb') as bamfile:

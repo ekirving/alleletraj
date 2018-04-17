@@ -215,5 +215,5 @@ def cache_dbsnp_rsnumbers(species):
             ON q.peak = dc.rsnumber
          WHERE q.species = '{species}'
            AND q.valid = 1
-           """.format(species))
+           """.format(species=species))
 

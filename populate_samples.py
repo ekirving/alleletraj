@@ -16,6 +16,12 @@ from db_conn import db_conn
 # TODO make global variable
 VERBOSE = True
 
+# the arbitrary +/- age uncertainty for median age dates
+MEDIAN_AGE_UNCERT = 100
+
+BIN_WIDTH = 500
+BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
+
 # Pigs_allTo20042016_shared / old Google sheet
 # SHEET_ID = '154wbTEcAUPz4d5v7QLLSwIKTdK8AxXP5US-riCjt2og'
 # SHEET_TABS = ['Europe and NE Pigs']  #, 'SE Asian Pigs']
@@ -192,6 +198,55 @@ def mark_valid_samples(species):
            AND country IN ('{europe}')""".format(species=species, europe=europe))
 
 
+def bin_samples(species):
+    """
+    Assign samples to temporal bins
+    """
+
+    dbc = db_conn()
+
+    # SQL fragment to get the most precise dates for each sample
+    sql_age = """
+        SELECT s.id sample_id,
+               COALESCE(c14.lower, sd.lower, sd.median + {uncert}) lower,
+               COALESCE(c14.upper, sd.upper, sd.median - {uncert}) upper
+          FROM samples s
+     LEFT JOIN sample_dates sd
+            ON s.age = sd.age
+     LEFT JOIN sample_dates_c14 c14
+            ON c14.accession = s.accession
+         WHERE s.species = '{species}'
+           AND s.valid = 1
+           """.format(species=species, uncert=MEDIAN_AGE_UNCERT)
+
+    # get the maximum date
+    max_lower = dbc.get_records_sql("""
+        SELECT MAX(lower) max_lower
+          FROM ({age}) AS age
+           """.format(age=sql_age), key=None)[0].pop('max_lower')
+
+    # round to nearest multiple of BIN_WIDTH
+    bin_start = int(round(float(max_lower)/BIN_WIDTH) * BIN_WIDTH)
+    bin_end = 0
+
+    # iterate over each temporal bin
+    for bin_lower in range(bin_start, bin_end, -BIN_WIDTH):
+        bin_upper = bin_lower - BIN_WIDTH + 1
+
+        # get all the samples which overlap this bin by >= BIN_OVERLAP
+        dbc.execute_sql("""
+        INSERT INTO sample_bins (sample_id, bin, overlap, perct_overlap)     
+             SELECT sample_id, '{binlower} - {binupper}' AS bin,
+                    LEAST(lower, {binlower}) - GREATEST(upper, {binupper}) AS overlap,
+                    (LEAST(lower, {binlower}) - GREATEST(upper, {binupper})) / (lower - upper) AS perct_overlap
+               FROM ({age}) as age
+              WHERE lower >= {binupper}
+                AND upper <= {binlower}
+             HAVING perct_overlap >= {binpercent}""".format(age=sql_age,
+                                                            binpercent=BIN_PERCENT,
+                                                            binlower=bin_lower,
+                                                            binupper=bin_upper))
+
 def populate_samples(species):
 
     # open a db connection
@@ -246,6 +301,9 @@ def populate_samples(species):
 
     # samples are valid if they are from Europe and have a BAM file
     mark_valid_samples(species)
+
+    # assign samples to temporal bins
+    bin_samples(species)
 
     if VERBOSE:
         print("INFO: Finished updating {} {} samples".format(len(samples), species))

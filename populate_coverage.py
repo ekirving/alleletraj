@@ -320,12 +320,12 @@ def process_interval(args):
                 # use all the BAM files
                 bam_files = " ".join(sample['paths'].split(','))
 
-                params = {'region': region, 'targets': pos_file, 'ref': REF_FILE, 'bams': bam_files, 'vcf': vcf_file}
+                params = {'targets': pos_file, 'ref': REF_FILE, 'bams': bam_files, 'vcf': vcf_file}
 
                 # call bases with bcftools (and drop indels and other junk)
                 # uses both --region (random access) and --targets (streaming) for optimal speed
                 # see https://samtools.github.io/bcftools/bcftools.html#mpileup
-                cmd = "bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bams} " \
+                cmd = "bcftools mpileup --targets-file {targets} --fasta-ref {ref} {bams} " \
                       " | bcftools call --multiallelic-caller --output-type v " \
                       " | bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}".format(**params)
 

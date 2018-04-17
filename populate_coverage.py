@@ -318,7 +318,7 @@ def process_interval(args):
                 region = "{}:{}-{}".format(chrom, start, end)
 
                 # use all the BAM files
-                bam_files = " ".join(sample['path'].split(','))
+                bam_files = " ".join(sample['paths'].split(','))
 
                 params = {'region': region, 'targets': pos_file, 'ref': REF_FILE, 'bams': bam_files, 'vcf': vcf_file}
 

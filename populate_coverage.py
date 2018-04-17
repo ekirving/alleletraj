@@ -279,14 +279,8 @@ def process_interval(args):
                             # get the map quality
                             mapq = pileupread.alignment.mapping_quality
 
-                            if mapq < HARD_MAPQ_CUTOFF:
-                                continue
-
                             # get the base quality
                             baseq = pileupread.alignment.query_qualities[read_pos]
-
-                            if baseq < HARD_BASEQ_CUTOFF:
-                                continue
 
                             # get the overall length of the read
                             read_length = len(pileupread.alignment.query_sequence)
@@ -358,12 +352,16 @@ def process_interval(args):
 
                         dbc.save_record('sample_reads', read)
 
-        # count the total number of reads
-        num_reads += len(reads)
+            # apply hard filters before inserting (otherwise we swamp the DB with too many low quality reads)
+            reads = [read for read in reads if read[fields.index('mapq')] < HARD_MAPQ_CUTOFF
+                                           and read[fields.index('baseq')] < HARD_BASEQ_CUTOFF]
 
-        # bulk insert all the reads for this sample
-        if reads:
-            dbc.save_records('sample_reads', fields, reads)
+            # count the total number of reads
+            num_reads += len(reads)
+
+            # bulk insert all the reads for this sample
+            if reads:
+                dbc.save_records('sample_reads', fields, reads)
 
         # update the interval to show we're done
         interval['finished'] = 1

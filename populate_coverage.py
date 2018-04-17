@@ -333,7 +333,10 @@ def process_interval(args):
                     # get the genotype call for this site
                     geno = rec.samples[sample['accession']]['GT']
 
-                    if geno >= MIN_GENO_QUAL:
+                    # get the genotype quality
+                    genoq = int(rec.qual)
+
+                    if genoq >= MIN_GENO_QUAL:
                         # the genotype is good, so drop the raw reads
                         reads.pop((rec.chrom, rec.pos))
 
@@ -347,7 +350,7 @@ def process_interval(args):
                             'sample_id': sample_id,
                             'chrom':    rec.chrom,
                             'site':     rec.pos,
-                            'genoq':    int(rec.qual),
+                            'genoq':    genoq,
                             'base':     allele
                         }
 

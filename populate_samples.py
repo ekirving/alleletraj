@@ -205,6 +205,12 @@ def bin_samples(species):
 
     dbc = db_conn()
 
+    # TODO what about species?
+    # sample_bins
+    dbc.execute_sql("""
+        TRUNCATE TABLE sample_bins
+        """)
+
     # SQL fragment to get the most precise dates for each sample
     sql_age = """
         SELECT s.id sample_id,
@@ -231,12 +237,15 @@ def bin_samples(species):
 
     # iterate over each temporal bin
     for bin_lower in range(bin_start, bin_end, -BIN_WIDTH):
-        bin_upper = bin_lower - BIN_WIDTH + 1
+        bin_upper = bin_lower - BIN_WIDTH
 
+        # TODO
         # get all the samples which overlap this bin by >= BIN_OVERLAP
         dbc.execute_sql("""
-        INSERT INTO sample_bins (sample_id, bin, overlap, perct_overlap)     
-             SELECT sample_id, '{binlower} - {binupper}' AS bin,
+             INSERT IGNORE
+               INTO sample_bins (sample_id, bin, overlap, perct_overlap)
+             SELECT sample_id,
+                    '{binlower} - {binupper}' AS bin,
                     LEAST(lower, {binlower}) - GREATEST(upper, {binupper}) AS overlap,
                     (LEAST(lower, {binlower}) - GREATEST(upper, {binupper})) / (lower - upper) AS perct_overlap
                FROM ({age}) as age

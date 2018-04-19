@@ -33,13 +33,16 @@ dat <- na.omit(dat)
 dat$cap_endo <- dat$cap_mapq30 * (1 - dat$cap_duplic)
 dat$avg_endo <- dat$avg_mapq30 * (1 - dat$avg_duplic)
 
+scale_max <- 5
+scale_step <- 1
+
 ggplot(dat, aes(x = cap_endo, y = avg_endo)) +
     geom_abline(color='grey') +
     geom_point(size=2, shape=21) +
     geom_smooth(method='lm') +
     ggtitle('Effect of Whole Genome Capture') +
-    scale_x_continuous(limits = c(0, 20), breaks = seq(0, 20, by = 5)) +
-    scale_y_continuous(limits = c(0, 20), breaks = seq(0, 20, by = 5)) +
+    scale_x_continuous(limits = c(0, scale_max), breaks = seq(0, scale_max, by = scale_step)) +
+    scale_y_continuous(limits = c(0, scale_max), breaks = seq(0, scale_max, by = scale_step)) +
     xlab("Unique Endogenous (Capture)") +
     ylab("Unique Endogenous (Pooled)")
 

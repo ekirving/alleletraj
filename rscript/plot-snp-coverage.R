@@ -94,12 +94,18 @@ colnames(sim.melt) <- c('label', 'value')
 sim.melt <- merge(sim.melt, ages[,c('label', 'status')], by = "label")
 
 # convert diploids into haploids
-ages.hap <- separate_rows(ages, c('genotype'), sep='/')
+alleles <- separate_rows(ages[c('status', 'bin', 'genotype')], c('genotype'), sep='/')
 
 # set the order of the genotype factors
-ages.hap$genotype <- factor(ages.hap$genotype, c('T','A'))  # TODO fix this
+alleles$genotype <- factor(alleles$genotype, c('T','A'))  # TODO fix this
 
-# pdf(file=paste('rscript/', basename, '.pdf', sep=''), width = 10, height = length(ages$accession)/7)
+# calculate the median age of each bin
+alleles$median <- as.integer(gsub( " .*$", "", alleles$bin)) - bin_width/2
+
+# get the count of alleles in each group
+alleles.grp <- alleles %>%
+    group_by(status, median, genotype) %>%
+    summarise(count = n())
 
 # show all available colour palettes
 # display.brewer.all()
@@ -112,23 +118,21 @@ title <- paste0("SNP chr", modsnp['chrom'], ":", modsnp['site'],
 
 # bind the fill elements to colours
 colour_map <- setNames(brewer.pal(5,"Set1")[c(2,3,1,4,5)],
-                       c(levels(sim.melt$status), levels(ages.hap$genotype)))
+                       c(levels(sim.melt$status), levels(alleles$genotype)))
+
+# pdf(file=paste('rscript/', basename, '.pdf', sep=''), width = 10, height = length(ages$accession)/7)
 
 ggplot() +
 
     # display the Domestic alelle counts as a stacked column chart
-    geom_histogram(data=ages.hap[ages.hap$status == 'Domestic',],
-                   aes(x=mean, fill=genotype, colour=genotype),
-                   position="stack", size=0,
-                   breaks=seq(0, 11500, by=bin_width),
-                   closed='right') +
+    geom_col(data=alleles.grp[alleles.grp$status == 'Domestic',],
+         aes(x=median - bin_width/4, y=count, fill=genotype, colour=genotype),
+         width=bin_width/2) +
 
     # display the Wild alelle counts as a stacked column chart
-    geom_histogram(position="stack", size=0,
-                   data=ages.hap[ages.hap$status == 'Wild',],
-                   aes(x=mean, fill=genotype, colour=genotype),
-                   breaks=seq(0, 11500, by=bin_width),
-                   closed='right') +
+    geom_col(data=alleles.grp[alleles.grp$status == 'Wild',],
+             aes(x=median + bin_width/4, y=count, fill=genotype, colour=genotype),
+             width=bin_width/2) +
 
     # display the sample dates as a rigline plot
     geom_density_ridges(data=sim.melt,
@@ -143,10 +147,10 @@ ggplot() +
 
     # setup a dummy scale to show the genotypes (we need to override the aesthetic)
     scale_color_manual(name="Genotype",
-                       breaks=levels(ages.hap$genotype),
+                       breaks=levels(alleles$genotype),
                        values=rep("lightgrey", 5),
-                       guide=guide_legend(override.aes = list(fill=colour_map[levels(ages.hap$genotype)],
-                                                              color=colour_map[levels(ages.hap$genotype)]))) +
+                       guide=guide_legend(override.aes = list(fill=colour_map[levels(alleles$genotype)],
+                                                              color=colour_map[levels(alleles$genotype)]))) +
 
     # set the breaks for the x-axis
     scale_x_continuous(breaks = seq(0, 11500, by = bin_width),

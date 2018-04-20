@@ -79,6 +79,9 @@ ages$label <- paste0(ages$accession, " [", substr(paste0(ages$genotype, "/."), 1
 # calculate the median age of each bin
 ages$median <- as.integer(gsub( " .*$", "", ages$bin)) - bin_width/2
 
+# find the max value of the oldest bin
+max_lower <- ceiling(max(ages$lower)/bin_width)*bin_width
+
 # sort the data by lower bound
 ages <- ages[order(-ages$mean,-ages$sd),]
 
@@ -122,13 +125,13 @@ colour_map <- setNames(brewer.pal(5,"Set1")[c(2,3,1,4,5)],
 
 ggplot() +
 
-    # display the Domestic alelle counts as a stacked column chart
-    geom_col(data=ages.grp[ages.grp$status == 'Domestic',],
-         aes(x=median - bin_width/4, y=count, fill=genotype, colour=genotype),
-         width=bin_width/2) +
-
     # display the Wild alelle counts as a stacked column chart
     geom_col(data=ages.grp[ages.grp$status == 'Wild',],
+             aes(x=median - bin_width/4, y=count, fill=genotype, colour=genotype),
+             width=bin_width/2) +
+
+    # display the Domestic alelle counts as a stacked column chart
+    geom_col(data=ages.grp[ages.grp$status == 'Domestic',],
              aes(x=median + bin_width/4, y=count, fill=genotype, colour=genotype),
              width=bin_width/2) +
 
@@ -151,8 +154,8 @@ ggplot() +
                                                               color=colour_map[alleles]))) +
 
     # set the breaks for the x-axis
-    scale_x_continuous(breaks = seq(0, 11500, by = bin_width),
-                       labels = seq(0, 11500, by = bin_width)/1000,
+    scale_x_continuous(breaks = seq(0, max_lower, by = bin_width),
+                       labels = seq(0, max_lower, by = bin_width)/1000,
                        minor_breaks = NULL,
                        expand = c(0.01, 0)) +
 

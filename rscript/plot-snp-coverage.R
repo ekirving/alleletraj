@@ -19,7 +19,7 @@ bin_width <- 500
 # connect to the remote server
 mydb = dbConnect(MySQL(), user='root', password='', dbname='allele_trajectory', host='localhost')
 
-# execute the query (which caches the resultset)
+# fetch the details of the SNP
 rs = dbSendQuery(mydb, paste0(
     "SELECT ms.*
        FROM modern_snps ms
@@ -28,7 +28,7 @@ rs = dbSendQuery(mydb, paste0(
 
 modsnp <- fetch(rs, n=-1)
 
-# execute the query (which caches the resultset)
+# get the data and all the reads for this SNP
 rs = dbSendQuery(mydb, paste0(
      "SELECT s.accession,
              CASE
@@ -76,11 +76,15 @@ ages$sd <- (ages$lower - ages$upper) / 4
 # add the genotype the label name
 ages$label <- paste0(ages$accession, " [", substr(paste0(ages$genotype, "/."), 1, 3), "]")
 
+# calculate the median age of each bin
+ages$median <- as.integer(gsub( " .*$", "", ages$bin)) - bin_width/2
+
 # sort the data by lower bound
 ages <- ages[order(-ages$mean,-ages$sd),]
 
-# set the order of the status factors
-ages$status <- factor(ages$status, c('Wild','Domestic','NA'))
+# set the ordering for things
+statuses <- c('Wild','Domestic','NA')
+alleles <- c(modsnp[['ancestral']], modsnp[['derived']])
 
 # simulate 100 variable for each distribution
 sim.data <- data.frame(apply(ages[,c('mean','sd')], 1, function(x) rnorm(10000, mean=x[1], sd=x[2])))
@@ -94,21 +98,12 @@ colnames(sim.melt) <- c('label', 'value')
 sim.melt <- merge(sim.melt, ages[,c('label', 'status')], by = "label")
 
 # convert diploids into haploids
-alleles <- separate_rows(ages[c('status', 'bin', 'genotype')], c('genotype'), sep='/')
-
-# set the order of the genotype factors
-alleles$genotype <- factor(alleles$genotype, c('T','A'))  # TODO fix this
-
-# calculate the median age of each bin
-alleles$median <- as.integer(gsub( " .*$", "", alleles$bin)) - bin_width/2
+ages.grp <- separate_rows(ages[c('status', 'median', 'genotype')], c('genotype'), sep='/')
 
 # get the count of alleles in each group
-alleles.grp <- alleles %>%
+ages.grp <- ages.grp %>%
     group_by(status, median, genotype) %>%
     summarise(count = n())
-
-# show all available colour palettes
-# display.brewer.all()
 
 # setup the title of the plot
 title <- paste0("SNP chr", modsnp['chrom'], ":", modsnp['site'],
@@ -116,21 +111,24 @@ title <- paste0("SNP chr", modsnp['chrom'], ":", modsnp['site'],
                 " maf=", round(modsnp['maf'], 2),
                 " (#", modsnp_id, ")")
 
+# show all available colour palettes
+# display.brewer.all()
+
 # bind the fill elements to colours
 colour_map <- setNames(brewer.pal(5,"Set1")[c(2,3,1,4,5)],
-                       c(levels(sim.melt$status), levels(alleles$genotype)))
+                       c(statuses, alleles))
 
 # pdf(file=paste('rscript/', basename, '.pdf', sep=''), width = 10, height = length(ages$accession)/7)
 
 ggplot() +
 
     # display the Domestic alelle counts as a stacked column chart
-    geom_col(data=alleles.grp[alleles.grp$status == 'Domestic',],
+    geom_col(data=ages.grp[ages.grp$status == 'Domestic',],
          aes(x=median - bin_width/4, y=count, fill=genotype, colour=genotype),
          width=bin_width/2) +
 
     # display the Wild alelle counts as a stacked column chart
-    geom_col(data=alleles.grp[alleles.grp$status == 'Wild',],
+    geom_col(data=ages.grp[ages.grp$status == 'Wild',],
              aes(x=median + bin_width/4, y=count, fill=genotype, colour=genotype),
              width=bin_width/2) +
 
@@ -141,16 +139,16 @@ ggplot() +
 
     # set a manual scale that only shows the status elements
     scale_fill_manual(name="Status",
-                      breaks=levels(sim.melt$status),
+                      breaks=statuses,
                       values=colour_map,
-                      guide=guide_legend(override.aes = list(color=colour_map[levels(sim.melt$status)]))) +
+                      guide=guide_legend(override.aes = list(color=colour_map[statuses]))) +
 
     # setup a dummy scale to show the genotypes (we need to override the aesthetic)
     scale_color_manual(name="Genotype",
-                       breaks=levels(alleles$genotype),
+                       breaks=alleles,
                        values=rep("lightgrey", 5),
-                       guide=guide_legend(override.aes = list(fill=colour_map[levels(alleles$genotype)],
-                                                              color=colour_map[levels(alleles$genotype)]))) +
+                       guide=guide_legend(override.aes = list(fill=colour_map[alleles],
+                                                              color=colour_map[alleles]))) +
 
     # set the breaks for the x-axis
     scale_x_continuous(breaks = seq(0, 11500, by = bin_width),
@@ -169,7 +167,6 @@ ggplot() +
     # tweak the theme
     theme_minimal(base_size = 10) +
     theme(axis.text.y = element_text(family="Courier", vjust = 0),
-          # set the colour of the grid lines
           panel.grid.major.x=element_line(colour="lightgrey"))
 
 # dev.off()

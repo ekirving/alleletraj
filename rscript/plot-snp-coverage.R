@@ -7,9 +7,9 @@ library(tidyr)
 library(RColorBrewer)
 
 # get the command line arguments
-args <- commandArgs(trailingOnly = TRUE)
-modsnp_id <- args[1]
-bin_width <- args[2]
+# args <- commandArgs(trailingOnly = TRUE)
+# modsnp_id <- args[1]
+# bin_width <- args[2]
 
 # TODO remove when done testing
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
@@ -18,6 +18,15 @@ bin_width <- 500
 
 # connect to the remote server
 mydb = dbConnect(MySQL(), user='root', password='', dbname='allele_trajectory', host='localhost')
+
+# execute the query (which caches the resultset)
+rs = dbSendQuery(mydb, paste0(
+    "SELECT ms.*
+       FROM modern_snps ms
+      WHERE ms.id = ", modsnp_id
+))
+
+modsnp <- fetch(rs, n=-1)
 
 # execute the query (which caches the resultset)
 rs = dbSendQuery(mydb, paste0(
@@ -55,7 +64,7 @@ rs = dbSendQuery(mydb, paste0(
 ))
 
 # fetch the resultset from the DB
-ages = fetch(rs, n=-1)
+ages <- fetch(rs, n=-1)
 
 # drop any NA data
 ages <- na.omit(ages)
@@ -95,19 +104,36 @@ ages.hap$genotype <- factor(ages.hap$genotype, c('T','A'))  # TODO fix this
 # show all available colour palettes
 # display.brewer.all()
 
+# setup the title of the plot
+title <- paste0("SNP chr", modsnp['chrom'], ":", modsnp['site'],
+                " [", modsnp['ancestral'], "/", modsnp['derived'], "]",
+                " maf=", round(modsnp['maf'], 2),
+                " (#", modsnp_id, ")")
+
 # bind the fill elements to colours
 colour_map <- setNames(brewer.pal(5,"Set1")[c(2,3,1,4,5)],
-                      c('Wild','Domestic','NA','A','T'))
+                       c(levels(sim.melt$status), levels(ages.hap$genotype)))
 
-# mask the statuses with lightgrey
-colour_geno <- colour_status <- colour_map
-colour_geno[c('Wild','Domestic','NA')] <- "#D3D3D3"
-colour_status[c('A','T')] <- "#D3D3D3"
+ggplot() +
 
-ggplot(data=sim.melt) +
+    # display the Domestic alelle counts as a stacked column chart
+    geom_histogram(data=ages.hap[ages.hap$status == 'Domestic',],
+                   aes(x=mean, fill=genotype, colour=genotype),
+                   position="stack", size=0,
+                   breaks=seq(0, 11500, by=bin_width),
+                   closed='right') +
+
+    # display the Wild alelle counts as a stacked column chart
+    geom_histogram(position="stack", size=0,
+                   data=ages.hap[ages.hap$status == 'Wild',],
+                   aes(x=mean, fill=genotype, colour=genotype),
+                   breaks=seq(0, 11500, by=bin_width),
+                   closed='right') +
 
     # display the sample dates as a rigline plot
-    geom_density_ridges(scale = 3, aes(x = value, y = label, fill=status, color=status)) +
+    geom_density_ridges(data=sim.melt,
+                        aes(x = value, y = label, fill=status, color=status),
+                        scale = 3) +
 
     # set a manual scale that only shows the status elements
     scale_fill_manual(name="Status",
@@ -115,36 +141,31 @@ ggplot(data=sim.melt) +
                       values=colour_map,
                       guide=guide_legend(override.aes = list(color=colour_map[levels(sim.melt$status)]))) +
 
-    # display the alelle counts as a stacked column chart
-    geom_histogram(position="stack",
-                   data=ages.hap[ages.hap$status == 'Wild',],
-                   aes(x=mean, fill=genotype, colour=genotype),
-                   breaks=seq(0, 11500, by=bin_width)) +
-
     # setup a dummy scale to show the genotypes (we need to override the aesthetic)
     scale_color_manual(name="Genotype",
                        breaks=levels(ages.hap$genotype),
-                       values=colour_masked,
-                       guide=guide_legend(override.aes = list(fill=colour_map[levels(ages.hap$genotype)]))) +
+                       values=rep("lightgrey", 5),
+                       guide=guide_legend(override.aes = list(fill=colour_map[levels(ages.hap$genotype)],
+                                                              color=colour_map[levels(ages.hap$genotype)]))) +
 
     # set the breaks for the x-axis
     scale_x_continuous(breaks = seq(0, 11500, by = bin_width),
                        labels = seq(0, 11500, by = bin_width)/1000,
-                       minor_breaks=NULL,
+                       minor_breaks = NULL,
                        expand = c(0.01, 0)) +
 
     # add a little padding to the y-axis
     scale_y_discrete(expand = c(0.01, 1)) +
 
-    # labeld the axes
+    # label the plot and the axes
+    ggtitle(title) +
     xlab("kyr BP") +
     ylab("Samples") +
 
     # tweak the theme
     theme_minimal(base_size = 10) +
-    # theme(text=element_text()) +
     theme(axis.text.y = element_text(family="Courier", vjust = 0),
           # set the colour of the grid lines
-          panel.grid.major.x=element_line(colour="#D3D3D3"))
+          panel.grid.major.x=element_line(colour="lightgrey"))
 
 # dev.off()

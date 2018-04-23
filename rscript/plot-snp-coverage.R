@@ -121,18 +121,30 @@ title <- paste0("SNP chr", modsnp['chrom'], ":", modsnp['site'],
 colour_map <- setNames(brewer.pal(5,"Set1")[c(2,3,1,4,5)],
                        c(statuses, alleles))
 
+# TODO fixe me!
+colour_map <- c(colour_map, c("D-A" = "#b2df8a",
+                              "D-T" = "#33a02c",
+                              "N-T" = "#e31a1c",
+                              "W-A" = "#a6cee3",
+                              "W-T" = "#1f78b4"))
+
+# TODO fixe me!
+alleles_long <- c("D-T", "D-A", "W-T", "W-A")
+
+ages.grp$statgeno <- paste0(substr(ages.grp$status, 1, 1), '-', ages.grp$genotype)
+
 # pdf(file=paste('rscript/', basename, '.pdf', sep=''), width = 10, height = length(ages$accession)/7)
 
 ggplot() +
 
     # display the Wild alelle counts as a stacked column chart
     geom_col(data=ages.grp[ages.grp$status == 'Wild',],
-             aes(x=median - bin_width/4, y=count, fill=genotype, colour=genotype),
+             aes(x=median - bin_width/4, y=count, fill=statgeno, colour=statgeno),
              width=bin_width/2) +
 
     # display the Domestic alelle counts as a stacked column chart
     geom_col(data=ages.grp[ages.grp$status == 'Domestic',],
-             aes(x=median + bin_width/4, y=count, fill=genotype, colour=genotype),
+             aes(x=median + bin_width/4, y=count, fill=statgeno, colour=statgeno),
              width=bin_width/2) +
 
     # display the sample dates as a rigline plot
@@ -148,10 +160,11 @@ ggplot() +
 
     # setup a dummy scale to show the genotypes (we need to override the aesthetic)
     scale_color_manual(name="Genotype",
-                       breaks=alleles,
-                       values=rep("lightgrey", 5),
-                       guide=guide_legend(override.aes = list(fill=colour_map[alleles],
-                                                              color=colour_map[alleles]))) +
+                       breaks=alleles_long,
+                       values=rep("lightgrey", 7),
+                       labels=c('Ancestral (T)', 'Derived (A)','Ancestral (T)', 'Derived (A)'),
+                       guide=guide_legend(override.aes = list(fill=colour_map[alleles_long],
+                                                              color=colour_map[alleles_long]))) +
 
     # set the breaks for the x-axis
     scale_x_continuous(breaks = seq(0, max_lower, by = bin_width),

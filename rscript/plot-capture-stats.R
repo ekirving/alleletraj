@@ -17,9 +17,9 @@ rs = dbSendQuery(mydb,
             AVG(NULLIF(sq2.duplicates, 0)) AS avg_duplic
        FROM sample_quality sq
        JOIN sample_quality sq2
-         ON sq.accession = sq2.accession
-        AND sq2.pool NOT IN ('OXF47', 'OXF57')
-      WHERE sq.pool IN ('OXF47', 'OXF57')
+         ON SUBSTRING_INDEX( sq.accession, '_merged', 1) = sq2.accession
+        AND IFNULL(sq2.pool, '') NOT IN ('OXF47', 'OXF57')
+      WHERE sq.accession LIKE '%_merged'
    GROUP BY sq.accession"
 )
 
@@ -33,28 +33,30 @@ dat <- na.omit(dat)
 dat$cap_endo <- dat$cap_mapq30 * (1 - dat$cap_duplic)
 dat$avg_endo <- dat$avg_mapq30 * (1 - dat$avg_duplic)
 
-scale_max <- 5
-scale_step <- 1
+scale_max <- 35
+scale_step <- 5
 
-ggplot(dat, aes(x = cap_endo, y = avg_endo)) +
+ggplot(dat, aes(x = avg_endo, y = cap_endo)) +
     geom_abline(color='grey') +
-    geom_point(size=2, shape=21) +
     geom_smooth(method='lm') +
+    geom_point(size=2, shape=21) +
+    geom_text(aes(label=dat$accession), hjust=-.3, vjust=0, size=3) +
     ggtitle('Effect of Whole Genome Capture') +
     scale_x_continuous(limits = c(0, scale_max), breaks = seq(0, scale_max, by = scale_step)) +
     scale_y_continuous(limits = c(0, scale_max), breaks = seq(0, scale_max, by = scale_step)) +
-    xlab("Unique Endogenous (Capture)") +
-    ylab("Unique Endogenous (Pooled)")
+    xlab("Unique Endogenous (Pooled)") +
+    ylab("Unique Endogenous (Capture)")
 
 dat.melt <- melt(dat[,c('accession', 'cap_endo', 'avg_endo')], id.vars = c("accession"))
 
 ggplot(dat.melt) +
-    geom_violin(aes(factor(variable), value)) +
+    # geom_violin(aes(factor(variable), value)) +
+    geom_boxplot(aes(factor(variable), value)) +
     xlab("Pooled vs. Capture") +
     ylab("Unique Endogenous (log10)") +
-    scale_y_continuous(trans='log10', limits=c(1e-3, 110),
-                       breaks = c(0.001, 0.01, 0.1, 1, 10, 100),
-                       labels = c("0.001%", "0.01%", "0.1%", "1%", "10%", "100%")) +
+    # scale_y_continuous(trans='log10', limits=c(1e-3, 110),
+                       # breaks = c(0.001, 0.01, 0.1, 1, 10, 100),
+                       # labels = c("0.001%", "0.01%", "0.1%", "1%", "10%", "100%")) +
     scale_x_discrete(limit = c("avg_endo", "cap_endo"), labels = c("Pooled", "Capture"))
 
 # dev.off()

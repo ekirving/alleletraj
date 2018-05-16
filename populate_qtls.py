@@ -45,7 +45,8 @@ CHROM_SIZE = {
 }
 
 ENSEMBL_DATA = {
-    'pig': {'gtf': 'data/ensembl/release-89/gtf/sus_scrofa/Sus_scrofa.Sscrofa10.2.89.gtf.gz'},
+    'pig': {'gtf': 'data/ensembl/release-89/gtf/sus_scrofa/Sus_scrofa.Sscrofa10.2.89.gtf.gz',
+            'gvf': 'data/ensembl/release-89/gvf/sus_scrofa/Sus_scrofa.gvf.gz'},
 }
 
 
@@ -173,6 +174,59 @@ def populate_qtls(species):
         print("INFO: Finished adding %s new %s QTLs" % (len(new_ids), species))
 
 
+def load_ensembl_variants(species):
+    """
+    Load the GVF (Genome Variation Format) data from Ensembl.
+
+    Contains all germline variations from the current Ensembl release for this species.
+
+    See http://www.sequenceontology.org/gvf.html
+    """
+
+    # open a db connection
+    dbc = db_conn()
+
+    print("INFO: Loading Ensembl {} variants".format(species))
+
+    # the column headers for batch inserting into the db
+    fields = ('species', 'rsnumber', 'chrom', 'site', 'ref', 'alt', 'dbxref')
+
+    # open the GVF file
+    with gzip.open(ENSEMBL_DATA[species]['gvf'], 'r') as fin:
+
+        # buffer the records for bulk insert
+        records = []
+
+        for line in fin:
+            # strip flanking whitespace
+            line = line.strip()
+
+            # skip comments
+            if not line.startswith("#"):
+
+                # grab the GFF columns
+                chrom, source, type, start, end, score, strand, phase, attributes = line.split("\t")
+
+                # we only want single nucleotide variants
+                if type == 'SNV':
+
+                    # unpack the 'key1=value1;key2=value2;' attribute pairs
+                    atts = dict([pair.strip().split('=') for pair in attributes.split(';') if pair != ''])
+
+                    # unpack dbxref
+                    dbxref, rsnumber = atts['Dbxref'].split(":")
+
+                    # setup the record to insert, in this order
+                    gene = (species, rsnumber, chrom, start, atts['Reference_seq'], atts['Variant_seq'], dbxref)
+
+                    # add to the buffer
+                    records.append(gene)
+
+        # bulk insert all the reads for this sample
+        if records:
+            dbc.save_records('ensembl_genes', fields, records)
+
+
 def load_ensembl_genes(species):
     """
     Load the GTF (General Transfer Format) data from Ensembl.
@@ -184,6 +238,8 @@ def load_ensembl_genes(species):
 
     # open a db connection
     dbc = db_conn()
+
+    print("INFO: Loading Ensembl {} genes".format(species))
 
     # the column headers for batch inserting into the db
     fields = ('species', 'gene_id', 'chrom', 'start', 'end', 'version', 'source', 'biotype')
@@ -200,13 +256,14 @@ def load_ensembl_genes(species):
 
             # skip comments
             if not line.startswith("#"):
+
                 # grab the GFF columns
-                chrom, source, feature, start, end, score, strand, frame, attribute = line.split("\t")
+                chrom, source, feature, start, end, score, strand, frame, attributes = line.split("\t")
 
                 # we only want genes
                 if feature == 'gene':
-                    # unpack the key-value attribute pairs
-                    atts = dict([pair.strip().split(' ') for pair in attribute.split(';') if pair != ''])
+                    # unpack the 'key1 "value1";key2 "value2";' attribute pairs
+                    atts = dict([pair.strip().split(' ') for pair in attributes.split(';') if pair != ''])
 
                     # remove quoting
                     atts.update({k:v.strip('"') for k, v in atts.items()})

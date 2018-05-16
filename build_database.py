@@ -14,7 +14,8 @@ SPECIES = ['pig'] #, 'cattle', 'horse']
 
 for species in SPECIES:
     # populate_qtls(species)
-    load_ensembl_genes(species)
+    # load_ensembl_genes(species)
+    load_ensembl_variants(species)
     # cache_dbsnp_rsnumbers(species)
     # compute_qtl_windows(species)
     # populate_intervals(species)

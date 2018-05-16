@@ -189,7 +189,7 @@ def load_ensembl_variants(species):
     print("INFO: Loading Ensembl {} variants".format(species))
 
     # the column headers for batch inserting into the db
-    fields = ('species', 'rsnumber', 'chrom', 'site', 'ref', 'alt', 'dbxref')
+    fields = ('species', 'dbxref', 'rsnumber', 'type', 'chrom', 'start', 'end', 'ref', 'alt')
 
     # open the GVF file
     with gzip.open(ENSEMBL_DATA[species]['gvf'], 'r') as fin:
@@ -207,24 +207,26 @@ def load_ensembl_variants(species):
                 # grab the GFF columns
                 chrom, source, type, start, end, score, strand, phase, attributes = line.split("\t")
 
-                # we only want single nucleotide variants
-                if type == 'SNV':
+                # unpack the 'key1=value1;key2=value2;' attribute pairs
+                atts = dict([pair.strip().split('=') for pair in attributes.split(';') if pair != ''])
 
-                    # unpack the 'key1=value1;key2=value2;' attribute pairs
-                    atts = dict([pair.strip().split('=') for pair in attributes.split(';') if pair != ''])
+                # unpack dbxref
+                dbxref, rsnumber = atts['Dbxref'].split(":")
 
-                    # unpack dbxref
-                    dbxref, rsnumber = atts['Dbxref'].split(":")
+                # setup the record to insert, in this order
+                variant = (species, dbxref, rsnumber, type, chrom, start, end, atts['Reference_seq'], atts['Variant_seq'])
 
-                    # setup the record to insert, in this order
-                    gene = (species, rsnumber, chrom, start, atts['Reference_seq'], atts['Variant_seq'], dbxref)
+                # add to the buffer
+                records.append(variant)
 
-                    # add to the buffer
-                    records.append(gene)
+                # bulk insert in chunks
+                if len(records) > MAX_INSERT_SIZE:
+                    dbc.save_records('ensembl_variants', fields, records)
+                    records = []
 
-        # bulk insert all the reads for this sample
+        # insert any the remaing variants
         if records:
-            dbc.save_records('ensembl_genes', fields, records)
+            dbc.save_records('ensembl_variants', fields, records)
 
 
 def load_ensembl_genes(species):
@@ -242,7 +244,7 @@ def load_ensembl_genes(species):
     print("INFO: Loading Ensembl {} genes".format(species))
 
     # the column headers for batch inserting into the db
-    fields = ('species', 'gene_id', 'chrom', 'start', 'end', 'version', 'source', 'biotype')
+    fields = ('species', 'source', 'gene_id', 'version', 'biotype', 'chrom', 'start', 'end')
 
     # open the GTF file
     with gzip.open(ENSEMBL_DATA[species]['gtf'], 'r') as fin:
@@ -269,7 +271,7 @@ def load_ensembl_genes(species):
                     atts.update({k:v.strip('"') for k, v in atts.items()})
 
                     # setup the record to insert, in this order
-                    gene = (species, atts['gene_id'], chrom, start, end, atts['gene_version'], atts['gene_source'], atts['gene_biotype'])
+                    gene = (species, atts['gene_source'], atts['gene_id'], atts['gene_version'], atts['gene_biotype'], chrom, start, end)
 
                     # add to the buffer
                     records.append(gene)

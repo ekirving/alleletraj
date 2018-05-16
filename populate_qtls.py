@@ -6,6 +6,9 @@ from db_conn import *
 from qtldb_api import *
 from qtldb_lib import *
 
+import gzip
+import shlex
+
 # maximum length of the QTL to process (100 Kb)
 MAX_QTL_LENGTH = 100000
 
@@ -39,6 +42,10 @@ CHROM_SIZE = {
                '13': 80625018, '14': 92306894, '15': 78986926, '16': 77678508, '17': 71877645, '18': 61067880,
                '19': 62130014, '20': 71279863, '21': 66773250, '22': 57956300, '23': 49403180, '24': 61756751,
                '25': 41496684, '26': 50169583, '27': 44118849, '28': 43231948, '29': 48376377, 'X': 121952644},
+}
+
+ENSEMBL_DATA = {
+    'pig': {'gtf': 'data/ensembl/release-89/gtf/sus_scrofa/Sus_scrofa.Sscrofa10.2.89.gtf.gz'},
 }
 
 
@@ -164,6 +171,55 @@ def populate_qtls(species):
 
     if VERBOSE:
         print("INFO: Finished adding %s new %s QTLs" % (len(new_ids), species))
+
+
+def load_ensembl_genes(species):
+    """
+    Load the GTF (General Transfer Format) data from Ensembl.
+
+    GTF provides access to all annotated transcripts which make up an Ensembl gene set.
+
+    See https://www.ensembl.org/info/website/upload/gff.html#fields
+    """
+
+    # open a db connection
+    dbc = db_conn()
+
+    # the column headers for batch inserting into the db
+    fields = ('species', 'gene_id', 'chrom', 'start', 'end', 'version', 'source', 'biotype')
+
+    # open the GTF file
+    with gzip.open(ENSEMBL_DATA[species]['gtf'], 'r') as fin:
+
+        # buffer the records for bulk insert
+        records = []
+
+        for line in fin:
+            # strip flanking whitespace
+            line = line.strip()
+
+            # skip comments
+            if not line.startswith("#"):
+                # grab the GFF columns
+                chrom, source, feature, start, end, score, strand, frame, attribute = line.split("\t")
+
+                # we only want genes
+                if feature == 'gene':
+                    # unpack the key-value attribute pairs
+                    atts = dict([pair.strip().split(' ') for pair in attribute.split(';') if pair != ''])
+
+                    # remove quoting
+                    atts.update({k:v.strip('"') for k, v in atts.items()})
+
+                    # setup the record to insert, in this order
+                    gene = (species, atts['gene_id'], chrom, start, end, atts['gene_version'], atts['gene_source'], atts['gene_biotype'])
+
+                    # add to the buffer
+                    records.append(gene)
+
+        # bulk insert all the reads for this sample
+        if records:
+            dbc.save_records('ensembl_genes', fields, records)
 
 
 def cache_dbsnp_rsnumbers(species):

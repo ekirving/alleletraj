@@ -220,7 +220,7 @@ def load_ensembl_variants(species):
                 records.append(variant)
 
                 # bulk insert in chunks
-                if len(records) > MAX_INSERT_SIZE:
+                if len(records) == MAX_INSERT_SIZE:
                     dbc.save_records('ensembl_variants', fields, records)
                     records = []
 
@@ -281,28 +281,6 @@ def load_ensembl_genes(species):
             dbc.save_records('ensembl_genes', fields, records)
 
 
-def cache_dbsnp_rsnumbers(species):
-    """
-    Copy all the rsnumbers we need into a new table (saves on costly lookups in `dbsnp_complete` which exceeds RAM)
-
-    Some rsnumbers are not aligned to a reference assembly (e.g. rs80925675, rs81336441, rs80834854, etc.), and others
-    refer to the wrong species (e.g. rs42923240)
-    """
-    # open a db connection
-    dbc = db_conn()
-
-    dbc.execute_sql("""
-        INSERT IGNORE INTO dbsnp
-        SELECT DISTINCT dc.*
-          FROM dbsnp_complete dc
-          JOIN qtls q
-            ON q.peak = dc.rsnumber
-           AND q.species = dc.species
-         WHERE q.species = '{species}'
-           and q.peak LIKE 'rs%'
-           """.format(species=species))
-
-
 def compute_qtl_windows(species):
 
     # open a db connection
@@ -310,11 +288,12 @@ def compute_qtl_windows(species):
 
     # get all the QTL windows
     results = dbc.get_records_sql("""
-        SELECT DISTINCT q.id, d.chrom, d.site
+        SELECT DISTINCT q.id, v.chrom, v.start AS site
           FROM qtls q
-          JOIN dbsnp d 
-            ON d.rsnumber = q.peak                # only QTLs with a dbsnp peak
-         WHERE q.species = '{species}' 
+          JOIN ensembl_variants v
+            ON v.rsnumber = q.peak                # only QTLs with a dbsnp peak
+           AND v.type = 'SNV'                     # only single nucleotide variants
+         WHERE q.species = '{species}'             
            AND q.associationType = 'Association'  # only GWAS studies
            AND q.significance = 'Significant'     # only significant hits
            AND IFNULL(q.genomeLoc_end - q.genomeLoc_start, 0) <= {max}

@@ -117,11 +117,11 @@ def analyse_qtl_snps(species, chrom):
           JOIN (
                   SELECT qtl_id,
                          SUBSTRING_INDEX(
-                             GROUP_CONCAT(qs.id ORDER BY num_reads DESC, ABS(d.site-ms.site) ASC), 
+                             GROUP_CONCAT(qs.id ORDER BY num_reads DESC, ABS(v.start-ms.site) ASC), 
                              ',', {num_snps}) qtl_snps
                     FROM qtls q
-                    JOIN dbsnp d
-                      ON d.rsnumber = q.peak
+                    JOIN ensembl_variants v
+                      ON v.rsnumber = q.peak
                     JOIN qtls_snps qs
                       ON qs.qtl_id = q.id
                     JOIN modern_snps ms

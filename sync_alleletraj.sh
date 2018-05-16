@@ -12,5 +12,6 @@ rsync -avz --partial \
            --exclude '*tmp*' \
            --exclude '*.sql.gz' \
            --exclude '*.ld' \
-           evan@palaeoprime:~/alleletraj/ ~/dropbox/code/alleletraj/
-
+           --exclude 'screening' \
+           --exclude 'vcf' \
+           evan@palaeoprime:~/alleletraj/ ~/Dropbox/Code/alleletraj/

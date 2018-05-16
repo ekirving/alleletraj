@@ -13,16 +13,17 @@ from analyse_qtls import analyse_qtls
 SPECIES = ['pig'] #, 'cattle', 'horse']
 
 for species in SPECIES:
-    # populate_qtls(species)
     # load_ensembl_genes(species)
     # load_ensembl_variants(species)
-    # compute_qtl_windows(species)
-    # populate_intervals(species)
     # estimate_allele_freq(species)
-    # populate_interval_snps(species)
-    # populate_samples(species)
-    # populate_coverage(species)
-    # discover_snps(species)
-    # analyse_qtls(species)
+
+    # populate_qtls(species)
+    compute_qtl_windows(species)
+    populate_intervals(species)
+    populate_interval_snps(species)
+    populate_samples(species)
+    populate_coverage(species)
+    discover_snps(species)
+    analyse_qtls(species)
 
     pass

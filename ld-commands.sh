@@ -32,3 +32,5 @@ cat eud-default.ld | sed 1,1d | awk -F " " 'function abs(v) {return v < 0 ? -v :
 
 # compute the LD
 plink --bfile "eud" --r2 --ld-window-r2 0 --ld-window 999999 --ld-window-kb 1000 --out "eud-all"
+
+cat eud-all.ld | sed 1,1d | awk -F " " 'function abs(v) {return v < 0 ? -v : v}BEGIN{OFS="\t"}{print abs($5-$2),$7}' | sort -k1,1n > eud-all.ld.summary

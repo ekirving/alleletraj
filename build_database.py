@@ -17,10 +17,10 @@ for species in SPECIES:
     # load_ensembl_variants(species)
     # estimate_allele_freq(species)
 
-    populate_qtls(species)
-    compute_qtl_windows(species)
-    populate_intervals(species)
-    populate_interval_snps(species)
+    # populate_qtls(species)
+    # compute_qtl_windows(species)
+    # populate_intervals(species)
+    # populate_interval_snps(species)
 
     populate_samples(species)
     populate_coverage(species)

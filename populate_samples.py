@@ -44,6 +44,7 @@ GOOGLE_SHEET = {
                     ('GMM Status',        'gmm_status'),
                     ('Group',             'group'),
                     ('Haplogroup',        'haplogroup'),
+                    ('DNA',               'dna')
                 ])
     }
 }
@@ -270,6 +271,11 @@ def populate_samples(species):
 
     # fetch all the samples from the GoogleDoc spreadsheet
     samples = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
+
+    # skip samples which were never sequenced
+    for sample in samples:
+        if sample['dna'] is None:
+            samples.remove(sample)
 
     if VERBOSE:
         print("INFO: Updating {} {} samples".format(len(samples), species))

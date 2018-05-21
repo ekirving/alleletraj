@@ -274,7 +274,7 @@ def populate_samples(species):
 
     # skip samples which were never sequenced
     for sample in samples:
-        dna = sample.pop('key', None)
+        dna = sample.pop('dna', None)
         if dna is None:
             samples.remove(sample)
 

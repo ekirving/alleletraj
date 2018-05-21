@@ -5,6 +5,7 @@ import re
 import urllib
 import urllib2
 import xmltodict
+import time
 
 from collections import OrderedDict
 from xml.sax.saxutils import escape
@@ -18,6 +19,8 @@ QTL_FILES = {
     'horse':  'data/AnimalQTLdb/rel35/cM/horse.txt',
 }
 
+# wait 10 seconds beforey retyring a failed request
+QTLDB_WAIT_TIME = 10
 
 class qtldb_api:
 
@@ -26,7 +29,15 @@ class qtldb_api:
         """
         Execute an API request.
         """
-        xml = urllib2.urlopen(request).read().decode("utf-8", 'ignore')
+        try:
+            xml = urllib2.urlopen(request).read().decode("utf-8", 'ignore')
+
+        except urllib2.URLError as e:
+            # wait a while and try again
+            time.sleep(QTLDB_WAIT_TIME)
+
+            xml = urllib2.urlopen(request).read().decode("utf-8", 'ignore')
+
 
         result = None
 

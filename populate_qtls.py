@@ -9,8 +9,8 @@ from qtldb_lib import *
 import gzip
 import shlex
 
-# maximum length of the QTL to process (100 Kb)
-MAX_QTL_LENGTH = 100000
+# offset to use for the QTL window (+/- 50 Kb)
+QTL_WINDOW = 50000
 
 # sizes of each chrom in the given assemblies
 CHROM_SIZE = {
@@ -296,21 +296,17 @@ def compute_qtl_windows(species):
          WHERE q.species = '{species}'             
            AND q.associationType = 'Association'  # only GWAS studies
            AND q.significance = 'Significant'     # only significant hits
-           AND IFNULL(q.genomeLoc_end - q.genomeLoc_start, 0) <= {max}
-           """.format(species=species, max=MAX_QTL_LENGTH), key=None)
+           """.format(species=species), key=None)
 
     print("INFO: Computing window sizes for {:,} {} QTLs".format(len(results), species))
-
-    # set offset to be half the max QTL length
-    offset = MAX_QTL_LENGTH / 2
 
     for result in results:
         # get the size of the current chrom
         chom_size = CHROM_SIZE[species][result['chrom']]
 
         # calculate the bounded window size
-        start = result['site'] - offset if result['site'] > offset else 1
-        end = result['site'] + offset if result['site'] + offset < chom_size else chom_size
+        start = result['site'] - QTL_WINDOW if result['site'] > QTL_WINDOW else 1
+        end = result['site'] + QTL_WINDOW if result['site'] + QTL_WINDOW < chom_size else chom_size
 
         # update the QTL record
         qtl = {'id': result['id'], 'chrom': result['chrom'], 'valid': 1, 'site': result['site'], 'start': start, 'end': end}

@@ -273,7 +273,7 @@ def populate_samples(species):
     samples = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
 
     # skip samples which were never sequenced
-    samples = [sample for sample in samples if sample.get('dna', None) is not None]
+    samples = [sample for sample in samples if sample.pop('dna', None) is not None]
 
     if VERBOSE:
         print("INFO: Updating {} {} samples".format(len(samples), species))
@@ -292,9 +292,6 @@ def populate_samples(species):
 
         # save the sample record
         sample['species'] = species
-
-        # ditch unneeded field
-        sample.pop('dna', None)
 
         dbc.save_record('samples', sample)
 

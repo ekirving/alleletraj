@@ -67,10 +67,10 @@ def populate_qtls(species):
     # get a list of all the QTLDb IDs from the tsv dump
     data = extract_qtl_fields(qtldb_file, ['QTL_ID'])
 
-    print("INFO: Processing %s %s QTLs from '%s'" % (len(data['QTL_ID']), species, qtldb_file))
-
     # convert all the IDs to int
     qtl_ids = [int(qtl_id) for qtl_id in data['QTL_ID'] if qtl_id.isdigit()]
+
+    print("INFO: Processing %s %s QTLs from '%s'" % (len(qtl_ids), species, qtldb_file))
 
     # get all the QTLs already in the DB
     qtls = dbc.get_records('qtls', key='id')

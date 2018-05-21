@@ -154,6 +154,9 @@ def process_chrom(chrom):
                                                                                           ancestral), file=sys.stderr)
                 continue
 
+            # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
+            type = 'ts' if set(alleles) == set('A', 'G') or set(alleles) == set('C', 'T') else 'tv'
+            
             alleles.remove(ancestral)
             derived = alleles.pop()
 
@@ -168,6 +171,7 @@ def process_chrom(chrom):
             record['ancestral_count'] = observations[ancestral]
             record['derived'] = derived
             record['derived_count'] = observations[derived]
+            record['type'] = type
             record['maf'] = maf
 
             dbc.save_record('modern_snps', record)

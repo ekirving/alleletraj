@@ -1,0 +1,62 @@
+
+		- aim for 120 in first instance
+				
+		- ascertained only in Euro domestic?
+
+			- 30 QTLs
+				- GWAS hits 5,981
+				- ld vs distance / confirm windows size
+					- 50 k for SNPS / 100k for neutral
+				- 4 flanking / two at random from either side
+					- TV only (maybe) ?
+					- relative to existing calls?
+					
+			
+			- inc sweep regions from BED file
+				- treat the same as QTLs, but with exact window size
+				- but, evenly spaced
+				
+				(1) 19k SNPs 
+					- /media/jbod/raid1-sdc1/laurent/full_run_results/Pig/analysis_FINAL/sweep_tree/EUD_Sweep_p001_FINAL_cutoff.bed
+					
+				(2) 10kb regions of sweep
+					- /media/jbod/raid1-sdc1/laurent/full_run_results/Pig/analysis_FINAL/sweep_tree/EUD_Sweep_p001_FINAL_cutoff_MERGED10kb.bed
+				
+				- 3 SNPs from regions in (2) but SNPs in (1)
+					- with the lowest p-value (i.e. last column in (1))
+					= 1k SNPs				
+			
+			- 50 neutrals
+				- same ascertainment as above
+				
+				- not less than 50 kb to nearest gene (may have to be reduced)
+					- all geneic regions
+						- introns / exons / cpg island (ucsc)
+					- possibly contingent on LD result window
+
+				- compare the SFS to discuss
+
+		- 10 ancestral
+		
+			- do for 2 chinese pops + 1 euro pops
+		
+			- inc. 10k from Asian
+			
+			- some GWAS peaks will be non-PorcineSNP60
+			
+		- how to computationally resolve positions relative to genes?
+			- need to also check all the chrom regions not used (old school QTLs)
+			
+			- esemble biomart for gene regions
+				- cpg islands
+				
+				- look at
+					- /home/laurent/SNP_arrayChickens/pipeline.sh
+
+				- spread across genome
+				- exclude exons
+				- not near indels
+				- not near other SNPs
+				- exclude CpG islands
+				
+				- include OMIA database

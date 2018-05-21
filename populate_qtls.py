@@ -313,7 +313,7 @@ def compute_qtl_windows(species):
         end = result['site'] + offset if result['site'] + offset < chom_size else chom_size
 
         # update the QTL record
-        qtl = {'id': result['id'], 'valid': 1, 'start': start, 'end': end}
+        qtl = {'id': result['id'], 'chrom': result['chrom'], 'valid': 1, 'site': result['site'], 'start': start, 'end': end}
 
         dbc.save_record('qtls', qtl)
 

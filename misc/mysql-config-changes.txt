@@ -19,6 +19,9 @@ sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
 
 	query_cache_type = 1
 	query_cache_size = 128M
+	
+	wait_timeout = 86400
+	interactive_timeout = 86400
 
 # fix user home issue
 sudo usermod -d /var/lib/mysql/ mysql

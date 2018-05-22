@@ -1,18 +1,68 @@
+- issues
+	- QTL SNPs
+	
+		- dbsnp 
+	
+			- ~23.5 milllion which exist in dbsnp / ~3 million do not
+			- ~350k are called as INDELs in dbsnp / not SNPs
+			- ~60k are polly in dbsnp / bi in my ascertainment
+			- ~60k are bi in dbsnp / but alleles are different in my ascertainment
+		
+				- total = ~3.5 million problematic SNPs (13%)
+
+			= is it okay to only call SNPs which are
+				- SNVs
+				- biallelic, and
+				- the same alleles in dbsnp
+
+		- existing data
+			
+			- should we target SNPs with existing coverage?
+
+				- pros
+					- includes non-captured samples
+					- targets regions we know are recoverable
+
+				- cons
+					- hard to simulate
+
+		- what about TV only
+
+			- pros
+				- less biased by damage patterns
+
+			- cons
+				- ??
+				
+
+	- how to handle non-biallelic sites?
+
+		- currently I'm tossing them away
+		- because of the bait design we're already biasing towards the ascertained alleles
+
+		- alternatives
+
+			- random
+				- drop random call reads which don't match the biallelic call
+				- or, pre-filter for alleles before random calling
+				
+			- diploid
+				- bcftools "--constrain" see https://samtools.github.io/bcftools/bcftools.html
+		
+
+##########################################################################################
 
 		- aim for 120 in first instance
 				
-		- ascertained only in Euro domestic?
+		- ascertained only in Euro domestic
 
 			- 30 QTLs
-				- GWAS hits 5,981
+				- GWAS hits 5,981 (NEW == 7,296)
 				- ld vs distance / confirm windows size
 					- 50 k for SNPS / 100k for neutral
 				- 4 flanking / two at random from either side
-					- TV only (maybe) ?
-					- relative to existing calls?
-					
 			
-			- inc sweep regions from BED file
+***			- inc sweep regions from BED file
 				- treat the same as QTLs, but with exact window size
 				- but, evenly spaced
 				

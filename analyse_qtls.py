@@ -62,7 +62,7 @@ def populate_qtl_snps(species, chrom):
 
     # insert linking records to make future queries much quicker
     dbc.execute_sql("""
-        INSERT INTO qtls_snps (qtl_id, modsnp_id)
+        INSERT INTO qtl_snps (qtl_id, modsnp_id)
              SELECT q.id, ms.id
                FROM qtls q
                JOIN modern_snps ms
@@ -85,12 +85,12 @@ def analyse_qtl_snps(species, chrom):
 
     # count the number of reads for each SNP
     dbc.execute_sql("""
-        UPDATE qtls_snps
+        UPDATE qtl_snps
           JOIN (
                   SELECT qs.id,
                          COUNT(sr.id) num_reads
                     FROM qtls q
-                    JOIN qtls_snps qs
+                    JOIN qtl_snps qs
                       ON qs.qtl_id = q.id
                     JOIN modern_snps ms
                       ON ms.id = qs.modsnp_id
@@ -107,13 +107,13 @@ def analyse_qtl_snps(species, chrom):
                 GROUP BY qs.id
 
                 ) AS num
-                  ON num.id = qtls_snps.id
+                  ON num.id = qtl_snps.id
 
-           SET qtls_snps.num_reads = num.num_reads""".format(species=species, chrom=chrom))
+           SET qtl_snps.num_reads = num.num_reads""".format(species=species, chrom=chrom))
 
     # choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
     dbc.execute_sql("""
-        UPDATE qtls_snps
+        UPDATE qtl_snps
           JOIN (
                   SELECT qtl_id,
                          SUBSTRING_INDEX(
@@ -122,7 +122,7 @@ def analyse_qtl_snps(species, chrom):
                     FROM qtls q
                     JOIN ensembl_variants v
                       ON v.rsnumber = q.peak
-                    JOIN qtls_snps qs
+                    JOIN qtl_snps qs
                       ON qs.qtl_id = q.id
                     JOIN modern_snps ms
                       ON ms.id = qs.modsnp_id
@@ -133,10 +133,10 @@ def analyse_qtl_snps(species, chrom):
                 GROUP BY qtl_id
 
                 ) AS best
-                  ON qtls_snps.qtl_id = best.qtl_id
-                 AND FIND_IN_SET(qtls_snps.id, best.qtl_snps)
+                  ON qtl_snps.qtl_id = best.qtl_id
+                 AND FIND_IN_SET(qtl_snps.id, best.qtl_snps)
 
-            SET qtls_snps.best = 1""".format(species=species, chrom=chrom, num_snps=SNPS_PER_QTL))
+            SET qtl_snps.best = 1""".format(species=species, chrom=chrom, num_snps=SNPS_PER_QTL))
 
 
 def analyse_qtls(species):

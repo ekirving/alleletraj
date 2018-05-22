@@ -47,7 +47,7 @@ snps = dbc.get_records_sql("""
             ms.maf,
             MAX({median}) AS oldest_sample,
             MAX(IF(sr.base = ms.derived, {median}, NULL)) AS oldest_derived
-       FROM qtls_snps qs
+       FROM qtl_snps qs
        JOIN qtls q
          ON q.id = qs.qtl_id
        JOIN traits t

@@ -22,6 +22,8 @@ sudo vi /etc/mysql/mysql.conf.d/mysqld.cnf
 	
 	wait_timeout = 86400
 	interactive_timeout = 86400
+	
+	connect_timeout = 60
 
 # fix user home issue
 sudo usermod -d /var/lib/mysql/ mysql

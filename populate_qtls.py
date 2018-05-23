@@ -6,6 +6,8 @@ from db_conn import *
 from qtldb_api import *
 from qtldb_lib import *
 
+from populate_coverage import run_cmd
+
 import gzip
 import shlex
 
@@ -45,10 +47,21 @@ CHROM_SIZE = {
 }
 
 ENSEMBL_DATA = {
+
+    # see ftp://ftp.ensembl.org/pub/release-89/variation/gvf/sus_scrofa/
+    #     ftp://ftp.ensembl.org/pub/release-89/gtf/sus_scrofa/
     'pig': {'gtf': 'data/ensembl/release-89/gtf/sus_scrofa/Sus_scrofa.Sscrofa10.2.89.gtf.gz',
             'gvf': 'data/ensembl/release-89/gvf/sus_scrofa/Sus_scrofa.gvf.gz'},
 }
 
+SWEEP_DATA = {
+
+    # see https://www.nature.com/articles/ng.3394
+    'pig': {'loci': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff_MERGED10kb.bed',
+            'snps': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed'}
+}
+
+SWEEP_NUM_SNPS = 3
 
 # TODO make global variable
 VERBOSE = True
@@ -174,6 +187,63 @@ def populate_qtls(species):
         print("INFO: Finished adding %s new %s QTLs" % (len(new_ids), species))
 
 
+def populate_sweeps(species):
+    """
+    Populate the db with selective sweep regions for the given species.
+    """
+
+    # open a db connection
+    dbc = db_conn()
+
+    try:
+        # get the files containing the sweep data
+        loci_file = SWEEP_DATA[species]['loci']
+        snps_file = SWEEP_DATA[species]['snps']
+
+    except KeyError as e:
+        print("INFO: No selective sweep loci for {}".format(species))
+        return
+
+    num_loci = 0
+
+    with open(loci_file, 'r') as loci_fin:
+
+        for locus in loci_fin:
+            # extract the locus info from the BED file
+            chrom, start, end = locus.split()
+
+            # get the most significant SNP from this locus
+            peak_snp = run_cmd(["printf '{locus}' "
+                                "| bedtools intersect -a {snps_file} -b stdin "
+                                "| sort -k 5,5 -g "
+                                "| head -n 1".format(locus=locus.strip(), snps_file=snps_file)], shell=True)
+
+            # extract the SNP location
+            site = peak_snp.split()[2]
+
+            # get the rsnumber for the peak
+            variant = dbc.get_record('ensembl_variants', {'species':species, 'type':'SNV', 'chrom': chrom, 'start':site})
+
+            # setup a dummy QTL record
+            qtl = {
+                'species':         species,
+                'associationType': 'Sweep',
+                'chrom':           chrom,
+                'peak':            variant['rsnumber'] if variant else None,
+                'significance':    'Significant',
+                'valid':           1,
+                'site':            site,
+                'start':           start,
+                'end':             end,
+            }
+
+            dbc.save_record('qtls',qtl)
+
+            num_loci += 1
+
+    print("INFO: Loaded {} selective sweep loci for {}.".format(num_loci, species))
+
+
 def load_ensembl_variants(species):
     """
     Load the GVF (Genome Variation Format) data from Ensembl.
@@ -288,7 +358,7 @@ def compute_qtl_windows(species):
 
     # get all the QTL windows
     results = dbc.get_records_sql("""
-        SELECT DISTINCT q.id, v.chrom, v.start AS site
+        SELECT q.id, v.chrom, v.start AS site
           FROM qtls q
           JOIN ensembl_variants v
             ON v.rsnumber = q.peak                # only QTLs with a dbsnp peak

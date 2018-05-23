@@ -62,9 +62,10 @@
 					- 50 k for SNPS / 100k for neutral
 				- 4 flanking / two at random from either side
 			
+			7,296 * 5 = 36,480
+			
 ***			- inc sweep regions from BED file
 				- treat the same as QTLs, but with exact window size
-				- but, evenly spaced
 				
 				(1) 19k SNPs 
 					- /media/jbod/raid1-sdc1/laurent/full_run_results/Pig/analysis_FINAL/sweep_tree/EUD_Sweep_p001_FINAL_cutoff.bed
@@ -74,7 +75,10 @@
 				
 				- 3 SNPs from regions in (2) but SNPs in (1)
 					- with the lowest p-value (i.e. last column in (1))
-					= 1k SNPs				
+					= 1k SNPs
+			
+			
+					
 			
 			- 50 neutrals
 				- same ascertainment as above

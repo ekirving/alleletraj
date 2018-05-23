@@ -44,3 +44,15 @@ nohup mysql < sample_reads_innodb_part.sql &> nohup_innodb_part.out &
 nohup mysql < sample_reads_innodb.sql &> nohup_innodb.out &
 nohup mysql < sample_reads_mysiam_part.sql &> nohup_mysiam_part.out &
 nohup mysql < sample_reads_mysiam.sql &> nohup_mysiam.out &
+
+
+# get the best SNPs for this locus
+run_cmd(["printf '{locus}' "
+		 "| bedtools intersect -a {snps_file} -b stdin "
+		 "| sort -k 5,5 -g "
+		 "| head -n 1".format(locus=locus, snps_file=snps_file)])
+		 
+printf '9\t150219744\t150267729\n' | bedtools intersect -a data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed -b stdin | sort -k 5,5 -g | head -n 5
+		 
+		 
+mysqldump -u root -p allele_trajectory ensembl_variants ensembl_genes | gzip > ensembl.sql.gz

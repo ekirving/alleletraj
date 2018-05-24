@@ -4,7 +4,7 @@
 from __future__ import print_function
 
 from discover_snps import *
-from collections import defaultdict
+from populate_qtls import *
 
 import pysam as ps
 import multiprocessing as mp

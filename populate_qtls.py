@@ -6,7 +6,7 @@ from db_conn import *
 from qtldb_api import *
 from qtldb_lib import *
 
-from utils import *
+from utilities import *
 
 import gzip
 import shlex

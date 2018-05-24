@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import subprocess
+
 def run_cmd(cmd, shell=False):
     """
     Executes the given command in a system subprocess

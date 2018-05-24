@@ -16,7 +16,7 @@ import subprocess
 
 from natsort import natsorted
 
-from utils import *
+from utilities import *
 
 # observations about the QTL db
 # - there are many overlapping QTL windows (some very large windows span multiple smaller ones)
@@ -150,7 +150,8 @@ def populate_interval_snps(species):
                      ON ms.species = i.species
                     AND ms.chrom = i.chrom
                     AND ms.site BETWEEN i.start AND i.end
-                  WHERE i.species = '{species}'
+                  WHERE i.finished = 0
+                    AND i.species = '{species}'
                     AND i.chrom = '{chrom}'
                     AND ms.maf >= {minmaf}""".format(species=species, chrom=chrom, minmaf=MIN_MAF))
 

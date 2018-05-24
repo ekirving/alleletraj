@@ -137,6 +137,14 @@ def populate_interval_snps(species):
 
     print("INFO: Populating all the {} interval SNPs".format(species))
 
+    # tidy up an unfinished interval SNPs
+    dbc.execute_sql("""
+        DELETE s 
+          FROM intervals_snps s
+          JOIN intervals i
+            ON i.id = s.interval_id
+         WHERE i.finished = 0""")
+
     # process the query by chromosome to avoid buffering
     chroms = natsorted(CHROM_SIZE[species].keys())
 

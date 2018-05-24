@@ -6,7 +6,7 @@ from db_conn import *
 from qtldb_api import *
 from qtldb_lib import *
 
-from populate_coverage import run_cmd
+from utils import *
 
 import gzip
 import shlex

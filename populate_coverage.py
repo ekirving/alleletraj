@@ -94,9 +94,6 @@ def populate_intervals(species):
     # open a db connection
     dbc = db_conn()
 
-    # tidy up any existing intervals
-    dbc.delete_records('intervals', {'species': species})
-
     # get all the unique QTL windows
     results = dbc.get_records_sql("""
         SELECT q.chrom, q.start, q.end
@@ -118,18 +115,39 @@ def populate_intervals(species):
         # merge overlapping intervals
         intervals[chrom] = list(merge_intervals(intervals[chrom]))
 
-        # count the resulting merged intervals
-        num_intvals += len(intervals[chrom])
-
         for start, end in intervals[chrom]:
-            # sum the number of sites across all intervals
+
+            # compose the interval record
+            record = {'species': species, 'chrom': chrom, 'start': start, 'end': end}
+
+            # check if this interval already exists
+            if dbc.get_record('intervals', record):
+                continue
+
+            # get any overlapping intervals
+            overlap = dbc.get_records_sql("""
+                SELECT *
+                  FROM intervals
+                 WHERE species = '{species}'
+                   AND chrom = {chrom}
+                   AND end > {start}
+                   AND start < {end}
+                   """.format(species=species, chrom=chrom, start=start, end=end))
+
+            for interval_id in overlap:
+                # delete the old intervals
+                dbc.delete_records('sample_reads', {'interval_id': interval_id})
+                dbc.delete_records('intervals_snps', {'interval_id': interval_id})
+                dbc.delete_records('intervals', {'id': interval_id})
+
+            # keep track of what we've done
+            num_intvals += 1
             num_sites += end - start
 
-            # add the merged intervals to the db
-            record = {'species': species, 'chrom': chrom, 'start': start, 'end': end}
+            # save the new interval
             dbc.save_record('intervals', record)
 
-    print("INFO: Extracted {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites))
+    print("INFO: Added {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites))
 
 
 def populate_interval_snps(species):

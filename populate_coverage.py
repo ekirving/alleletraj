@@ -109,7 +109,8 @@ def populate_intervals(species):
         intervals[result['chrom']].append((result['start'], result['end']))
 
     num_sites = 0
-    num_intvals = 0
+    add_intvals = 0
+    del_intvals = 0
 
     for chrom in natsorted(intervals.keys()):
         # merge overlapping intervals
@@ -140,14 +141,17 @@ def populate_intervals(species):
                 dbc.delete_records('intervals_snps', {'interval_id': interval_id})
                 dbc.delete_records('intervals', {'id': interval_id})
 
+                del_intvals += len(overlap)
+
             # keep track of what we've done
-            num_intvals += 1
+            add_intvals += 1
             num_sites += end - start
 
             # save the new interval
             dbc.save_record('intervals', record)
 
-    print("INFO: Added {:,} {} intervals, totalling {:,} bp".format(num_intvals, species, num_sites))
+    print("INFO: Added {:,} {} intervals ({:,} bp), deleted {:,} old intervals"
+          .format(add_intvals, species, num_sites, del_intvals))
 
 
 def populate_interval_snps(species):

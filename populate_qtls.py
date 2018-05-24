@@ -200,7 +200,8 @@ def populate_sweeps(species):
         loci_file = SWEEP_DATA[species]['loci']
         snps_file = SWEEP_DATA[species]['snps']
 
-    except KeyError as e:
+    except KeyError:
+
         print("INFO: No selective sweep loci for {}".format(species))
         return
 
@@ -212,34 +213,38 @@ def populate_sweeps(species):
             # extract the locus info from the BED file
             chrom, start, end = locus.split()
 
-            # get the most significant SNP from this locus
-            peak_snp = run_cmd(["printf '{locus}' "
-                                "| bedtools intersect -a {snps_file} -b stdin "
-                                "| sort -k 5,5 -g "
-                                "| head -n 1".format(locus=locus.strip(), snps_file=snps_file)], shell=True)
-
-            # extract the SNP location
-            site = peak_snp.split()[2]
-
-            # get the rsnumber for the peak
-            variant = dbc.get_record('ensembl_variants', {'species':species, 'type':'SNV', 'chrom': chrom, 'start':site})
-
             # setup a dummy QTL record
             qtl = {
                 'species':         species,
                 'associationType': 'Sweep',
                 'chrom':           chrom,
-                'peak':            variant['rsnumber'] if variant else None,
                 'significance':    'Significant',
                 'valid':           1,
-                'site':            site,
                 'start':           start,
                 'end':             end,
             }
 
-            dbc.save_record('qtls',qtl)
+            qtl_id = dbc.save_record('qtls',qtl)
 
             num_loci += 1
+
+            # get the all the SNPs from this locus
+            snps = run_cmd(["printf '{locus}' | bedtools intersect -a {snps_file} -b stdin"
+                           .format(locus=locus.strip(),snps_file=snps_file)], shell=True)
+
+            for snp in snps.splitlines():
+                # extract the SNP info
+                chrom, start, end, cdf, p = snp.split()
+
+                sweep_snp = {
+                    'qtl_id': qtl_id,
+                    'chrom':  chrom,
+                    'site':   start,
+                    'cdf':    cdf,
+                    'p':      p
+                }
+
+                dbc.save_record('sweep_snps', sweep_snp)
 
     print("INFO: Loaded {} selective sweep loci for {}.".format(num_loci, species))
 

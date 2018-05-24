@@ -2,11 +2,16 @@
 	- QTL SNPs
 	
 		- dbsnp 
+		- redo with MAF >0.05
 	
 			- ~23.5 milllion which exist in dbsnp / ~3 million do not
+				- what's the frequency?
 			- ~350k are called as INDELs in dbsnp / not SNPs
+				- +/- width of the bait
+				
 			- ~60k are polly in dbsnp / bi in my ascertainment
 			- ~60k are bi in dbsnp / but alleles are different in my ascertainment
+				- what's the frequency?
 		
 				- total = ~3.5 million problematic SNPs (13%)
 
@@ -33,10 +38,15 @@
 
 			- cons
 				- ??
-				
+
+			- david reich / check 'Genome-wide patterns of selection in 230 ancient Eurasians' for what they did
+				- ts = 80%
+				- tv = 20%
 
 	- how to handle non-biallelic sites?
-
+		
+***		- only random call from observed alleles!
+		
 		- currently I'm tossing them away
 		- because of the bait design we're already biasing towards the ascertained alleles
 
@@ -48,6 +58,7 @@
 				
 			- diploid
 				- bcftools "--constrain" see https://samtools.github.io/bcftools/bcftools.html
+***					- yes, do this!
 		
 
 ##########################################################################################
@@ -66,8 +77,10 @@
 			
 ***			- inc sweep regions from BED file
 				- treat the same as QTLs, but with exact window size
+					
+					- double check the MAF / make sure they're not singletons
 				
-				(1) 19k SNPs 
+				(1) 19k SNPs
 					- /media/jbod/raid1-sdc1/laurent/full_run_results/Pig/analysis_FINAL/sweep_tree/EUD_Sweep_p001_FINAL_cutoff.bed
 					
 				(2) 10kb regions of sweep
@@ -97,6 +110,9 @@
 			- inc. 10k from Asian
 			
 			- some GWAS peaks will be non-PorcineSNP60
+			
+				- Sumatran scrofa
+					- https://genomebiology.biomedcentral.com/articles/10.1186/gb-2013-14-9-r107
 			
 		- how to computationally resolve positions relative to genes?
 			- need to also check all the chrom regions not used (old school QTLs)

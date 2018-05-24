@@ -162,6 +162,8 @@ class db_conn:
             self.cursor.execute(sql)
             self.cnx.commit()
 
+            return self.cursor.lastrowid
+
         except Exception as e:
             # dump the record before throwing the exception
             print "ERROR: db_conn.save_record()"

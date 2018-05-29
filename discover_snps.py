@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 from db_conn import db_conn
 from time import time
 from datetime import timedelta
@@ -154,45 +156,45 @@ def discover_snps(species):
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
     chroms = CHROM_SIZE[species].keys()
 
-    print "INFO: Starting SNP discovery for %s" % species
+    print("INFO: Starting SNP discovery for {}".format(species))
 
-    print "INFO: Resetting analysis flags... ",
+    print("INFO: Resetting analysis flags... ")
 
     for chrom in chroms:
         reset_flags(species, chrom)
 
-    print "(%s)." % timedelta(seconds=time() - start)
+    print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
-    print "INFO: Applying quality filters... ",
+    print("INFO: Applying quality filters... ")
 
     for chrom in chroms:
         apply_quality_filters(species, chrom)
 
-    print "(%s)." % timedelta(seconds=time() - start)
+    print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
-    print "INFO: Choosing a random read from those that pass quality filters... ",
+    print("INFO: Choosing a random read from those that pass quality filters... ")
 
     for chrom in chroms:
         choose_random_read(species, chrom)
 
-    print "(%s)." % timedelta(seconds=time() - start)
+    print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
-    print "INFO: Applying genotype quality filters to diploid calls... ",
+    print("INFO: Applying genotype quality filters to diploid calls... ")
 
     for chrom in chroms:
         apply_genotype_filters(species, chrom)
 
-    print "(%s)." % timedelta(seconds=time() - start)
+    print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
-    print "INFO: Marking the sites which contain SNPs... ",
+    print("INFO: Marking the sites which contain SNPs... ")
 
     for chrom in chroms:
         call_ancient_snps(species, chrom)
 
-    print "(%s)." % timedelta(seconds=time() - start)
+    print("({}).".format(timedelta(seconds=time() - start)))
 
-    print "SUCCESS: Finished the %s SNP discovery (%s)" % (species, timedelta(seconds=time() - began))
+    print("SUCCESS: Finished the {} SNP discovery ({})".format(species, timedelta(seconds=time() - began)))

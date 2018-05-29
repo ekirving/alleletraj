@@ -116,7 +116,7 @@ def populate_intervals(species):
                 SELECT *
                   FROM intervals
                  WHERE species = '{species}'
-                   AND chrom = {chrom}
+                   AND chrom = '{chrom}'
                    AND end > {start}
                    AND start < {end}
                    """.format(species=species, chrom=chrom, start=start, end=end))

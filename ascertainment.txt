@@ -22,14 +22,8 @@
 
 		- existing data
 			
-			- should we target SNPs with existing coverage?
-
-				- pros
-					- includes non-captured samples
-					- targets regions we know are recoverable
-
-				- cons
-					- hard to simulate
+***			- should we target SNPs with existing coverage? YES
+			- also preference 60k Illumina SNPs
 
 		- what about TV only
 
@@ -45,9 +39,10 @@
 			
 				- (Mathieson et al., 2015)
 				
-					- The targeted SNP set merges 394,577 SNPs first reported in ref. 7
-						(390k capture), and 842,630 SNPs first reported in ref. 44 (840k
-						capture).
+					- We performed in-solution enrichment for a targeted set of 1,237,207
+						SNPs using previously reported protocols4,7,43.  The targeted SNP
+						set merges 394,577 SNPs first reported in ref. 7 (390k capture), and
+						842,630 SNPs first reported in ref. 44 (840k capture).
 						
 					- (Haak et al., 2015) REF 7 in Mathieson
 						

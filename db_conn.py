@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 import mysql.connector
 import itertools
 
@@ -169,7 +171,7 @@ class db_conn:
 
         except Exception as e:
             # dump the record before throwing the exception
-            print "ERROR: db_conn.save_record()"
+            print("ERROR: db_conn.save_record()")
             pprint(sql)
             raise e
 
@@ -208,7 +210,7 @@ class db_conn:
 
         except Exception as e:
             # dump the record before throwing the exception
-            print "ERROR: db_conn.save_records()"
+            print("ERROR: db_conn.save_records()")
             pprint(list(records))
             # pprint(sql)
             raise e

@@ -158,7 +158,7 @@ def discover_snps(species):
 
     print("INFO: Starting SNP discovery for {}".format(species))
 
-    print("INFO: Resetting analysis flags... ")
+    print("INFO: Resetting analysis flags... ", end='')
 
     for chrom in chroms:
         reset_flags(species, chrom)
@@ -166,7 +166,7 @@ def discover_snps(species):
     print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
-    print("INFO: Applying quality filters... ")
+    print("INFO: Applying quality filters... ", end='')
 
     for chrom in chroms:
         apply_quality_filters(species, chrom)
@@ -174,7 +174,7 @@ def discover_snps(species):
     print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
-    print("INFO: Choosing a random read from those that pass quality filters... ")
+    print("INFO: Choosing a random read from those that pass quality filters... ", end='')
 
     for chrom in chroms:
         choose_random_read(species, chrom)
@@ -182,7 +182,7 @@ def discover_snps(species):
     print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
-    print("INFO: Applying genotype quality filters to diploid calls... ")
+    print("INFO: Applying genotype quality filters to diploid calls... ", end='')
 
     for chrom in chroms:
         apply_genotype_filters(species, chrom)
@@ -190,7 +190,7 @@ def discover_snps(species):
     print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
-    print("INFO: Marking the sites which contain SNPs... ")
+    print("INFO: Marking the sites which contain SNPs... ", end='')
 
     for chrom in chroms:
         call_ancient_snps(species, chrom)

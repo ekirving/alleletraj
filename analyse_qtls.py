@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+
 from db_conn import db_conn
 from time import time
 from datetime import timedelta
@@ -149,36 +151,36 @@ def analyse_qtls(species):
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
     chroms = natsorted(CHROM_SIZE[species].keys())
 
-    print "INFO: Starting QTL analysis for %s" % species
+    print("INFO: Starting QTL analysis for {}".format(species))
 
     # # -----------------------------------------------
-    # print "INFO: Calculating some summary stats... ",
+    # print("INFO: Calculating some summary stats... ", end='')
     # # -----------------------------------------------
     #
     # # TODO refactor to use qtl_snps
     # for chrom in chroms:
     #     calculate_summary_stats(species, chrom)
     #
-    # print "(%s)." % timedelta(seconds=time() - start)
+    # print("({}).".format(timedelta(seconds=time() - start)))
     # start = time()
 
     # -----------------------------------------------
-    print "INFO: Populating {} QTL SNPs... ".format(species),
+    print("INFO: Populating {} QTL SNPs... ".format(species), end='')
     # -----------------------------------------------
 
     for chrom in chroms:
         populate_qtl_snps(species, chrom)
-    print "(%s)." % timedelta(seconds=time() - start)
+    print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
     # -----------------------------------------------
-    print "INFO: Analysing {} QTL SNPs... ".format(species),
+    print("INFO: Analysing {} QTL SNPs... ".format(species), end='')
     # -----------------------------------------------
 
     for chrom in chroms:
         analyse_qtl_snps(species, chrom)
 
-    print "(%s)." % timedelta(seconds=time() - start)
+    print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
 
-    print "SUCCESS: Finished the %s SNP discovery (%s)" % (species, timedelta(seconds=time() - began))
+    print("SUCCESS: Finished the {} SNP discovery ({})".format(species, timedelta(seconds=time() - began)))

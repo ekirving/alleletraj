@@ -48,7 +48,7 @@ MIN_MAF = 0.05
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
 # enforce max interval size of 1 Gb
-MAX_INTERVAL_SIZE = 1e6
+MAX_INTERVAL_SIZE = int(1e6)
 
 
 def merge_intervals(ranges):

@@ -57,8 +57,10 @@ def merge_intervals(ranges):
     """
     saved = list(ranges[0])
 
+    # sort the intervals by start, and iterate over the list
     for start, end in sorted([sorted(t) for t in ranges]):
         if start <= saved[1]:
+            # if the current interval overlaps the saved one then take the largest end point
             saved[1] = max(saved[1], end)
         else:
             # enforce max interval size
@@ -68,7 +70,9 @@ def merge_intervals(ranges):
             saved[0] = start
             saved[1] = end
 
-    yield tuple(saved)
+    # return the final interval
+    for i in range(saved[0], saved[1], MAX_INTERVAL_SIZE):
+        yield (i, min(saved[1], i + MAX_INTERVAL_SIZE - 1))
 
 
 def populate_intervals(species):

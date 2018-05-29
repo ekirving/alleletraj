@@ -47,17 +47,24 @@ MIN_MAF = 0.05
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
+# enforce max interval size of 1 Gb
+MAX_INTERVAL_SIZE = 1e6
+
 
 def merge_intervals(ranges):
     """
     Merge overlapping intervals, so we only check each site once
     """
     saved = list(ranges[0])
+
     for start, end in sorted([sorted(t) for t in ranges]):
         if start <= saved[1]:
             saved[1] = max(saved[1], end)
         else:
-            yield tuple(saved)
+            # enforce max interval size
+            for i in range(saved[0], saved[1], MAX_INTERVAL_SIZE):
+                yield (i, min(saved[1], i + MAX_INTERVAL_SIZE - 1))
+
             saved[0] = start
             saved[1] = end
 

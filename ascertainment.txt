@@ -42,6 +42,47 @@
 			- david reich / check 'Genome-wide patterns of selection in 230 ancient Eurasians' for what they did
 				- ts = 80%
 				- tv = 20%
+			
+				- (Mathieson et al., 2015)
+				
+					- The targeted SNP set merges 394,577 SNPs first reported in ref. 7
+						(390k capture), and 842,630 SNPs first reported in ref. 44 (840k
+						capture).
+						
+					- (Haak et al., 2015) REF 7 in Mathieson
+						
+						- To make analysis of large numbers of ancient DNA samples practical, we
+							used in-solution hybridization capture10,11 to enrich next
+							generation sequencing libraries for a target set of 394,577 single
+							nucleotide polymorphisms (SNPs) (‘390k capture’), 354,212 of which
+							are autosomal SNPs that have also been genotyped using the
+							Affymetrix Human Origins array in 2,345 humans from 203
+							populations4,12.
+						
+						- (Patterson et al., 2012) REF 4 in Haak
+						
+							- The first 12 are based on a strategy used in Keinan et al. (2007),
+								discovering SNPs as heterozygotes in a single individual of known
+								ancestry for whom sequence data are available (from Green et al.
+								2010; Reich et al. 2010) and then confirming the site as
+								heterozygous with a different assay. After the validation steps
+								described in File S1 (which serves as technical documentation for
+								the new SNP array), we had the following number of SNPs from each
+								panel: San, 163,313; Yoruba, 124,115; French, 111,970; Han, 78,253;
+								Papuan (two panels), 48,531 and 12,117; Cambodian, 16,987;
+								Bougainville, 14,988; Sardinian, 12,922; Mbuti, 12,162; Mongolian,
+								10,757; Karitiana, 2,634. The 13th ascertainment consisted of
+								151,435 SNPs where a randomly chosen San allele was derived
+								(different from the reference Chimpanzee allele) and a randomly
+								chosen Denisova allele (Reich et al. 2010) was ancestral (same as
+								chimpanzee).
+
+					- (Fu et al., 2015) REF 44 in Mathieson
+					
+						- Panel 2 “840k”: 842,630 SNPs constituting the rest of the SNPs on the
+							Human Origins array, all SNPs on the Illumina 610-Quad array, all
+							SNPs on the Affymetrix 50k array, and smaller numbers of SNPs chosen
+							for other purposes. See Supplementary Data 1.
 
 	- how to handle non-biallelic sites?
 		

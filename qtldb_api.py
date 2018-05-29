@@ -5,7 +5,7 @@ import re
 import urllib
 import urllib2
 import xmltodict
-import time
+from time import sleep
 
 from collections import OrderedDict
 from xml.sax.saxutils import escape
@@ -34,7 +34,7 @@ class qtldb_api:
 
         except urllib2.URLError as e:
             # wait a while and try again
-            time.sleep(QTLDB_WAIT_TIME)
+            sleep(QTLDB_WAIT_TIME)
 
             xml = urllib2.urlopen(request).read().decode("utf-8", 'ignore')
 

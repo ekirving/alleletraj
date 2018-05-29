@@ -86,7 +86,7 @@ def populate_qtls(species):
     print("INFO: Processing %s %s QTLs from '%s'" % (len(qtl_ids), species, qtldb_file))
 
     # get all the QTLs already in the DB
-    qtls = dbc.get_records('qtls', key='id')
+    qtls = dbc.get_records('qtls')
 
     # find the new IDs in the list
     new_ids = list(set(qtl_ids) - set(qtls.keys()))

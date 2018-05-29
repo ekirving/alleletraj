@@ -183,8 +183,8 @@ def populate_coverage(species):
     # open a db connection
     dbc = db_conn()
 
-    # count all the intervals we've not finished processing yet
-    intervals = dbc.get_records('intervals', {'species': species, 'finished': 0})
+    # get all the intervals we've not finished processing yet
+    intervals = dbc.get_records('intervals', {'species': species, 'finished': 0}, sort='end-start DESC')
 
     # get all the valid samples
     samples = dbc.get_records_sql(

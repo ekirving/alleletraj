@@ -52,7 +52,7 @@ class db_conn:
 
         return u"WHERE {conds}".format(conds=u" AND ".join(sub))
 
-    def __get_records(self, table, conds=None):
+    def __get_records(self, table, conds=None, sort=None):
         """
         Helper function for fetching records
         """
@@ -60,6 +60,9 @@ class db_conn:
 
         if conds:
             sql += self.__format_conditions(conds)
+
+        if sort:
+            sql += "ORDER BY {sort} ".format(sort=sort)
 
         self.cursor.execute(sql)
 
@@ -85,11 +88,11 @@ class db_conn:
 
         self.cursor.execute(sql)
 
-    def get_records(self, table, conds=None, key='id'):
+    def get_records(self, table, conds=None, sort=None, key='id'):
         """
         Get all matching records
         """
-        self.__get_records(table, conds)
+        self.__get_records(table, conds, sort)
 
         return OrderedDict((item[key], item) for item in self.cursor)
 

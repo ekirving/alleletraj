@@ -185,7 +185,43 @@ def process_chrom(chrom):
     print("FINISHED: chr{} contained {} SNPs".format(chrom, num_snps))
 
 
-def estimate_allele_freq(species):
+def link_ensembl_variants():
+    """
+    Link modern SNPs to their Ensembl dbsnp variants
+    """
+    dbc = db_conn()
+
+    print("INFO: Linking modern SNPs to their Ensembl dbsnp variants.")
+
+    dbc.execute_sql("""
+        UPDATE modern_snps ms
+          JOIN ensembl_variants v
+            ON ms.chrom = v.chrom
+           AND ms.site = v.start
+           SET ms.variant_id = v.id
+         WHERE v.type = 'SNV'        
+           AND CHAR_LENGTH(alt) = 1   
+           AND v.ref IN (ms.derived, ms.ancestral)
+           AND v.alt IN (ms.derived, ms.ancestral)""")
+
+
+def link_dbsnp_snpchip():
+    """
+    Link modern SNPs to their snpchip variants
+    """
+    dbc = db_conn()
+
+    print("INFO: Linking modern SNPs to their snpchip variants.")
+
+    dbc.execute_sql("""
+        UPDATE modern_snps ms
+          JOIN dbsnp_snpchip ds
+            ON ds.chrom = ms.chrom
+           AND ds.site = ms.site
+           SET ms.snpchip_id = ds.id""")
+
+
+def discover_modern_snps(species):
 
     if species != 'pig':
         # TODO make this work for all species not just pigs
@@ -198,3 +234,9 @@ def estimate_allele_freq(species):
     else:
         for chrom in CHROMS:
             process_chrom(chrom)
+
+    # link modern SNPs to their dbsnp and snpchip variants
+    link_ensembl_variants()
+    link_dbsnp_snpchip()
+
+

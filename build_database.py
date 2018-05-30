@@ -6,7 +6,7 @@ from db_conn import db_conn
 from populate_qtls import *
 from populate_samples import populate_samples
 from populate_coverage import *
-from estimate_allele_freq import *
+from discover_modern_snps import *
 from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 
@@ -19,7 +19,7 @@ for species in SPECIES:
 
     # TODO load snpchip data
 
-    # estimate_allele_freq(species)
+    discover_modern_snps(species)
 
     # populate_qtls(species)
     # compute_qtl_windows(species)

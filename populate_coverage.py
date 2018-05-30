@@ -239,12 +239,14 @@ def process_interval(args):
 
         # get all the modern SNPs in this interval
         snps = dbc.get_records_sql("""
-            SELECT ms.site, ms.ancestral, ms.derived
+            SELECT ms.site, COALESCE(ev.ref, ms.ancestral) ref, COALESCE(ev.alt, ms.derived) alt 
               FROM intervals i
               JOIN intervals_snps s
                 ON s.interval_id = i.id
               JOIN modern_snps ms
                 ON ms.id = s.modsnp_id
+         LEFT JOIN ensembl_variants ev
+                ON ev.id = ms.variant_id
              WHERE i.id = {id}""".format(id=interval_id), key='site')
 
         print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
@@ -327,7 +329,7 @@ def process_interval(args):
                 # save all the callable positions to a file
                 with open(pos_file, 'w') as fout:
                     # TODO ancestral may not be REF allele
-                    fout.write("\n".join("{}\t{}\t{},{}".format(chrom, site, snps[site]['ancestral'], snps[site]['derived'])
+                    fout.write("\n".join("{}\t{}\t{},{}".format(chrom, site, snps[site]['ref'], snps[site]['alt'])
                                          for (chrom, site) in diploid))
 
                 targets = "{}.gz".format(pos_file)

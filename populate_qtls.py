@@ -63,6 +63,12 @@ SWEEP_DATA = {
 
 SWEEP_NUM_SNPS = 3
 
+SNP_CHIP_DATA = {
+
+    # see http://bioinformatics.tecnoparco.org/SNPchimp
+    'pig': 'data/SNPchimp/SNPchimp_pig.tsv.gz'
+}
+
 # TODO make global variable
 VERBOSE = True
 
@@ -354,6 +360,32 @@ def load_ensembl_genes(species):
         # bulk insert all the reads for this sample
         if records:
             dbc.save_records('ensembl_genes', fields, records)
+
+
+def load_snpchip_variants(species):
+    """
+    Load the SNP chip variants from SNPchimp
+
+    See http://bioinformatics.tecnoparco.org/SNPchimp
+    """
+
+    # open a db connection
+    dbc = db_conn()
+
+    print("INFO: Loading SNP chip {} variants".format(species))
+
+    pipe = "/tmp/SNPchimp_{}".format(species)
+
+    # unzip the dump into a named pipe
+    run_cmd("mkfifo --mode=0666 {pipe}".format(pipe=pipe), shell=True)
+    run_cmd("gzip --stdout -d  {gz} >  {pipe} &".format(gz=SNP_CHIP_DATA[species], pipe=pipe), shell=True)
+
+    dbc.execute_sql("""
+        LOAD DATA 
+     LOCAL INFILE {pipe}
+       INTO TABLE dbsnp_snpchip 
+           IGNORE 1 LINES (chip_name, rsnumber, chrom, site, snp_name)"""
+    )
 
 
 def compute_qtl_windows(species):

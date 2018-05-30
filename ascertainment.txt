@@ -22,8 +22,8 @@
 
 		- existing data
 			
-***			- should we target SNPs with existing coverage? YES
-			- also preference 60k Illumina SNPs
+***			- target SNPs with existing coverage? YES
+***			- also preference 60k Illumina SNPs
 
 		- what about TV only
 

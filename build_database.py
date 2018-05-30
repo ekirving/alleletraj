@@ -17,9 +17,9 @@ for species in SPECIES:
     # load_ensembl_genes(species)
     # load_ensembl_variants(species)
 
-    # TODO load snpchip data
+    load_snpchip_variants(species)
 
-    discover_modern_snps(species)
+    # discover_modern_snps(species)
 
     # populate_qtls(species)
     # compute_qtl_windows(species)
@@ -31,4 +31,4 @@ for species in SPECIES:
     # populate_samples(species)
     # populate_coverage(species)
     # discover_snps(species)
-    analyse_qtls(species)
+    # analyse_qtls(species)

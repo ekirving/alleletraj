@@ -382,7 +382,7 @@ def load_snpchip_variants(species):
 
     dbc.execute_sql("""
         LOAD DATA 
-     LOCAL INFILE {pipe}
+     LOCAL INFILE '{pipe}'
        INTO TABLE dbsnp_snpchip 
            IGNORE 1 LINES (chip_name, rsnumber, chrom, site, snp_name)""".format(pipe=pipe)
     )

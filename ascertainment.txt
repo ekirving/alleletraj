@@ -22,6 +22,7 @@
 
 ***		- include all MC1R snps
 			- in all pigs (wild / dom / asian)
+			- see http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1000341
 
 		- existing data
 			
@@ -81,24 +82,6 @@
 							Human Origins array, all SNPs on the Illumina 610-Quad array, all
 							SNPs on the Affymetrix 50k array, and smaller numbers of SNPs chosen
 							for other purposes. See Supplementary Data 1.
-
-	- how to handle non-biallelic sites?
-		
-		- only random call from observed alleles!
-		
-		- currently I'm tossing them away
-		- because of the bait design we're already biasing towards the ascertained alleles
-
-		- alternatives
-
-			- random
-				- drop random call reads which don't match the biallelic call
-				- or, pre-filter for alleles before random calling
-				
-			- diploid
-				- bcftools "--constrain" see https://samtools.github.io/bcftools/bcftools.html
-***					- yes, do this!
-		
 
 ##########################################################################################
 

@@ -401,6 +401,7 @@ def compute_qtl_windows(species):
           JOIN ensembl_variants v
             ON v.rsnumber = q.peak                # only QTLs with a dbsnp peak
            AND v.type = 'SNV'                     # only single nucleotide variants
+           AND CHAR_LENGTH(v.alt) = 1             # only biallelic sites
          WHERE q.species = '{species}'             
            AND q.associationType = 'Association'  # only GWAS studies
            AND q.significance = 'Significant'     # only significant hits

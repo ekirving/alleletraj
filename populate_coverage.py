@@ -382,7 +382,7 @@ def process_interval(args):
                             'base':     allele
                         }
 
-                        dbc.save_record('sample_reads', read)
+                        # dbc.save_record('sample_reads', read)
 
             # apply hard filters before inserting (otherwise we swamp the DB with too many low quality reads)
             reads = [read for (chrom, site) in reads for read in reads[(chrom, site)]
@@ -393,12 +393,12 @@ def process_interval(args):
             num_reads += len(reads)
 
             # bulk insert all the reads for this sample
-            if reads:
-                dbc.save_records('sample_reads', fields, reads)
+            # if reads:
+            #     dbc.save_records('sample_reads', fields, reads)
 
         # update the interval to show we're done
         interval['finished'] = 1
-        dbc.save_record('intervals', interval)
+        # dbc.save_record('intervals', interval)
 
         print("INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end))
 

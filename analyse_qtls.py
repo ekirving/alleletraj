@@ -83,8 +83,6 @@ def analyse_qtl_snps(species, chrom):
     """
     dbc = db_conn()
 
-    # TODO remove any existing records for this chromosome
-
     # count the number of reads for each SNP
     dbc.execute_sql("""
         UPDATE qtl_snps
@@ -113,32 +111,32 @@ def analyse_qtl_snps(species, chrom):
 
            SET qtl_snps.num_reads = num.num_reads""".format(species=species, chrom=chrom))
 
-    # choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
-    dbc.execute_sql("""
-        UPDATE qtl_snps
-          JOIN (
-                  SELECT qtl_id,
-                         SUBSTRING_INDEX(
-                             GROUP_CONCAT(qs.id ORDER BY num_reads DESC, ABS(v.start-ms.site) ASC), 
-                             ',', {num_snps}) qtl_snps
-                    FROM qtls q
-                    JOIN ensembl_variants v
-                      ON v.rsnumber = q.peak
-                    JOIN qtl_snps qs
-                      ON qs.qtl_id = q.id
-                    JOIN modern_snps ms
-                      ON ms.id = qs.modsnp_id
-                   WHERE q.species = '{species}'
-                     AND q.chrom = '{chrom}'
-                     AND q.valid = 1
-                     AND qs.num_reads IS NOT NULL
-                GROUP BY qtl_id
-
-                ) AS best
-                  ON qtl_snps.qtl_id = best.qtl_id
-                 AND FIND_IN_SET(qtl_snps.id, best.qtl_snps)
-
-            SET qtl_snps.best = 1""".format(species=species, chrom=chrom, num_snps=SNPS_PER_QTL))
+    # # choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
+    # dbc.execute_sql("""
+    #     UPDATE qtl_snps
+    #       JOIN (
+    #               SELECT qtl_id,
+    #                      SUBSTRING_INDEX(
+    #                          GROUP_CONCAT(qs.id ORDER BY num_reads DESC, ABS(v.start-ms.site) ASC),
+    #                          ',', {num_snps}) qtl_snps
+    #                 FROM qtls q
+    #                 JOIN ensembl_variants v
+    #                   ON v.rsnumber = q.peak
+    #                 JOIN qtl_snps qs
+    #                   ON qs.qtl_id = q.id
+    #                 JOIN modern_snps ms
+    #                   ON ms.id = qs.modsnp_id
+    #                WHERE q.species = '{species}'
+    #                  AND q.chrom = '{chrom}'
+    #                  AND q.valid = 1
+    #                  AND qs.num_reads IS NOT NULL
+    #             GROUP BY qtl_id
+    #
+    #             ) AS best
+    #               ON qtl_snps.qtl_id = best.qtl_id
+    #              AND FIND_IN_SET(qtl_snps.id, best.qtl_snps)
+    #
+    #         SET qtl_snps.best = 1""".format(species=species, chrom=chrom, num_snps=SNPS_PER_QTL))
 
 
 def analyse_qtls(species):
@@ -164,13 +162,13 @@ def analyse_qtls(species):
     # print("({}).".format(timedelta(seconds=time() - start)))
     # start = time()
 
-    print("INFO: Populating {} QTL SNPs... ".format(species), end='')
-
-    for chrom in chroms:
-        populate_qtl_snps(species, chrom)
-
-    print("({}).".format(timedelta(seconds=time() - start)))
-    start = time()
+    # print("INFO: Populating {} QTL SNPs... ".format(species), end='')
+    #
+    # for chrom in chroms:
+    #     populate_qtl_snps(species, chrom)
+    #
+    # print("({}).".format(timedelta(seconds=time() - start)))
+    # start = time()
 
     print("INFO: Analysing {} QTL SNPs... ".format(species), end='')
 

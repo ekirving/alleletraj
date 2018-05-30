@@ -17,7 +17,7 @@ MIN_MAP_QUAL = 30
 MIN_GENO_QUAL = 30
 
 # number of bases to soft clip
-SOFT_CLIP_DIST = 5
+SOFT_CLIP_DIST = 3
 
 
 def reset_flags(species, chrom):
@@ -70,9 +70,14 @@ def choose_random_read(species, chrom):
                     FROM samples s
                     JOIN sample_reads sr
                       ON sr.sample_id = s.id
+                    JOIN modern_snps ms
+                      ON ms.chrom = sr.chrom
+                     AND ms.site = sr.site
+                     AND ms.species = s.species
                    WHERE s.species = '{species}'
                      AND sr.chrom = '{chrom}'
                      AND sr.quality = 1
+                     AND sr.base IN (ms.ancestral, ms.derived)
                 GROUP BY sr.chrom, sr.site, sr.sample_id
                 
                ) AS rand ON rand.id = sample_reads.id
@@ -150,6 +155,9 @@ def discover_snps(species):
 
     Uses mysql table partitioning (w/ MyISAM engine) at the chromosome level to prevent disk swapping caused by massive
     RAM usage for tables with billions of records.
+
+    :param species: The species name
+    :rtype: None
     """
 
     start = began = time()

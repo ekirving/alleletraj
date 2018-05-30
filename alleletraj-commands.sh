@@ -56,3 +56,10 @@ printf '9\t150219744\t150267729\n' | bedtools intersect -a data/sweep/EUD_Sweep_
 		 
 		 
 mysqldump -u root -p allele_trajectory ensembl_variants ensembl_genes | gzip > ensembl.sql.gz
+
+
+
+
+mkfifo --mode=0666 /tmp/SNPchimp_pig
+
+gzip --stdout -d data/SNPchimp/SNPchimp_pig.tsv.gz > /tmp/SNPchimp_pig

@@ -238,7 +238,9 @@ def process_interval(args):
 
         # get all the modern SNPs in this interval
         snps = dbc.get_records_sql("""
-            SELECT ms.site, COALESCE(ev.ref, ms.ancestral) ref, COALESCE(ev.alt, ms.derived) alt 
+            SELECT ms.site, 
+                   COALESCE(ev.ref, ms.ancestral) ref, 
+                   COALESCE(ev.alt, ms.derived) alt 
               FROM intervals i
               JOIN intervals_snps s
                 ON s.interval_id = i.id
@@ -327,7 +329,6 @@ def process_interval(args):
 
                 # save all the callable positions to a file
                 with open(pos_file, 'w') as fout:
-                    # TODO ancestral may not be REF allele
                     fout.write("\n".join("{}\t{}\t{},{}".format(chrom, site, snps[site]['ref'], snps[site]['alt'])
                                          for (chrom, site) in diploid))
 
@@ -348,6 +349,7 @@ def process_interval(args):
                 # call bases with bcftools (and drop indels and other junk)
                 # uses both --region (random access) and --targets (streaming) for optimal speed
                 # see https://samtools.github.io/bcftools/bcftools.html#mpileup
+                # TODO none of --samples-file, --ploidy or --ploidy-file given, assuming all sites are diploid
                 cmd = "bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bams} " \
                       " | bcftools call --multiallelic-caller --targets-file {targets} --constrain alleles --output-type v " \
                       " | bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}" \

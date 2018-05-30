@@ -20,6 +20,9 @@
 				- biallelic, and
 				- the same alleles in dbsnp
 
+***		- include all MC1R snps
+			- in all pigs (wild / dom / asian)
+
 		- existing data
 			
 ***			- target SNPs with existing coverage? YES

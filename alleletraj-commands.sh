@@ -50,7 +50,9 @@ bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {b
 	| bcftools call --multiallelic-caller --output-type v \
 	| bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}
 
-
+bcftools mpileup --region 1:236933-336933 --targets-file vcf/diploid-int1-sample147.tsv.gz --fasta-ref fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa /media/jbod/raid5-sdb/laurent/full_run_results/Pig/KD024/KD024_rmdup.bam /media/jbod/raid5-sdb/laurent/full_run_results/Pig/mtDNA/bam/KD024/KD024_rmdup.bam  \
+	| bcftools call --multiallelic-caller --targets-file vcf/diploid-int1-sample147.tsv.gz --constrain alleles --output-type v  \
+	| bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file vcf/diploid-int1-sample147.vcf
 
 # get the best SNPs for this locus
 run_cmd(["printf '{locus}' "

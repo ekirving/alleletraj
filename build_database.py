@@ -30,5 +30,5 @@ for species in SPECIES:
 
     # populate_samples(species)
     # populate_coverage(species)
-    discover_snps(species)
+    # discover_snps(species)
     analyse_qtls(species)

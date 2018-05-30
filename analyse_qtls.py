@@ -165,13 +165,13 @@ def analyse_qtls(species):
     # start = time()
 
     # -----------------------------------------------
-    print("INFO: Populating {} QTL SNPs... ".format(species), end='')
+    # print("INFO: Populating {} QTL SNPs... ".format(species), end='')
     # -----------------------------------------------
 
-    for chrom in chroms:
-        populate_qtl_snps(species, chrom)
-    print("({}).".format(timedelta(seconds=time() - start)))
-    start = time()
+    # for chrom in chroms:
+    #     populate_qtl_snps(species, chrom)
+    # print("({}).".format(timedelta(seconds=time() - start)))
+    # start = time()
 
     # -----------------------------------------------
     print("INFO: Analysing {} QTL SNPs... ".format(species), end='')

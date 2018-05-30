@@ -332,7 +332,7 @@ def process_interval(args):
                 targets = "{}.gz".format(pos_file)
 
                 # bgzip and index the target file
-                run_cmd(["bgzip -c > {}".format(targets)], shell=True)
+                run_cmd(["bgzip -c {} > {}".format(pos_file, targets)], shell=True)
                 run_cmd(["tabix -s1 -b2 -e2 {}".format(targets)], shell=True)
 
                 # restrict the callable region using the interval start and end

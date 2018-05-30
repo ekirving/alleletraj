@@ -184,7 +184,7 @@ def populate_coverage(species):
     dbc = db_conn()
 
     # get all the intervals we've not finished processing yet
-    intervals = dbc.get_records('intervals', {'species': species, 'finished': 0}, sort='end-start DESC')
+    intervals = dbc.get_records('intervals', {'species': species, 'id': 1}, sort='end-start DESC')
 
     # get all the valid samples
     samples = dbc.get_records_sql(
@@ -194,18 +194,19 @@ def populate_coverage(species):
                ON sf.sample_id = s.id
             WHERE s.species = '{species}'
               AND s.valid = 1
+              and s.id = 147
          GROUP BY s.id;""".format(species=species))
 
     print("INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species))
 
     # before we start, tidy up any records from intervals that were not finished
-    dbc.execute_sql("""
-        DELETE sample_reads
-          FROM sample_reads
-          JOIN intervals 
-            ON intervals.id = sample_reads.interval_id
-         WHERE intervals.species = '{species}'
-           AND intervals.finished = 0""".format(species=species))
+    # dbc.execute_sql("""
+    #     DELETE sample_reads
+    #       FROM sample_reads
+    #       JOIN intervals
+    #         ON intervals.id = sample_reads.interval_id
+    #      WHERE intervals.species = '{species}'
+    #        AND intervals.finished = 0""".format(species=species))
 
     if MULTI_THREADED:
         # process the chromosomes with multi-threading to make this faster

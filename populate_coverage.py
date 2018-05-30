@@ -238,13 +238,13 @@ def process_interval(args):
 
         # get all the modern SNPs in this interval
         snps = dbc.get_records_sql("""
-            SELECT ms.site
+            SELECT ms.site, ms.ancestral, ms.derived
               FROM intervals i
               JOIN intervals_snps s
                 ON s.interval_id = i.id
               JOIN modern_snps ms
                 ON ms.id = s.modsnp_id
-             WHERE i.id = {id}""".format(id=interval_id), key='site').keys()
+             WHERE i.id = {id}""".format(id=interval_id), key='site')
 
         print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
@@ -320,9 +320,20 @@ def process_interval(args):
                 pos_file = 'vcf/diploid-int{}-sample{}.tsv'.format(interval_id, sample_id)
                 vcf_file = 'vcf/diploid-int{}-sample{}.vcf'.format(interval_id, sample_id)
 
+                # sort the diploid positions
+                diploid.sort()
+
                 # save all the callable positions to a file
                 with open(pos_file, 'w') as fout:
-                    fout.write("\n".join("{}\t{}".format(chrom, site) for (chrom, site) in diploid))
+                    # TODO ancestral may not be REF allele
+                    fout.write("\n".join("{}\t{}\t{},{}".format(chrom, site, snps[site]['ancestral'], snps[site]['derived'])
+                                         for (chrom, site) in diploid))
+
+                targets = "{}.gz".format(pos_file)
+
+                # bgzip and index the target file
+                run_cmd(["bgzip -c > {}".format(targets)], shell=True)
+                run_cmd(["tabix -s1 -b2 -e2 {}".format(targets)], shell=True)
 
                 # restrict the callable region using the interval start and end
                 region = "{}:{}-{}".format(chrom, start, end)
@@ -330,13 +341,13 @@ def process_interval(args):
                 # use all the BAM files
                 bam_files = " ".join(sample['paths'].split(','))
 
-                params = {'region': region, 'targets': pos_file, 'ref': REF_FILE, 'bams': bam_files, 'vcf': vcf_file}
+                params = {'region': region, 'targets': targets, 'ref': REF_FILE, 'bams': bam_files, 'vcf': vcf_file}
 
                 # call bases with bcftools (and drop indels and other junk)
                 # uses both --region (random access) and --targets (streaming) for optimal speed
                 # see https://samtools.github.io/bcftools/bcftools.html#mpileup
                 cmd = "bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bams} " \
-                      " | bcftools call --multiallelic-caller --output-type v " \
+                      " | bcftools call --multiallelic-caller --targets-file {targets} --constrain alleles --output-type v " \
                       " | bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}" \
                       .format(**params)
 

@@ -46,6 +46,12 @@ nohup mysql < sample_reads_mysiam_part.sql &> nohup_mysiam_part.out &
 nohup mysql < sample_reads_mysiam.sql &> nohup_mysiam.out &
 
 
+bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bams} \
+	| bcftools call --multiallelic-caller --output-type v \
+	| bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}
+
+
+
 # get the best SNPs for this locus
 run_cmd(["printf '{locus}' "
 		 "| bedtools intersect -a {snps_file} -b stdin "

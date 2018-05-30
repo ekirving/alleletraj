@@ -109,6 +109,7 @@ def call_ancient_snps(species, chrom):
     """
     dbc = db_conn()
 
+    # TODO this may now be redundant
     dbc.execute_sql("""
         UPDATE sample_reads
           JOIN samples

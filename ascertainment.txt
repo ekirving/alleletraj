@@ -81,7 +81,7 @@
 
 	- how to handle non-biallelic sites?
 		
-***		- only random call from observed alleles!
+		- only random call from observed alleles!
 		
 		- currently I'm tossing them away
 		- because of the bait design we're already biasing towards the ascertained alleles

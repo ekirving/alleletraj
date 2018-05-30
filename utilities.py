@@ -3,7 +3,8 @@
 
 import subprocess
 
-def run_cmd(cmd, shell=False):
+
+def run_cmd(cmd, shell=False, background=False):
     """
     Executes the given command in a system subprocess
 
@@ -14,17 +15,18 @@ def run_cmd(cmd, shell=False):
     # subprocess only accepts strings
     cmd = [str(args) for args in cmd]
 
-    # run the command
-    proc = subprocess.Popen(cmd,
-                            shell=shell,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+    if background:
+        subprocess.Popen(cmd, shell=shell)
 
-    # fetch the output and error
-    (stdout, stderr) = proc.communicate()
+    else:
+        # run the command
+        proc = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-    # bail if something went wrong
-    if proc.returncode:
-        raise Exception(stderr)
+        # fetch the output and error
+        (stdout, stderr) = proc.communicate()
 
-    return stdout
+        # bail if something went wrong
+        if proc.returncode:
+            raise Exception(stderr)
+
+        return stdout

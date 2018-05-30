@@ -378,7 +378,7 @@ def load_snpchip_variants(species):
 
     # unzip the dump into a named pipe
     run_cmd(["mkfifo --mode=0666 {pipe}".format(pipe=pipe)], shell=True)
-    run_cmd(["gzip --stdout -d  {gz} >  {pipe} &".format(gz=SNP_CHIP_DATA[species], pipe=pipe)], shell=True)
+    run_cmd(["gzip --stdout -d  {gz} >  {pipe}".format(gz=SNP_CHIP_DATA[species], pipe=pipe)], shell=True, background=True)
 
     dbc.execute_sql("""
         LOAD DATA 

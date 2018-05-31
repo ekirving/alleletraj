@@ -10,7 +10,6 @@ rsync -avz --partial \
            --exclude '*.R' \
            --exclude '*.old*' \
            --exclude '*tmp*' \
-           --exclude '*.sql.gz' \
            --exclude '*.ld' \
            --exclude 'screening' \
            --exclude 'vcf' \

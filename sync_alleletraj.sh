@@ -5,7 +5,6 @@ rsync -avz --partial \
            --stats \
            --exclude '.git' \
            --exclude '.gitignore' \
-           --exclude 'nohup*' \
            --exclude '*.sh' \
            --exclude '*.txt' \
            --exclude '*.py*' \

@@ -261,8 +261,9 @@ def process_interval(args):
                     snp_alleles = [snps[site]['ancestral'], snps[site]['derived']]
 
                     if ref_allele not in snp_alleles:
-                        raise Exception('ERROR: Interval #{}: REF allele {} not found in SNP alleles {}'
-                                        .format(interval_id, ref_allele, snp_alleles))
+                        print("WARNING: chr{}:{} REF allele {} not found in SNP alleles {}"
+                              .format(chrom, site, ref_allele, snp_alleles))
+                        snps.remove(site)
 
                     snp_alleles.remove(ref_allele)
 

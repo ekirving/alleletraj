@@ -280,6 +280,8 @@ def process_interval(args):
 
         num_reads = 0
 
+        # TODO randomise the order of samples to reduce disk I/O for parallel jobs
+
         # check all the samples for coverage in this interval
         for sample_id, sample in samples.iteritems():
 

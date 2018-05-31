@@ -263,7 +263,11 @@ def process_interval(args):
                     if ref_allele not in snp_alleles:
                         print("WARNING: chr{}:{} REF allele {} not found in SNP alleles {}"
                               .format(chrom, site, ref_allele, snp_alleles))
+
+                        # remove this site
                         snps.pop(site)
+
+                        continue
 
                     snp_alleles.remove(ref_allele)
 

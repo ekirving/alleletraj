@@ -99,7 +99,7 @@ def populate_intervals(species):
     del_intvals = 0
 
     for chrom in natsorted(intervals.keys()):
-        # merge overlapping intervals
+        # merge overlapping intervals (upto MAX_INTERVAL_SIZE)
         intervals[chrom] = list(merge_intervals(intervals[chrom]))
 
         for start, end in intervals[chrom]:

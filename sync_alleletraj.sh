@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 
 rsync -avz --partial \
+           --progress \
+           --stats \
            --exclude '.git' \
            --exclude '.gitignore' \
            --exclude 'nohup*' \
            --exclude '*.sh' \
+           --exclude '*.txt' \
            --exclude '*.py*' \
            --exclude '*.r' \
            --exclude '*.R' \

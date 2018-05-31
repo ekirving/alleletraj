@@ -24,11 +24,11 @@ CHROM_SIZE = {
                '19': 64057457, '20': 72042655, '21': 71599096, '22': 61435874, '23': 52530062, '24': 62714930,
                '25': 42904170, '26': 51681464, '27': 45407902, '28': 46312546, '29': 51505224, 'X': 148823899},
 
-    # Sscrofa11.1
-    'pig':    {'1': 274330532, '2': 151935994, '3': 132848913, '4': 130910915, '5': 104526007, '6': 170843587,
-               '7': 121844099, '8': 138966237, '9': 139512083, '10': 69359453, '11': 79169978, '12': 61602749,
-               '13': 208334590, '14': 141755446, '15': 140412725, '16': 79944280, '17': 63494081, '18': 55982971,
-               'X': 125939595, 'Y': 43547828},
+    # Sscrofa10.2
+    'pig':    {'1': 315321322, '2': 162569375, '3': 144787322, '4': 143465943, '5': 111506441, '6': 157765593,
+               '7': 134764511, '8': 148491826, '9': 153670197, '10': 79102373, '11': 87690581, '12': 63588571,
+               '13': 218635234, '14': 153851969, '15': 157681621, '16': 86898991, '17': 69701581, '18': 61220071,
+               'X': 144288218, 'Y': 1637716},
 
     # EquCab2.0
     'horse':  {'1': 185838109, '2': 120857687, '3': 119479920, '4': 108569075, '5': 99680356, '6': 84719076,
@@ -410,12 +410,16 @@ def compute_qtl_windows(species):
     print("INFO: Computing window sizes for {:,} {} QTLs".format(len(results), species))
 
     for result in results:
+
         # get the size of the current chrom
         chom_size = CHROM_SIZE[species][result['chrom']]
 
         # calculate the bounded window size
         start = result['site'] - QTL_WINDOW if result['site'] > QTL_WINDOW else 1
         end = result['site'] + QTL_WINDOW if result['site'] + QTL_WINDOW < chom_size else chom_size
+
+        if end <= start:
+            raise Exception("ERROR: Window size for QTL #{} is negative ({:,} bp)".format(result['id'], end-start))
 
         # update the QTL record
         qtl = {'id': result['id'], 'chrom': result['chrom'], 'valid': 1, 'site': result['site'], 'start': start, 'end': end}

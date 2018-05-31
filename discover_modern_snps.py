@@ -22,6 +22,7 @@ if socket.gethostname() == 'macbookpro.local':
 else:
     # use real dataset
     PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
+    # TODO replace with proper CHROM reference
     CHROMS = [str(c) for c in range(1, 19)] + ['X', 'Y']
     THREADS = 20
 

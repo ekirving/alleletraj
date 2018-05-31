@@ -394,7 +394,17 @@ def compute_qtl_windows(species):
     # open a db connection
     dbc = db_conn()
 
-    # get all the QTL windows
+    # reset the existing QTL flags
+    dbc.execute_sql("""
+      UPDATE qtls
+         SET valid = NULL,
+              site = NULL,
+             start = NULL,
+               end = NULL
+       WHERE q.species = '{species}'
+         """.format(species=species))
+
+    # get all the valid QTL windows
     results = dbc.get_records_sql("""
         SELECT q.id, v.chrom, v.start AS site
           FROM qtls q

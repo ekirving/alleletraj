@@ -238,9 +238,7 @@ def process_interval(args):
 
         # get all the modern SNPs in this interval
         snps = dbc.get_records_sql("""
-            SELECT ms.site, 
-                   COALESCE(ev.ref, ms.ancestral) ref, 
-                   COALESCE(ev.alt, ms.derived) alt 
+            SELECT ms.site, ev.ref, ev.alt, ms.ancestral, ms.derived
               FROM intervals i
               JOIN intervals_snps s
                 ON s.interval_id = i.id
@@ -251,6 +249,26 @@ def process_interval(args):
              WHERE i.id = {id}""".format(id=interval_id), key='site')
 
         print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
+
+        # not all SNPs have a dbsnp entry, so we need to scan the reference to find which alleles are REF/ALT
+        # because bcftools needs this info to constrain the diploid genotype calls
+        with ps.FastaFile(REF_FILE) as fasta_file:
+
+            for site in snps:
+                if not snps[site]['ref']:
+                    # fetch the ref and snp alleles
+                    ref_allele = fasta_file.fetch(chrom, site-1, site)
+                    snp_alleles = [snps[site]['ancestral'], snps[site]['derived']]
+
+                    if ref_allele not in snp_alleles:
+                        raise Exception('ERROR: Interval #{}: REF allele {} not found in SNP alleles {}'
+                                        .format(interval_id, ref_allele, snp_alleles))
+
+                    snp_alleles.remove(ref_allele)
+
+                    # set the REF/ALT alleles
+                    snps[site]['ref'] = ref_allele
+                    snps[site]['alt'] = snp_alleles.pop()
 
         # the column headers for batch inserting into the db
         fields = ('interval_id', 'sample_id', 'chrom', 'site', 'base', 'mapq', 'baseq', 'dist')

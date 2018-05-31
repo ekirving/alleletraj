@@ -22,11 +22,11 @@ for species in SPECIES:
     # discover_modern_snps(species)
 
     # populate_qtls(species)
-    compute_qtl_windows(species)
+    # compute_qtl_windows(species)
     # populate_sweeps(species)
 
-    populate_intervals(species)
-    populate_interval_snps(species)
+    # populate_intervals(species)
+    # populate_interval_snps(species)
 
     # populate_samples(species)
     populate_coverage(species)

@@ -254,7 +254,7 @@ def process_interval(args):
         # because bcftools needs this info to constrain the diploid genotype calls
         with ps.FastaFile(REF_FILE) as fasta_file:
 
-            for site in snps:
+            for site in snps.keys():
                 if not snps[site]['ref']:
                     # fetch the ref and snp alleles
                     ref_allele = fasta_file.fetch(chrom, site-1, site)
@@ -263,7 +263,7 @@ def process_interval(args):
                     if ref_allele not in snp_alleles:
                         print("WARNING: chr{}:{} REF allele {} not found in SNP alleles {}"
                               .format(chrom, site, ref_allele, snp_alleles))
-                        snps.remove(site)
+                        snps.pop(site)
 
                     snp_alleles.remove(ref_allele)
 

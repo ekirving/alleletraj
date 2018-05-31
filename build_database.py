@@ -10,7 +10,7 @@ from discover_modern_snps import *
 from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 
-SPECIES = ['pig'] #, 'cattle', 'horse']
+SPECIES = ['pig']  # , 'horse', 'goat']
 
 for species in SPECIES:
 

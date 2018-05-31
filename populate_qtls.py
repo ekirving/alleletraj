@@ -240,6 +240,9 @@ def populate_sweeps(species):
             snps = run_cmd(["printf '{locus}' | bedtools intersect -a {snps_file} -b stdin"
                            .format(locus=locus.strip(),snps_file=snps_file)], shell=True)
 
+            if not snps:
+                raise Exception("ERROR: Found no SNPs for sweep region {}:{}-{}".format(chrom, start, end))
+
             for snp in snps.splitlines():
                 # extract the SNP info
                 chrom, start, end, cdf, p = snp.split()

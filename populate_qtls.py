@@ -211,6 +211,8 @@ def populate_sweeps(species):
         print("INFO: No selective sweep loci for {}".format(species))
         return
 
+    # TODO remove any existing sweep regions
+
     num_loci = 0
 
     with open(loci_file, 'r') as loci_fin:
@@ -245,7 +247,7 @@ def populate_sweeps(species):
                 sweep_snp = {
                     'qtl_id': qtl_id,
                     'chrom':  chrom,
-                    'site':   start,
+                    'site':   end,
                     'cdf':    cdf,
                     'p':      p
                 }

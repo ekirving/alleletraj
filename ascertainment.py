@@ -10,6 +10,9 @@ from datetime import timedelta
 # the number of flanking SNPs (on either side) to include
 NUM_FLANKING_SNPS = 2
 
+# the number of selective sweep SNPs to include
+NUM_SWEEP_SNPS = 3
+
 def fetch_gwas_peaks(species):
     """
     Fetch all the GWAS peaks from the QTL database.
@@ -57,13 +60,17 @@ def fetch_gwas_flanking_snps(species):
     # get the best flanking SNPs for each QTL
     qtls = dbc.get_records_sql("""
         SELECT q.id, q.chrom, q.site,
+                
                 SUBSTRING_INDEX(
                     GROUP_CONCAT(
-                        IF(ms.site < q.site, ms.variant_id, NULL) ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, RAND()
+                        IF(ms.site < q.site, ms.variant_id, NULL) 
+                          ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, RAND()
                     ), ',',  {num_snps}) left_flank,
+                
                 SUBSTRING_INDEX(
                     GROUP_CONCAT(
-                        IF(ms.site > q.site, ms.variant_id, NULL) ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, RAND()
+                        IF(ms.site > q.site, ms.variant_id, NULL) 
+                          ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, RAND()
                     ), ',',  {num_snps}) right_flank
           FROM (
                     # get a unique list of GWAS peaks
@@ -94,9 +101,9 @@ def fetch_gwas_flanking_snps(species):
 
         dbc.execute_sql("""
             INSERT IGNORE 
-              INTO ascertainment (qtl_id, qtl_pos, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+              INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT {qtl_id},
-                   IF(ev.start > {site}, 'right', 'left') AS qtl_pos,
+                   IF(ev.start > {site}, 'right', 'left') AS type,
                    ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
                    ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
               FROM ensembl_variants ev
@@ -116,8 +123,54 @@ def fetch_selective_sweep_snps(species):
     """
     dbc = db_conn()
 
-    dbc.execute_sql("""
-    """)
+    start = time()
+
+    print("INFO: Fetching the best SNPs for each selective sweep locus.... ", end='')
+
+    # get the best SNPs for each sweep
+    qtls = dbc.get_records_sql("""
+        SELECT ss.qtl_id, ss.chrom, 
+               SUBSTRING_INDEX(
+                  GROUP_CONCAT(ms.id ORDER BY ss.p, ABS(ss.site-ms.site)), 
+                  ',',  {num_snps}) AS snps
+          FROM sweep_snps ss
+          JOIN modern_snps ms
+            ON ss.chrom = ms.chrom
+           AND ms.site BETWEEN ss.site-500 AND ss.site+500
+          JOIN qtl_snps qs
+            ON qs.modsnp_id = ms.id
+           AND qs.qtl_id = ss.qtl_id 
+      GROUP BY ss.qtl_id
+           """.format(num_snps=NUM_SWEEP_SNPS))
+
+    print("({}).".format(timedelta(seconds=time() - start)))
+
+    start = time()
+
+    print("INFO: Loading the sweep SNPs into the database.... ", end='')
+
+    # we have to do this iteratively, as FIND_IN_SET() performs terribly
+    for qtl_id, qtl in qtls.iteritems():
+
+        dbc.execute_sql("""
+            INSERT IGNORE 
+              INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+            SELECT {qtl_id}, 'sweep' AS qtl_pos, ev.rsnumber, ms.chrom, ms.site, 
+                   COALESCE(ev.ref, ms.ancestral) ref, COALESCE(ev.alt, ms.derived) alt, 
+                   ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
+              FROM modern_snps ms
+         LEFT JOIN ensembl_variants ev
+                ON ev.id = ms.variant_id
+         LEFT JOIN dbsnp_snpchip ds
+                ON ds.rsnumber = ev.rsnumber
+             WHERE ms.id IN ({modsnps})
+          GROUP BY ms.id
+               """.format(qtl_id=qtl['id'], site=qtl['site'], modsnps=qtl['snps']))
+
+
+    print("({}).".format(timedelta(seconds=time() - start)))
+
+
 
 
 def perform_ascertainment(species):

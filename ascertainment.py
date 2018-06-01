@@ -129,7 +129,7 @@ def fetch_selective_sweep_snps(species):
 
     # get the best SNPs for each sweep
     qtls = dbc.get_records_sql("""
-        SELECT ss.qtl_id, ss.chrom, 
+        SELECT ss.qtl_id AS id, 
                SUBSTRING_INDEX(
                   GROUP_CONCAT(ms.id ORDER BY ss.p, ABS(ss.site-ms.site)), 
                   ',',  {num_snps}) AS snps
@@ -165,7 +165,7 @@ def fetch_selective_sweep_snps(species):
                 ON ds.rsnumber = ev.rsnumber
              WHERE ms.id IN ({modsnps})
           GROUP BY ms.id
-               """.format(qtl_id=qtl['id'], site=qtl['site'], modsnps=qtl['snps']))
+               """.format(qtl_id=qtl['id'], modsnps=qtl['snps']))
 
 
     print("({}).".format(timedelta(seconds=time() - start)))

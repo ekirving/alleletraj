@@ -90,7 +90,7 @@ def fetch_gwas_flanking_snps(species):
     for qtl_id, qtl in qtls.iteritems():
 
         # merge the flanking SNP modsnp_ids
-        modsnps = qtl['left_flank'] + "," + qtl['right_flank']
+        modsnps = ','.join(flank for flank in [qtl['left_flank'], qtl['right_flank']] if flank)
 
         dbc.execute_sql("""
             INSERT IGNORE 

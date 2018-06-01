@@ -211,9 +211,8 @@ def populate_sweeps(species):
         print("INFO: No selective sweep loci for {}".format(species))
         return
 
-    # TODO remove any existing sweep regions
-
     num_loci = 0
+    num_snps = 0
 
     with open(loci_file, 'r') as loci_fin:
 
@@ -232,7 +231,11 @@ def populate_sweeps(species):
                 'end':             end,
             }
 
-            qtl_id = dbc.save_record('qtls',qtl)
+            # check if this QTL already exists
+            if dbc.get_record('qtls', qtl):
+                continue
+
+            qtl_id = dbc.save_record('qtls', qtl)
 
             num_loci += 1
 
@@ -257,7 +260,9 @@ def populate_sweeps(species):
 
                 dbc.save_record('sweep_snps', sweep_snp)
 
-    print("INFO: Loaded {} selective sweep loci for {}.".format(num_loci, species))
+                num_snps += 1
+
+    print("INFO: Loaded {} selective sweep loci (inc. {} SNPs) for {}.".format(num_loci, num_snps, species))
 
 
 def load_ensembl_variants(species):

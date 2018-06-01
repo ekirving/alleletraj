@@ -90,7 +90,7 @@ def fetch_gwas_flanking_snps(species):
     for qtl in qtls:
 
         # merge the flanking SNP modsnp_ids
-        modsnps = qtls['left_flank'] + "," + qtls['right_flank']
+        modsnps = qtl['left_flank'] + "," + qtl['right_flank']
 
         dbc.execute_sql("""
             INSERT INTO ascertainment (qtl_id, qtl_pos, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
@@ -127,7 +127,7 @@ def perform_ascertainment(species):
     print("INFO: Ascertainment process for {}".format(species))
 
     # fetch all the GWAS peaks from the QTL database
-    fetch_gwas_peaks(species)
+    # fetch_gwas_peaks(species)
 
     # fetch the best flanking SNPs for each GWAS peak
     fetch_gwas_flanking_snps(species)

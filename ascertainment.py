@@ -181,7 +181,12 @@ def perform_ascertainment(species):
     Ascertain the best SNPs for a catpure array.
     """
 
-    print("INFO: Ascertainment process for {}".format(species))
+    print("INFO: Starting ascertainment process for {}".format(species))
+
+    dbc = db_conn()
+
+    # clear any existing SNPs
+    dbc.execute_sql("TRUNCATE TABLE ascertainment")
 
     # fetch all the GWAS peaks from the QTL database
     fetch_gwas_peaks(species)

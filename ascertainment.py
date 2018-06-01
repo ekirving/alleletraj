@@ -87,7 +87,7 @@ def fetch_gwas_flanking_snps(species):
     print("INFO: Loading the flanking SNPs into the database.... ", end='')
 
     # we have to do this iteratively, as FIND_IN_SET() performs terribly
-    for qtl in qtls:
+    for qtl_id, qtl in qtls.iteritems():
 
         # merge the flanking SNP modsnp_ids
         modsnps = qtl['left_flank'] + "," + qtl['right_flank']

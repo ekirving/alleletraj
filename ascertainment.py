@@ -184,10 +184,10 @@ def perform_ascertainment(species):
     print("INFO: Ascertainment process for {}".format(species))
 
     # fetch all the GWAS peaks from the QTL database
-    # fetch_gwas_peaks(species)
+    fetch_gwas_peaks(species)
 
     # fetch the best flanking SNPs for each GWAS peak
-    # fetch_gwas_flanking_snps(species)
+    fetch_gwas_flanking_snps(species)
 
     # fetch the best SNPs from the selective sweep loci
     fetch_selective_sweep_snps(species)

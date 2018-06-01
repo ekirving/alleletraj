@@ -27,8 +27,8 @@ def fetch_gwas_peaks(species):
     print("INFO: Fetching all the GWAS peaks from the QTL database... ", end='')
 
     dbc.execute_sql("""
-        INSERT INTO ascertainment (qtl_id, qtl_pos, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-        SELECT q.id AS qtl_id, 'peak' AS qtl_pos,
+        INSERT INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+        SELECT q.id AS qtl_id, 'peak' AS type,
                ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt, 
                ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
           FROM (
@@ -158,7 +158,7 @@ def fetch_selective_sweep_snps(species):
         dbc.execute_sql("""
             INSERT IGNORE 
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-            SELECT {qtl_id}, 'sweep' AS qtl_pos, ev.rsnumber, ms.chrom, ms.site, 
+            SELECT {qtl_id}, 'sweep' AS type, ev.rsnumber, ms.chrom, ms.site, 
                    COALESCE(ev.ref, ms.ancestral) ref, COALESCE(ev.alt, ms.derived) alt, 
                    ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
               FROM modern_snps ms

@@ -26,6 +26,9 @@ for species in SPECIES:
     # compute_qtl_windows(species)
     # populate_sweeps(species)
 
+    # TODO load MC1R as a QTL region
+    # TODO load neutral regions as QTLs
+
     # populate_intervals(species)
     # populate_interval_snps(species)
 

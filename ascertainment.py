@@ -16,6 +16,10 @@ SWEEP_NUM_SNPS = 3
 # the distance between sweep peaks
 SWEEP_PEAK_WIDTH = 1000
 
+# the Ensembl gene ID
+MC1R_GENE_ID = 'ENSSSCG00000020924'
+
+
 def fetch_gwas_peaks(species):
     """
     Fetch all the GWAS peaks from the QTL database.
@@ -58,7 +62,7 @@ def fetch_gwas_flanking_snps(species):
 
     start = time()
 
-    print("INFO: Fetching the best flanking SNPs for each GWAS peak.... ", end='')
+    print("INFO: Fetching the best flanking SNPs for each GWAS peak... ", end='')
 
     # get the best flanking SNPs for each QTL
     qtls = dbc.get_records_sql("""
@@ -94,7 +98,7 @@ def fetch_gwas_flanking_snps(species):
 
     start = time()
 
-    print("INFO: Loading the flanking SNPs into the database.... ", end='')
+    print("INFO: Loading the flanking SNPs into the database... ", end='')
 
     # we have to do this iteratively, as FIND_IN_SET() performs terribly
     for qtl_id, qtl in qtls.iteritems():
@@ -128,7 +132,7 @@ def fetch_selective_sweep_snps(species):
 
     start = time()
 
-    print("INFO: Fetching the best SNPs for each selective sweep locus.... ", end='')
+    print("INFO: Fetching the best SNPs for each selective sweep locus... ", end='')
 
     # get the best SNPs for each sweep
     qtls = dbc.get_records_sql("""
@@ -150,7 +154,7 @@ def fetch_selective_sweep_snps(species):
 
     start = time()
 
-    print("INFO: Loading the sweep SNPs into the database.... ", end='')
+    print("INFO: Loading the sweep SNPs into the database... ", end='')
 
     # we have to do this iteratively, as FIND_IN_SET() performs terribly
     for qtl_id, qtl in qtls.iteritems():
@@ -174,6 +178,39 @@ def fetch_selective_sweep_snps(species):
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
+def fetch_mc1r_snps(species):
+    """
+    Get all the dnsnp SNPs which fall within the MC1R gene.
+
+    See https://www.ensembl.org/sus_scrofa/Gene/Summary?g=ENSSSCG00000020924&db=core
+    """
+
+    dbc = db_conn()
+
+    start = time()
+
+    print("INFO: Fetching all the dnsnp SNPs within the MC1R gene... ", end='')
+
+    # TODO add this to a qtl
+    dbc.execute_sql("""
+        INSERT INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+           SELECT NULL,
+                  'MC1R',
+                  ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
+                  ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
+             FROM ensembl_genes eg
+             JOIN ensembl_variants ev
+               ON ev.chrom = eg.chrom
+              AND ev.start BETWEEN eg.start AND eg.end
+              AND ev.type = 'SNV'
+              AND LENGTH(ev.alt) = 1
+        LEFT JOIN dbsnp_snpchip ds
+               ON ds.rsnumber = ev.rsnumber
+            WHERE eg.gene_id = '{gene_id}'
+         GROUP BY ev.rsnumber
+              """.format(gene_id=MC1R_GENE_ID))
+
+    print("({}).".format(timedelta(seconds=time() - start)))
 
 
 def perform_ascertainment(species):
@@ -185,14 +222,21 @@ def perform_ascertainment(species):
 
     dbc = db_conn()
 
-    # clear any existing SNPs
-    dbc.execute_sql("TRUNCATE TABLE ascertainment")
+    # # clear any existing SNPs
+    # dbc.execute_sql("TRUNCATE TABLE ascertainment")
+    #
+    # # fetch all the GWAS peaks from the QTL database
+    # fetch_gwas_peaks(species)
+    #
+    # # fetch the best flanking SNPs for each GWAS peak
+    # fetch_gwas_flanking_snps(species)
+    #
+    # # fetch the best SNPs from the selective sweep loci
+    # fetch_selective_sweep_snps(species)
 
-    # fetch all the GWAS peaks from the QTL database
-    fetch_gwas_peaks(species)
+    # get all MC1R snps
+    fetch_mc1r_snps(species)
 
-    # fetch the best flanking SNPs for each GWAS peak
-    fetch_gwas_flanking_snps(species)
+    # TODO get neutral SNPs (use all QTLs and geneic regions)
 
-    # fetch the best SNPs from the selective sweep loci
-    fetch_selective_sweep_snps(species)
+    # TODO get the ancestral SNPs

@@ -93,7 +93,8 @@ def fetch_gwas_flanking_snps(species):
         modsnps = qtl['left_flank'] + "," + qtl['right_flank']
 
         dbc.execute_sql("""
-            INSERT INTO ascertainment (qtl_id, qtl_pos, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+            INSERT IGNORE 
+              INTO ascertainment (qtl_id, qtl_pos, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT {qtl_id},
                    IF(ev.start > {site}, 'right', 'left') AS qtl_pos,
                    ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,

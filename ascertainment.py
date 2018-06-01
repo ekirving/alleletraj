@@ -8,10 +8,13 @@ from time import time
 from datetime import timedelta
 
 # the number of flanking SNPs (on either side) to include
-NUM_FLANKING_SNPS = 2
+QTL_FLANK_NUM_SNPS = 2
 
 # the number of selective sweep SNPs to include
-NUM_SWEEP_SNPS = 3
+SWEEP_NUM_SNPS = 3
+
+# the distance between sweep peaks
+SWEEP_PEAK_WIDTH = 1000
 
 def fetch_gwas_peaks(species):
     """
@@ -85,7 +88,7 @@ def fetch_gwas_flanking_snps(species):
             ON qs.qtl_id = q.id
           JOIN modern_snps ms
             ON ms.id = qs.modsnp_id
-      GROUP BY q.id""".format(num_snps=NUM_FLANKING_SNPS))
+      GROUP BY q.id""".format(num_snps=QTL_FLANK_NUM_SNPS))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -136,12 +139,12 @@ def fetch_selective_sweep_snps(species):
           FROM sweep_snps ss
           JOIN modern_snps ms
             ON ss.chrom = ms.chrom
-           AND ms.site BETWEEN ss.site-500 AND ss.site+500
+           AND ms.site BETWEEN ss.site - {offset} AND ss.site + {offset}
           JOIN qtl_snps qs
             ON qs.modsnp_id = ms.id
            AND qs.qtl_id = ss.qtl_id 
       GROUP BY ss.qtl_id
-           """.format(num_snps=NUM_SWEEP_SNPS))
+           """.format(num_snps=SWEEP_NUM_SNPS, offset=SWEEP_PEAK_WIDTH/2))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 

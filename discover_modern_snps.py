@@ -206,6 +206,23 @@ def link_ensembl_variants():
            AND v.alt IN (ms.derived, ms.ancestral)""")
 
 
+def link_ensembl_genes():
+    """
+    Link modern SNPs to their Ensembl genes
+    """
+    dbc = db_conn()
+
+    print("INFO: Linking modern SNPs to their Ensembl genes.")
+
+    dbc.execute_sql("""
+        UPDATE modern_snps ms
+          JOIN ensembl_genes eg
+            ON eg.chrom = ms.chrom
+           AND ms.site BETWEEN eg.start AND eg.end
+           SET ms.gene_id = eg.id,
+               ms.gene_dist = 0""")
+
+
 def link_dbsnp_snpchip():
     """
     Link modern SNPs to their snpchip variants
@@ -236,8 +253,9 @@ def discover_modern_snps(species):
         for chrom in CHROMS:
             process_chrom(chrom)
 
-    # link modern SNPs to their dbsnp and snpchip variants
+    # link modern SNPs to their dbsnp, gene and snpchip records
     link_ensembl_variants()
+    link_ensembl_genes()
     link_dbsnp_snpchip()
 
 

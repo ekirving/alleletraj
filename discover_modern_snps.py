@@ -5,6 +5,8 @@ from __future__ import print_function
 
 import sys, socket
 from collections import Counter
+from time import time
+from datetime import timedelta
 
 from db_conn import *
 
@@ -212,15 +214,42 @@ def link_ensembl_genes():
     """
     dbc = db_conn()
 
-    print("INFO: Linking modern SNPs to their Ensembl genes.")
+    start = time()
 
-    dbc.execute_sql("""
-        UPDATE modern_snps ms
-          JOIN ensembl_genes eg
-            ON eg.chrom = ms.chrom
-           AND ms.site BETWEEN eg.start AND eg.end
-           SET ms.gene_id = eg.id,
-               ms.gene_dist = 0""")
+    print("INFO: Linking modern SNPs to their Ensembl genes...", end='')
+
+    # link all the SNPs that to their nearest gene
+    for chrom in CHROMS:
+        dbc.execute_sql("""
+            UPDATE modern_snps ms
+            JOIN (
+                
+                # exploit the the sorted ordering of genes in the db to join the left and right adjacent genes
+                SELECT eg.id, eg.chrom,
+                       COALESCE(eg.start+(egl.end-eg.start)/2, 0) low_bound, 
+                       COALESCE(eg.end+(egr.start-eg.end)/2, {max_end}) high_bound,
+                       eg.start,
+                       eg.end
+                FROM ensembl_genes eg
+           LEFT JOIN ensembl_genes egl
+                  ON egl.id = eg.id - 1
+                 AND egl.chrom = eg.chrom
+           LEFT JOIN ensembl_genes egr
+                  ON egr.id = eg.id + 1
+                 AND egr.chrom = eg.chrom
+                WHERE eg.chrom = '{chrom}'
+
+            ) AS gene 
+              ON ms.chrom = gene.chrom
+             AND ms.site BETWEEN gene.low_bound AND gene.high_bound
+             SET ms.gene_id = gene.id,
+                 ms.gene_dist = CASE
+                                    WHEN ms.site BETWEEN gene.start AND gene.end THEN 0
+                                    WHEN ms.site < gene.start THEN ms.site - gene.start
+                                    ELSE ms.site - gene.end
+                                END""".format(chrom=chrom, max_end=99999999999999))
+
+    print("({}).".format(timedelta(seconds=time() - start)))
 
 
 def link_dbsnp_snpchip():

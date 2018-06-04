@@ -1,6 +1,9 @@
 - issues
 	- QTL SNPs
-	
+		
+		
+***		- READ https://www.nature.com/articles/s41576-018-0016-z
+		
 		- dbsnp 
 		- redo with MAF >0.05
 	
@@ -20,14 +23,14 @@
 				- biallelic, and
 				- the same alleles in dbsnp
 
-***		- include all MC1R snps
+		- include all MC1R snps
 			- in all pigs (wild / dom / asian)
 			- see http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1000341
 
 		- existing data
 			
-***			- target SNPs with existing coverage? YES
-***			- also preference 60k Illumina SNPs
+			- target SNPs with existing coverage? YES
+			- also preference 60k Illumina SNPs
 
 		- what about TV only
 
@@ -97,7 +100,7 @@
 			
 			7,296 * 5 = 36,480
 			
-***			- inc sweep regions from BED file
+			- inc sweep regions from BED file
 				- treat the same as QTLs, but with exact window size
 					
 					- double check the MAF / make sure they're not singletons

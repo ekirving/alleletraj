@@ -31,7 +31,8 @@ def fetch_gwas_peaks(species):
     print("INFO: Fetching all the GWAS peaks from the QTL database... ", end='')
 
     dbc.execute_sql("""
-        INSERT INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+        INSERT 
+          INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
         SELECT q.id AS qtl_id, 'peak' AS type,
                ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt, 
                ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
@@ -107,7 +108,7 @@ def fetch_gwas_flanking_snps(species):
         modsnps = ','.join(flank for flank in [qtl['left_flank'], qtl['right_flank']] if flank)
 
         dbc.execute_sql("""
-            INSERT IGNORE 
+            INSERT 
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT {qtl_id},
                    IF(ev.start > {site}, 'right', 'left') AS type,
@@ -160,7 +161,7 @@ def fetch_selective_sweep_snps(species):
     for qtl_id, qtl in qtls.iteritems():
 
         dbc.execute_sql("""
-            INSERT IGNORE 
+            INSERT 
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT {qtl_id}, 'sweep' AS type, ev.rsnumber, ms.chrom, ms.site, 
                    COALESCE(ev.ref, ms.ancestral) ref, COALESCE(ev.alt, ms.derived) alt, 
@@ -193,22 +194,43 @@ def fetch_mc1r_snps(species):
 
     # TODO add this to a qtl
     dbc.execute_sql("""
-        INSERT INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-           SELECT NULL,
-                  'MC1R',
-                  ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
-                  ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
-             FROM ensembl_genes eg
-             JOIN ensembl_variants ev
-               ON ev.chrom = eg.chrom
-              AND ev.start BETWEEN eg.start AND eg.end
-              AND ev.type = 'SNV'
-              AND LENGTH(ev.alt) = 1
-        LEFT JOIN dbsnp_snpchip ds
-               ON ds.rsnumber = ev.rsnumber
-            WHERE eg.gene_id = '{gene_id}'
-         GROUP BY ev.rsnumber
-              """.format(gene_id=MC1R_GENE_ID))
+        INSERT 
+          INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+        SELECT NULL,
+               'MC1R',
+               ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
+               ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
+          FROM ensembl_genes eg
+          JOIN ensembl_variants ev
+            ON ev.chrom = eg.chrom
+           AND ev.start BETWEEN eg.start AND eg.end
+           AND ev.type = 'SNV'
+           AND LENGTH(ev.alt) = 1
+     LEFT JOIN dbsnp_snpchip ds
+            ON ds.rsnumber = ev.rsnumber
+         WHERE eg.gene_id = '{gene_id}'
+      GROUP BY ev.rsnumber
+           """.format(gene_id=MC1R_GENE_ID))
+
+    print("({}).".format(timedelta(seconds=time() - start)))
+
+
+def fetch_neutral_snps(species):
+    """
+    Get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
+    """
+
+    dbc = db_conn()
+
+    start = time()
+
+    print("INFO: Fetching neutral SNPs... ", end='')
+
+    dbc.execute_sql("""
+        INSERT 
+          INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+           
+              """.format())
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -233,10 +255,11 @@ def perform_ascertainment(species):
     #
     # # fetch the best SNPs from the selective sweep loci
     # fetch_selective_sweep_snps(species)
+    #
+    # # get all MC1R snps
+    # fetch_mc1r_snps(species)
 
-    # get all MC1R snps
-    fetch_mc1r_snps(species)
-
-    # TODO get neutral SNPs (use all QTLs and geneic regions)
+    # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
+    fetch_neutral_snps(species)
 
     # TODO get the ancestral SNPs

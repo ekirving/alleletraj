@@ -215,11 +215,27 @@ def fetch_neutral_snps(species):
     print("INFO: Fetching neutral SNPs... ", end='')
 
 
-    # dbc.execute_sql("""
-    #     INSERT
-    #       INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-    #
-    #           """.format())
+    dbc.execute_sql("""
+        INSERT
+          INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+        SELECT q.id, q.associationType,
+               ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
+               ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
+          FROM qtls q
+          JOIN qtl_snps qs
+            ON q.id = qs.qtl_id
+          JOIN modern_snps ms
+            ON ms.id = qs.modsnp_id
+          JOIN ensembl_variants ev
+            ON ev.id = ms.variant_id
+     LEFT JOIN dbsnp_snpchip ds
+            ON ds.rsnumber = ev.rsnumber
+         WHERE q.associationType = 'Neutral'
+           AND q.valid = 1
+      GROUP BY ms.id
+      ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, rand()
+         LIMIT {num_neutral}
+           """.format(num_neutral=NUM_NEUTRAL_SNPS))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -231,20 +247,20 @@ def perform_ascertainment(species):
 
     print("INFO: Starting ascertainment process for {}".format(species))
 
-    # # clear any existing SNPs
-    # dbc.execute_sql("TRUNCATE TABLE ascertainment")
-    #
-    # # fetch all the GWAS peaks from the QTL database
-    # fetch_gwas_peaks(species)
-    #
-    # # fetch the best flanking SNPs for each GWAS peak
-    # fetch_gwas_flanking_snps(species)
-    #
-    # # fetch the best SNPs from the selective sweep loci
-    # fetch_selective_sweep_snps(species)
-    #
-    # # get all MC1R snps
-    # fetch_mc1r_snps(species)
+    # clear any existing SNPs
+    db_conn().execute_sql("TRUNCATE TABLE ascertainment")
+
+    # fetch all the GWAS peaks from the QTL database
+    fetch_gwas_peaks(species)
+
+    # fetch the best flanking SNPs for each GWAS peak
+    fetch_gwas_flanking_snps(species)
+
+    # fetch the best SNPs from the selective sweep loci
+    fetch_selective_sweep_snps(species)
+
+    # get all MC1R snps
+    fetch_mc1r_snps(species)
 
     # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
     fetch_neutral_snps(species)

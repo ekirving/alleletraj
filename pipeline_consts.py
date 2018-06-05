@@ -56,9 +56,6 @@ SWEEP_DATA = {
             'snps': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed'}
 }
 
-# how many SNPs should we target in each sweep region
-SWEEP_NUM_SNPS = 3
-
 SNP_CHIP_DATA = {
 
     # see http://bioinformatics.tecnoparco.org/SNPchimp
@@ -160,3 +157,6 @@ GENE_OFFSET = int(1e5)
 
 # the Ensembl gene ID
 MC1R_GENE_ID = 'ENSSSCG00000020924'
+
+# the number of "neutral" SNPs to include in the ascertainament
+NUM_NEUTRAL_SNPS = 50000

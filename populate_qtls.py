@@ -265,7 +265,7 @@ def populate_neutral_loci(species):
     # write a BED file for the whole genome
     with open(allregions, 'w') as fout:
         for chrom in natsorted(CHROM_SIZE[species].keys()):
-            fout.write("{}\t{}\t{}\n".format(chrom, 0, CHROM_SIZE[species][chrom]))
+            fout.write("{}\t{}\t{}\n".format(chrom, 1, CHROM_SIZE[species][chrom]))
 
     # write all the non-neutral regions to a BED file
     with open(nonneutral, 'w') as fout:
@@ -288,7 +288,7 @@ def populate_neutral_loci(species):
             'associationType': 'Neutral',
             'chrom': chrom,
             'valid': 1,
-            'start': start + 1,
+            'start': start,
             'end': end,
         }
 

@@ -247,7 +247,7 @@ def mark_neutral_snps(species):
 
     begin = time()
 
-    print("INFO: Fetching neutral SNPs... ", end='')
+    print("INFO: Marking neutral SNPs... ", end='')
 
     # get all the non-neutral regions (defined here as all valid QTLs and gene regions +/- offset)
     results = dbc.get_records_sql("""
@@ -291,7 +291,7 @@ def mark_neutral_snps(species):
         dbc.execute_sql("""
             UPDATE modern_snps
                SET neutral = 1
-             WHERE chrom = {chrom} 
+             WHERE chrom = '{chrom}'
                AND site BETWEEN {start} AND {end}
                """.format(chrom=chrom, start=start, end=end))
 

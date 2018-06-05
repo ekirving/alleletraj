@@ -229,17 +229,22 @@ def discover_modern_snps(species):
         # TODO make this work for all species not just pigs
         raise Exception('Not implemented yet for {}'.format(species))
 
+    chroms = CHROM_SIZE[species].keys()
+
     if MULTI_THREADED:
         # process the chromosomes in parallel
         pool = mp.Pool(MAX_CPU_CORES)
-        pool.map(process_chrom, CHROM_SIZE[species])
-
-        pool.map(process_chrom, itertools.izip(intervals.values(), itertools.repeat(samples)))
+        pool.map(process_chrom, chroms)
     else:
-        for chrom in CHROM_SIZE[species]:
+        for chrom in chroms:
             process_chrom(chrom)
 
     # link modern SNPs to their dbsnp, gene and snpchip records
     link_ensembl_variants()
     link_ensembl_genes()
     link_dbsnp_snpchip()
+
+
+def discover_ancestral_snps(species):
+
+    pass

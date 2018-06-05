@@ -90,10 +90,6 @@ MEDIAN_AGE_UNCERT = 100
 BIN_WIDTH = 500
 BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
 
-# Pigs_allTo20042016_shared / old Google sheet
-# SHEET_ID = '154wbTEcAUPz4d5v7QLLSwIKTdK8AxXP5US-riCjt2og'
-# SHEET_TABS = ['Europe and NE Pigs']  #, 'SE Asian Pigs']
-
 GOOGLE_SHEET = {
 
     # Pig_Table_Final_05_03_18
@@ -164,7 +160,7 @@ SWEEP_NUM_SNPS = 3
 SWEEP_PEAK_WIDTH = 1000
 
 # offset all genes by 100 Kb to preclude linkage with our 'neutral' SNPs
-GENE_OFFSET = int(1e5)
+GENE_OFFSET = 100000
 
 # the Ensembl gene ID
 MC1R_GENE_ID = 'ENSSSCG00000020924'

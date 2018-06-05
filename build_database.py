@@ -22,8 +22,6 @@ for species in SPECIES:
 
     # discover_modern_snps(species)
 
-    link_ensembl_genes()
-
     # populate_qtls(species)
     # compute_qtl_windows(species)
     # populate_sweeps(species)
@@ -40,4 +38,4 @@ for species in SPECIES:
     # discover_snps(species)
     # analyse_qtls(species)
 
-    # perform_ascertainment(species)
+    perform_ascertainment(species)

@@ -55,28 +55,6 @@ def calculate_summary_stats(species, chrom):
         GROUP BY snps.qtl_id""".format(species=species, chrom=chrom))
 
 
-def populate_qtl_snps(species, chrom):
-    """
-    Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
-    """
-
-    dbc = db_conn()
-
-    # insert linking records to make future queries much quicker
-    dbc.execute_sql("""
-        INSERT INTO qtl_snps (qtl_id, modsnp_id)
-             SELECT q.id, ms.id
-               FROM qtls q
-               JOIN modern_snps ms
-                 ON ms.species = q.species
-                AND ms.chrom = q.chrom
-                AND ms.site BETWEEN q.start AND q.end
-              WHERE q.species = '{species}'
-                AND q.chrom = '{chrom}'
-                AND q.valid = 1
-                AND ms.maf >= {maf}""".format(species=species, chrom=chrom, maf=MIN_MAF))
-
-
 def analyse_qtl_snps(species, chrom):
     """
     Find the best SNPs for each QTL
@@ -161,14 +139,6 @@ def analyse_qtls(species):
     #
     # print("({}).".format(timedelta(seconds=time() - start)))
     # start = time()
-
-    print("INFO: Populating {} QTL SNPs... ".format(species), end='')
-
-    for chrom in chroms:
-        populate_qtl_snps(species, chrom)
-
-    print("({}).".format(timedelta(seconds=time() - start)))
-    start = time()
 
     print("INFO: Analysing {} QTL SNPs... ".format(species), end='')
 

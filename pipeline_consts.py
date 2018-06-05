@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import OrderedDict
+from socket import gethostname
 
 # enforce max interval size of 1 Gb
 MAX_INTERVAL_SIZE = int(1e6)
@@ -160,3 +161,26 @@ MC1R_GENE_ID = 'ENSSSCG00000020924'
 
 # the number of "neutral" SNPs to include in the ascertainament
 NUM_NEUTRAL_SNPS = 50000
+
+# minimum depth of coverage to call diploid genotypes
+MIN_GENO_DEPTH = 10
+
+# TODO what about the others species
+# location of reference genome
+REF_FILE = "fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa"
+
+# minumum mapping quality (hard filtered)
+HARD_MAPQ_CUTOFF = 20
+
+# minimum base quality (hard filtered)
+HARD_BASEQ_CUTOFF = 20
+
+# should we use multi-threading to speed up record insertion
+MULTI_THREADED = True if gethostname() != 'macbookpro.local' else False
+
+# the minimum minor allele frequency of modern SNPs to include
+MIN_MAF = 0.05
+
+# no single worker should use more than 30% of the available cores
+MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
+

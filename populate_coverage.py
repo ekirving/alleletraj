@@ -11,41 +11,8 @@ import multiprocessing as mp
 import traceback
 import sys
 import itertools
-import socket
-import subprocess
-
-from natsort import natsorted
 
 from pipeline_utils import *
-
-# observations about the QTL db
-# - there are many overlapping QTL windows (some very large windows span multiple smaller ones)
-# - there are many duplicate windows, ~8k (~44%)
-
-# show lots of debugging output
-VERBOSE = False
-
-# minimum depth of coverage to call diploid genotypes
-MIN_GENO_DEPTH = 10
-
-# TODO what about the others species
-# location of reference genome
-REF_FILE = "fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa"
-
-# minumum mapping quality (hard filtered)
-HARD_MAPQ_CUTOFF = 20
-
-# minimum base quality (hard filtered)
-HARD_BASEQ_CUTOFF = 20
-
-# should we use multi-threading to speed up record insertion
-MULTI_THREADED = True if socket.gethostname() != 'macbookpro.local' else False
-
-# the minimum minor allele frequency of modern SNPs to include
-MIN_MAF = 0.05
-
-# no single worker should use more than 30% of the available cores
-MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
 
 def populate_intervals(species):

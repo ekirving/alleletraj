@@ -303,6 +303,35 @@ def populate_neutral_loci(species):
     print("INFO: Added {:,} neutral loci".format(num_loci))
 
 
+def populate_qtl_snps(species):
+    """
+    Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
+    """
+
+    dbc = db_conn()
+
+    start = time()
+
+    print("INFO: Populating {} QTL SNPs... ".format(species), end='')
+
+    for chrom in natsorted(CHROM_SIZE[species].keys()):
+        # insert linking records to make future queries much quicker
+        dbc.execute_sql("""
+            INSERT INTO qtl_snps (qtl_id, modsnp_id)
+                 SELECT q.id, ms.id
+                   FROM qtls q
+                   JOIN modern_snps ms
+                     ON ms.species = q.species
+                    AND ms.chrom = q.chrom
+                    AND ms.site BETWEEN q.start AND q.end
+                  WHERE q.species = '{species}'
+                    AND q.chrom = '{chrom}'
+                    AND q.valid = 1
+                    AND ms.maf >= {maf}""".format(species=species, chrom=chrom, maf=MIN_MAF))
+
+    print("({}).".format(timedelta(seconds=time() - start)))
+
+
 def mark_neutral_snps():
     """
     Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)

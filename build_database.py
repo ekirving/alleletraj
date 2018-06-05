@@ -28,13 +28,14 @@ for species in SPECIES:
     # populate_mc1r_locus(species)
     # populate_neutral_loci(species)
 
-    mark_neutral_snps()
-
     populate_intervals(species)
     populate_interval_snps(species)
 
     # populate_samples(species)
     populate_coverage(species)
+
+    populate_qtl_snps(species)
+    mark_neutral_snps()
 
     discover_snps(species)
     analyse_qtls(species)

@@ -161,7 +161,7 @@ def process_chrom(args):
                     continue
 
                 # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
-                type = 'ts' if set(alleles) == set('A', 'G') or set(alleles) == set('C', 'T') else 'tv'
+                type = 'ts' if set(alleles) == set(['A', 'G']) or set(alleles) == set(['C', 'T']) else 'tv'
 
                 alleles.remove(ancestral)
                 derived = alleles.pop()

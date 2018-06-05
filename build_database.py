@@ -26,7 +26,7 @@ for species in SPECIES:
     # compute_qtl_windows(species)
     # populate_sweeps(species)
 
-    mark_neutral_snps()
+    mark_neutral_snps(species)
 
     # TODO load MC1R as a QTL region
     # TODO load neutral regions as QTLs

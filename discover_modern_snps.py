@@ -9,22 +9,7 @@ from collections import Counter
 from pipeline_utils import *
 
 import multiprocessing as mp
-
-# show lots of debugging output
-VERBOSE = False
-
-if socket.gethostname() == 'macbookpro.local':
-    # use test dataset
-    PATH = '/Users/Evan/Dropbox/Code/alleletraj/tmpdata/fasta'
-    CHROMS = ['10', '11']
-    THREADS = 2
-
-else:
-    # use real dataset
-    PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
-    # TODO replace with proper CHROM reference
-    CHROMS = [str(c) for c in range(1, 19)] + ['X', 'Y']
-    THREADS = 20
+import itertools
 
 SPECIES = 'pig'
 
@@ -89,10 +74,10 @@ def process_chrom(chrom):
     dbc = db_conn()
 
     # get all the modern fasta files
-    fasta_files = [PATH + '/' + sample + "/{}.fa".format(chrom) for sample in MODERN_SAMPLES]
+    fasta_files = [FASTA_PATH + '/' + sample + "/{}.fa".format(chrom) for sample in MODERN_SAMPLES]
 
     # get the outgroup fasta file
-    outgroup_fasta = PATH + '/' + OUTGROUP + "/{}.fa".format(chrom)
+    outgroup_fasta = FASTA_PATH + '/' + OUTGROUP + "/{}.fa".format(chrom)
 
     # add the outgroup to the front of the list
     fasta_files.insert(0, outgroup_fasta)
@@ -244,12 +229,14 @@ def discover_modern_snps(species):
         # TODO make this work for all species not just pigs
         raise Exception('Not implemented yet for {}'.format(species))
 
-    if THREADS > 1:
+    if MULTI_THREADED:
         # process the chromosomes in parallel
-        pool = mp.Pool(THREADS)
-        pool.map(process_chrom, CHROMS)
+        pool = mp.Pool(MAX_CPU_CORES)
+        pool.map(process_chrom, CHROM_SIZE[species])
+
+        pool.map(process_chrom, itertools.izip(intervals.values(), itertools.repeat(samples)))
     else:
-        for chrom in CHROMS:
+        for chrom in CHROM_SIZE[species]:
             process_chrom(chrom)
 
     # link modern SNPs to their dbsnp, gene and snpchip records

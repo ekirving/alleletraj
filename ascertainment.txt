@@ -121,7 +121,7 @@
 			- 50 neutrals
 				- same ascertainment as above
 				
-				- not less than 50 kb to nearest gene (may have to be reduced)
+				- not less than 100 kb to nearest gene
 					- all geneic regions
 						- introns / exons / cpg island (ucsc)
 					- possibly contingent on LD result window

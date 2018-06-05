@@ -20,7 +20,8 @@ for species in SPECIES:
 
     # load_snpchip_variants(species)
 
-    # discover_modern_snps(species)
+    discover_modern_snps(species)
+    discover_ancestral_snps(species)
 
     # populate_qtls(species)
     # compute_qtl_windows(species)
@@ -32,12 +33,13 @@ for species in SPECIES:
     # populate_interval_snps(species)
 
     # populate_samples(species)
-    populate_coverage(species)
+    # populate_coverage(species)
 
-    populate_qtl_snps(species)
-    mark_neutral_snps()
+    # populate_qtl_snps(species)
+    # mark_neutral_snps()
 
-    discover_snps(species)
-    analyse_qtls(species)
+    # discover_snps(species)
+    # analyse_qtls(species)
 
-    perform_ascertainment(species)
+    # perform_ascertainment(species)
+

@@ -303,6 +303,31 @@ def populate_neutral_loci(species):
     print("INFO: Added {:,} neutral loci".format(num_loci))
 
 
+def mark_neutral_snps():
+    """
+    Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
+    """
+
+    dbc = db_conn()
+
+    start = time()
+
+    print("INFO: Marking neutral SNPs... ", end='')
+
+    dbc.execute_sql("""
+        UPDATE modern_snps ms
+          JOIN qtl_snps qs
+            ON qs.modsnp_id = ms.id
+          JOIN qtls q
+            ON q.id = qs.qtl_id
+           SET ms.neutral = 1
+         WHERE q.associationType = 'Neutral'
+           AND q.valid = 1""")
+
+    print("({}).".format(timedelta(seconds=time() - start)))
+
+
+
 def load_ensembl_variants(species):
     """
     Load the GVF (Genome Variation Format) data from Ensembl.

@@ -28,6 +28,8 @@ for species in SPECIES:
     populate_mc1r_locus(species)
     populate_neutral_loci(species)
 
+    mark_neutral_snps()
+
     populate_intervals(species)
     populate_interval_snps(species)
 

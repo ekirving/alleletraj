@@ -228,7 +228,7 @@ def populate_mc1r_locus(species):
     if not dbc.get_record('qtls', qtl):
         dbc.save_record('qtls', qtl)
 
-        print("INFO: Populated the MC1R gene locus")
+        print("INFO: Added the MC1R gene locus")
 
 
 def populate_neutral_loci(species):
@@ -300,7 +300,7 @@ def populate_neutral_loci(species):
 
         num_loci += 1
 
-    print("INFO: Populated {:,} neutral loci".format(num_loci))
+    print("INFO: Added {:,} neutral loci".format(num_loci))
 
 
 def load_ensembl_variants(species):

@@ -288,7 +288,7 @@ def populate_neutral_loci(species):
             'associationType': 'Neutral',
             'chrom': chrom,
             'valid': 1,
-            'start': start,
+            'start': start + 1,
             'end': end,
         }
 

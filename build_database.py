@@ -30,8 +30,8 @@ for species in SPECIES:
 
     mark_neutral_snps()
 
-    # populate_intervals(species)
-    # populate_interval_snps(species)
+    populate_intervals(species)
+    populate_interval_snps(species)
 
     # populate_samples(species)
     populate_coverage(species)

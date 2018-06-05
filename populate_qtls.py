@@ -204,16 +204,39 @@ def populate_sweeps(species):
     print("INFO: Loaded {} selective sweep loci (inc. {} SNPs) for {}.".format(num_loci, num_snps, species))
 
 
-def populate_neutral_regions(species):
+def populate_mc1r_locus(species):
     """
-    Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
+    Populate a dummy QTLs for the MC1R gene.
     """
 
     dbc = db_conn()
 
-    begin = time()
+    # get the MC1R gene details
+    mc1r = dbc.get_record('ensembl_genes', {'gene_id': MC1R_GENE_ID})
 
-    print("INFO: Marking neutral SNPs... ", end='')
+    # setup a dummy QTL record
+    qtl = {
+        'species': species,
+        'associationType': 'MC1R',
+        'chrom': mc1r['chrom'],
+        'valid': 1,
+        'start': mc1r['start'],
+        'end': mc1r['end'],
+    }
+
+    # check if this QTL already exists
+    if not dbc.get_record('qtls', qtl):
+        dbc.save_record('qtls', qtl)
+
+        print("INFO: Populated the MC1R gene locus")
+
+
+def populate_neutral_loci(species):
+    """
+    Populate dummy QTLs for all the "neutral" loci (i.e. regions outside of all QTLs and gene regions +/- a buffer)
+    """
+
+    dbc = db_conn()
 
     # get all the non-neutral regions (defined here as all valid QTLs and gene regions +/- offset)
     results = dbc.get_records_sql("""
@@ -275,7 +298,7 @@ def populate_neutral_regions(species):
 
         num_loci += 1
 
-    print("({}).".format(timedelta(seconds=time() - begin)))
+    print("INFO: Populated {:,} neutral loci".format(num_loci))
 
 
 def load_ensembl_variants(species):

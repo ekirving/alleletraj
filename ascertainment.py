@@ -178,11 +178,13 @@ def fetch_mc1r_snps(species):
 
     print("INFO: Fetching all the dnsnp SNPs within the MC1R gene... ", end='')
 
-    # TODO add this to a qtl
+    # get the MC1R qtl
+    qtl = dbc.get_record('qtls', {'associationType': 'MC1R'})
+
     dbc.execute_sql("""
         INSERT 
           INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-        SELECT NULL,
+        SELECT {qtl_id},
                'MC1R',
                ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
                ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
@@ -196,7 +198,7 @@ def fetch_mc1r_snps(species):
             ON ds.rsnumber = ev.rsnumber
          WHERE eg.gene_id = '{gene_id}'
       GROUP BY ev.rsnumber
-           """.format(gene_id=MC1R_GENE_ID))
+           """.format(qtl_id=qtl['id'], gene_id=MC1R_GENE_ID))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -242,7 +244,7 @@ def perform_ascertainment(species):
     # fetch_selective_sweep_snps(species)
     #
     # # get all MC1R snps
-    # fetch_mc1r_snps(species)
+    fetch_mc1r_snps(species)
 
     # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
     fetch_neutral_snps(species)

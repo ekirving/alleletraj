@@ -3,6 +3,7 @@
 
 from collections import OrderedDict
 from socket import gethostname
+from multiprocessing import cpu_count
 
 # enforce max interval size of 1 Gb
 MAX_INTERVAL_SIZE = int(1e6)
@@ -182,5 +183,5 @@ MULTI_THREADED = True if gethostname() != 'macbookpro.local' else False
 MIN_MAF = 0.05
 
 # no single worker should use more than 30% of the available cores
-MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
+MAX_CPU_CORES = int(cpu_count() * 0.3)
 

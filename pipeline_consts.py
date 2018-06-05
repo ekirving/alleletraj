@@ -145,3 +145,18 @@ C14_SHEET = {
 EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Estonia', 'Faroes', 'France',
           'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Poland',
           'Portugal', 'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
+
+# the number of flanking SNPs (on either side) to include
+QTL_FLANK_NUM_SNPS = 2
+
+# the number of selective sweep SNPs to include
+SWEEP_NUM_SNPS = 3
+
+# the distance between sweep peaks
+SWEEP_PEAK_WIDTH = 1000
+
+# offset all genes by 100 Kb to preclude linkage with our 'neutral' SNPs
+GENE_OFFSET = int(1e5)
+
+# the Ensembl gene ID
+MC1R_GENE_ID = 'ENSSSCG00000020924'

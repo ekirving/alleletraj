@@ -6,7 +6,7 @@ from __future__ import print_function
 import sys, socket
 from collections import Counter
 
-from db_conn import *
+from pipeline_utils import *
 
 import multiprocessing as mp
 
@@ -238,6 +238,66 @@ def link_dbsnp_snpchip():
            SET ms.snpchip_id = ds.id""")
 
 
+def mark_neutral_snps(species):
+    """
+    Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
+    """
+
+    dbc = db_conn()
+
+    begin = time()
+
+    print("INFO: Fetching neutral SNPs... ", end='')
+
+    # get all the non-neutral regions (defined here as all valid QTLs and gene regions +/- offset)
+    results = dbc.get_records_sql("""
+        SELECT chrom, GREATEST(start - {offset}, 0) AS start, end + {offset} AS end
+          FROM ensembl_genes
+
+         UNION
+
+        SELECT chrom, GREATEST(start - {offset}, 0) AS start, end + {offset} AS end 
+          FROM qtls
+         WHERE valid = 1""".format(offset=GENE_OFFSET), key=None)
+
+    intervals = defaultdict(list)
+
+    # group the intervals by chrom
+    for result in results:
+        intervals[result['chrom']].append((result['start'], result['end']))
+
+    allregions = 'bed/{}_allregions.bed'.format(species)
+    nonneutral = 'bed/{}_nonneutral.bed'.format(species)
+
+    # write a BED file for the whole genome
+    with open(allregions, 'w') as fout:
+        for chrom in natsorted(CHROM_SIZE[species].keys()):
+            fout.write("{}\t{}\t{}\n".format(chrom, 0, CHROM_SIZE[species][chrom]))
+
+    # write all the non-neutral regions to a BED file
+    with open(nonneutral, 'w') as fout:
+        for chrom in natsorted(intervals.keys()):
+            # merge overlapping intervals
+            for start, stop in merge_intervals(intervals[chrom], capped=False):
+                fout.write("{}\t{}\t{}\n".format(chrom, start, stop))
+
+    # invert the non-neutral regions
+    neutral = run_cmd(["bedtools", "subtract", "-a", allregions, "-b", nonneutral])
+
+    for region in neutral.splitlines():
+        chrom, start, end = region.split()
+
+        # mark the neutral SNPs
+        dbc.execute_sql("""
+            UPDATE modern_snps
+               SET neutral = 1
+             WHERE chrom = {chrom} 
+               AND site BETWEEN {start} AND {end}
+               """.format(chrom=chrom, start=start, end=end))
+
+    print("({}).".format(timedelta(seconds=time() - begin)))
+
+
 def discover_modern_snps(species):
 
     if species != 'pig':
@@ -256,5 +316,10 @@ def discover_modern_snps(species):
     link_ensembl_variants()
     link_ensembl_genes()
     link_dbsnp_snpchip()
+
+    # mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
+    mark_neutral_snps()
+
+
 
 

@@ -3,29 +3,7 @@
 
 from __future__ import print_function
 
-from db_conn import db_conn
-from time import time
-from datetime import timedelta
-
-from collections import defaultdict
-from natsort import natsorted
-
 from pipeline_utils import *
-
-# the number of flanking SNPs (on either side) to include
-QTL_FLANK_NUM_SNPS = 2
-
-# the number of selective sweep SNPs to include
-SWEEP_NUM_SNPS = 3
-
-# the distance between sweep peaks
-SWEEP_PEAK_WIDTH = 1000
-
-# offset all genes by 100 Kb to preclude linkage with our 'neutral' SNPs
-GENE_OFFSET = int(1e5)
-
-# the Ensembl gene ID
-MC1R_GENE_ID = 'ENSSSCG00000020924'
 
 
 def fetch_gwas_peaks(species):
@@ -233,38 +211,6 @@ def fetch_neutral_snps(species):
     start = time()
 
     print("INFO: Fetching neutral SNPs... ", end='')
-
-    # get all the non-neutral regions (defined here as all valid QTLs and gene regions +/- offset)
-    results = dbc.get_records_sql("""
-        SELECT chrom, start - {offset} AS start, end + {offset} AS end
-          FROM ensembl_genes
-        
-         UNION
-        
-        SELECT chrom, start - {offset} AS start, end + {offset} AS end 
-          FROM qtls
-         WHERE valid = 1""".format(offset=GENE_OFFSET), key=None)
-
-    intervals = defaultdict(list)
-
-    # group the intervals by chrom
-    for result in results:
-        intervals[result['chrom']].append((result['start'], result['end']))
-
-    nonneutral = 'bed/{}_nonneutral.bed'.format(species)
-    allregions = 'bed/{}_allregions.bed'.format(species)
-
-    # write all the non-neutral regions to a BED file
-    with open(nonneutral, 'w') as fout:
-        for chrom in natsorted(intervals.keys()):
-            # merge overlapping intervals
-            for start, stop in merge_intervals(intervals[chrom], capped=False):
-                fout.write("{}\t{}\t{}\n".format(chrom, start, stop))
-
-    # write
-    with open(allregions, 'w') as fout:
-
-
 
 
     # dbc.execute_sql("""

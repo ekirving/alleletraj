@@ -41,5 +41,5 @@ for species in SPECIES:
     # discover_snps(species)
     # analyse_qtls(species)
 
-    # perform_ascertainment(species)
+    perform_ascertainment(species)
 

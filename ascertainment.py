@@ -265,4 +265,6 @@ def perform_ascertainment(species):
     # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
     fetch_neutral_snps(species)
 
+    # TODO make sure none of our SNPs are close to indels
+
     # TODO get the ancestral SNPs

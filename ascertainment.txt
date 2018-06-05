@@ -133,12 +133,11 @@
 			- do for 2 chinese pops + 1 euro pops
 		
 			- inc. 10k from Asian
+		
 			
-			- some GWAS peaks will be non-PorcineSNP60
-			
-				- Sumatran scrofa
-					- https://genomebiology.biomedcentral.com/articles/10.1186/gb-2013-14-9-r107
-			
+			- Sumatran scrofa
+				- https://genomebiology.biomedcentral.com/articles/10.1186/gb-2013-14-9-r107
+		
 		- how to computationally resolve positions relative to genes?
 			- need to also check all the chrom regions not used (old school QTLs)
 			

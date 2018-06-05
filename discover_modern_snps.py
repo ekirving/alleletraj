@@ -219,8 +219,7 @@ def link_ensembl_genes():
           JOIN ensembl_genes eg
             ON eg.chrom = ms.chrom
            AND ms.site BETWEEN eg.start AND eg.end
-           SET ms.gene_id = eg.id,
-               ms.gene_dist = 0""")
+           SET ms.gene_id = eg.id""")
 
 
 def link_dbsnp_snpchip():

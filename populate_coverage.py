@@ -16,7 +16,7 @@ import subprocess
 
 from natsort import natsorted
 
-from utilities import *
+from pipeline_utils import *
 
 # observations about the QTL db
 # - there are many overlapping QTL windows (some very large windows span multiple smaller ones)
@@ -47,33 +47,6 @@ MIN_MAF = 0.05
 # no single worker should use more than 30% of the available cores
 MAX_CPU_CORES = int(mp.cpu_count() * 0.3)
 
-# enforce max interval size of 1 Gb
-MAX_INTERVAL_SIZE = int(1e6)
-
-
-def merge_intervals(ranges):
-    """
-    Merge overlapping intervals, so we only check each site once
-    """
-    saved = list(ranges[0])
-
-    # sort the intervals by start, and iterate over the list
-    for start, end in sorted([sorted(t) for t in ranges]):
-        if start <= saved[1]:
-            # if the current interval overlaps the saved one then take the largest end point
-            saved[1] = max(saved[1], end)
-        else:
-            # enforce max interval size
-            for i in range(saved[0], saved[1], MAX_INTERVAL_SIZE):
-                yield (i, min(saved[1], i + MAX_INTERVAL_SIZE - 1))
-
-            saved[0] = start
-            saved[1] = end
-
-    # return the final interval
-    for i in range(saved[0], saved[1], MAX_INTERVAL_SIZE):
-        yield (i, min(saved[1], i + MAX_INTERVAL_SIZE - 1))
-
 
 def populate_intervals(species):
 
@@ -99,7 +72,7 @@ def populate_intervals(species):
     del_intvals = 0
 
     for chrom in natsorted(intervals.keys()):
-        # merge overlapping intervals (upto MAX_INTERVAL_SIZE)
+        # merge overlapping intervals (up to a maximum size)
         intervals[chrom] = list(merge_intervals(intervals[chrom]))
 
         for start, end in intervals[chrom]:

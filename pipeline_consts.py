@@ -189,6 +189,3 @@ MAX_CPU_CORES = int(cpu_count() * 0.5)
 
 # the minimum minor allele frequency of modern SNPs to include
 MIN_MAF = 0.05
-
-# path to the folder containing the modern fasta files
-FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'

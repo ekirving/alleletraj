@@ -3,14 +3,11 @@
 
 from __future__ import print_function
 
-from qtldb_api import *
-
 from natsort import natsorted
 import gzip
 
+from qtldb_api import *
 from pipeline_utils import *
-
-
 
 
 def populate_qtls(species):

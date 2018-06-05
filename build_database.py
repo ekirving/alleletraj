@@ -21,7 +21,6 @@ for species in SPECIES:
     # load_snpchip_variants(species)
 
     discover_modern_snps(species)
-    discover_ancestral_snps(species)
 
     # populate_qtls(species)
     # compute_qtl_windows(species)
@@ -41,5 +40,5 @@ for species in SPECIES:
     # discover_snps(species)
     # analyse_qtls(species)
 
-    perform_ascertainment(species)
+    # perform_ascertainment(species)
 

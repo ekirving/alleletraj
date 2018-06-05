@@ -3,7 +3,6 @@
 
 from __future__ import print_function
 
-from db_conn import db_conn
 from time import time
 from datetime import timedelta
 from natsort import natsorted
@@ -18,7 +17,7 @@ MIN_GENO_QUAL = 30
 
 # number of bases to soft clip
 SOFT_CLIP_DIST = 3
-
+from pipeline_utils import *
 
 def reset_flags(species, chrom):
     """

@@ -9,7 +9,6 @@ import itertools
 from pprint import pprint
 from collections import OrderedDict
 
-
 # the maximum number of rows to insert in a single operation
 MAX_INSERT_SIZE = 50000
 
@@ -211,8 +210,7 @@ class db_conn:
         except Exception as e:
             # dump the record before throwing the exception
             print("ERROR: db_conn.save_records()")
-            pprint(list(records))
-            # pprint(sql)
+            pprint(sql)
             raise e
 
     def execute_sql(self, sql):

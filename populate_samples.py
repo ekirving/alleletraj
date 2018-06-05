@@ -5,86 +5,9 @@ from __future__ import print_function
 
 import os
 import httplib2
-
-from collections import OrderedDict, defaultdict
-
-# custom module
 import google_sheets as gs
 
-from db_conn import db_conn
-
-# TODO make global variable
-VERBOSE = True
-
-# the arbitrary +/- age uncertainty for median age dates
-MEDIAN_AGE_UNCERT = 100
-
-BIN_WIDTH = 500
-BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
-
-# Pigs_allTo20042016_shared / old Google sheet
-# SHEET_ID = '154wbTEcAUPz4d5v7QLLSwIKTdK8AxXP5US-riCjt2og'
-# SHEET_TABS = ['Europe and NE Pigs']  #, 'SE Asian Pigs']
-
-GOOGLE_SHEET = {
-
-    # Pig_Table_Final_05_03_18
-    'pig': {
-        'id':   '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI',
-        'tabs': ['Everything for the paper - updated'],
-        'cols': OrderedDict([
-                    ('Extract No.',       'accession'),
-                    ('Total Reads',       'map_reads'),
-                    ('% Mapped',          'map_prcnt'),
-                    ('Age',               'age'),
-                    ('Period',            'period'),
-                    ('Location',          'location'),
-                    ('Country',           'country'),
-                    ('Wild/Dom Status',   'status'),
-                    ('GMM Status',        'gmm_status'),
-                    ('Group',             'group'),
-                    ('Haplogroup',        'haplogroup'),
-                    ('DNA',               'dna')
-                ])
-    }
-}
-
-# list of junk input to mask with NULL
-SHEET_NA = ['n/a', 'NA', '-', '?', 'NULL', 'None', '...', '']
-
-AGE_MAP = {
-
-    'pig': {
-        'id': '1bH5u_qDaFXJdTyybeahqgF7je17td0FdyOMs_tlECdA',
-        'tabs': ['Age Map'],
-        'cols': OrderedDict([
-            ('Age',         'age'),
-            ('Confident',   'confident'),
-            ('Lower (BP)',  'lower'),
-            ('Upper (BP)',  'upper'),
-            ('Median (BP)', 'median'),
-        ])
-    }
-}
-
-C14_SHEET = {
-
-    'pig': {
-        'id': '1odoL9hQh87bLLe3yipbo-CKKXLvIgb5n_kfoqSALHi8',
-        'tabs': ['All Dates'],
-        'cols': OrderedDict([
-            ('Extract_No',              'accession'),
-            ('From Cal BP (Int Cal13)', 'lower'),
-            ('To Cal BP',               'upper'),
-        ])
-    }
-}
-
-
-# list of permissible countries in Europe
-EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Estonia', 'Faroes', 'France',
-          'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Poland',
-          'Portugal', 'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
+from pipeline_utils import *
 
 
 def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):

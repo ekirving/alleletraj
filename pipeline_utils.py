@@ -3,8 +3,8 @@
 
 import subprocess
 
-# enforce max interval size of 1 Gb
-MAX_INTERVAL_SIZE = int(1e6)
+from db_conn import db_conn
+from pipeline_consts import *
 
 
 def run_cmd(cmd, shell=False, background=False):

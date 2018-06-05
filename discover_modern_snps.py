@@ -316,10 +316,3 @@ def discover_modern_snps(species):
     link_ensembl_variants()
     link_ensembl_genes()
     link_dbsnp_snpchip()
-
-    # mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
-    mark_neutral_snps()
-
-
-
-

@@ -21,11 +21,12 @@ for species in SPECIES:
     # load_snpchip_variants(species)
 
     # discover_modern_snps(species)
-    mark_neutral_snps()
 
     # populate_qtls(species)
     # compute_qtl_windows(species)
     # populate_sweeps(species)
+
+    mark_neutral_snps()
 
     # TODO load MC1R as a QTL region
     # TODO load neutral regions as QTLs

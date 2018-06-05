@@ -106,8 +106,7 @@ def populate_interval_snps(species):
                  SELECT i.id, ms.id
                    FROM intervals i
                    JOIN modern_snps ms 
-                     ON ms.species = i.species
-                    AND ms.chrom = i.chrom
+                     ON ms.chrom = i.chrom
                     AND ms.site BETWEEN i.start AND i.end
                   WHERE i.finished = 0
                     AND i.species = '{species}'

@@ -321,8 +321,7 @@ def populate_qtl_snps(species):
                  SELECT q.id, ms.id
                    FROM qtls q
                    JOIN modern_snps ms
-                     ON ms.species = q.species
-                    AND ms.chrom = q.chrom
+                     ON ms.chrom = q.chrom
                     AND ms.site BETWEEN q.start AND q.end
                   WHERE q.species = '{species}'
                     AND q.chrom = '{chrom}'

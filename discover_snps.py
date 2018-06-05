@@ -72,7 +72,6 @@ def choose_random_read(species, chrom):
                     JOIN modern_snps ms
                       ON ms.chrom = sr.chrom
                      AND ms.site = sr.site
-                     AND ms.species = s.species
                    WHERE s.species = '{species}'
                      AND sr.chrom = '{chrom}'
                      AND sr.quality = 1
@@ -133,8 +132,7 @@ def call_ancient_snps(species, chrom):
     
                      # make sure they have the same 2 alleles as the modern SNPs
                     JOIN modern_snps as ms 
-                      ON ms.species = a.species
-                     AND ms.chrom = a.chrom
+                      ON ms.chrom = a.chrom
                      AND ms.site = a.site 
                      AND FIND_IN_SET(ms.ancestral, a.alleles)
                      AND FIND_IN_SET(ms.derived, a.alleles)

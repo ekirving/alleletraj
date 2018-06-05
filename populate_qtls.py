@@ -2,16 +2,15 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from db_conn import *
+
 from qtldb_api import *
-from qtldb_lib import *
 
 from natsort import natsorted
+import gzip
 
 from pipeline_utils import *
 
-import gzip
-import shlex
+
 
 
 def populate_qtls(species):

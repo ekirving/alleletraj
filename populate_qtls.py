@@ -204,6 +204,80 @@ def populate_sweeps(species):
     print("INFO: Loaded {} selective sweep loci (inc. {} SNPs) for {}.".format(num_loci, num_snps, species))
 
 
+def populate_neutral_regions(species):
+    """
+    Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
+    """
+
+    dbc = db_conn()
+
+    begin = time()
+
+    print("INFO: Marking neutral SNPs... ", end='')
+
+    # get all the non-neutral regions (defined here as all valid QTLs and gene regions +/- offset)
+    results = dbc.get_records_sql("""
+        SELECT chrom, GREATEST(start - {offset}, 0) AS start, end + {offset} AS end 
+          FROM qtls
+         WHERE associationType != 'Neutral'
+           AND valid = 1
+           
+         UNION
+         
+        SELECT chrom, GREATEST(start - {offset}, 0) AS start, end + {offset} AS end
+          FROM ensembl_genes
+           """.format(offset=GENE_OFFSET), key=None)
+
+    intervals = defaultdict(list)
+
+    # group the intervals by chrom
+    for result in results:
+        intervals[result['chrom']].append((result['start'], result['end']))
+
+    allregions = 'bed/{}_allregions.bed'.format(species)
+    nonneutral = 'bed/{}_nonneutral.bed'.format(species)
+
+    # write a BED file for the whole genome
+    with open(allregions, 'w') as fout:
+        for chrom in natsorted(CHROM_SIZE[species].keys()):
+            fout.write("{}\t{}\t{}\n".format(chrom, 0, CHROM_SIZE[species][chrom]))
+
+    # write all the non-neutral regions to a BED file
+    with open(nonneutral, 'w') as fout:
+        for chrom in natsorted(intervals.keys()):
+            # merge overlapping intervals
+            for start, stop in merge_intervals(intervals[chrom], capped=False):
+                fout.write("{}\t{}\t{}\n".format(chrom, start, stop))
+
+    # subtract the non-neutral regions from the whole genome
+    loci = run_cmd(["bedtools", "subtract", "-a", allregions, "-b", nonneutral])
+
+    num_loci = 0
+
+    for locus in loci.splitlines():
+        chrom, start, end = locus.split()
+
+        # setup a dummy QTL record
+        qtl = {
+            'species': species,
+            'associationType': 'Neutral',
+            'chrom': chrom,
+            'valid': 1,
+            'start': start,
+            'end': end,
+        }
+
+        # check if this QTL already exists
+        if dbc.get_record('qtls', qtl):
+            continue
+
+        dbc.save_record('qtls', qtl)
+
+        num_loci += 1
+
+    print("({}).".format(timedelta(seconds=time() - begin)))
+
+
 def load_ensembl_variants(species):
     """
     Load the GVF (Genome Variation Format) data from Ensembl.
@@ -257,6 +331,8 @@ def load_ensembl_variants(species):
         # insert any the remaing variants
         if records:
             dbc.save_records('ensembl_variants', fields, records)
+
+
 
 
 def load_ensembl_genes(species):

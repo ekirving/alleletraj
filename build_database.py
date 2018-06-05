@@ -25,8 +25,7 @@ for species in SPECIES:
     # populate_qtls(species)
     # compute_qtl_windows(species)
     # populate_sweeps(species)
-
-    mark_neutral_snps(species)
+    populate_neutral_regions(species)
 
     # TODO load MC1R as a QTL region
     # TODO load neutral regions as QTLs
@@ -40,4 +39,4 @@ for species in SPECIES:
     # discover_snps(species)
     # analyse_qtls(species)
 
-    # perform_ascertainment(species)
+    perform_ascertainment(species)

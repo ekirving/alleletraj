@@ -229,8 +229,6 @@ def perform_ascertainment(species):
 
     print("INFO: Starting ascertainment process for {}".format(species))
 
-    dbc = db_conn()
-
     # # clear any existing SNPs
     # dbc.execute_sql("TRUNCATE TABLE ascertainment")
     #

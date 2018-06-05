@@ -6,6 +6,8 @@ from db_conn import *
 from qtldb_api import *
 from qtldb_lib import *
 
+from natsort import natsorted
+
 from pipeline_utils import *
 
 import gzip
@@ -264,7 +266,7 @@ def populate_neutral_loci(species):
 
     # write a BED file for the whole genome
     with open(allregions, 'w') as fout:
-        for chrom in natsorted(CHROM_SIZE[species].keys()):
+        for chrom in CHROM_SIZE[species].keys():
             fout.write("{}\t{}\t{}\n".format(chrom, 1, CHROM_SIZE[species][chrom]))
 
     # write all the non-neutral regions to a BED file
@@ -314,7 +316,9 @@ def populate_qtl_snps(species):
 
     print("INFO: Populating {} QTL SNPs... ".format(species), end='')
 
-    for chrom in natsorted(CHROM_SIZE[species].keys()):
+    chroms = CHROM_SIZE[species].keys()
+
+    for chrom in chroms:
         # insert linking records to make future queries much quicker
         dbc.execute_sql("""
             INSERT INTO qtl_snps (qtl_id, modsnp_id)

@@ -6,7 +6,6 @@ from __future__ import print_function
 from db_conn import db_conn
 from time import time
 from datetime import timedelta
-from natsort import natsorted
 
 from populate_qtls import *
 from populate_coverage import *
@@ -125,7 +124,7 @@ def analyse_qtls(species):
     start = began = time()
 
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    chroms = natsorted(CHROM_SIZE[species].keys())
+    chroms = CHROM_SIZE[species].keys()
 
     print("INFO: Starting QTL analysis for {}".format(species))
 

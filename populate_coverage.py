@@ -38,7 +38,7 @@ def populate_intervals(species):
     add_intvals = 0
     del_intvals = 0
 
-    for chrom in natsorted(intervals.keys()):
+    for chrom in intervals.keys():
         # merge overlapping intervals (up to a maximum size)
         intervals[chrom] = list(merge_intervals(intervals[chrom]))
 
@@ -97,7 +97,7 @@ def populate_interval_snps(species):
          WHERE i.finished = 0""")
 
     # process the query by chromosome to avoid buffering
-    chroms = natsorted(CHROM_SIZE[species].keys())
+    chroms = CHROM_SIZE[species].keys()
 
     # insert linking records to make future queries much quicker
     for chrom in chroms:

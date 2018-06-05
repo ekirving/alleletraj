@@ -6,7 +6,6 @@ import subprocess
 # import common libraries
 from collections import OrderedDict, defaultdict
 from datetime import timedelta
-from natsort import natsorted
 from pprint import pprint
 from time import time
 

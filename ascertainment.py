@@ -244,7 +244,7 @@ def perform_ascertainment(species):
     # fetch_selective_sweep_snps(species)
     #
     # # get all MC1R snps
-    fetch_mc1r_snps(species)
+    # fetch_mc1r_snps(species)
 
     # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
     fetch_neutral_snps(species)

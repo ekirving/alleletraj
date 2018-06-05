@@ -249,6 +249,8 @@ def populate_neutral_loci(species):
          
         SELECT chrom, GREATEST(start - {offset}, 0) AS start, end + {offset} AS end
           FROM ensembl_genes
+          
+      ORDER BY chrom, start, end
            """.format(offset=GENE_OFFSET), key=None)
 
     intervals = defaultdict(list)

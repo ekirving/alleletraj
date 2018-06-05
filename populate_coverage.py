@@ -55,11 +55,11 @@ def populate_intervals(species):
 
     # get all the unique QTL windows
     results = dbc.get_records_sql("""
-        SELECT q.chrom, q.start, q.end
+        SELECT DISTINCT q.chrom, q.start, q.end
           FROM qtls q
          WHERE q.species = '{species}'
            AND q.valid = 1
-      GROUP BY q.chrom, q.start, q.end""".format(species=species), key=None)
+           """.format(species=species), key=None)
 
     intervals = defaultdict(list)
 

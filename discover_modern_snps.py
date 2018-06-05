@@ -10,6 +10,7 @@ from pipeline_utils import *
 
 import multiprocessing as mp
 import itertools
+import traceback
 
 SPECIES = 'pig'
 
@@ -81,111 +82,117 @@ def process_chrom(args):
     Extract all the SNPs from a given chromosome and estimate the allele frequency
     """
 
-    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
-    (chrom, population) = args
+    try:
 
-    site = 0
-    num_snps = 0
+        # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+        (chrom, population) = args
 
-    # open a private connection to the database
-    dbc = db_conn()
+        site = 0
+        num_snps = 0
 
-    # get all the modern fasta files
-    fasta_files = [FASTA_PATH + '/' + sample + "/{}.fa".format(chrom) for sample in SAMPLES[population]]
+        # open a private connection to the database
+        dbc = db_conn()
 
-    # get the outgroup fasta file
-    outgroup_fasta = FASTA_PATH + '/' + OUTGROUP + "/{}.fa".format(chrom)
+        # get all the modern fasta files
+        fasta_files = [FASTA_PATH + '/' + sample + "/{}.fa".format(chrom) for sample in SAMPLES[population]]
 
-    # add the outgroup to the front of the list
-    fasta_files.insert(0, outgroup_fasta)
+        # get the outgroup fasta file
+        outgroup_fasta = FASTA_PATH + '/' + OUTGROUP + "/{}.fa".format(chrom)
 
-    print("STARTED: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files)))
+        # add the outgroup to the front of the list
+        fasta_files.insert(0, outgroup_fasta)
 
-    data = []
+        print("STARTED: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files)))
 
-    for fasta in fasta_files:
-        # load the fasta data
-        fin = open(fasta, "rU")
+        data = []
 
-        # discard header row
-        fin.readline()
+        for fasta in fasta_files:
+            # load the fasta data
+            fin = open(fasta, "rU")
 
-        # wrap the file in an iterator
-        data.append(stream_fasta(fin))
+            # discard header row
+            fin.readline()
 
-        print("LOADED: {}".format(fasta))
+            # wrap the file in an iterator
+            data.append(stream_fasta(fin))
 
-    # zip the sequences together so we can iterate over them one site at a time
-    for pileup in itertools.izip_longest(*data, fillvalue='N'):
+            print("LOADED: {}".format(fasta))
 
-        # increment the counter
-        site += 1
+        # zip the sequences together so we can iterate over them one site at a time
+        for pileup in itertools.izip_longest(*data, fillvalue='N'):
 
-        # convert iterator into a list
-        pileup = list(pileup)
+            # increment the counter
+            site += 1
 
-        # get the outgroup allele
-        outgroup_allele = pileup.pop(0)
+            # convert iterator into a list
+            pileup = list(pileup)
 
-        # decode the fasta format
-        haploids = decode_fasta(pileup)
+            # get the outgroup allele
+            outgroup_allele = pileup.pop(0)
 
-        # how many alleles are there at this site
-        num_alleles = len(set(haploids))
+            # decode the fasta format
+            haploids = decode_fasta(pileup)
 
-        # we're looking for biallelic SNPs
-        if num_alleles == 2:
+            # how many alleles are there at this site
+            num_alleles = len(set(haploids))
 
-            # count the haploid observations
-            observations = Counter(haploids)
+            # we're looking for biallelic SNPs
+            if num_alleles == 2:
 
-            # decode the outgroup allele
-            ancestral = set(decode_fasta(outgroup_allele))
+                # count the haploid observations
+                observations = Counter(haploids)
 
-            if len(ancestral) != 1:
+                # decode the outgroup allele
+                ancestral = set(decode_fasta(outgroup_allele))
+
+                if len(ancestral) != 1:
+                    if VERBOSE:
+                        print("WARNING: Unknown ancestral allele chr{}:{} = {}".format(chrom, site, outgroup_allele),
+                              file=sys.stderr)
+                    continue
+
+                ancestral = ancestral.pop()
+                alleles = observations.keys()
+
+                if ancestral not in alleles:
+                    if VERBOSE:
+                        print("WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, site, set(haploids),
+                                                                                              ancestral), file=sys.stderr)
+                    continue
+
+                # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
+                type = 'ts' if set(alleles) == set('A', 'G') or set(alleles) == set('C', 'T') else 'tv'
+
+                alleles.remove(ancestral)
+                derived = alleles.pop()
+
+                # calculate the minor allele frequency (maf)
+                maf = observations[derived] / (observations[ancestral] + observations[derived])
+
+                record = dict()
+                record['population'] = population
+                record['chrom'] = chrom
+                record['site'] = site
+                record['ancestral'] = ancestral
+                record['ancestral_count'] = observations[ancestral]
+                record['derived'] = derived
+                record['derived_count'] = observations[derived]
+                record['type'] = type
+                record['maf'] = maf
+
+                dbc.save_record('modern_snps', record)
+                num_snps += 1
+
+            elif num_alleles > 2:
                 if VERBOSE:
-                    print("WARNING: Unknown ancestral allele chr{}:{} = {}".format(chrom, site, outgroup_allele),
+                    print("WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids)),
                           file=sys.stderr)
-                continue
 
-            ancestral = ancestral.pop()
-            alleles = observations.keys()
+        print("FINISHED: chr{} contained {} SNPs".format(chrom, num_snps))
 
-            if ancestral not in alleles:
-                if VERBOSE:
-                    print("WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, site, set(haploids),
-                                                                                          ancestral), file=sys.stderr)
-                continue
-
-            # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
-            type = 'ts' if set(alleles) == set('A', 'G') or set(alleles) == set('C', 'T') else 'tv'
-
-            alleles.remove(ancestral)
-            derived = alleles.pop()
-
-            # calculate the minor allele frequency (maf)
-            maf = observations[derived] / (observations[ancestral] + observations[derived])
-
-            record = dict()
-            record['population'] = population
-            record['chrom'] = chrom
-            record['site'] = site
-            record['ancestral'] = ancestral
-            record['ancestral_count'] = observations[ancestral]
-            record['derived'] = derived
-            record['derived_count'] = observations[derived]
-            record['type'] = type
-            record['maf'] = maf
-
-            dbc.save_record('modern_snps', record)
-            num_snps += 1
-
-        elif num_alleles > 2:
-            if VERBOSE:
-                print("WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids)),
-                      file=sys.stderr)
-
-    print("FINISHED: chr{} contained {} SNPs".format(chrom, num_snps))
+    except Exception:
+        # Put all exception text into an exception and raise that
+        raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
 
 def link_ensembl_variants():

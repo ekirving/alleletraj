@@ -23,7 +23,7 @@ def reset_flags(chrom):
            JOIN samples
              ON samples.id = sample_reads.sample_id
             SET quality = NULL,
-                called = NULL,
+                called = NULL
           WHERE chrom = '{chrom}'
           """.format(chrom=chrom))
 

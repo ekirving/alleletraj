@@ -9,22 +9,22 @@ from populate_samples import populate_samples
 from ascertainment import perform_ascertainment
 
 # load all the Ensembl data for this species
-# load_ensembl_genes()
-# load_ensembl_variants()
+load_ensembl_genes()
+load_ensembl_variants()
 
 # load the SNP Chip data
-# load_snpchip_variants()
+load_snpchip_variants()
 
 # ascertain SNPs in modern whole genome data
 discover_modern_snps()
 
 # load the QTLs from the AnimalQTL database
-# populate_qtls()
+populate_qtls()
 
 # load psudo-QTLs from other sources
-# populate_sweeps()
-# populate_mc1r_locus()
-# populate_neutral_loci()
+populate_sweeps()
+populate_mc1r_locus()
+populate_neutral_loci()
 
 # link each QTL to the ascertained modern SNPs
 populate_qtl_snps(POPULATION)

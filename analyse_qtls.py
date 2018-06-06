@@ -23,6 +23,7 @@ def calculate_summary_stats(chrom):
     # remove any existing stats for this chromosome
     dbc.delete_records('qtl_stats', {'chrom': chrom})
 
+    # TODO refactor to use qtl_snps
     dbc.execute_sql("""
      INSERT INTO qtl_stats (qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, avg_samples, max_reads, avg_reads)
           SELECT qtl_id, chrom, class, type, name, Pvalue, significance,
@@ -42,8 +43,8 @@ def calculate_summary_stats(chrom):
                           ON t.id = q.trait_id
                         JOIN sample_reads sr
                           ON sr.chrom = q.chrom
-                         AND sr.snp = 1
                          AND sr.site BETWEEN q.start and q.end
+                         AND sr.called = 1
                        WHERE q.valid = 1
                          AND sr.chrom = '{chrom}'
                     GROUP BY q.id, sr.chrom, sr.site
@@ -72,7 +73,7 @@ def analyse_qtl_snps(chrom):
                     JOIN sample_reads sr
                       ON sr.chrom = ms.chrom
                      AND sr.site = ms.site
-                     AND sr.snp = 1
+                     AND sr.called = 1
                     JOIN samples s
                       ON s.id = sr.sample_id
                    WHERE q.chrom = '{chrom}'
@@ -127,7 +128,6 @@ def analyse_qtls():
     # print("INFO: Calculating some summary stats... ", end='')
     # # -----------------------------------------------
     #
-    # # TODO refactor to use qtl_snps
     # for chrom in chroms:
     #     calculate_summary_stats(chrom)
     #

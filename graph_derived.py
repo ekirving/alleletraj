@@ -19,7 +19,7 @@ reads = dbc.get_records_sql("""
       FROM samples s
       JOIN sample_reads sr
         ON sr.sample_id = s.id
-       AND sr.snp = 1
+       AND sr.called = 1
  LEFT JOIN sample_dates sd
         ON s.age = sd.age
  LEFT JOIN sample_dates_c14 c14
@@ -55,7 +55,7 @@ snps = dbc.get_records_sql("""
        JOIN sample_reads sr
          ON sr.chrom = ms.chrom
         AND sr.site = ms.site
-        AND sr.snp = 1
+        AND sr.called = 1
        JOIN samples s
          ON s.id = sr.sample_id
   LEFT JOIN sample_dates sd

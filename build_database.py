@@ -17,7 +17,7 @@ from ascertainment import perform_ascertainment
 
 # load_snpchip_variants()
 
-discover_modern_snps()
+# discover_modern_snps()
 
 # populate_qtls()
 # compute_qtl_windows()
@@ -31,11 +31,10 @@ discover_modern_snps()
 # populate_samples()
 # populate_coverage()
 
-# populate_qtl_snps(POPULATION)
-# mark_neutral_snps()
+populate_qtl_snps(POPULATION)
+mark_neutral_snps()
 
-# discover_snps(POPULATION)
-# analyse_qtls()
+discover_snps(POPULATION)
+analyse_qtls()
 
-# perform_ascertainment()
-
+perform_ascertainment()

@@ -213,7 +213,6 @@ def fetch_neutral_snps():
 
     print("INFO: Fetching neutral SNPs... ", end='')
 
-
     dbc.execute_sql("""
         INSERT
           INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)

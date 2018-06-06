@@ -114,8 +114,6 @@
 				- 3 SNPs from regions in (2) but SNPs in (1)
 					- with the lowest p-value (i.e. last column in (1))
 					= 1k SNPs
-			
-			
 					
 			
 			- 50 neutrals

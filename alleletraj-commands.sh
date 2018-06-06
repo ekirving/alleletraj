@@ -66,6 +66,11 @@ printf '9\t150219744\t150267729\n' | bedtools intersect -a data/sweep/EUD_Sweep_
 mysqldump -u root -p allele_trajectory ensembl_variants ensembl_genes | gzip > ensembl.sql.gz
 
 
+bcftools mpileup --fasta-ref fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa /home/ludo/inbox/BAMslices/Modern/*.bam \
+	| bcftools call --multiallelic-caller --output-type v \
+	| bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file modern_horses.vcf
+
+
 
 
 mkfifo --mode=0666 /tmp/SNPchimp_pig

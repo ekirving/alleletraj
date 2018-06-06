@@ -10,6 +10,7 @@ import multiprocessing as mp
 import traceback
 import sys
 import itertools
+from random import shuffle
 
 from pipeline_utils import *
 
@@ -213,12 +214,16 @@ def process_interval(args):
 
         num_reads = 0
 
-        # TODO randomise the order of samples to reduce disk I/O for parallel jobs
+        # randomise the order of samples to reduce disk I/O for parallel jobs
+        ids = samples.keys()
+        shuffle(ids)
 
         # check all the samples for coverage in this interval
-        for sample_id, sample in samples.iteritems():
+        for sample_id in ids:
 
             print("INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession']))
+
+            sample = samples[sample_id]
 
             # buffer the reads so we can bulk insert them into the db
             reads = defaultdict(list)

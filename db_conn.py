@@ -3,12 +3,13 @@
 
 from __future__ import print_function
 
+from pipeline_utils import *
+
 import mysql.connector
 import itertools
 
 from pprint import pprint
 from collections import OrderedDict
-
 
 class db_conn:
     """
@@ -19,7 +20,7 @@ class db_conn:
       'user':     'root',
       'password': '',
       'host':     '127.0.0.1',
-      'database': 'allele_trajectory'
+      'database': 'alleletraj_{}'.format(SPECIES)
     }
 
     def __init__(self):

@@ -174,7 +174,6 @@ def bin_samples():
     for bin_lower in range(bin_start, bin_end, -BIN_WIDTH):
         bin_upper = bin_lower - BIN_WIDTH
 
-        # TODO
         # get all the samples which overlap this bin by >= BIN_OVERLAP
         dbc.execute_sql("""
              INSERT IGNORE

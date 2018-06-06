@@ -21,7 +21,7 @@ def fetch_gwas_peaks():
           INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
         SELECT q.id AS qtl_id, 'peak' AS type,
                ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt, 
-               ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
+               sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
           FROM (
                   # get a unique list of GWAS peaks     
                   SELECT min(id) AS id, peak, site
@@ -33,8 +33,8 @@ def fetch_gwas_peaks():
                ) AS q
           JOIN ensembl_variants ev
             ON ev.rsnumber = q.peak
-     LEFT JOIN dbsnp_snpchip ds
-            ON ds.rsnumber = ev.rsnumber
+     LEFT JOIN snpchip sc
+            ON sc.rsnumber = ev.rsnumber
       GROUP BY ev.rsnumber""")
 
     print("({}).".format(timedelta(seconds=time() - start)))
@@ -98,10 +98,10 @@ def fetch_gwas_flanking_snps():
             SELECT {qtl_id},
                    IF(ev.start > {site}, 'right', 'left') AS type,
                    ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
-                   ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
+                   sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
               FROM ensembl_variants ev
-         LEFT JOIN dbsnp_snpchip ds
-                ON ds.rsnumber = ev.rsnumber
+         LEFT JOIN snpchip sc
+                ON sc.rsnumber = ev.rsnumber
              WHERE ev.type = 'SNV'
                AND ev.id IN ({modsnps})
           GROUP BY ev.rsnumber
@@ -150,12 +150,12 @@ def fetch_selective_sweep_snps():
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT {qtl_id}, 'sweep' AS type, ev.rsnumber, ms.chrom, ms.site, 
                    COALESCE(ev.ref, ms.ancestral) ref, COALESCE(ev.alt, ms.derived) alt, 
-                   ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
+                   sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
               FROM modern_snps ms
          LEFT JOIN ensembl_variants ev
                 ON ev.id = ms.variant_id
-         LEFT JOIN dbsnp_snpchip ds
-                ON ds.rsnumber = ev.rsnumber
+         LEFT JOIN snpchip sc
+                ON sc.rsnumber = ev.rsnumber
              WHERE ms.id IN ({modsnps})
           GROUP BY ms.id
                """.format(qtl_id=qtl['id'], modsnps=qtl['snps']))
@@ -186,15 +186,15 @@ def fetch_mc1r_snps():
         SELECT {qtl_id},
                'MC1R',
                ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
-               ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
+               sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
           FROM ensembl_genes eg
           JOIN ensembl_variants ev
             ON ev.chrom = eg.chrom
            AND ev.start BETWEEN eg.start AND eg.end
            AND ev.type = 'SNV'
            AND LENGTH(ev.alt) = 1
-     LEFT JOIN dbsnp_snpchip ds
-            ON ds.rsnumber = ev.rsnumber
+     LEFT JOIN snpchip sc
+            ON sc.rsnumber = ev.rsnumber
          WHERE eg.gene_id = '{gene_id}'
       GROUP BY ev.rsnumber
            """.format(qtl_id=qtl['id'], gene_id=MC1R_GENE_ID))
@@ -219,7 +219,7 @@ def fetch_neutral_snps():
           INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
         SELECT q.id, q.associationType,
                ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
-               ds.chip_name, GROUP_CONCAT(ds.snp_name) AS snp_name
+               sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
           FROM qtls q
           JOIN qtl_snps qs
             ON q.id = qs.qtl_id
@@ -227,8 +227,8 @@ def fetch_neutral_snps():
             ON ms.id = qs.modsnp_id
           JOIN ensembl_variants ev
             ON ev.id = ms.variant_id
-     LEFT JOIN dbsnp_snpchip ds
-            ON ds.rsnumber = ev.rsnumber
+     LEFT JOIN snpchip sc
+            ON sc.rsnumber = ev.rsnumber
          WHERE q.associationType = 'Neutral'
            AND q.valid = 1
       GROUP BY ms.id

@@ -191,7 +191,7 @@ def link_ensembl_genes():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def link_dbsnp_snpchip():
+def link_snpchip():
     """
     Link modern SNPs to their snpchip variants
     """
@@ -203,10 +203,10 @@ def link_dbsnp_snpchip():
 
     dbc.execute_sql("""
         UPDATE modern_snps ms
-          JOIN dbsnp_snpchip ds
-            ON ds.chrom = ms.chrom
-           AND ds.site = ms.site
-           SET ms.snpchip_id = ds.id""")
+          JOIN snpchip sc
+            ON sc.chrom = ms.chrom
+           AND sc.site = ms.site
+           SET ms.snpchip_id = sc.id""")
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -236,4 +236,4 @@ def discover_modern_snps():
     # link modern SNPs to their dbsnp, gene and snpchip records
     link_ensembl_variants()
     link_ensembl_genes()
-    link_dbsnp_snpchip()
+    link_snpchip()

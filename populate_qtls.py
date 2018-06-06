@@ -472,7 +472,7 @@ def load_snpchip_variants():
     pipe = "/tmp/SNPchimp_{}".format(SPECIES)
 
     # unzip the dump into a named pipe
-    run_cmd(["mkfifo --mode=0666 {pipe}".format(pipe=pipe)], shell=True)
+    run_cmd(["mkfifo -m0666 {pipe}".format(pipe=pipe)], shell=True)
     run_cmd(["gzip --stdout -d  {gz} > {pipe}".format(gz=SNP_CHIP_DATA[SPECIES], pipe=pipe)],
             shell=True, background=True)
 
@@ -482,6 +482,9 @@ def load_snpchip_variants():
        INTO TABLE snpchip 
            IGNORE 1 LINES (chip_name, rsnumber, chrom, site, snp_name)
               """.format(pipe=pipe))
+
+    # remove the named pipe
+    run_cmd(["rm -f {pipe}".format(pipe=pipe)], shell=True)
 
 
 def compute_qtl_windows():

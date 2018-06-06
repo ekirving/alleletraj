@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 
-from pipeline_utils import *
+from pipeline_consts import *
 
 import mysql.connector
 import itertools

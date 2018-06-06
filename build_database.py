@@ -1,40 +1,51 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from db_conn import db_conn
-
-from populate_qtls import *
-from populate_samples import populate_samples
 from populate_coverage import *
-from discover_modern_snps import *
+from discover_modern_snps import discover_modern_snps
 from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
+from populate_samples import populate_samples
 from ascertainment import perform_ascertainment
 
+# load all the Ensembl data for this species
+load_ensembl_genes()
+load_ensembl_variants()
 
-# load_ensembl_genes()
-# load_ensembl_variants()
+# load the SNP Chip data
+load_snpchip_variants()
 
-# load_snpchip_variants()
+# ascertain SNPs in modern whole genome data
+discover_modern_snps()
 
-# discover_modern_snps()
+# load the QTLs from the AnimalQTL database
+populate_qtls()
 
-# populate_qtls()
-# compute_qtl_windows()
-# populate_sweeps()
-# populate_mc1r_locus()
-# populate_neutral_loci()
+# load psudo-QTLs from other sources
+populate_sweeps()
+populate_mc1r_locus()
+populate_neutral_loci()
 
-# populate_intervals()
-# populate_interval_snps(POPULATION)
-
-# populate_samples()
-# populate_coverage()
-
+# link each QTL to the ascertained modern SNPs
 populate_qtl_snps(POPULATION)
+
+# flag the modern SNPs which fall into "neutral" regions
 mark_neutral_snps()
 
+# calculate the unique set of non-overlapping genomic loci from the QTLs
+populate_intervals()
+populate_interval_snps(POPULATION)
+
+# load the sample metadata
+populate_samples()
+
+# load the sample reads for each ascertained SNP
+populate_sample_reads()
+
+# apply quality filters to the sample reads
 discover_snps(POPULATION)
+
+
 analyse_qtls()
 
 perform_ascertainment()

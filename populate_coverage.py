@@ -4,7 +4,6 @@
 from __future__ import print_function
 
 from discover_snps import *
-from populate_qtls import *
 
 import pysam as ps
 import multiprocessing as mp
@@ -111,7 +110,7 @@ def populate_interval_snps(population):
                     AND ms.maf >= {minmaf}""".format(population=population, chrom=chrom, minmaf=MIN_MAF))
 
 
-def populate_coverage():
+def populate_sample_reads():
     """
     Scan all the samples for coverage of the QTLs and save the results to the database.
     """

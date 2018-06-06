@@ -123,8 +123,10 @@ def populate_qtls():
         if VERBOSE and added % 100 == 0:
             print("INFO: Added {:5d} new QTLs".format(added))
 
-    if VERBOSE:
-        print("INFO: Finished adding {} new QTLs".format(len(new_ids)))
+    # calculate the QTL windows
+    compute_qtl_windows()
+
+    print("INFO: Finished adding {} new QTLs".format(len(new_ids)))
 
 
 def populate_sweeps():
@@ -347,7 +349,6 @@ def mark_neutral_snps():
            AND q.valid = 1""")
 
     print("({}).".format(timedelta(seconds=time() - start)))
-
 
 
 def load_ensembl_variants():

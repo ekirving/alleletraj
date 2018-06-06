@@ -11,34 +11,30 @@ from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 from ascertainment import perform_ascertainment
 
-SPECIES = ['pig']  # , 'horse', 'goat']
+# load_ensembl_genes()
+# load_ensembl_variants()
 
-for species in SPECIES:
+# load_snpchip_variants()
 
-    # load_ensembl_genes(species)
-    # load_ensembl_variants(species)
+discover_modern_snps()
 
-    # load_snpchip_variants(species)
+# populate_qtls()
+# compute_qtl_windows()
+populate_sweeps()
+# populate_mc1r_locus()
+# populate_neutral_loci()
 
-    discover_modern_snps(species)
+# populate_intervals()
+# populate_interval_snps()
 
-    # populate_qtls(species)
-    # compute_qtl_windows(species)
-    # populate_sweeps(species)
-    # populate_mc1r_locus(species)
-    # populate_neutral_loci(species)
+# populate_samples()
+# populate_coverage()
 
-    # populate_intervals(species)
-    # populate_interval_snps(species)
+# populate_qtl_snps()
+# mark_neutral_snps()
 
-    # populate_samples(species)
-    # populate_coverage(species)
+# discover_snps()
+# analyse_qtls()
 
-    # populate_qtl_snps(species)
-    # mark_neutral_snps()
-
-    # discover_snps(species)
-    # analyse_qtls(species)
-
-    # perform_ascertainment(species)
+# perform_ascertainment()
 

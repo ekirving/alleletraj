@@ -14,26 +14,25 @@ from populate_coverage import *
 SNPS_PER_QTL = 3
 
 
-def calculate_summary_stats(species, chrom):
+def calculate_summary_stats(chrom):
     """
     Calculate some summary stats
     """
     dbc = db_conn()
 
     # remove any existing stats for this chromosome
-    dbc.delete_records('qtl_stats', {'species': species, 'chrom': chrom})
+    dbc.delete_records('qtl_stats', {'chrom': chrom})
 
     dbc.execute_sql("""
-     INSERT INTO qtl_stats (species, qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, 
-                            avg_samples, max_reads, avg_reads)
-          SELECT species, qtl_id, chrom, class, type, name, Pvalue, significance,
+     INSERT INTO qtl_stats (qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, avg_samples, max_reads, avg_reads)
+          SELECT qtl_id, chrom, class, type, name, Pvalue, significance,
                  COUNT(qtl_id) AS snps,
                  MAX(num_samples) max_samples,
                  AVG(num_samples) avg_samples,
                  MAX(num_reads) max_reads,
                  AVG(num_reads) avg_reads
             FROM (
-                      SELECT q.species, q.id AS qtl_id, q.pubmed_id, q.Pvalue, q.significance,
+                      SELECT q.id AS qtl_id, q.pubmed_id, q.Pvalue, q.significance,
                              t.class, t.type, t.name,
                              sr.chrom, sr.site,
                              COUNT(DISTINCT sr.sample_id) num_samples,
@@ -45,16 +44,15 @@ def calculate_summary_stats(species, chrom):
                           ON sr.chrom = q.chrom
                          AND sr.snp = 1
                          AND sr.site BETWEEN q.start and q.end
-                       WHERE q.species = '{species}'
-                         AND q.valid = 1
+                       WHERE q.valid = 1
                          AND sr.chrom = '{chrom}'
                     GROUP BY q.id, sr.chrom, sr.site
 
                   ) as snps
-        GROUP BY snps.qtl_id""".format(species=species, chrom=chrom))
+        GROUP BY snps.qtl_id""".format(chrom=chrom))
 
 
-def analyse_qtl_snps(species, chrom):
+def analyse_qtl_snps(chrom):
     """
     Find the best SNPs for each QTL
     """
@@ -77,16 +75,14 @@ def analyse_qtl_snps(species, chrom):
                      AND sr.snp = 1
                     JOIN samples s
                       ON s.id = sr.sample_id
-                     AND s.species = q.species
-                   WHERE q.species = '{species}'
-                     AND q.chrom = '{chrom}'
+                   WHERE q.chrom = '{chrom}'
                      AND q.valid = 1
                 GROUP BY qs.id
 
                 ) AS num
                   ON num.id = qtl_snps.id
 
-           SET qtl_snps.num_reads = num.num_reads""".format(species=species, chrom=chrom))
+           SET qtl_snps.num_reads = num.num_reads""".format(chrom=chrom))
 
     # choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
     dbc.execute_sql("""
@@ -103,8 +99,7 @@ def analyse_qtl_snps(species, chrom):
                       ON qs.qtl_id = q.id
                     JOIN modern_snps ms
                       ON ms.id = qs.modsnp_id
-                   WHERE q.species = '{species}'
-                     AND q.chrom = '{chrom}'
+                   WHERE q.chrom = '{chrom}'
                      AND q.valid = 1
                      AND qs.num_reads IS NOT NULL
                 GROUP BY qtl_id
@@ -113,10 +108,10 @@ def analyse_qtl_snps(species, chrom):
                   ON qtl_snps.qtl_id = best.qtl_id
                  AND FIND_IN_SET(qtl_snps.id, best.qtl_snps)
 
-            SET qtl_snps.best = 1""".format(species=species, chrom=chrom, num_snps=SNPS_PER_QTL))
+            SET qtl_snps.best = 1""".format(chrom=chrom, num_snps=SNPS_PER_QTL))
 
 
-def analyse_qtls(species):
+def analyse_qtls():
     """
     Run queries to pick the best QTLs and SNPs to run the selection scan on.
     """
@@ -124,9 +119,9 @@ def analyse_qtls(species):
     start = began = time()
 
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    chroms = CHROM_SIZE[species].keys()
+    chroms = CHROM_SIZE[SPECIES].keys()
 
-    print("INFO: Starting QTL analysis for {}".format(species))
+    print("INFO: Starting QTL analysis")
 
     # # -----------------------------------------------
     # print("INFO: Calculating some summary stats... ", end='')
@@ -134,16 +129,16 @@ def analyse_qtls(species):
     #
     # # TODO refactor to use qtl_snps
     # for chrom in chroms:
-    #     calculate_summary_stats(species, chrom)
+    #     calculate_summary_stats(chrom)
     #
     # print("({}).".format(timedelta(seconds=time() - start)))
     # start = time()
 
-    print("INFO: Analysing {} QTL SNPs... ".format(species), end='')
+    print("INFO: Analysing QTL SNPs... ", end='')
 
     for chrom in chroms:
-        analyse_qtl_snps(species, chrom)
+        analyse_qtl_snps(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
-    print("SUCCESS: Finished the {} SNP discovery ({})".format(species, timedelta(seconds=time() - began)))
+    print("SUCCESS: Finished the SNP discovery ({})".format(timedelta(seconds=time() - began)))

@@ -9,16 +9,10 @@ from datetime import timedelta
 from populate_coverage import *
 from populate_qtls import *
 
-# the minimum phred scaled genotype quality (30 = 99.9%)
-MIN_BASE_QUAL = 30
-MIN_MAP_QUAL = 30
-MIN_GENO_QUAL = 30
-
-# number of bases to soft clip
-SOFT_CLIP_DIST = 3
 from pipeline_utils import *
 
-def reset_flags(species, chrom):
+
+def reset_flags(chrom):
     """
     Reset all the analysis flags to NULL
     """
@@ -31,31 +25,29 @@ def reset_flags(species, chrom):
             SET quality = NULL,
                 called = NULL,
                 snp = NULL
-          WHERE species = '{species}'
-            AND chrom = '{chrom}'
-          """.format(species=species, chrom=chrom))
+          WHERE chrom = '{chrom}'
+          """.format(chrom=chrom))
 
 
-def apply_quality_filters(species, chrom):
+def apply_quality_filters(chrom):
     """
     Apply MIN_BASE_QUAL, MIN_MAPPING_QUAL and SOFT_CLIP_DIST quality filters.
     """
     dbc = db_conn()
 
     dbc.execute_sql("""
-        UPDATE sample_reads
-          JOIN samples 
-            ON samples.id = sample_reads.sample_id
-           SET sample_reads.quality = 1
-         WHERE samples.species = '{species}'
-           AND sample_reads.chrom = '{chrom}'
-           AND sample_reads.baseq >= {baseq}
-           AND sample_reads.mapq >= {mapq}
-           AND sample_reads.dist > {clip}
-           """.format(species=species, chrom=chrom, baseq=MIN_BASE_QUAL, mapq=MIN_MAP_QUAL, clip=SOFT_CLIP_DIST))
+        UPDATE sample_reads sr
+          JOIN samples s
+            ON s.id = sr.sample_id
+           SET sr.quality = 1
+         WHERE sr.chrom = '{chrom}'
+           AND sr.baseq >= {baseq}
+           AND sr.mapq >= {mapq}
+           AND sr.dist > {clip}
+           """.format(chrom=chrom, baseq=MIN_BASE_QUAL, mapq=MIN_MAP_QUAL, clip=SOFT_CLIP_DIST))
 
 
-def choose_random_read(species, chrom):
+def choose_random_read(chrom):
     """
     Choose a random read from those that pass quality filters
     """
@@ -72,36 +64,34 @@ def choose_random_read(species, chrom):
                       ON ms.population = '{population}'
                      AND ms.chrom = sr.chrom
                      AND ms.site = sr.site
-                   WHERE s.species = '{species}'
-                     AND sr.chrom = '{chrom}'
+                   WHERE sr.chrom = '{chrom}'
                      AND sr.quality = 1
                      AND sr.base IN (ms.ancestral, ms.derived)
                 GROUP BY sr.chrom, sr.site, sr.sample_id
                 
                ) AS rand ON rand.id = sample_reads.id
            SET called = 1
-           """.format(species=species, population='EUD', chrom=chrom))
+           """.format(population='EUD', chrom=chrom))
 
 
-def apply_genotype_filters(species, chrom):
+def apply_genotype_filters(chrom):
     """
     Apply MIN_GENO_QUAL quality filter.
     """
     dbc = db_conn()
 
     dbc.execute_sql("""
-        UPDATE sample_reads
-          JOIN samples 
-            ON samples.id = sample_reads.sample_id
-           SET sample_reads.quality = 1,
-               sample_reads.called = 1 
-         WHERE samples.species = '{species}'
-           AND sample_reads.chrom = '{chrom}'
-           AND sample_reads.genoq >= {genoq}
-           """.format(species=species, chrom=chrom, genoq=MIN_GENO_QUAL))
+        UPDATE sample_reads sr
+          JOIN samples s
+            ON s.id = sr.sample_id
+           SET sr.quality = 1,
+               sr.called = 1 
+         WHERE sr.chrom = '{chrom}'
+           AND sr.genoq >= {genoq}
+           """.format(chrom=chrom, genoq=MIN_GENO_QUAL))
 
 
-def call_ancient_snps(species, chrom):
+def call_ancient_snps(chrom):
     """
     Mark the sites which contain SNPs
     """
@@ -109,21 +99,19 @@ def call_ancient_snps(species, chrom):
 
     # TODO this may now be redundant
     dbc.execute_sql("""
-        UPDATE sample_reads
-          JOIN samples
-            ON samples.id = sample_reads.sample_id
+        UPDATE sample_reads sr
+          JOIN samples s
+            ON s.id = sr.sample_id
           JOIN (
                 # get the good SNPs
                 SELECT a.chrom, a.site
                 FROM (
                       # get all the ancient callable biallelic sites
-                      SELECT s.species, sr.chrom, sr.site, 
-                             GROUP_CONCAT(DISTINCT sr.base) AS alleles
+                      SELECT sr.chrom, sr.site, GROUP_CONCAT(DISTINCT sr.base) AS alleles
                         FROM samples s
                         JOIN sample_reads sr
                           ON sr.sample_id = s.id
-                       WHERE s.species = '{species}'
-                         AND sr.chrom = '{chrom}'
+                       WHERE sr.chrom = '{chrom}'
                          AND sr.called = 1
                     GROUP BY sr.chrom, sr.site
                       HAVING COUNT(DISTINCT sr.base) = 2
@@ -138,38 +126,34 @@ def call_ancient_snps(species, chrom):
                      AND FIND_IN_SET(ms.ancestral, a.alleles)
                      AND FIND_IN_SET(ms.derived, a.alleles)
 
-                ) AS snp ON snp.chrom = sample_reads.chrom 
-                        AND snp.site = sample_reads.site
+                ) AS snp ON snp.chrom = sr.chrom 
+                        AND snp.site = sr.site
 
-          SET sample_reads.snp = 1
-        WHERE samples.species = '{species}'
-          AND sample_reads.chrom = '{chrom}' 
-          AND sample_reads.called = 1
-        """.format(species=species, population='EUD', chrom=chrom))
+          SET sr.snp = 1
+        WHERE sr.chrom = '{chrom}' 
+          AND sr.called = 1
+        """.format(population='EUD', chrom=chrom))
 
 
-def discover_snps(species):
+def discover_snps():
     """
     Run queries to mark callable SNPs in the ancient populations.
 
     Uses mysql table partitioning (w/ MyISAM engine) at the chromosome level to prevent disk swapping caused by massive
     RAM usage for tables with billions of records.
-
-    :param species: The species name
-    :rtype: None
     """
 
     start = began = time()
 
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    chroms = CHROM_SIZE[species].keys()
+    chroms = CHROM_SIZE[SPECIES].keys()
 
-    print("INFO: Starting SNP discovery for {}".format(species))
+    print("INFO: Starting SNP discovery")
 
     print("INFO: Resetting analysis flags... ", end='')
 
     for chrom in chroms:
-        reset_flags(species, chrom)
+        reset_flags(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
@@ -177,7 +161,7 @@ def discover_snps(species):
     print("INFO: Applying quality filters... ", end='')
 
     for chrom in chroms:
-        apply_quality_filters(species, chrom)
+        apply_quality_filters(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
@@ -185,7 +169,7 @@ def discover_snps(species):
     print("INFO: Choosing a random read from those that pass quality filters... ", end='')
 
     for chrom in chroms:
-        choose_random_read(species, chrom)
+        choose_random_read(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
@@ -193,7 +177,7 @@ def discover_snps(species):
     print("INFO: Applying genotype quality filters to diploid calls... ", end='')
 
     for chrom in chroms:
-        apply_genotype_filters(species, chrom)
+        apply_genotype_filters(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
@@ -201,8 +185,8 @@ def discover_snps(species):
     print("INFO: Marking the sites which contain SNPs... ", end='')
 
     for chrom in chroms:
-        call_ancient_snps(species, chrom)
+        call_ancient_snps(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
-    print("SUCCESS: Finished the {} SNP discovery ({})".format(species, timedelta(seconds=time() - began)))
+    print("SUCCESS: Finished the SNP discovery ({})".format(timedelta(seconds=time() - began)))

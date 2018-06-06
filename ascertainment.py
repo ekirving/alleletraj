@@ -6,7 +6,7 @@ from __future__ import print_function
 from pipeline_utils import *
 
 
-def fetch_gwas_peaks(species):
+def fetch_gwas_peaks():
     """
     Fetch all the GWAS peaks from the QTL database.
     """
@@ -26,8 +26,7 @@ def fetch_gwas_peaks(species):
                   # get a unique list of GWAS peaks     
                   SELECT min(id) AS id, peak, site
                     FROM qtls
-                   WHERE species = '{species}'
-                     AND associationType = 'Association'
+                   WHERE associationType = 'Association'
                      AND valid = 1
                 GROUP BY peak 
 
@@ -36,12 +35,12 @@ def fetch_gwas_peaks(species):
             ON ev.rsnumber = q.peak
      LEFT JOIN dbsnp_snpchip ds
             ON ds.rsnumber = ev.rsnumber
-      GROUP BY ev.rsnumber""".format(species=species))
+      GROUP BY ev.rsnumber""")
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def fetch_gwas_flanking_snps(species):
+def fetch_gwas_flanking_snps():
     """
     Fetch the best flanking SNPs for each GWAS peak.
     """
@@ -111,7 +110,7 @@ def fetch_gwas_flanking_snps(species):
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def fetch_selective_sweep_snps(species):
+def fetch_selective_sweep_snps():
     """
     Fetch the best SNPs from the selective sweep loci.
     """
@@ -165,7 +164,7 @@ def fetch_selective_sweep_snps(species):
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def fetch_mc1r_snps(species):
+def fetch_mc1r_snps():
     """
     Get all the dnsnp SNPs which fall within the MC1R gene.
 
@@ -203,7 +202,7 @@ def fetch_mc1r_snps(species):
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def fetch_neutral_snps(species):
+def fetch_neutral_snps():
     """
     Get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
     """
@@ -240,30 +239,31 @@ def fetch_neutral_snps(species):
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def perform_ascertainment(species):
+def perform_ascertainment():
     """
     Ascertain the best SNPs for a catpure array.
     """
 
-    print("INFO: Starting ascertainment process for {}".format(species))
+    print("INFO: Starting ascertainment process")
 
     # clear any existing SNPs
-    db_conn().execute_sql("TRUNCATE TABLE ascertainment")
+    dbc = db_conn()
+    dbc.execute_sql("TRUNCATE TABLE ascertainment")
 
     # fetch all the GWAS peaks from the QTL database
-    fetch_gwas_peaks(species)
+    fetch_gwas_peaks()
 
     # fetch the best flanking SNPs for each GWAS peak
-    fetch_gwas_flanking_snps(species)
+    fetch_gwas_flanking_snps()
 
     # fetch the best SNPs from the selective sweep loci
-    fetch_selective_sweep_snps(species)
+    fetch_selective_sweep_snps()
 
     # get all MC1R snps
-    fetch_mc1r_snps(species)
+    fetch_mc1r_snps()
 
     # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
-    fetch_neutral_snps(species)
+    fetch_neutral_snps()
 
     # TODO make sure none of our SNPs are close to indels
 

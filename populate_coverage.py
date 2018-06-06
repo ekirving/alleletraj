@@ -15,7 +15,7 @@ import itertools
 from pipeline_utils import *
 
 
-def populate_intervals(species):
+def populate_intervals():
 
     # open a db connection
     dbc = db_conn()
@@ -24,9 +24,7 @@ def populate_intervals(species):
     results = dbc.get_records_sql("""
         SELECT DISTINCT q.chrom, q.start, q.end
           FROM qtls q
-         WHERE q.species = '{species}'
-           AND q.valid = 1
-           """.format(species=species), key=None)
+         WHERE q.valid = 1""", key=None)
 
     intervals = defaultdict(list)
 
@@ -45,7 +43,7 @@ def populate_intervals(species):
         for start, end in intervals[chrom]:
 
             # compose the interval record
-            record = {'species': species, 'chrom': chrom, 'start': start, 'end': end}
+            record = {'chrom': chrom, 'start': start, 'end': end}
 
             # check if this interval already exists
             if dbc.get_record('intervals', record):
@@ -55,11 +53,10 @@ def populate_intervals(species):
             overlap = dbc.get_records_sql("""
                 SELECT *
                   FROM intervals
-                 WHERE species = '{species}'
-                   AND chrom = '{chrom}'
+                 WHERE chrom = '{chrom}'
                    AND end > {start}
                    AND start < {end}
-                   """.format(species=species, chrom=chrom, start=start, end=end))
+                   """.format(chrom=chrom, start=start, end=end))
 
             for interval_id in overlap:
                 # delete the old intervals
@@ -76,17 +73,17 @@ def populate_intervals(species):
             # save the new interval
             dbc.save_record('intervals', record)
 
-    print("INFO: Added {:,} {} intervals ({:,} bp), deleted {:,} old intervals"
-          .format(add_intvals, species, num_sites, del_intvals))
+    print("INFO: Added {:,} intervals ({:,} bp), deleted {:,} old intervals"
+          .format(add_intvals, num_sites, del_intvals))
 
 
-def populate_interval_snps(species):
+def populate_interval_snps():
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the unique intervals.
     """
     dbc = db_conn()
 
-    print("INFO: Populating all the {} interval SNPs".format(species))
+    print("INFO: Populating all the interval SNPs")
 
     # tidy up an unfinished interval SNPs
     dbc.execute_sql("""
@@ -97,7 +94,7 @@ def populate_interval_snps(species):
          WHERE i.finished = 0""")
 
     # process the query by chromosome to avoid buffering
-    chroms = CHROM_SIZE[species].keys()
+    chroms = CHROM_SIZE[SPECIES].keys()
 
     # insert linking records to make future queries much quicker
     for chrom in chroms:
@@ -110,12 +107,11 @@ def populate_interval_snps(species):
                     AND ms.chrom = i.chrom
                     AND ms.site BETWEEN i.start AND i.end
                   WHERE i.finished = 0
-                    AND i.species = '{species}'
                     AND i.chrom = '{chrom}'
-                    AND ms.maf >= {minmaf}""".format(species=species, population='EUD', chrom=chrom, minmaf=MIN_MAF))
+                    AND ms.maf >= {minmaf}""".format(population='EUD', chrom=chrom, minmaf=MIN_MAF))
 
 
-def populate_coverage(species):
+def populate_coverage():
     """
     Scan all the samples for coverage of the QTLs and save the results to the database.
     """
@@ -124,7 +120,7 @@ def populate_coverage(species):
     dbc = db_conn()
 
     # get all the intervals we've not finished processing yet
-    intervals = dbc.get_records('intervals', {'species': species, 'finished': 0}, sort='end-start DESC')
+    intervals = dbc.get_records('intervals', {'finished': 0}, sort='end-start DESC')
 
     # get all the valid samples
     samples = dbc.get_records_sql(
@@ -132,11 +128,10 @@ def populate_coverage(species):
              FROM samples s
              JOIN sample_files sf
                ON sf.sample_id = s.id
-            WHERE s.species = '{species}'
-              AND s.valid = 1
-         GROUP BY s.id;""".format(species=species))
+            WHERE s.valid = 1
+         GROUP BY s.id""")
 
-    print("INFO: Processing {:,} intervals in {:,} {} samples".format(len(intervals), len(samples), species))
+    print("INFO: Processing {:,} intervals in {:,} samples".format(len(intervals), len(samples)))
 
     # before we start, tidy up any records from intervals that were not finished
     dbc.execute_sql("""
@@ -144,8 +139,7 @@ def populate_coverage(species):
           FROM sample_reads
           JOIN intervals 
             ON intervals.id = sample_reads.interval_id
-         WHERE intervals.species = '{species}'
-           AND intervals.finished = 0""".format(species=species))
+         WHERE intervals.finished = 0""")
 
     if MULTI_THREADED:
         # process the chromosomes with multi-threading to make this faster
@@ -156,7 +150,7 @@ def populate_coverage(species):
         for interval in intervals.values():
             process_interval((interval, samples))
 
-    print("FINISHED: Fully populated all the {} samples for {:,} intervals".format(species, len(intervals)))
+    print("FINISHED: Fully populated all the samples for {:,} intervals".format(len(intervals)))
 
 
 def process_interval(args):

@@ -6,8 +6,6 @@ from db_conn import db_conn
 
 import unicodecsv as csv
 
-species = 'pig'
-
 # the arbitrary +/- age uncertainty for median age dates
 MEDIAN_AGE_UNCERT = 100
 
@@ -57,15 +55,13 @@ with open("tsv/all-bins.tsv", "wb") as tsv_file:
                           ON s.age = sd.age
                    LEFT JOIN sample_dates_c14 c14
                           ON c14.accession = s.accession
-                       WHERE s.species = '{species}'
-                         AND s.valid = 1
+                       WHERE s.valid = 1
     
                     ) as age
     
               WHERE lower >= {binupper}
                 AND upper <= {binlower}
-             HAVING overlap/width >= {binpercent}""".format(species=species,
-                                                            uncert=MEDIAN_AGE_UNCERT,
+             HAVING overlap/width >= {binpercent}""".format(uncert=MEDIAN_AGE_UNCERT,
                                                             binpercent=BIN_PERCENT,
                                                             binlower=bin_lower,
                                                             binupper=bin_upper), key=None)

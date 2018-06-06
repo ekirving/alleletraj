@@ -40,17 +40,23 @@ def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
     return records
 
 
-def sync_c14_dates(species):
+def sync_radiocarbon_dates():
     """
-    Fetch all the C14 dates
+    Fetch all the radiocarbon dates
     """
 
     dbc = db_conn()
 
-    print("INFO: Synchronising {} C14 dates".format(species))
+    print("INFO: Synchronising radiocarbon dates")
 
-    # get the google sheet details
-    sheet = C14_SHEET[species]
+    try:
+        # get the google sheet details
+        sheet = RADIOCARBON_SHEET[SPECIES]
+
+    except KeyError:
+
+        print("WARNING: No radiocarbon spreadsheet for {}".format(SPECIES))
+        return
 
     # fetch all the manual age mappings
     records = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
@@ -62,17 +68,24 @@ def sync_c14_dates(species):
             dbc.save_record('sample_dates_c14', record)
 
 
-def confirm_age_mapping(species):
+def confirm_age_mapping():
     """
     Make sure that all the free-text dates have proper numeric mappings
     """
 
     dbc = db_conn()
 
-    print("INFO: Confirming {} age mappings".format(species))
+    print("INFO: Confirming age mappings")
 
-    # get the google sheet details
-    sheet = AGE_MAP[species]
+
+    try:
+        # get the google sheet details
+        sheet = AGE_MAP[SPECIES]
+
+    except KeyError:
+
+        print("WARNING: No age mapping for {}".format(SPECIES))
+        return
 
     # fetch all the manual age mappings
     records = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
@@ -88,9 +101,8 @@ def confirm_age_mapping(species):
           FROM samples s
      LEFT JOIN sample_dates sd
             ON s.age = sd.age
-         WHERE s.species = '{species}'
-           AND s.age IS NOT NULL
-           AND sd.id IS NULL""".format(species=species))
+         WHERE s.age IS NOT NULL
+           AND sd.id IS NULL""")
 
     if missing:
         print("ERROR: Not all sample ages have numeric mappings!")
@@ -101,14 +113,18 @@ def confirm_age_mapping(species):
         quit()
 
 
-def mark_valid_samples(species):
+def mark_valid_samples():
     """
     Samples are valid if they are from Europe and have a BAM file.
     """
 
+    if SPECIES != 'pig':
+        # TODO make this work for all species not just pigs
+        raise Exception('Not implemented yet for {}'.format(SPECIES))
+
     dbc = db_conn()
 
-    print("INFO: Marking valid {} samples".format(species))
+    print("INFO: Marking valid samples")
 
     # make a list of permissible countries
     europe = "','".join(EUROPE)
@@ -118,22 +134,18 @@ def mark_valid_samples(species):
           JOIN sample_files
             ON sample_files.sample_id = samples.id
            SET valid = 1
-         WHERE species = '{species}'
-           AND country IN ('{europe}')""".format(species=species, europe=europe))
+         WHERE country IN ('{europe}')""".format(europe=europe))
 
 
-def bin_samples(species):
+def bin_samples():
     """
     Assign samples to temporal bins
     """
 
     dbc = db_conn()
 
-    # TODO what about species?
     # sample_bins
-    dbc.execute_sql("""
-        TRUNCATE TABLE sample_bins
-        """)
+    dbc.execute_sql("TRUNCATE TABLE sample_bins")
 
     # SQL fragment to get the most precise dates for each sample
     sql_age = """
@@ -145,9 +157,8 @@ def bin_samples(species):
             ON s.age = sd.age
      LEFT JOIN sample_dates_c14 c14
             ON c14.accession = s.accession
-         WHERE s.species = '{species}'
-           AND s.valid = 1
-           """.format(species=species, uncert=MEDIAN_AGE_UNCERT)
+         WHERE s.valid = 1
+           """.format(uncert=MEDIAN_AGE_UNCERT)
 
     # get the maximum date
     max_lower = dbc.get_records_sql("""
@@ -180,17 +191,17 @@ def bin_samples(species):
                                                             binlower=bin_lower,
                                                             binupper=bin_upper))
 
-def populate_samples(species):
+def populate_samples():
 
     # open a db connection
     dbc = db_conn()
 
-    if species != 'pig':
+    if SPECIES != 'pig':
         # TODO make this work for all species not just pigs
-        raise Exception('Not implemented yet for {}'.format(species))
+        raise Exception('Not implemented yet for {}'.format(SPECIES))
 
     # get the google sheet details
-    sheet = GOOGLE_SHEET[species]
+    sheet = GOOGLE_SHEET[SPECIES]
 
     # fetch all the samples from the GoogleDoc spreadsheet
     samples = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
@@ -199,12 +210,12 @@ def populate_samples(species):
     samples = [sample for sample in samples if sample.pop('dna', None) is not None]
 
     if VERBOSE:
-        print("INFO: Updating {} {} samples".format(len(samples), species))
+        print("INFO: Updating {} samples".format(len(samples)))
 
     bam_files = defaultdict(list)
 
     # load the BAM file paths
-    with open('./data/bam_files_{}.txt'.format(species), 'r') as fin:
+    with open('./data/bam_files_{}.txt'.format(SPECIES), 'r') as fin:
         for line in fin:
             # extract the accession code
             accession = os.path.basename(line).replace('_rmdup.bam', '').strip()
@@ -214,8 +225,6 @@ def populate_samples(species):
         accession = sample['accession']
 
         # save the sample record
-        sample['species'] = species
-
         dbc.save_record('samples', sample)
 
         # fetch the sample record (so we can link the BAM files to the ID)
@@ -231,16 +240,15 @@ def populate_samples(species):
                 dbc.save_record('sample_files', bam_file)
 
     # fetch all the C14 dates
-    sync_c14_dates(species)
+    sync_radiocarbon_dates()
 
     # make sure that all the free-text dates have proper numeric mappings
-    confirm_age_mapping(species)
+    confirm_age_mapping()
 
     # samples are valid if they are from Europe and have a BAM file
-    mark_valid_samples(species)
+    mark_valid_samples()
 
     # assign samples to temporal bins
-    bin_samples(species)
+    bin_samples()
 
-    if VERBOSE:
-        print("INFO: Finished updating {} {} samples".format(len(samples), species))
+    print("INFO: Finished updating {} samples".format(len(samples)))

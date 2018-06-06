@@ -211,13 +211,13 @@ def link_dbsnp_snpchip():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def discover_modern_snps(species):
+def discover_modern_snps():
 
-    if species != 'pig':
+    if SPECIES != 'pig':
         # TODO make this work for all species not just pigs
-        raise Exception('Not implemented yet for {}'.format(species))
+        raise Exception('Not implemented yet for {}'.format(SPECIES))
 
-    chroms = CHROM_SIZE[species].keys()
+    chroms = CHROM_SIZE[SPECIES].keys()
 
     if MULTI_THREADED:
         # chain together an iterator for the params

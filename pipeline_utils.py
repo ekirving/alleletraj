@@ -76,8 +76,9 @@ def extract_qtl_fields(dbfile, fields):
 
     data = defaultdict(list)
 
-    # get all the QTL IDs for this scope (i.e. species)
+    # get all the QTL IDs for this scope
     with open(dbfile, 'rU') as fin:
+
         # get the column headers
         header = fin.readline().split('\t')
 

@@ -10,7 +10,7 @@ from qtldb_api import *
 from pipeline_utils import *
 
 
-def populate_qtls(species):
+def populate_qtls():
     """
     Fetch all the QTLs from the QTLdb API and populate the local database.
     """
@@ -18,7 +18,7 @@ def populate_qtls(species):
     api = qtldb_api()
 
     # get the file containing all the QTL IDs
-    qtldb_file = QTL_FILES[species]
+    qtldb_file = QTL_FILES[SPECIES]
 
     # get a list of all the QTLDb IDs from the tsv dump
     data = extract_qtl_fields(qtldb_file, ['QTL_ID'])
@@ -26,7 +26,7 @@ def populate_qtls(species):
     # convert all the IDs to int
     qtl_ids = [int(qtl_id) for qtl_id in data['QTL_ID'] if qtl_id.isdigit()]
 
-    print("INFO: Processing %s %s QTLs from '%s'" % (len(qtl_ids), species, qtldb_file))
+    print("INFO: Processing {:,} QTLs from '{}'".format(len(qtl_ids), qtldb_file))
 
     # get all the QTLs already in the DB
     qtls = dbc.get_records('qtls')
@@ -34,8 +34,7 @@ def populate_qtls(species):
     # find the new IDs in the list
     new_ids = list(set(qtl_ids) - set(qtls.keys()))
 
-    if VERBOSE:
-        print("INFO: Found %s new %s QTLs to add" % (len(new_ids), species))
+    print("INFO: Found {:,} new QTLs to add".format(len(new_ids)))
 
     # rename these fields
     key_map = {
@@ -47,7 +46,7 @@ def populate_qtls(species):
     added = 0
 
     # get all the new records
-    for record in api.get_qtls(species, new_ids):
+    for record in api.get_qtls(SPECIES, new_ids):
 
         # TODO when resultset is len() = 1 then this throws an error
         # extract the nested trait record
@@ -62,7 +61,7 @@ def populate_qtls(species):
 
             # setup the trait record
             trait = dict((field.replace('trait', '').lower(), value) for field, value in trait.iteritems())
-            trait['type'] = api.get_trait_type(species, trait['id'], trait['name'])  # TODO this is broken!!
+            trait['type'] = api.get_trait_type(SPECIES, trait['id'], trait['name'])  # TODO this is broken!!
 
             dbc.save_record('traits', trait, insert=True)
 
@@ -70,7 +69,7 @@ def populate_qtls(species):
         if not dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
 
             # setup the pubmed record
-            pubmed = api.get_publication(species, record['pubmedID'])
+            pubmed = api.get_publication(SPECIES, record['pubmedID'])
 
             if pubmed:
                 pubmed['id'] = pubmed.pop('pubmed_ID')
@@ -117,22 +116,20 @@ def populate_qtls(species):
         # filter out any empty values
         qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')
 
-        qtl['species'] = species
-
         dbc.save_record('qtls', qtl, insert=True)
 
         added += 1
 
         if VERBOSE and added % 100 == 0:
-            print("INFO: Added %5d new QTLs" % added)
+            print("INFO: Added {:5d} new QTLs".format(added))
 
     if VERBOSE:
-        print("INFO: Finished adding %s new %s QTLs" % (len(new_ids), species))
+        print("INFO: Finished adding {} new QTLs".format(len(new_ids)))
 
 
-def populate_sweeps(species):
+def populate_sweeps():
     """
-    Populate the db with selective sweep regions for the given species.
+    Populate the db with any selective sweep regions.
     """
 
     # open a db connection
@@ -140,12 +137,12 @@ def populate_sweeps(species):
 
     try:
         # get the files containing the sweep data
-        loci_file = SWEEP_DATA[species]['loci']
-        snps_file = SWEEP_DATA[species]['snps']
+        loci_file = SWEEP_DATA[SPECIES]['loci']
+        snps_file = SWEEP_DATA[SPECIES]['snps']
 
     except KeyError:
 
-        print("INFO: No selective sweep loci for {}".format(species))
+        print("WARNING: No selective sweep loci for {}".format(SPECIES))
         return
 
     num_loci = 0
@@ -159,7 +156,6 @@ def populate_sweeps(species):
 
             # setup a dummy QTL record
             qtl = {
-                'species':         species,
                 'associationType': 'Sweep',
                 'chrom':           chrom,
                 'significance':    'Significant',
@@ -199,10 +195,10 @@ def populate_sweeps(species):
 
                 num_snps += 1
 
-    print("INFO: Loaded {} selective sweep loci (inc. {} SNPs) for {}.".format(num_loci, num_snps, species))
+    print("INFO: Loaded {} selective sweep loci (inc. {} SNPs)".format(num_loci, num_snps))
 
 
-def populate_mc1r_locus(species):
+def populate_mc1r_locus():
     """
     Populate a dummy QTLs for the MC1R gene.
     """
@@ -214,7 +210,6 @@ def populate_mc1r_locus(species):
 
     # setup a dummy QTL record
     qtl = {
-        'species': species,
         'associationType': 'MC1R',
         'chrom': mc1r['chrom'],
         'valid': 1,
@@ -229,7 +224,7 @@ def populate_mc1r_locus(species):
         print("INFO: Added the MC1R gene locus")
 
 
-def populate_neutral_loci(species):
+def populate_neutral_loci():
     """
     Populate dummy QTLs for all the "neutral" loci (i.e. regions outside of all QTLs and gene regions +/- a buffer)
     """
@@ -257,13 +252,13 @@ def populate_neutral_loci(species):
     for result in results:
         intervals[result['chrom']].append((result['start'], result['end']))
 
-    allregions = 'bed/{}_allregions.bed'.format(species)
-    nonneutral = 'bed/{}_nonneutral.bed'.format(species)
+    allregions = 'bed/{}_allregions.bed'.format(SPECIES)
+    nonneutral = 'bed/{}_nonneutral.bed'.format(SPECIES)
 
     # write a BED file for the whole genome
     with open(allregions, 'w') as fout:
-        for chrom in CHROM_SIZE[species].keys():
-            fout.write("{}\t{}\t{}\n".format(chrom, 1, CHROM_SIZE[species][chrom]))
+        for chrom in CHROM_SIZE[SPECIES].keys():
+            fout.write("{}\t{}\t{}\n".format(chrom, 1, CHROM_SIZE[SPECIES][chrom]))
 
     # write all the non-neutral regions to a BED file
     with open(nonneutral, 'w') as fout:
@@ -282,7 +277,6 @@ def populate_neutral_loci(species):
 
         # setup a dummy QTL record
         qtl = {
-            'species': species,
             'associationType': 'Neutral',
             'chrom': chrom,
             'valid': 1,
@@ -301,7 +295,7 @@ def populate_neutral_loci(species):
     print("INFO: Added {:,} neutral loci".format(num_loci))
 
 
-def populate_qtl_snps(species):
+def populate_qtl_snps():
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
     """
@@ -310,9 +304,9 @@ def populate_qtl_snps(species):
 
     start = time()
 
-    print("INFO: Populating {} QTL SNPs... ".format(species), end='')
+    print("INFO: Populating QTL SNPs... ", end='')
 
-    chroms = CHROM_SIZE[species].keys()
+    chroms = CHROM_SIZE[SPECIES].keys()
 
     for chrom in chroms:
         # insert linking records to make future queries much quicker
@@ -324,10 +318,9 @@ def populate_qtl_snps(species):
                      ON ms.population = '{population}'
                     AND ms.chrom = q.chrom
                     AND ms.site BETWEEN q.start AND q.end
-                  WHERE q.species = '{species}'
-                    AND q.chrom = '{chrom}'
+                  WHERE q.chrom = '{chrom}'
                     AND q.valid = 1
-                    AND ms.maf >= {maf}""".format(species=species, population='EUD', chrom=chrom, maf=MIN_MAF))
+                    AND ms.maf >= {maf}""".format(population='EUD', chrom=chrom, maf=MIN_MAF))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -357,25 +350,24 @@ def mark_neutral_snps():
 
 
 
-def load_ensembl_variants(species):
+def load_ensembl_variants():
     """
     Load the GVF (Genome Variation Format) data from Ensembl.
 
-    Contains all germline variations from the current Ensembl release for this species.
+    Contains all germline variants from the current Ensembl release for this species.
 
     See http://www.sequenceontology.org/gvf.html
     """
 
-    # open a db connection
     dbc = db_conn()
 
-    print("INFO: Loading Ensembl {} variants".format(species))
+    print("INFO: Loading Ensembl variants")
 
     # the column headers for batch inserting into the db
-    fields = ('species', 'dbxref', 'rsnumber', 'type', 'chrom', 'start', 'end', 'ref', 'alt')
+    fields = ('dbxref', 'rsnumber', 'type', 'chrom', 'start', 'end', 'ref', 'alt')
 
     # open the GVF file
-    with gzip.open(ENSEMBL_DATA[species]['gvf'], 'r') as fin:
+    with gzip.open(ENSEMBL_DATA[SPECIES]['gvf'], 'r') as fin:
 
         # buffer the records for bulk insert
         records = []
@@ -397,7 +389,7 @@ def load_ensembl_variants(species):
                 dbxref, rsnumber = atts['Dbxref'].split(":")
 
                 # setup the record to insert, in this order
-                variant = (species, dbxref, rsnumber, type, chrom, start, end, atts['Reference_seq'], atts['Variant_seq'])
+                variant = (dbxref, rsnumber, type, chrom, start, end, atts['Reference_seq'], atts['Variant_seq'])
 
                 # add to the buffer
                 records.append(variant)
@@ -412,9 +404,7 @@ def load_ensembl_variants(species):
             dbc.save_records('ensembl_variants', fields, records)
 
 
-
-
-def load_ensembl_genes(species):
+def load_ensembl_genes():
     """
     Load the GTF (General Transfer Format) data from Ensembl.
 
@@ -426,13 +416,13 @@ def load_ensembl_genes(species):
     # open a db connection
     dbc = db_conn()
 
-    print("INFO: Loading Ensembl {} genes".format(species))
+    print("INFO: Loading Ensembl genes")
 
     # the column headers for batch inserting into the db
-    fields = ('species', 'source', 'gene_id', 'version', 'biotype', 'chrom', 'start', 'end')
+    fields = ('source', 'gene_id', 'version', 'biotype', 'chrom', 'start', 'end')
 
     # open the GTF file
-    with gzip.open(ENSEMBL_DATA[species]['gtf'], 'r') as fin:
+    with gzip.open(ENSEMBL_DATA[SPECIES]['gtf'], 'r') as fin:
 
         # buffer the records for bulk insert
         records = []
@@ -456,7 +446,7 @@ def load_ensembl_genes(species):
                     atts.update({k:v.strip('"') for k, v in atts.items()})
 
                     # setup the record to insert, in this order
-                    gene = (species, atts['gene_source'], atts['gene_id'], atts['gene_version'], atts['gene_biotype'], chrom, start, end)
+                    gene = (atts['gene_source'], atts['gene_id'], atts['gene_version'], atts['gene_biotype'], chrom, start, end)
 
                     # add to the buffer
                     records.append(gene)
@@ -466,7 +456,7 @@ def load_ensembl_genes(species):
             dbc.save_records('ensembl_genes', fields, records)
 
 
-def load_snpchip_variants(species):
+def load_snpchip_variants():
     """
     Load the SNP chip variants from SNPchimp
 
@@ -476,13 +466,13 @@ def load_snpchip_variants(species):
     # open a db connection
     dbc = db_conn()
 
-    print("INFO: Loading SNP chip {} variants".format(species))
+    print("INFO: Loading SNP chip variants")
 
-    pipe = "/tmp/SNPchimp_{}".format(species)
+    pipe = "/tmp/SNPchimp_{}".format(SPECIES)
 
     # unzip the dump into a named pipe
     run_cmd(["mkfifo --mode=0666 {pipe}".format(pipe=pipe)], shell=True)
-    run_cmd(["gzip --stdout -d  {gz} > {pipe}".format(gz=SNP_CHIP_DATA[species], pipe=pipe)],
+    run_cmd(["gzip --stdout -d  {gz} > {pipe}".format(gz=SNP_CHIP_DATA[SPECIES], pipe=pipe)],
             shell=True, background=True)
 
     dbc.execute_sql("""
@@ -493,7 +483,7 @@ def load_snpchip_variants(species):
               """.format(pipe=pipe))
 
 
-def compute_qtl_windows(species):
+def compute_qtl_windows():
 
     # open a db connection
     dbc = db_conn()
@@ -504,9 +494,7 @@ def compute_qtl_windows(species):
          SET valid = NULL,
               site = NULL,
              start = NULL,
-               end = NULL
-       WHERE q.species = '{species}'
-         """.format(species=species))
+               end = NULL""")
 
     # get all the valid QTL windows
     results = dbc.get_records_sql("""
@@ -516,17 +504,16 @@ def compute_qtl_windows(species):
             ON v.rsnumber = q.peak                # only QTLs with a dbsnp peak
            AND v.type = 'SNV'                     # only single nucleotide variants
            AND CHAR_LENGTH(v.alt) = 1             # only biallelic sites
-         WHERE q.species = '{species}'             
-           AND q.associationType = 'Association'  # only GWAS studies
+         WHERE q.associationType = 'Association'  # only GWAS studies
            AND q.significance = 'Significant'     # only significant hits
-           """.format(species=species), key=None)
+           """, key=None)
 
-    print("INFO: Computing window sizes for {:,} {} QTLs".format(len(results), species))
+    print("INFO: Computing window sizes for {:,} QTLs".format(len(results)))
 
     for result in results:
 
         # get the size of the current chrom
-        chom_size = CHROM_SIZE[species][result['chrom']]
+        chom_size = CHROM_SIZE[SPECIES][result['chrom']]
 
         # calculate the bounded window size
         start = result['site'] - QTL_WINDOW if result['site'] > QTL_WINDOW else 1

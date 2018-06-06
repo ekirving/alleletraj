@@ -6,8 +6,6 @@ from populate_coverage import run_cmd
 
 import unicodecsv as csv
 
-species = 'pig'
-
 # open a db connection
 dbc = db_conn()
 

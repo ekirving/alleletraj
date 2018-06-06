@@ -5,6 +5,8 @@ from collections import OrderedDict
 from socket import gethostname
 from multiprocessing import cpu_count
 
+SPECIES = 'pig'
+
 OUTGROUP = 'SVSV01U01_Sverrucosus_rh'  # Sus verrucosus / Javan warty pig
 
 # path to the folder containing the modern fasta files
@@ -179,7 +181,7 @@ AGE_MAP = {
     }
 }
 
-C14_SHEET = {
+RADIOCARBON_SHEET = {
 
     'pig': {
         'id': '1odoL9hQh87bLLe3yipbo-CKKXLvIgb5n_kfoqSALHi8',
@@ -219,7 +221,6 @@ NUM_NEUTRAL_SNPS = 50000
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10
 
-# TODO what about the others species
 # location of reference genome
 REF_FILE = "fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa"
 
@@ -237,3 +238,14 @@ MAX_CPU_CORES = int(cpu_count() * 0.5)
 
 # the minimum minor allele frequency of modern SNPs to include
 MIN_MAF = 0.05
+
+# the minimum phred scaled genotype quality (30 = 99.9%)
+MIN_BASE_QUAL = 30
+MIN_MAP_QUAL = 30
+MIN_GENO_QUAL = 30
+
+# number of bases to soft clip
+SOFT_CLIP_DIST = 3
+
+# the maximum number of rows to insert in a single operation
+MAX_INSERT_SIZE = 50000

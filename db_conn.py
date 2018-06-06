@@ -9,9 +9,6 @@ import itertools
 from pprint import pprint
 from collections import OrderedDict
 
-# the maximum number of rows to insert in a single operation
-MAX_INSERT_SIZE = 50000
-
 
 class db_conn:
     """

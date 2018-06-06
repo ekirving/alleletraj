@@ -45,7 +45,8 @@ populate_sample_reads()
 # apply quality filters to the sample reads
 discover_snps(POPULATION)
 
-
+# analyse the coverage and quality for SNPs in each QTLs
 analyse_qtls()
 
+# pick the best SNPs to target for a capture array
 perform_ascertainment()

@@ -295,7 +295,7 @@ def populate_neutral_loci():
     print("INFO: Added {:,} neutral loci".format(num_loci))
 
 
-def populate_qtl_snps():
+def populate_qtl_snps(population):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
     """
@@ -320,7 +320,7 @@ def populate_qtl_snps():
                     AND ms.site BETWEEN q.start AND q.end
                   WHERE q.chrom = '{chrom}'
                     AND q.valid = 1
-                    AND ms.maf >= {maf}""".format(population='EUD', chrom=chrom, maf=MIN_MAF))
+                    AND ms.maf >= {maf}""".format(population=population, chrom=chrom, maf=MIN_MAF))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 

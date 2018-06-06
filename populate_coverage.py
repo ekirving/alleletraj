@@ -77,7 +77,7 @@ def populate_intervals():
           .format(add_intvals, num_sites, del_intvals))
 
 
-def populate_interval_snps():
+def populate_interval_snps(population):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the unique intervals.
     """
@@ -108,7 +108,7 @@ def populate_interval_snps():
                     AND ms.site BETWEEN i.start AND i.end
                   WHERE i.finished = 0
                     AND i.chrom = '{chrom}'
-                    AND ms.maf >= {minmaf}""".format(population='EUD', chrom=chrom, minmaf=MIN_MAF))
+                    AND ms.maf >= {minmaf}""".format(population=population, chrom=chrom, minmaf=MIN_MAF))
 
 
 def populate_coverage():

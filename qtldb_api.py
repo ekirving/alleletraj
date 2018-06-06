@@ -59,7 +59,7 @@ class qtldb_api:
 
                 # if ord(problem[column]) > 160:
                 #     # handle utf8 encoding issues
-                #     problem[column] = '&#%s;' % ord(problem[column])
+                #     problem[column] = '&#{};'.format(ord(problem[column]))
 
                 lines[line-1] = ''.join(problem)
                 xml = ''.join(lines)

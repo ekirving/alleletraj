@@ -11,6 +11,7 @@ from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 from ascertainment import perform_ascertainment
 
+
 # load_ensembl_genes()
 # load_ensembl_variants()
 
@@ -20,20 +21,20 @@ discover_modern_snps()
 
 # populate_qtls()
 # compute_qtl_windows()
-populate_sweeps()
+# populate_sweeps()
 # populate_mc1r_locus()
 # populate_neutral_loci()
 
 # populate_intervals()
-# populate_interval_snps()
+# populate_interval_snps(POPULATION)
 
 # populate_samples()
 # populate_coverage()
 
-# populate_qtl_snps()
+# populate_qtl_snps(POPULATION)
 # mark_neutral_snps()
 
-# discover_snps()
+# discover_snps(POPULATION)
 # analyse_qtls()
 
 # perform_ascertainment()

@@ -47,7 +47,7 @@ def apply_quality_filters(chrom):
            """.format(chrom=chrom, baseq=MIN_BASE_QUAL, mapq=MIN_MAP_QUAL, clip=SOFT_CLIP_DIST))
 
 
-def choose_random_read(chrom):
+def choose_random_read(chrom, population):
     """
     Choose a random read from those that pass quality filters
     """
@@ -71,7 +71,7 @@ def choose_random_read(chrom):
                 
                ) AS rand ON rand.id = sample_reads.id
            SET called = 1
-           """.format(population='EUD', chrom=chrom))
+           """.format(population=population, chrom=chrom))
 
 
 def apply_genotype_filters(chrom):
@@ -91,7 +91,7 @@ def apply_genotype_filters(chrom):
            """.format(chrom=chrom, genoq=MIN_GENO_QUAL))
 
 
-def call_ancient_snps(chrom):
+def call_ancient_snps(chrom, population):
     """
     Mark the sites which contain SNPs
     """
@@ -132,10 +132,10 @@ def call_ancient_snps(chrom):
           SET sr.snp = 1
         WHERE sr.chrom = '{chrom}' 
           AND sr.called = 1
-        """.format(population='EUD', chrom=chrom))
+        """.format(population=population, chrom=chrom))
 
 
-def discover_snps():
+def discover_snps(population):
     """
     Run queries to mark callable SNPs in the ancient populations.
 
@@ -169,7 +169,7 @@ def discover_snps():
     print("INFO: Choosing a random read from those that pass quality filters... ", end='')
 
     for chrom in chroms:
-        choose_random_read(chrom)
+        choose_random_read(chrom, population)
 
     print("({}).".format(timedelta(seconds=time() - start)))
     start = time()
@@ -185,7 +185,7 @@ def discover_snps():
     print("INFO: Marking the sites which contain SNPs... ", end='')
 
     for chrom in chroms:
-        call_ancient_snps(chrom)
+        call_ancient_snps(chrom, population)
 
     print("({}).".format(timedelta(seconds=time() - start)))
 

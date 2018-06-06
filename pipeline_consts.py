@@ -5,7 +5,9 @@ from collections import OrderedDict
 from socket import gethostname
 from multiprocessing import cpu_count
 
+# TODO this needs refactoring to work with multiple species
 SPECIES = 'pig'
+POPULATION = 'EUD'
 
 OUTGROUP = 'SVSV01U01_Sverrucosus_rh'  # Sus verrucosus / Javan warty pig
 

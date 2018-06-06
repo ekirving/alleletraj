@@ -230,7 +230,7 @@ def discover_modern_snps():
     else:
         for chrom in chroms:
             for pop in SAMPLES:
-                # we only ascertain the modern SNPs in European domestic (EUD)
+                # ascertain the modern SNPs separetly in each population
                 process_chrom((chrom, pop))
 
     # link modern SNPs to their dbsnp, gene and snpchip records

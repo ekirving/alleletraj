@@ -20,11 +20,6 @@ for species in SPECIES:
 
     # load_snpchip_variants(species)
 
-    db_conn().execute_sql("""
-    ALTER TABLE `modern_snps` 
-     DROP INDEX `chrom`,
-     ADD UNIQUE INDEX (`population`, `chrom`, `site`)""")
-
     discover_modern_snps(species)
 
     # populate_qtls(species)

@@ -12,60 +12,12 @@ import multiprocessing as mp
 import itertools
 import traceback
 
-SPECIES = 'pig'
-
-OUTGROUP = 'SVSV01U01_Sverrucosus_rh'  # Sus verrucosus / Javan warty pig
-
-# path to the folder containing the modern fasta files
-FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
-
-SAMPLES = {
-
-    # # the 81 European domestic pigs
-    # 'EUD': ['AS01F01_AnglerSattleschwein_rh', 'AS01F09_Angler_Sattelsw_rh', 'BB01M47_Bunte_Bentheimer_rh',
-    #        'BK01F10_Berkshire_rh', 'BK01M20_Berkshire_rh', 'BS01F10_British_Saddle_rh', 'BS01F35_British_Saddleback_rh',
-    #        'CA01F14_Calabrese_rh', 'CM01F17_Chato_Murciano_rh', 'CM01F18_Chato_Murciano_rh', 'CS01F02_Cinta_Senese_rh',
-    #        'CT01F13_Cassertana_rh', 'CT01M12_Cassertana_rh', 'DU22M01_Duroc_rh', 'DU22M02_Duroc_rh', 'DU22M03_Duroc_rh',
-    #        'DU23M01_Duroc_rh', 'DU23M02_Duroc_rh', 'DU23M03_Duroc_rh', 'DU23M04_Duroc_rh', 'GO01F04_Gl_Old_Spots_rh',
-    #        'GO01F23_GloucesterOldSpot_rh', 'HA20U01_Hampshire_rh', 'HA20U02_Hampshire_rh', 'HA20U04_Hampshire_rh',
-    #        'HA20U06_Hampshire_rh', 'LB01F49_Large_Black_rh', 'LE01F25_Leicoma_rh', 'LR21M03_rh', 'LR24F01_rh', 'LR24F08_rh',
-    #        'LR24M17_rh', 'LR24M18_rh', 'LR24M19_rh', 'LR24M20_rh', 'LR24M21_rh', 'LR24M22_rh', 'LR30F02_rh', 'LR30F03_rh',
-    #        'LR30F04_Landrace_rh', 'LS01F04_Linderodsvin_rh', 'LW22F01_rh', 'LW22F02_rh', 'LW22F03_rh', 'LW22F04_rh',
-    #        'LW22F06_rh', 'LW22F07_rh', 'LW22F08_LargeWhite_rh', 'LW22F09_LargeWhite_rh', 'LW22M04_rh', 'LW36F01_rh',
-    #        'LW36F02_rh', 'LW36F03_rh', 'LW36F04_rh', 'LW36F05_rh', 'LW36F06_rh', 'LW37M01_rh', 'LW38MF02_rh', 'LW39M01_rh',
-    #        'LW39M02_rh', 'LW39M03_rh', 'LW39M04_rh', 'LW39M05_rh', 'LW39M07_rh', 'LW39M08_rh', 'MA01F18_Mangalica_rh',
-    #        'MA01F20_Mangalica_rh', 'MW01F29_Middle_White_rh', 'MW01F33_Middle_White_rh', 'NI01U07_Negro_Iberico_rh',
-    #        'NS01F05_Nera_Siciliana_rh', 'PI21F02_rh', 'PI21F06_rh', 'PI21F07_Pietrain_rh', 'PI21F08_Pietrain_rh',
-    #        'PI21F09_Pietrain_rh', 'PI21M17_rh', 'PI21M20_rh', 'RE01F51_Retinto_rh', 'TA01F19_Tamworth_rh',
-    #        'TA01M06_Tamworth_rh'],
-
-    # the 22 Asian domestic pigs
-    'ASD': ['JI01U08_Jinhua_rh', 'JI01U10_Jinhua_rh', 'JQ01U02_Jiangquhai_rh', 'JQ01U03_Jiangquahai_rh',
-           'JQ01U08_Jiangquahai_rh', 'LSP01U16_LepingSpotted_rh', 'LSP01U18_LepingSpotted_rh', 'MS20M03_Meishan_rh',
-           'MS20M05_Meishan_rh', 'MS20U10_Meishan_rh', 'MS20U11_Meishan_rh', 'MS20U13_Meishan_rh', 'MS21M01_Meishan_rh',
-           'MS21M05_Meishan_rh', 'MS21M07_Meishan_rh', 'MS21M08_Meishan_rh', 'MS21M14_Meishan_rh',
-           'WS01U03_WannanSpotted_rh', 'WS01U13_WannanSpotted_rh', 'XI01U03_rh', 'XI01U04_Xiang_rh', 'ZA01U02_Zang_rh'],
-
-    # the 2 Sumatran scrofa (for ascertaining ancient alleles)
-    'SUM': ['INDO22_Sumatra_rh', 'INDO33_Sumatra_rh'],
-}
-
-# possible values include:
-fasta_map = {
-    'R': ['A', 'G'],
-    'Y': ['C', 'T'],
-    'K': ['G', 'T'],
-    'M': ['A', 'C'],
-    'S': ['C', 'G'],
-    'W': ['A', 'T'],
-}
-
 
 def decode_fasta(pileup):
     """
     Return list of haploid genotype calls, filtering out N values
     """
-    return sum([fasta_map.get(val, [val, val]) for val in pileup if val != 'N'], [])
+    return sum([FASTA_MAP.get(val, [val, val]) for val in pileup if val != 'N'], [])
 
 
 def stream_fasta(fin):
@@ -201,7 +153,9 @@ def link_ensembl_variants():
     """
     dbc = db_conn()
 
-    print("INFO: Linking modern SNPs to their Ensembl dbsnp variants.")
+    start = time()
+
+    print("INFO: Linking modern SNPs to their Ensembl dbsnp variants...", end='')
 
     dbc.execute_sql("""
         UPDATE modern_snps ms
@@ -214,6 +168,8 @@ def link_ensembl_variants():
            AND v.ref IN (ms.derived, ms.ancestral)
            AND v.alt IN (ms.derived, ms.ancestral)""")
 
+    print("({}).".format(timedelta(seconds=time() - start)))
+
 
 def link_ensembl_genes():
     """
@@ -221,7 +177,9 @@ def link_ensembl_genes():
     """
     dbc = db_conn()
 
-    print("INFO: Linking modern SNPs to their Ensembl genes.")
+    start = time()
+
+    print("INFO: Linking modern SNPs to their Ensembl genes...", end='')
 
     dbc.execute_sql("""
         UPDATE modern_snps ms
@@ -230,6 +188,8 @@ def link_ensembl_genes():
            AND ms.site BETWEEN eg.start AND eg.end
            SET ms.gene_id = eg.id""")
 
+    print("({}).".format(timedelta(seconds=time() - start)))
+
 
 def link_dbsnp_snpchip():
     """
@@ -237,7 +197,9 @@ def link_dbsnp_snpchip():
     """
     dbc = db_conn()
 
-    print("INFO: Linking modern SNPs to their snpchip variants.")
+    start = time()
+
+    print("INFO: Linking modern SNPs to their snpchip variants...", end='')
 
     dbc.execute_sql("""
         UPDATE modern_snps ms
@@ -245,6 +207,8 @@ def link_dbsnp_snpchip():
             ON ds.chrom = ms.chrom
            AND ds.site = ms.site
            SET ms.snpchip_id = ds.id""")
+
+    print("({}).".format(timedelta(seconds=time() - start)))
 
 
 def discover_modern_snps(species):

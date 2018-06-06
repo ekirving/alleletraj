@@ -69,9 +69,9 @@ def choose_random_read(species, chrom):
                     JOIN sample_reads sr
                       ON sr.sample_id = s.id
                     JOIN modern_snps ms
-                      ON ms.chrom = sr.chrom
+                      ON ms.population = '{population}'
+                     AND ms.chrom = sr.chrom
                      AND ms.site = sr.site
-                     AND ms.species = s.species
                    WHERE s.species = '{species}'
                      AND sr.chrom = '{chrom}'
                      AND sr.quality = 1
@@ -80,7 +80,7 @@ def choose_random_read(species, chrom):
                 
                ) AS rand ON rand.id = sample_reads.id
            SET called = 1
-           """.format(species=species, chrom=chrom))
+           """.format(species=species, population='EUD', chrom=chrom))
 
 
 def apply_genotype_filters(species, chrom):
@@ -131,21 +131,21 @@ def call_ancient_snps(species, chrom):
                      ) AS a
     
                      # make sure they have the same 2 alleles as the modern SNPs
-                    JOIN modern_snps as ms 
-                      ON ms.species = a.species
+                    JOIN modern_snps ms 
+                      ON ms.population = '{population}'
                      AND ms.chrom = a.chrom
-                     AND ms.site = a.site 
+                     AND ms.site = a.site
                      AND FIND_IN_SET(ms.ancestral, a.alleles)
                      AND FIND_IN_SET(ms.derived, a.alleles)
 
                 ) AS snp ON snp.chrom = sample_reads.chrom 
                         AND snp.site = sample_reads.site
-                        
+
           SET sample_reads.snp = 1
         WHERE samples.species = '{species}'
           AND sample_reads.chrom = '{chrom}' 
           AND sample_reads.called = 1
-        """.format(species=species, chrom=chrom))
+        """.format(species=species, population='EUD', chrom=chrom))
 
 
 def discover_snps(species):

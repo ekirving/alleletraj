@@ -106,13 +106,13 @@ def populate_interval_snps(species):
                  SELECT i.id, ms.id
                    FROM intervals i
                    JOIN modern_snps ms 
-                     ON ms.species = i.species
+                     ON ms.population = '{population}'
                     AND ms.chrom = i.chrom
                     AND ms.site BETWEEN i.start AND i.end
                   WHERE i.finished = 0
                     AND i.species = '{species}'
                     AND i.chrom = '{chrom}'
-                    AND ms.maf >= {minmaf}""".format(species=species, chrom=chrom, minmaf=MIN_MAF))
+                    AND ms.maf >= {minmaf}""".format(species=species, population='EUD', chrom=chrom, minmaf=MIN_MAF))
 
 
 def populate_coverage(species):

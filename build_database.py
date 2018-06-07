@@ -36,8 +36,8 @@ mark_neutral_snps()
 populate_intervals()
 populate_interval_snps(POPULATION)
 
-# load the sample metadata
-populate_samples()
+# # load the sample metadata
+# populate_samples()
 
 # load the sample reads for each ascertained SNP
 populate_sample_reads()

@@ -221,9 +221,10 @@ def process_interval(args):
         # check all the samples for coverage in this interval
         for sample_id in ids:
 
-            print("INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession']))
-
+            # get the sample
             sample = samples[sample_id]
+
+            print("INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession']))
 
             # buffer the reads so we can bulk insert them into the db
             reads = defaultdict(list)

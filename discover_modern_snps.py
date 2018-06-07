@@ -147,30 +147,6 @@ def process_chrom(args):
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
 
-def link_ensembl_variants():
-    """
-    Link modern SNPs to their Ensembl dbsnp variants
-    """
-    dbc = db_conn()
-
-    start = time()
-
-    print("INFO: Linking modern SNPs to their Ensembl dbsnp variants...", end='')
-
-    dbc.execute_sql("""
-        UPDATE modern_snps ms
-          JOIN ensembl_variants v
-            ON ms.chrom = v.chrom
-           AND ms.site = v.start
-           SET ms.variant_id = v.id
-         WHERE v.type = 'SNV'        
-           AND CHAR_LENGTH(alt) = 1   
-           AND v.ref IN (ms.derived, ms.ancestral)
-           AND v.alt IN (ms.derived, ms.ancestral)""")
-
-    print("({}).".format(timedelta(seconds=time() - start)))
-
-
 def link_ensembl_genes():
     """
     Link modern SNPs to their Ensembl genes
@@ -181,12 +157,46 @@ def link_ensembl_genes():
 
     print("INFO: Linking modern SNPs to their Ensembl genes...", end='')
 
-    dbc.execute_sql("""
-        UPDATE modern_snps ms
-          JOIN ensembl_genes eg
-            ON eg.chrom = ms.chrom
-           AND ms.site BETWEEN eg.start AND eg.end
-           SET ms.gene_id = eg.id""")
+    # chunk the queries by chrom (to avoid temp tables)
+    chroms = CHROM_SIZE[SPECIES].keys()
+
+    for chrom in chroms:
+        dbc.execute_sql("""
+            UPDATE modern_snps ms
+              JOIN ensembl_genes eg
+                ON eg.chrom = ms.chrom
+               AND ms.site BETWEEN eg.start AND eg.end
+               SET ms.gene_id = eg.id
+             WHERE ms.chrom = '{chrom}'""".format(chrom=chrom))
+
+    print("({}).".format(timedelta(seconds=time() - start)))
+
+
+def link_ensembl_variants():
+    """
+    Link modern SNPs to their Ensembl dbsnp variants
+    """
+    dbc = db_conn()
+
+    start = time()
+
+    print("INFO: Linking modern SNPs to their Ensembl dbsnp variants...", end='')
+
+    # chunk the queries by chrom (to avoid temp tables)
+    chroms = CHROM_SIZE[SPECIES].keys()
+
+    for chrom in chroms:
+        dbc.execute_sql("""
+            UPDATE modern_snps ms
+              JOIN ensembl_variants v
+                ON ms.chrom = v.chrom
+               AND ms.site = v.start
+               SET ms.variant_id = v.id
+             WHERE ms.chrom = '{chrom}'
+               and v.type = 'SNV'        
+               AND CHAR_LENGTH(alt) = 1   
+               AND v.ref IN (ms.derived, ms.ancestral)
+               AND v.alt IN (ms.derived, ms.ancestral)""".format(chrom=chrom))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -201,12 +211,17 @@ def link_snpchip():
 
     print("INFO: Linking modern SNPs to their snpchip variants...", end='')
 
-    dbc.execute_sql("""
-        UPDATE modern_snps ms
-          JOIN snpchip sc
-            ON sc.chrom = ms.chrom
-           AND sc.site = ms.site
-           SET ms.snpchip_id = sc.id""")
+    # chunk the queries by chrom (to avoid temp tables)
+    chroms = CHROM_SIZE[SPECIES].keys()
+
+    for chrom in chroms:
+        dbc.execute_sql("""
+            UPDATE modern_snps ms
+              JOIN snpchip sc
+                ON sc.chrom = ms.chrom
+               AND sc.site = ms.site
+               SET ms.snpchip_id = sc.id
+             WHERE ms.chrom = '{chrom}'""".format(chrom=chrom))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -230,10 +245,10 @@ def discover_modern_snps():
     else:
         for chrom in chroms:
             for pop in SAMPLES:
-                # ascertain the modern SNPs separetly in each population
+                # ascertain the modern SNPs separately in each population
                 process_chrom((chrom, pop))
 
     # link modern SNPs to their dbsnp, gene and snpchip records
-    link_ensembl_variants()
     link_ensembl_genes()
+    link_ensembl_variants()
     link_snpchip()

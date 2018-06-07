@@ -21,7 +21,7 @@ discover_modern_snps()
 # load the QTLs from the AnimalQTL database
 populate_qtls()
 
-# load psudo-QTLs from other sources
+# load pseudo-QTLs from other sources
 populate_sweeps()
 populate_mc1r_locus()
 populate_neutral_loci()

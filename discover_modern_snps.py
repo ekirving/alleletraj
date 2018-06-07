@@ -232,21 +232,21 @@ def discover_modern_snps():
         # TODO make this work for all species not just pigs
         raise Exception('Not implemented yet for {}'.format(SPECIES))
 
-    chroms = CHROM_SIZE[SPECIES].keys()
-
-    if MULTI_THREADED:
-        # chain together an iterator for the params
-        params = itertools.chain.from_iterable(itertools.izip(chroms, itertools.repeat(pop)) for pop in SAMPLES)
-
-        # process the chromosomes in parallel
-        pool = mp.Pool(MAX_CPU_CORES)
-        pool.map(process_chrom, params)
-
-    else:
-        for chrom in chroms:
-            for pop in SAMPLES:
-                # ascertain the modern SNPs separately in each population
-                process_chrom((chrom, pop))
+    # chroms = CHROM_SIZE[SPECIES].keys()
+    #
+    # if MULTI_THREADED:
+    #     # chain together an iterator for the params
+    #     params = itertools.chain.from_iterable(itertools.izip(chroms, itertools.repeat(pop)) for pop in SAMPLES)
+    #
+    #     # process the chromosomes in parallel
+    #     pool = mp.Pool(MAX_CPU_CORES)
+    #     pool.map(process_chrom, params)
+    # 
+    # else:
+    #     for chrom in chroms:
+    #         for pop in SAMPLES:
+    #             # ascertain the modern SNPs separately in each population
+    #             process_chrom((chrom, pop))
 
     # link modern SNPs to their dbsnp, gene and snpchip records
     link_ensembl_genes()

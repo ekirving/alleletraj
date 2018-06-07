@@ -241,7 +241,7 @@ def discover_modern_snps():
     #     # process the chromosomes in parallel
     #     pool = mp.Pool(MAX_CPU_CORES)
     #     pool.map(process_chrom, params)
-    # 
+    #
     # else:
     #     for chrom in chroms:
     #         for pop in SAMPLES:
@@ -250,5 +250,5 @@ def discover_modern_snps():
 
     # link modern SNPs to their dbsnp, gene and snpchip records
     link_ensembl_genes()
-    link_ensembl_variants()
+    # link_ensembl_variants()
     link_snpchip()

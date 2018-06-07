@@ -322,7 +322,8 @@ def populate_qtl_snps(population):
                     AND ms.site BETWEEN q.start AND q.end
                   WHERE q.chrom = '{chrom}'
                     AND q.valid = 1
-                    AND ms.maf >= {maf}""".format(population=population, chrom=chrom, maf=MIN_MAF))
+                    AND ms.maf >= {maf}
+                    """.format(population=population, chrom=chrom, maf=MIN_MAF))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -338,15 +339,20 @@ def mark_neutral_snps():
 
     print("INFO: Marking neutral SNPs... ", end='')
 
-    dbc.execute_sql("""
-        UPDATE modern_snps ms
-          JOIN qtl_snps qs
-            ON qs.modsnp_id = ms.id
-          JOIN qtls q
-            ON q.id = qs.qtl_id
-           SET ms.neutral = 1
-         WHERE q.associationType = 'Neutral'
-           AND q.valid = 1""")
+    chroms = CHROM_SIZE[SPECIES].keys()
+
+    for chrom in chroms:
+        dbc.execute_sql("""
+            UPDATE modern_snps ms
+              JOIN qtl_snps qs
+                ON qs.modsnp_id = ms.id
+              JOIN qtls q
+                ON q.id = qs.qtl_id
+               SET ms.neutral = 1
+             WHERE q.chrom = '{chrom}'
+               AND q.associationType = 'Neutral'
+               AND q.valid = 1
+               """.format(chrom=chrom))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 

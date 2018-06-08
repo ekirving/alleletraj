@@ -219,7 +219,7 @@ def fetch_neutral_snps():
 
     start = time()
 
-    print("INFO: Fetching {num} neutral SNPs... ".format(num=NUM_NEUTRAL_SNPS), end='')
+    print("INFO: Fetching {:,} neutral SNPs... ".format(NUM_NEUTRAL_SNPS), end='')
 
 
     # get the total size of the autosomes
@@ -269,7 +269,7 @@ def fetch_ancestral_snps():
 
     start = time()
 
-    print("INFO: Fetching {num_snps} ancestral SNPs... ".format(num_snps=NUM_ANCESTRAL_SNPS), end='')
+    print("INFO: Fetching {:,} ancestral SNPs... ".format(NUM_ANCESTRAL_SNPS), end='')
 
     # get the total size of the autosomes
     total = sum(size for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
@@ -316,21 +316,21 @@ def perform_ascertainment():
 
     print("INFO: Starting ascertainment process")
 
-    # # clear any existing SNPs
-    # dbc = db_conn()
-    # dbc.execute_sql("TRUNCATE TABLE ascertainment")
-    #
-    # # fetch all the GWAS peaks from the QTL database
-    # fetch_gwas_peaks()
-    #
-    # # fetch the best flanking SNPs for each GWAS peak
-    # fetch_gwas_flanking_snps()
-    #
-    # # fetch the best SNPs from the selective sweep loci
-    # fetch_selective_sweep_snps()
-    #
-    # # get all MC1R snps
-    # fetch_mc1r_snps()
+    # clear any existing SNPs
+    dbc = db_conn()
+    dbc.execute_sql("TRUNCATE TABLE ascertainment")
+
+    # fetch all the GWAS peaks from the QTL database
+    fetch_gwas_peaks()
+
+    # fetch the best flanking SNPs for each GWAS peak
+    fetch_gwas_flanking_snps()
+
+    # fetch the best SNPs from the selective sweep loci
+    fetch_selective_sweep_snps()
+
+    # get all MC1R snps
+    fetch_mc1r_snps()
 
     # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
     fetch_neutral_snps()

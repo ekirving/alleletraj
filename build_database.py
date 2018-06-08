@@ -8,12 +8,12 @@ from analyse_qtls import analyse_qtls
 from populate_samples import populate_samples
 from ascertainment import perform_ascertainment
 
-# # load all the Ensembl data for this species
-# load_ensembl_genes()
-# load_ensembl_variants()
-#
-# # load the SNP Chip data
-# load_snpchip_variants()
+# load all the Ensembl data for this species
+load_ensembl_genes()
+load_ensembl_variants()
+
+# load the SNP Chip data
+load_snpchip_variants()
 
 # ascertain SNPs in modern whole genome data
 discover_modern_snps()
@@ -50,3 +50,4 @@ analyse_qtls()
 
 # pick the best SNPs to target for a capture array
 perform_ascertainment()
+

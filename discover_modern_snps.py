@@ -108,8 +108,8 @@ def process_chrom(args):
 
                 if ancestral not in alleles:
                     if VERBOSE:
-                        print("WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}".format(chrom, site, set(haploids),
-                                                                                              ancestral), file=sys.stderr)
+                        print("WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}"
+                              .format(chrom, site, set(haploids), ancestral), file=sys.stderr)
                     continue
 
                 # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)

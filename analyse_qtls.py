@@ -119,7 +119,7 @@ def find_best_snps():
 
     start = time()
 
-    print("INFO: Counting the read coverage for each SNP... ", end='')
+    print("INFO: Finding the {} best SNPs for each QTL... ".format(SNPS_PER_QTL), end='')
 
     # chunk the queries by chrom (to avoid temp tables)
     chroms = CHROM_SIZE[SPECIES].keys()

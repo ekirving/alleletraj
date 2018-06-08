@@ -14,17 +14,17 @@ from ascertainment import perform_ascertainment
 #
 # # load the SNP Chip data
 # load_snpchip_variants()
-#
-# # ascertain SNPs in modern whole genome data
-# discover_modern_snps()
-#
-# # load the QTLs from the AnimalQTL database
-# populate_qtls()
-#
-# # load pseudo-QTLs from other sources
-# populate_sweeps()
-# populate_mc1r_locus()
-# populate_neutral_loci()
+
+# ascertain SNPs in modern whole genome data
+discover_modern_snps()
+
+# load the QTLs from the AnimalQTL database
+populate_qtls()
+
+# load pseudo-QTLs from other sources
+populate_sweeps()
+populate_mc1r_locus()
+populate_neutral_loci()
 
 # link each QTL to the ascertained modern SNPs
 populate_qtl_snps(POPULATION)
@@ -37,7 +37,7 @@ populate_intervals()
 populate_interval_snps(POPULATION)
 
 # # load the sample metadata
-# populate_samples()
+populate_samples()
 
 # load the sample reads for each ascertained SNP
 populate_sample_reads()

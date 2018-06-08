@@ -76,3 +76,10 @@ bcftools mpileup --fasta-ref fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa /home/
 mkfifo --mode=0666 /tmp/SNPchimp_pig
 
 gzip --stdout -d data/SNPchimp/SNPchimp_pig.tsv.gz > /tmp/SNPchimp_pig
+
+
+
+
+parallel "echo {} && samtools view {} | head -n1 | awk '{print $1}'"  ::: /home/ludo/inbox/BAMslices/Modern/*.bam
+
+

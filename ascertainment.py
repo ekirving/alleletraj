@@ -118,7 +118,7 @@ def fetch_selective_sweep_snps():
 
     start = time()
 
-    print("INFO: Fetching the best SNPs for each selective sweep locus... ", end='')
+    print("INFO: Fetching the {} best SNPs for each selective sweep locus... ".format(SWEEP_NUM_SNPS), end='')
 
     # get the best SNPs for each sweep
     qtls = dbc.get_records_sql("""

@@ -130,6 +130,7 @@ def fetch_selective_sweep_snps():
           JOIN modern_snps ms
             ON ss.chrom = ms.chrom
            AND ms.site BETWEEN ss.site - {offset} AND ss.site + {offset}
+           AND ms.variant_id IS NOT NULL
           JOIN qtl_snps qs
             ON qs.modsnp_id = ms.id
            AND qs.qtl_id = ss.qtl_id 

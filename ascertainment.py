@@ -19,8 +19,8 @@ def fetch_gwas_peaks():
     dbc.execute_sql("""
         INSERT 
           INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-        SELECT q.id AS qtl_id, 'peak' AS type,
-               ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt, 
+        SELECT q.id, 'peak',
+               ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
                sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
           FROM (
                   # get a unique list of GWAS peaks     
@@ -95,8 +95,7 @@ def fetch_gwas_flanking_snps():
         dbc.execute_sql("""
             INSERT 
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-            SELECT {qtl_id},
-                   IF(ev.start > {site}, 'right', 'left') AS type,
+            SELECT {qtl_id}, IF(ev.start > {site}, 'right', 'left'),
                    ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
                    sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
               FROM ensembl_variants ev
@@ -137,7 +136,7 @@ def fetch_selective_sweep_snps():
                         ON qs.qtl_id = ss.qtl_id 
                       JOIN modern_snps ms
                         ON ms.id = qs.modsnp_id
-                     WHERE variant_id IS NOT NULL   
+                     WHERE ms.variant_id IS NOT NULL
                   GROUP BY ms.id
                   
                ) AS near
@@ -158,8 +157,8 @@ def fetch_selective_sweep_snps():
         dbc.execute_sql("""
             INSERT 
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-            SELECT {qtl_id}, 'sweep' AS type, ev.rsnumber, ms.chrom, ms.site, 
-                   COALESCE(ev.ref, ms.ancestral) ref, COALESCE(ev.alt, ms.derived) alt, 
+            SELECT {qtl_id}, 'sweep', 
+                   ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
                    sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
               FROM modern_snps ms
          LEFT JOIN ensembl_variants ev
@@ -193,8 +192,7 @@ def fetch_mc1r_snps():
     dbc.execute_sql("""
         INSERT 
           INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-        SELECT {qtl_id},
-               'MC1R',
+        SELECT {qtl_id}, 'mc1r', 
                ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
                sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
           FROM ensembl_genes eg
@@ -207,7 +205,7 @@ def fetch_mc1r_snps():
             ON sc.rsnumber = ev.rsnumber
          WHERE eg.gene_id = '{gene_id}'
       GROUP BY ev.rsnumber
-           """.format(qtl_id=qtl['id'], gene_id=MC1R_GENE_ID))
+           """.format(qtl_id=qtl['id'], gene_id=MC1R_GENE_ID[SPECIES]))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -221,29 +219,86 @@ def fetch_neutral_snps():
 
     start = time()
 
-    print("INFO: Fetching neutral SNPs... ", end='')
+    print("INFO: Fetching {num} neutral SNPs... ".format(num=NUM_NEUTRAL_SNPS), end='')
 
-    dbc.execute_sql("""
-        INSERT
-          INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
-        SELECT q.id, q.associationType,
-               ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
-               sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
-          FROM qtls q
-          JOIN qtl_snps qs
-            ON q.id = qs.qtl_id
-          JOIN modern_snps ms
-            ON ms.id = qs.modsnp_id
-          JOIN ensembl_variants ev
-            ON ev.id = ms.variant_id
-     LEFT JOIN snpchip sc
-            ON sc.rsnumber = ev.rsnumber
-         WHERE q.associationType = 'Neutral'
-           AND q.valid = 1
-      GROUP BY ms.id
-      ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, rand()
-         LIMIT {num_neutral}
-           """.format(num_neutral=NUM_NEUTRAL_SNPS))
+
+    # get the total size of the autosomes
+    total = sum(size for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
+
+    # calculate the proportional size of each autosomes
+    autosomes = OrderedDict((chrom, size / total)
+                         for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
+
+    for chrom, size in autosomes.iteritems():
+
+        dbc.execute_sql("""
+            INSERT
+              INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+            SELECT q.id, q.associationType,
+                   ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
+                   sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
+              FROM qtls q
+              JOIN qtl_snps qs
+                ON q.id = qs.qtl_id
+              JOIN modern_snps ms
+                ON ms.id = qs.modsnp_id
+              JOIN ensembl_variants ev
+                ON ev.id = ms.variant_id
+         LEFT JOIN snpchip sc
+                ON sc.rsnumber = ev.rsnumber
+             WHERE q.chrom = '{chrom}'
+               AND q.associationType = 'Neutral'
+               AND q.valid = 1
+          GROUP BY ms.id
+          ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, rand()
+             LIMIT {num_snps}
+               """.format(chrom=chrom, num_snps=NUM_NEUTRAL_SNPS/size))
+
+    print("({}).".format(timedelta(seconds=time() - start)))
+
+
+def fetch_ancestral_snps():
+    """
+    Get ancestral SNPs which are in variable in ASD and SUM (Sumatran Sus scrofa)
+    """
+
+    dbc = db_conn()
+
+    start = time()
+
+    print("INFO: Fetching {num_snps} ancestral SNPs... ".format(num_snps=NUM_ANCESTRAL_SNPS), end='')
+
+    # get the total size of the autosomes
+    total = sum(size for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
+
+    # calculate the proportional size of each autosomes
+    autosomes = OrderedDict((chrom, size / total)
+                         for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
+
+    for chrom, size in autosomes.iteritems():
+
+        dbc.execute_sql("""
+            INSERT
+              INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+            SELECT NULL, 'Ancestral',
+                   ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
+                   sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
+              FROM modern_snps asd
+              JOIN modern_snps sum
+                ON sum.population = 'SUM'
+               AND sum.chrom = asd.chrom
+               AND sum.variant_id = asd.variant_id
+              JOIN ensembl_variants ev
+                ON ev.id = asd.variant_id
+         LEFT JOIN snpchip sc
+                ON sc.rsnumber = ev.rsnumber 
+             WHERE asd.population = 'ASD'
+               AND asd.chrom = '{chrom}'
+               AND asd.derived_count > 1
+          GROUP BY asd.id
+          ORDER BY asd.snpchip_id IS NULL, rand()
+             LIMIT {num_snps}
+               """.format(chrom=chrom, num_snps=NUM_ANCESTRAL_SNPS/size))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -274,6 +329,7 @@ def perform_ascertainment():
     # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
     fetch_neutral_snps()
 
-    # TODO make sure none of our SNPs are close to indels
+    # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
+    fetch_ancestral_snps()
 
-    # TODO get the ancestral SNPs
+    # TODO make sure none of our SNPs are close to indels

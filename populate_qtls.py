@@ -208,7 +208,7 @@ def populate_mc1r_locus():
     dbc = db_conn()
 
     # get the MC1R gene details
-    mc1r = dbc.get_record('ensembl_genes', {'gene_id': MC1R_GENE_ID})
+    mc1r = dbc.get_record('ensembl_genes', {'gene_id': MC1R_GENE_ID[SPECIES]})
 
     # setup a dummy QTL record
     qtl = {

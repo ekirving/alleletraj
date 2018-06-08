@@ -137,6 +137,12 @@ SNP_CHIP_DATA = {
     'goat':  'data/SNPchimp/SNPchimp_goat.tsv.gz'
 }
 
+# the Ensembl gene ID
+MC1R_GENE_ID = {
+    'pig':   'ENSSSCG00000020924',
+    'horse': 'ENSECAG00000000900'
+}
+
 VERBOSE = True
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
@@ -226,11 +232,11 @@ SWEEP_PEAK_WIDTH = 1000
 # offset all genes by 100 Kb to preclude linkage with our 'neutral' SNPs
 GENE_OFFSET = 100000
 
-# the Ensembl gene ID
-MC1R_GENE_ID = 'ENSSSCG00000020924'
-
 # the number of "neutral" SNPs to include in the ascertainament
 NUM_NEUTRAL_SNPS = 50000
+
+# the number of "ancestral" SNPs to include in the ascertainament
+NUM_ANCESTRAL_SNPS = 20000
 
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10

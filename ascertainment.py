@@ -120,20 +120,29 @@ def fetch_selective_sweep_snps():
 
     print("INFO: Fetching the {} best SNPs for each selective sweep locus... ".format(SWEEP_NUM_SNPS), end='')
 
-    # get the best SNPs for each sweep
     qtls = dbc.get_records_sql("""
-        SELECT ss.qtl_id AS id, 
+        SELECT qtl_id AS id,
                SUBSTRING_INDEX(
-                  GROUP_CONCAT(ms.id ORDER BY ss.p, ABS(ss.site-ms.site)), 
-                  ',',  {num_snps}) AS snps
-          FROM sweep_snps ss
-          JOIN modern_snps ms
-            ON ss.chrom = ms.chrom
-           AND ms.site BETWEEN ss.site - {offset} AND ss.site + {offset}
-           AND ms.variant_id IS NOT NULL
-          JOIN qtl_snps qs
-            ON qs.modsnp_id = ms.id
-           AND qs.qtl_id = ss.qtl_id 
+                   GROUP_CONCAT(modsnp_id ORDER BY ss.p, ABS(ss.site-near.site)), 
+                   ',',  3) AS snps
+          FROM (
+                    # find the nearest sweep SNP to each QTL SNP in dbsnp 
+                    SELECT ms.id AS modsnp_id,
+                           ms.site,
+                           SUBSTRING_INDEX(
+                               GROUP_CONCAT(ss.id ORDER BY ABS(ss.site-ms.site)), 
+                               ',',  1) AS ss_id
+                      FROM sweep_snps ss
+                      JOIN qtl_snps qs
+                        ON qs.qtl_id = ss.qtl_id 
+                      JOIN modern_snps ms
+                        ON ms.id = qs.modsnp_id
+                     WHERE variant_id IS NOT NULL   
+                  GROUP BY ms.id
+                  
+               ) AS near
+          JOIN sweep_snps ss
+            ON ss.id = near.ss_id
       GROUP BY ss.qtl_id
            """.format(num_snps=SWEEP_NUM_SNPS, offset=SWEEP_PEAK_WIDTH/2))
 

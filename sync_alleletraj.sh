@@ -14,5 +14,6 @@ rsync -avz --partial \
            --exclude '*tmp*' \
            --exclude '*.ld' \
            --exclude 'screening' \
+           --exclude 'fastq' \
            --exclude 'vcf' \
            evan@palaeoprime:~/alleletraj/ ~/Dropbox/Code/alleletraj/

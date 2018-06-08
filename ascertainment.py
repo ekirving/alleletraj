@@ -226,10 +226,13 @@ def fetch_neutral_snps():
     total = sum(size for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
 
     # calculate the proportional size of each autosomes
-    autosomes = OrderedDict((chrom, size / total)
+    autosomes = OrderedDict((chrom, float(size) / total)
                          for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
 
-    for chrom, size in autosomes.iteritems():
+    for chrom, perct in autosomes.iteritems():
+
+        # get the weighted number of SNPs for this chrom
+        num_snps = int(round(NUM_NEUTRAL_SNPS/perct))
 
         dbc.execute_sql("""
             INSERT
@@ -252,7 +255,7 @@ def fetch_neutral_snps():
           GROUP BY ms.id
           ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, rand()
              LIMIT {num_snps}
-               """.format(chrom=chrom, num_snps=NUM_NEUTRAL_SNPS/size))
+               """.format(chrom=chrom, num_snps=num_snps))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -272,10 +275,13 @@ def fetch_ancestral_snps():
     total = sum(size for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
 
     # calculate the proportional size of each autosomes
-    autosomes = OrderedDict((chrom, size / total)
+    autosomes = OrderedDict((chrom, float(size) / total)
                          for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
 
-    for chrom, size in autosomes.iteritems():
+    for chrom, perct in autosomes.iteritems():
+
+        # get the weighted number of SNPs for this chrom
+        num_snps = int(round(NUM_ANCESTRAL_SNPS / perct))
 
         dbc.execute_sql("""
             INSERT
@@ -298,7 +304,7 @@ def fetch_ancestral_snps():
           GROUP BY asd.id
           ORDER BY asd.snpchip_id IS NULL, rand()
              LIMIT {num_snps}
-               """.format(chrom=chrom, num_snps=NUM_ANCESTRAL_SNPS/size))
+               """.format(chrom=chrom, num_snps=num_snps))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 

@@ -8,6 +8,7 @@ from collections import OrderedDict, defaultdict
 from datetime import timedelta
 from pprint import pprint
 from time import time
+from multiprocessing import Process
 
 # import my libraries
 from db_conn import db_conn
@@ -97,3 +98,18 @@ def extract_qtl_fields(dbfile, fields):
                 pass
 
     return data
+
+
+def run_in_parallel(*fns):
+    """
+    Simple wrapper for running functions in parallel.
+    """
+    proc = []
+
+    for fn in fns:
+        p = Process(target=fn)
+        p.start()
+        proc.append(p)
+
+    for p in proc:
+        p.join()

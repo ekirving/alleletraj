@@ -29,13 +29,12 @@ def stream_fasta(fin):
             yield character
 
 
-def process_chrom(args):
+def process_fasta_files(args):
     """
     Extract all the SNPs from a given chromosome and estimate the allele frequency
     """
 
     try:
-
         # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
         (chrom, population) = args
 
@@ -147,6 +146,38 @@ def process_chrom(args):
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
 
+def process_vcf_files(args):
+    """
+    Extract all the SNPs from a given chromosome and estimate the allele frequency
+    """
+
+    try:
+        # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+        (chrom, population) = args
+
+        site = 0
+        num_snps = 0
+
+        # open a private connection to the database
+        dbc = db_conn()
+
+        # get the outgroup fasta file
+        outgroup_fasta = FASTA_PATH + '/' + OUTGROUP + "/{}.fa".format(chrom)
+
+        # add the outgroup to the front of the list
+        fasta_files.insert(0, outgroup_fasta)
+
+        print("STARTED: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files)))
+
+        data = []
+
+        print("FINISHED: chr{} contained {} SNPs".format(chrom, num_snps))
+
+    except Exception:
+        # Put all exception text into an exception and raise that
+        raise Exception("".join(traceback.format_exception(*sys.exc_info())))
+
+
 def link_ensembl_genes():
     """
     Link modern SNPs to their Ensembl genes
@@ -227,9 +258,19 @@ def link_snpchip():
 
 
 def discover_modern_snps():
+    """
+    Ascertain SNPs in modern whole genome data.
+    """
 
-    if SPECIES != 'pig':
-        # TODO make this work for all species not just pigs
+    if SPECIES == 'pig':
+        # ascertain modern pig SNPs from whole genome FASTA files
+        func = process_fasta_files
+
+    elif SPECIES == 'horse':
+        # ascertain modern horse SNPs from VCF files
+        func = process_vcf_files
+
+    else:
         raise Exception('Not implemented yet for {}'.format(SPECIES))
 
     chroms = CHROM_SIZE[SPECIES].keys()
@@ -240,13 +281,13 @@ def discover_modern_snps():
 
         # process the chromosomes in parallel
         pool = mp.Pool(MAX_CPU_CORES)
-        pool.map(process_chrom, params)
+        pool.map(func, params)
 
     else:
         for chrom in chroms:
             for pop in SAMPLES:
                 # ascertain the modern SNPs separately in each population
-                process_chrom((chrom, pop))
+                func((chrom, pop))
 
     # link modern SNPs to their dbsnp, gene and snpchip records
     link_ensembl_genes()

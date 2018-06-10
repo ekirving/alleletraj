@@ -223,7 +223,7 @@ def fetch_neutral_snps():
     # get the total size of the autosomes
     total = sum(size for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
 
-    # calculate the proportional size of each autosomes
+    # calculate the proportional size of each autosome
     autosomes = OrderedDict((chrom, float(size) / total) for chrom, size in CHROM_SIZE[SPECIES].iteritems()
                             if chrom not in ['X', 'Y'])
 
@@ -272,7 +272,7 @@ def fetch_ancestral_snps():
     # get the total size of the autosomes
     total = sum(size for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
 
-    # calculate the proportional size of each autosomes
+    # calculate the proportional size of each autosome
     autosomes = OrderedDict((chrom, float(size) / total) for chrom, size in CHROM_SIZE[SPECIES].iteritems()
                             if chrom not in ['X', 'Y'])
 
@@ -307,6 +307,33 @@ def fetch_ancestral_snps():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
+def distance_from_indels():
+    """
+    Check our ascertainment against the dbsnp indel set to enforce a minimum distance.
+    """
+
+    dbc = db_conn()
+
+    start = time()
+
+    print("INFO: Checking the nearest INDEL for ascertained SNPs... ", end='')
+
+    chroms = CHROM_SIZE[SPECIES].keys()
+
+    for chrom in chroms:
+        dbc.execute_sql("""
+            UPDATE ascertainment a
+              JOIN ensembl_variants ev
+                ON ev.chrom = a.chrom
+               AND a.site BETWEEN ev.start - {buffer} AND ev.end + {buffer}
+               SET indel_id = ev.id
+             WHERE a.chrom = '{chrom}' 
+               AND ev.type IN ('insertion', 'deletion')
+               """.format(chrom=chrom, buffer=INDEL_BUFFER))
+
+    print("({}).".format(timedelta(seconds=time() - start)))
+
+
 def perform_ascertainment():
     """
     Ascertain the best SNPs for a catpure array.
@@ -314,26 +341,27 @@ def perform_ascertainment():
 
     print("INFO: Starting ascertainment process")
 
-    # clear any existing SNPs
-    dbc = db_conn()
-    dbc.execute_sql("TRUNCATE TABLE ascertainment")
+    # # clear any existing SNPs
+    # dbc = db_conn()
+    # dbc.execute_sql("TRUNCATE TABLE ascertainment")
+    #
+    # # fetch all the GWAS peaks from the QTL database
+    # fetch_gwas_peaks()
+    #
+    # # fetch the best flanking SNPs for each GWAS peak
+    # fetch_gwas_flanking_snps()
+    #
+    # # fetch the best SNPs from the selective sweep loci
+    # fetch_selective_sweep_snps()
+    #
+    # # get all MC1R snps
+    # fetch_mc1r_snps()
+    #
+    # # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
+    # fetch_neutral_snps()
+    #
+    # # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
+    # fetch_ancestral_snps()
 
-    # fetch all the GWAS peaks from the QTL database
-    fetch_gwas_peaks()
-
-    # fetch the best flanking SNPs for each GWAS peak
-    fetch_gwas_flanking_snps()
-
-    # fetch the best SNPs from the selective sweep loci
-    fetch_selective_sweep_snps()
-
-    # get all MC1R snps
-    fetch_mc1r_snps()
-
-    # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
-    fetch_neutral_snps()
-
-    # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
-    fetch_ancestral_snps()
-
-    # TODO make sure none of our SNPs are close to indels
+    # make sure none of our SNPs are close to indels
+    distance_from_indels()

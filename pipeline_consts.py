@@ -232,11 +232,14 @@ SWEEP_PEAK_WIDTH = 1000
 # offset all genes by 100 Kb to preclude linkage with our 'neutral' SNPs
 GENE_OFFSET = 100000
 
-# the number of "neutral" SNPs to include in the ascertainament
+# the number of "neutral" SNPs to include in the ascertainment
 NUM_NEUTRAL_SNPS = 50000
 
-# the number of "ancestral" SNPs to include in the ascertainament
+# the number of "ancestral" SNPs to include in the ascertainment
 NUM_ANCESTRAL_SNPS = 20000
+
+# minimum distance from an INDEL
+INDEL_BUFFER = 10
 
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10

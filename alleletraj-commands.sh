@@ -34,12 +34,6 @@ chrom, site, sample_id
 parallel "samtools faidx {} 10:1116-1116" ::: /media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA/*/10.fa > tmp.log; grep -v '>' tmp.log | sort | uniq -c;
 
 
-age	
-confident	
-lower
-upper
-median
-
 nohup mysql < sample_reads_innodb_part.sql &> nohup_innodb_part.out &
 nohup mysql < sample_reads_innodb.sql &> nohup_innodb.out &
 nohup mysql < sample_reads_mysiam_part.sql &> nohup_mysiam_part.out &
@@ -65,18 +59,17 @@ printf '9\t150219744\t150267729\n' | bedtools intersect -a data/sweep/EUD_Sweep_
 		 
 mysqldump -u root -p allele_trajectory ensembl_variants ensembl_genes | gzip > ensembl.sql.gz
 
+# restore dump
+gunzip < alleletraj_pig-20180608-1555.sql.gz  | mysql -u root -p -D alleletraj_pig
+
 
 bcftools mpileup --fasta-ref fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa /home/ludo/inbox/BAMslices/Modern/*.bam \
 	| bcftools call --multiallelic-caller --output-type v \
 	| bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file modern_horses.vcf
 
 
-
-
 mkfifo --mode=0666 /tmp/SNPchimp_pig
-
 gzip --stdout -d data/SNPchimp/SNPchimp_pig.tsv.gz > /tmp/SNPchimp_pig
-
 
 
 # horses

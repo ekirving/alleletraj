@@ -22,7 +22,11 @@ QTL_FILES = {
 # wait 10 seconds beforey retyring a failed request
 QTLDB_WAIT_TIME = 10
 
+
 class qtldb_api:
+
+    def __init__(self):
+        pass
 
     @staticmethod
     def __execute(request):
@@ -32,12 +36,11 @@ class qtldb_api:
         try:
             xml = urllib2.urlopen(request).read().decode("utf-8", 'ignore')
 
-        except urllib2.URLError as e:
+        except urllib2.URLError:
             # wait a while and try again
             sleep(QTLDB_WAIT_TIME)
 
             xml = urllib2.urlopen(request).read().decode("utf-8", 'ignore')
-
 
         result = None
 

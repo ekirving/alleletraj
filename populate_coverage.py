@@ -352,8 +352,8 @@ def process_interval(args):
 
             # apply hard filters before inserting (otherwise we swamp the DB with too many low quality reads)
             reads = [read for (chrom, site) in reads for read in reads[(chrom, site)]
-                        if read[fields.index('mapq')] >= HARD_MAPQ_CUTOFF and
-                           read[fields.index('baseq')] >= HARD_BASEQ_CUTOFF]
+                     if read[fields.index('mapq')] >= HARD_MAPQ_CUTOFF and
+                        read[fields.index('baseq')] >= HARD_BASEQ_CUTOFF]
 
             # count the total number of reads
             num_reads += len(reads)

@@ -135,6 +135,5 @@ def discover_snps(population):
         apply_genotype_filters(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))
-    start = time()
 
     print("SUCCESS: Finished the SNP discovery ({})".format(timedelta(seconds=time() - began)))

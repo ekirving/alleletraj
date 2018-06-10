@@ -3,14 +3,13 @@
 
 from __future__ import print_function
 
-import sys, socket
+import itertools
+import multiprocessing as mp
+import sys
+import traceback
 from collections import Counter
 
 from pipeline_utils import *
-
-import multiprocessing as mp
-import itertools
-import traceback
 
 
 def decode_fasta(pileup):
@@ -161,13 +160,9 @@ def process_vcf_files(args):
         # open a private connection to the database
         dbc = db_conn()
 
-        # get the outgroup fasta file
-        outgroup_fasta = FASTA_PATH + '/' + OUTGROUP + "/{}.fa".format(chrom)
+        vcf_files = []
 
-        # add the outgroup to the front of the list
-        fasta_files.insert(0, outgroup_fasta)
-
-        print("STARTED: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files)))
+        print("STARTED: Parsing chr{} from {} VCF files.".format(chrom, len(vcf_files)))
 
         data = []
 

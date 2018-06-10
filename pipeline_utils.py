@@ -21,6 +21,7 @@ def run_cmd(cmd, shell=False, background=False):
 
     :param cmd: The system command to run (list|string)
     :param shell: Use the native shell
+    :param background: Run the process in the background
     :return: The stdout stream
     """
     # subprocess only accepts strings
@@ -74,7 +75,6 @@ def merge_intervals(ranges, capped=True):
 
 
 def extract_qtl_fields(dbfile, fields):
-
     data = defaultdict(list)
 
     # get all the QTL IDs for this scope

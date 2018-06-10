@@ -77,7 +77,6 @@ def confirm_age_mapping():
 
     print("INFO: Confirming age mappings")
 
-
     try:
         # get the google sheet details
         sheet = AGE_MAP[SPECIES]
@@ -189,6 +188,7 @@ def bin_samples():
                                                             binpercent=BIN_PERCENT,
                                                             binlower=bin_lower,
                                                             binupper=bin_upper))
+
 
 def populate_samples():
 

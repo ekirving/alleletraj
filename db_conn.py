@@ -11,6 +11,7 @@ import itertools
 from pprint import pprint
 from collections import OrderedDict
 
+
 class db_conn:
     """
     Class for handling all the db connectivity.
@@ -146,7 +147,8 @@ class db_conn:
             'table': u"`{}`".format(table),
             'fields': u", ".join(formatted.keys()),
             'values': u", ".join(formatted.values()),
-            'update': u", ".join([u"{}={}".format(key, value) for key, value in formatted.iteritems() if key != u'`id`'])
+            'update': u", ".join([u"{}={}".format(key, value) for key, value in formatted.iteritems()
+                                  if key != u'`id`'])
         }
 
         if 'id' in record and not insert:

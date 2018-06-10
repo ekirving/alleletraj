@@ -176,7 +176,7 @@ def populate_sweeps():
 
             # get the all the SNPs from this locus
             snps = run_cmd(["printf '{locus}' | bedtools intersect -a {snps_file} -b stdin"
-                           .format(locus=locus.strip(),snps_file=snps_file)], shell=True)
+                           .format(locus=locus.strip(), snps_file=snps_file)], shell=True)
 
             if not snps:
                 raise Exception("ERROR: Found no SNPs for sweep region {}:{}-{}".format(chrom, start, end))
@@ -450,10 +450,11 @@ def load_ensembl_genes():
                     atts = dict([pair.strip().split(' ') for pair in attributes.split(';') if pair != ''])
 
                     # remove quoting
-                    atts.update({k:v.strip('"') for k, v in atts.items()})
+                    atts.update({k: v.strip('"') for k, v in atts.items()})
 
                     # setup the record to insert, in this order
-                    gene = (atts['gene_source'], atts['gene_id'], atts['gene_version'], atts['gene_biotype'], chrom, start, end)
+                    gene = (atts['gene_source'], atts['gene_id'], atts['gene_version'], atts['gene_biotype'], chrom,
+                            start, end)
 
                     # add to the buffer
                     records.append(gene)
@@ -533,7 +534,8 @@ def compute_qtl_windows():
             raise Exception("ERROR: Window size for QTL #{} is negative ({:,} bp)".format(result['id'], end-start))
 
         # update the QTL record
-        qtl = {'id': result['id'], 'chrom': result['chrom'], 'valid': 1, 'site': result['site'], 'start': start, 'end': end}
+        qtl = {'id': result['id'], 'chrom': result['chrom'], 'valid': 1, 'site': result['site'], 'start': start,
+               'end': end}
 
         dbc.save_record('qtls', qtl)
 

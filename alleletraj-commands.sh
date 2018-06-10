@@ -9,17 +9,17 @@ gunzip < allele_trajectory-fulldump.sql.gz \
 	| mysql -u root -p
 
 
-LOAD DATA LOCAL INFILE '/Users/Evan/Downloads/PigsAgeMapping.tsv' INTO TABLE age_mapping IGNORE 1 LINES (age, confident, lower, upper, median);
+#LOAD DATA LOCAL INFILE '/Users/Evan/Downloads/PigsAgeMapping.tsv' INTO TABLE age_mapping IGNORE 1 LINES (age, confident, lower, upper, median);
 
 
-create table modern_snps_intervals
-select ms.*
-from intervals i
-join modern_snps ms 
-  on ms.species = i.species
- and ms.chrom = i.chrom
- and ms.site between i.start and i.end
-where i.species = 'pig';
+#create table modern_snps_intervals
+#select ms.*
+#from intervals i
+#join modern_snps ms
+#  on ms.species = i.species
+# and ms.chrom = i.chrom
+# and ms.site between i.start and i.end
+#where i.species = 'pig';
 
 
 # run the SNP discovery
@@ -54,11 +54,11 @@ bcftools mpileup --region 1:236933-336933 --targets-file vcf/diploid-int1-sample
 	| bcftools call --multiallelic-caller --targets-file vcf/diploid-int1-sample147.tsv.gz --constrain alleles --output-type v  \
 	| bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file vcf/diploid-int1-sample147.vcf
 
-# get the best SNPs for this locus
-run_cmd(["printf '{locus}' "
-		 "| bedtools intersect -a {snps_file} -b stdin "
-		 "| sort -k 5,5 -g "
-		 "| head -n 1".format(locus=locus, snps_file=snps_file)])
+## get the best SNPs for this locus
+#run_cmd(["printf '{locus}' "
+#		 "| bedtools intersect -a {snps_file} -b stdin "
+#		 "| sort -k 5,5 -g "
+#		 "| head -n 1".format(locus=locus, snps_file=snps_file)])
 		 
 printf '9\t150219744\t150267729\n' | bedtools intersect -a data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed -b stdin | sort -k 5,5 -g | head -n 5
 		 

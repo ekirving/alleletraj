@@ -307,31 +307,56 @@ def fetch_ancestral_snps():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def distance_from_indels():
+def find_nearby_indels():
     """
     Check our ascertainment against the dbsnp indel set to enforce a minimum distance.
     """
 
     dbc = db_conn()
 
-    start = time()
+    begin = time()
 
-    print("INFO: Checking the nearest INDEL for ascertained SNPs... ", end='')
+    print("INFO: Flagging ascertained SNPs which are within +/- {} bp of an INDEL... ".format(INDEL_BUFFER), end='')
 
     chroms = CHROM_SIZE[SPECIES].keys()
 
     for chrom in chroms:
-        dbc.execute_sql("""
-            UPDATE ascertainment a
-              JOIN ensembl_variants ev
-                ON ev.chrom = a.chrom
-               AND a.site BETWEEN ev.start - {buffer} AND ev.end + {buffer}
-               SET indel_id = ev.id
-             WHERE a.chrom = '{chrom}' 
-               AND ev.type IN ('insertion', 'deletion')
-               """.format(chrom=chrom, buffer=INDEL_BUFFER))
 
-    print("({}).".format(timedelta(seconds=time() - start)))
+        print("\n")
+
+        indels = dbc.get_records_sql("""
+            SELECT ev.start, ev.end
+              FROM ensembl_variants ev
+             WHERE ev.chrom = '{chrom}' 
+               AND ev.type IN ('insertion', 'deletion')
+               """.format(chrom=chrom), key=None)
+
+        loci = []
+
+        for indel in indels:
+            loci.append((int(indel['start']) - INDEL_BUFFER, int(indel['end']) + INDEL_BUFFER))
+
+        # merge overlapping loci
+        loci = list(merge_intervals(loci))
+
+        # print("INFO: Processing {:,} unique INDELs in chr{}".format(len(loci), chrom))
+
+        # process the INDELs in chunks
+        for i in xrange(0, len(loci), MAX_QUERY_SIZE):
+
+            print(".", end='')
+
+            # convert each loci into sql conditions
+            conds = ["site BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + MAX_QUERY_SIZE]]
+
+            dbc.execute_sql("""
+                UPDATE ascertainment
+                   SET indel = 1
+                WHERE chrom = '{chrom}'
+                  AND ({conds})
+                  """.format(chrom=chrom, conds=" OR ".join(conds)))
+
+    print("({}).".format(timedelta(seconds=time() - begin)))
 
 
 def perform_ascertainment():
@@ -363,5 +388,5 @@ def perform_ascertainment():
     # # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
     # fetch_ancestral_snps()
 
-    # make sure none of our SNPs are close to indels
-    distance_from_indels()
+    # make sure none of our SNPs are too close to INDELs
+    find_nearby_indels()

@@ -272,3 +272,6 @@ SOFT_CLIP_DIST = 3
 
 # the maximum number of rows to insert in a single operation
 MAX_INSERT_SIZE = 50000
+
+# the maximum number of conditions in a single query
+MAX_QUERY_SIZE = 5000

@@ -365,27 +365,27 @@ def perform_ascertainment():
 
     print("INFO: Starting ascertainment process")
 
-    # clear any existing SNPs
-    dbc = db_conn()
-    dbc.execute_sql("TRUNCATE TABLE ascertainment")
-
-    # fetch all the GWAS peaks from the QTL database
-    fetch_gwas_peaks()
-
-    # fetch the best flanking SNPs for each GWAS peak
-    fetch_gwas_flanking_snps()
+    # # clear any existing SNPs
+    # dbc = db_conn()
+    # dbc.execute_sql("TRUNCATE TABLE ascertainment")
+    #
+    # # fetch all the GWAS peaks from the QTL database
+    # fetch_gwas_peaks()
+    #
+    # # fetch the best flanking SNPs for each GWAS peak
+    # fetch_gwas_flanking_snps()
 
     # fetch the best SNPs from the selective sweep loci
     fetch_selective_sweep_snps()
 
-    # get all MC1R snps
-    fetch_mc1r_snps()
-
-    # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
-    fetch_neutral_snps()
-
-    # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
-    fetch_ancestral_snps()
-
-    # make sure none of our SNPs are too close to INDELs
-    find_nearby_indels()
+    # # get all MC1R snps
+    # fetch_mc1r_snps()
+    #
+    # # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
+    # fetch_neutral_snps()
+    #
+    # # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
+    # fetch_ancestral_snps()
+    #
+    # # make sure none of our SNPs are too close to INDELs
+    # find_nearby_indels()

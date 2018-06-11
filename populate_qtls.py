@@ -205,6 +205,8 @@ def populate_mc1r_locus():
     Populate a dummy QTLs for the MC1R gene.
     """
 
+    # TODO we want to model ALL 18 dbsnp variants, not just the 8 which are variable in EUD
+
     dbc = db_conn()
 
     # get the MC1R gene details

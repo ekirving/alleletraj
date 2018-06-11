@@ -221,10 +221,10 @@ EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 
           'Portugal', 'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
 
 # the number of flanking SNPs (on either side) to include
-QTL_FLANK_NUM_SNPS = 2
+QTL_FLANK_NUM_SNPS = 3
 
 # the number of selective sweep SNPs to include
-SWEEP_NUM_SNPS = 3
+SWEEP_NUM_SNPS = 5
 
 # the distance between sweep peaks
 SWEEP_PEAK_WIDTH = 1000
@@ -233,7 +233,7 @@ SWEEP_PEAK_WIDTH = 1000
 GENE_OFFSET = 100000
 
 # the number of "neutral" SNPs to include in the ascertainment
-NUM_NEUTRAL_SNPS = 50000
+NUM_NEUTRAL_SNPS = 60000
 
 # the number of "ancestral" SNPs to include in the ascertainment
 NUM_ANCESTRAL_SNPS = 20000

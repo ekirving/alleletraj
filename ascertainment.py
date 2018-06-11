@@ -177,6 +177,9 @@ def fetch_mc1r_snps():
     Get all the dnsnp SNPs which fall within the MC1R gene.
 
     See https://www.ensembl.org/sus_scrofa/Gene/Summary?g=ENSSSCG00000020924&db=core
+
+    Also http://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1000341
+         http://journals.plos.org/plosgenetics/article/file?id=10.1371/journal.pgen.1000341.s002&type=supplementary
     """
 
     dbc = db_conn()
@@ -322,8 +325,6 @@ def find_nearby_indels():
 
     for chrom in chroms:
 
-        print("\n")
-
         indels = dbc.get_records_sql("""
             SELECT ev.start, ev.end
               FROM ensembl_variants ev
@@ -344,9 +345,7 @@ def find_nearby_indels():
         # process the INDELs in chunks
         for i in xrange(0, len(loci), MAX_QUERY_SIZE):
 
-            print(".", end='')
-
-            # convert each loci into sql conditions
+            # convert each locus into sql conditions
             conds = ["site BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + MAX_QUERY_SIZE]]
 
             dbc.execute_sql("""
@@ -366,27 +365,27 @@ def perform_ascertainment():
 
     print("INFO: Starting ascertainment process")
 
-    # # clear any existing SNPs
-    # dbc = db_conn()
-    # dbc.execute_sql("TRUNCATE TABLE ascertainment")
-    #
-    # # fetch all the GWAS peaks from the QTL database
-    # fetch_gwas_peaks()
-    #
-    # # fetch the best flanking SNPs for each GWAS peak
-    # fetch_gwas_flanking_snps()
-    #
-    # # fetch the best SNPs from the selective sweep loci
-    # fetch_selective_sweep_snps()
-    #
-    # # get all MC1R snps
-    # fetch_mc1r_snps()
-    #
-    # # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
-    # fetch_neutral_snps()
-    #
-    # # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
-    # fetch_ancestral_snps()
+    # clear any existing SNPs
+    dbc = db_conn()
+    dbc.execute_sql("TRUNCATE TABLE ascertainment")
+
+    # fetch all the GWAS peaks from the QTL database
+    fetch_gwas_peaks()
+
+    # fetch the best flanking SNPs for each GWAS peak
+    fetch_gwas_flanking_snps()
+
+    # fetch the best SNPs from the selective sweep loci
+    fetch_selective_sweep_snps()
+
+    # get all MC1R snps
+    fetch_mc1r_snps()
+
+    # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
+    fetch_neutral_snps()
+
+    # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
+    fetch_ancestral_snps()
 
     # make sure none of our SNPs are too close to INDELs
     find_nearby_indels()

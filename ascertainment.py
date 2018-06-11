@@ -123,7 +123,7 @@ def fetch_selective_sweep_snps():
         SELECT qtl_id AS id,
                SUBSTRING_INDEX(
                    GROUP_CONCAT(modsnp_id ORDER BY ss.p, ABS(ss.site-near.site)), 
-                   ',',  3) AS snps
+                   ',',  {num_snps}) AS snps
           FROM (
                     # find the nearest sweep SNP to each QTL SNP in dbsnp 
                     SELECT ms.id AS modsnp_id,

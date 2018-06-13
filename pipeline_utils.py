@@ -48,7 +48,11 @@ def merge_intervals(ranges, capped=True):
     """
     Merge overlapping intervals, so we only check each site once
     """
-    saved = list(ranges[0])
+
+    try:
+        saved = list(ranges[0])
+    except IndexError:
+        raise StopIteration
 
     # sort the intervals by start, and iterate over the list
     for start, end in sorted([sorted(t) for t in ranges]):

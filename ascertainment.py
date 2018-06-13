@@ -310,7 +310,7 @@ def fetch_ancestral_snps():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def find_nearby_indels():
+def flag_snps_near_indels():
     """
     Check our ascertainment against the dbsnp indel set to enforce a minimum distance.
     """
@@ -319,7 +319,7 @@ def find_nearby_indels():
 
     begin = time()
 
-    print("INFO: Flagging ascertained SNPs which are within +/- {} bp of an INDEL... ".format(INDEL_BUFFER), end='')
+    print("INFO: Flagging dbsnp SNPs which are within +/- {} bp of an INDEL... ".format(INDEL_BUFFER))
 
     chroms = CHROM_SIZE[SPECIES].keys()
 
@@ -340,22 +340,23 @@ def find_nearby_indels():
         # merge overlapping loci
         loci = list(merge_intervals(loci))
 
-        # print("INFO: Processing {:,} unique INDELs in chr{}".format(len(loci), chrom))
+        print("INFO: Processing {:,} unique INDELs in chr{}".format(len(loci), chrom))
 
         # process the INDELs in chunks
         for i in xrange(0, len(loci), MAX_QUERY_SIZE):
 
             # convert each locus into sql conditions
-            conds = ["site BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + MAX_QUERY_SIZE]]
+            conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + MAX_QUERY_SIZE]]
 
             dbc.execute_sql("""
-                UPDATE ascertainment
+                UPDATE ensembl_variants
                    SET indel = 1
-                WHERE chrom = '{chrom}'
-                  AND ({conds})
-                  """.format(chrom=chrom, conds=" OR ".join(conds)))
+                 WHERE chrom = '{chrom}'
+                   AND ({conds})
+                   AND type = 'SNV'
+                   """.format(chrom=chrom, conds=" OR ".join(conds)))
 
-    print("({}).".format(timedelta(seconds=time() - begin)))
+    print("INFO: Completed in {}.".format(timedelta(seconds=time() - begin)))
 
 
 def perform_ascertainment():
@@ -369,23 +370,23 @@ def perform_ascertainment():
     dbc = db_conn()
     dbc.execute_sql("TRUNCATE TABLE ascertainment")
 
-    # fetch all the GWAS peaks from the QTL database
-    fetch_gwas_peaks()
-
-    # fetch the best flanking SNPs for each GWAS peak
-    fetch_gwas_flanking_snps()
-
-    # fetch the best SNPs from the selective sweep loci
-    fetch_selective_sweep_snps()
-
-    # get all MC1R snps
-    fetch_mc1r_snps()
-
-    # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
-    fetch_neutral_snps()
-
-    # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
-    fetch_ancestral_snps()
-
     # make sure none of our SNPs are too close to INDELs
-    find_nearby_indels()
+    flag_snps_near_indels()
+
+    # # fetch all the GWAS peaks from the QTL database
+    # fetch_gwas_peaks()
+    #
+    # # fetch the best flanking SNPs for each GWAS peak
+    # fetch_gwas_flanking_snps()
+    #
+    # # fetch the best SNPs from the selective sweep loci
+    # fetch_selective_sweep_snps()
+    #
+    # # get all MC1R snps
+    # fetch_mc1r_snps()
+    #
+    # # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
+    # fetch_neutral_snps()
+    #
+    # # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
+    # fetch_ancestral_snps()

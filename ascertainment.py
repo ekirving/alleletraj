@@ -56,13 +56,13 @@ def fetch_gwas_flanking_snps():
                 
                 SUBSTRING_INDEX(
                     GROUP_CONCAT(
-                        IF(ms.site < q.site, ms.variant_id, NULL) 
+                        IF(ms.site < q.site, ev.id, NULL) 
                           ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, RAND()
                     ), ',',  {num_snps}) left_flank,
                 
                 SUBSTRING_INDEX(
                     GROUP_CONCAT(
-                        IF(ms.site > q.site, ms.variant_id, NULL) 
+                        IF(ms.site > q.site, ev.id, NULL) 
                           ORDER BY ms.snpchip_id IS NULL, qs.num_reads DESC, RAND()
                     ), ',',  {num_snps}) right_flank
           FROM (
@@ -78,6 +78,9 @@ def fetch_gwas_flanking_snps():
             ON qs.qtl_id = q.id
           JOIN modern_snps ms
             ON ms.id = qs.modsnp_id
+          JOIN ensembl_variants ev
+            ON ev.id = ms.variant_id
+           AND ev.indel IS NULL
       GROUP BY q.id""".format(num_snps=QTL_FLANK_NUM_SNPS))
 
     print("({}).".format(timedelta(seconds=time() - start)))
@@ -136,7 +139,9 @@ def fetch_selective_sweep_snps():
                         ON qs.qtl_id = ss.qtl_id 
                       JOIN modern_snps ms
                         ON ms.id = qs.modsnp_id
-                     WHERE ms.variant_id IS NOT NULL
+                      JOIN ensembl_variants ev
+                        ON ev.id = ms.variant_id
+                       AND ev.indel IS NULL
                   GROUP BY ms.id
                   
                ) AS near
@@ -248,6 +253,7 @@ def fetch_neutral_snps():
                 ON ms.id = qs.modsnp_id
               JOIN ensembl_variants ev
                 ON ev.id = ms.variant_id
+               AND ev.indel IS NULL
          LEFT JOIN snpchip sc
                 ON sc.rsnumber = ev.rsnumber
              WHERE q.chrom = '{chrom}'
@@ -297,6 +303,7 @@ def fetch_ancestral_snps():
                AND sum.variant_id = asd.variant_id
               JOIN ensembl_variants ev
                 ON ev.id = asd.variant_id
+               AND ev.indel IS NULL
          LEFT JOIN snpchip sc
                 ON sc.rsnumber = ev.rsnumber 
              WHERE asd.population = 'ASD'
@@ -373,20 +380,20 @@ def perform_ascertainment():
     # make sure none of our SNPs are too close to INDELs
     flag_snps_near_indels()
 
-    # # fetch all the GWAS peaks from the QTL database
-    # fetch_gwas_peaks()
-    #
-    # # fetch the best flanking SNPs for each GWAS peak
-    # fetch_gwas_flanking_snps()
-    #
-    # # fetch the best SNPs from the selective sweep loci
-    # fetch_selective_sweep_snps()
-    #
-    # # get all MC1R snps
-    # fetch_mc1r_snps()
-    #
-    # # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
-    # fetch_neutral_snps()
-    #
-    # # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
-    # fetch_ancestral_snps()
+    # fetch all the GWAS peaks from the QTL database
+    fetch_gwas_peaks()
+
+    # fetch the best flanking SNPs for each GWAS peak
+    fetch_gwas_flanking_snps()
+
+    # fetch the best SNPs from the selective sweep loci
+    fetch_selective_sweep_snps()
+
+    # get all MC1R snps
+    fetch_mc1r_snps()
+
+    # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
+    fetch_neutral_snps()
+
+    # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
+    fetch_ancestral_snps()

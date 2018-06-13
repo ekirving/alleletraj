@@ -5,6 +5,7 @@ library(ggridges)
 library(reshape2)
 library(tidyr)
 library(RColorBrewer)
+library(dplyr)
 
 # get the command line arguments
 # args <- commandArgs(trailingOnly = TRUE)
@@ -13,11 +14,11 @@ library(RColorBrewer)
 
 # TODO remove when done testing
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
-modsnp_id <- '8130095'
+modsnp_id <- '25822357'
 bin_width <- 500
 
 # connect to the remote server
-mydb = dbConnect(MySQL(), user='root', password='', dbname='allele_trajectory', host='localhost')
+mydb = dbConnect(MySQL(), user='root', password='', dbname='alleletraj_pig', host='localhost')
 
 # fetch the details of the SNP
 rs = dbSendQuery(mydb, paste0(
@@ -48,10 +49,9 @@ rs = dbSendQuery(mydb, paste0(
         JOIN sample_reads sr
           ON sr.chrom = ms.chrom
          AND sr.site = ms.site
-         AND sr.snp = 1
+         AND sr.called = 1
         JOIN samples s
           ON s.id = sr.sample_id
-         AND s.species = 'pig'
    LEFT JOIN sample_bins sb
           ON sb.sample_id = s.id
    LEFT JOIN sample_dates sd

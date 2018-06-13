@@ -236,7 +236,7 @@ GENE_OFFSET = 100000
 NUM_NEUTRAL_SNPS = 60000
 
 # the number of "ancestral" SNPs to include in the ascertainment
-NUM_ANCESTRAL_SNPS = 20000
+NUM_ANCESTRAL_SNPS = 30000
 
 # minimum distance from an INDEL
 INDEL_BUFFER = 10

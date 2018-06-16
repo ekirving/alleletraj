@@ -62,7 +62,7 @@ snps = dbc.get_records_sql("""
             MAX(IF(sr.base = ms.derived, {median}, NULL)) AS oldest_derived
        FROM (
                 # get a unique list of GWAS peaks
-                SELECT min(id) AS id
+                SELECT min(id) AS id, trait_id
                   FROM qtls
                  WHERE associationType = 'Association'
                    AND valid = 1

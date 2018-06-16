@@ -7,23 +7,24 @@ from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 from populate_samples import populate_samples
 from ascertainment import perform_ascertainment
+from graph_derived import graph_derived
 
-# # load all the Ensembl data for this species
-# load_ensembl_genes()
-# load_ensembl_variants()
-#
-# # load the SNP Chip data
-# load_snpchip_variants()
-#
-# # ascertain SNPs in modern whole genome data
-# discover_modern_snps()
-#
-# # load the QTLs from the AnimalQTL database
-# populate_qtls()
+# load all the Ensembl data for this species
+load_ensembl_genes()
+load_ensembl_variants()
+
+# load the SNP Chip data
+load_snpchip_variants()
+
+# ascertain SNPs in modern whole genome data
+discover_modern_snps()
+
+# load the QTLs from the AnimalQTL database
+populate_qtls()
 
 # load pseudo-QTLs from other sources
-# populate_sweeps()
-# populate_mc1r_locus()
+populate_sweeps()
+populate_mc1r_locus()
 populate_neutral_loci()
 
 # link each QTL to the ascertained modern SNPs
@@ -37,7 +38,7 @@ populate_intervals()
 populate_interval_snps(POPULATION)
 
 # # load the sample metadata
-# populate_samples()
+populate_samples()
 
 # load the sample reads for each ascertained SNP
 populate_sample_reads()
@@ -50,4 +51,7 @@ analyse_qtls()
 
 # pick the best SNPs to target for a capture array
 perform_ascertainment()
+
+# graph the age of derived alleles
+graph_derived()
 

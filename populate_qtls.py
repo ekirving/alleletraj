@@ -324,8 +324,8 @@ def populate_qtl_snps(population):
                     AND ms.site BETWEEN q.start AND q.end
                   WHERE q.chrom = '{chrom}'
                     AND q.valid = 1
-                    AND ms.maf >= {maf}
-                    """.format(population=population, chrom=chrom, maf=MIN_MAF))
+                    AND ms.daf >= {daf}
+                    """.format(population=population, chrom=chrom, daf=MIN_DAF))
 
     print("({}).".format(timedelta(seconds=time() - start)))
 

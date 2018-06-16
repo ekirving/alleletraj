@@ -108,7 +108,7 @@ def populate_interval_snps(population):
                     AND ms.site BETWEEN i.start AND i.end
                   WHERE i.finished = 0
                     AND i.chrom = '{chrom}'
-                    AND ms.maf >= {minmaf}""".format(population=population, chrom=chrom, minmaf=MIN_MAF))
+                    AND ms.daf >= {mindaf}""".format(population=population, chrom=chrom, mindaf=MIN_DAF))
 
 
 def populate_sample_reads():

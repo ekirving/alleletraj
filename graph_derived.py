@@ -57,7 +57,7 @@ snps = dbc.get_records_sql("""
             t.class AS trait,
             ms.ancestral,
             ms.derived,
-            ms.maf,
+            ms.daf,
             MAX({median}) AS oldest_sample,
             MAX(IF(sr.base = ms.derived, {median}, NULL)) AS oldest_derived
        FROM (
@@ -90,7 +90,7 @@ snps = dbc.get_records_sql("""
 
 with open("tsv/all-snps-ages.tsv", "wb") as tsv_file:
 
-    fields = ['modsnp_id', 'trait', 'ancestral', 'derived', 'maf', 'oldest_sample', 'oldest_derived']
+    fields = ['modsnp_id', 'trait', 'ancestral', 'derived', 'daf', 'oldest_sample', 'oldest_derived']
     writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
     writer.writeheader()
 

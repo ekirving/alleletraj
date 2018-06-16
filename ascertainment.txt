@@ -5,7 +5,7 @@
 ***		- READ https://www.nature.com/articles/s41576-018-0016-z
 		
 		- dbsnp 
-		- redo with MAF >0.05
+		- redo with DAF >0.05
 	
 			- ~23.5 milllion which exist in dbsnp / ~3 million do not
 				- what's the frequency?
@@ -103,7 +103,7 @@
 			- inc sweep regions from BED file
 				- treat the same as QTLs, but with exact window size
 					
-					- double check the MAF / make sure they're not singletons
+					- double check the DAF / make sure they're not singletons
 				
 				(1) 19k SNPs
 					- /media/jbod/raid1-sdc1/laurent/full_run_results/Pig/analysis_FINAL/sweep_tree/EUD_Sweep_p001_FINAL_cutoff.bed

@@ -259,8 +259,8 @@ MULTI_THREADED = True if gethostname() != 'macbookpro.local' else False
 # no single worker should use more than 50% of the available cores
 MAX_CPU_CORES = int(cpu_count() * 0.5)
 
-# the minimum minor allele frequency of modern SNPs to include
-MIN_MAF = 0.05
+# the minimum derived allele frequency of modern SNPs to include
+MIN_DAF = 0.05
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_BASE_QUAL = 30

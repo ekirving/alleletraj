@@ -116,8 +116,8 @@ def process_fasta_files(args):
                 alleles.remove(ancestral)
                 derived = alleles.pop()
 
-                # calculate the minor allele frequency (maf)
-                maf = float(observations[derived]) / (observations[ancestral] + observations[derived])
+                # calculate the derived allele frequency (daf)
+                daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
 
                 record = dict()
                 record['population'] = population
@@ -128,7 +128,7 @@ def process_fasta_files(args):
                 record['derived'] = derived
                 record['derived_count'] = observations[derived]
                 record['type'] = type
-                record['maf'] = maf
+                record['daf'] = daf
 
                 dbc.save_record('modern_snps', record)
                 num_snps += 1

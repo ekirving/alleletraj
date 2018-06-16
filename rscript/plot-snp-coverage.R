@@ -111,7 +111,7 @@ ages.grp <- ages.grp %>%
 # setup the title of the plot
 title <- paste0("SNP chr", modsnp['chrom'], ":", modsnp['site'],
                 " [", modsnp['ancestral'], "/", modsnp['derived'], "]",
-                " maf=", round(modsnp['maf'], 2),
+                " DAF=", round(modsnp['daf'], 2),
                 " (#", modsnp_id, ")")
 
 # show all available colour palettes

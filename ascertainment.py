@@ -80,7 +80,7 @@ def fetch_gwas_flanking_snps():
             ON ms.id = qs.modsnp_id
           JOIN ensembl_variants ev
             ON ev.id = ms.variant_id
-           AND ev.indel IS NULL
+           AND (ev.indel IS NULL OR ms.snpchip_id IS NOT NULL)
       GROUP BY q.id""".format(num_snps=QTL_FLANK_NUM_SNPS))
 
     print("({}).".format(timedelta(seconds=time() - start)))
@@ -141,7 +141,7 @@ def fetch_selective_sweep_snps():
                         ON ms.id = qs.modsnp_id
                       JOIN ensembl_variants ev
                         ON ev.id = ms.variant_id
-                       AND ev.indel IS NULL
+                       AND (ev.indel IS NULL OR ms.snpchip_id IS NOT NULL)
                   GROUP BY ms.id
                   
                ) AS near
@@ -253,7 +253,7 @@ def fetch_neutral_snps():
                 ON ms.id = qs.modsnp_id
               JOIN ensembl_variants ev
                 ON ev.id = ms.variant_id
-               AND ev.indel IS NULL
+               AND (ev.indel IS NULL OR ms.snpchip_id IS NOT NULL)
          LEFT JOIN snpchip sc
                 ON sc.rsnumber = ev.rsnumber
              WHERE q.chrom = '{chrom}'
@@ -303,7 +303,7 @@ def fetch_ancestral_snps():
                AND sum.variant_id = asd.variant_id
               JOIN ensembl_variants ev
                 ON ev.id = asd.variant_id
-               AND ev.indel IS NULL
+               AND (ev.indel IS NULL OR asd.snpchip_id IS NOT NULL)
          LEFT JOIN snpchip sc
                 ON sc.rsnumber = ev.rsnumber 
              WHERE asd.population = 'ASD'

@@ -235,20 +235,40 @@ def populate_neutral_loci():
 
     dbc = db_conn()
 
+    # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
+    max_chrom = " ".join(["WHEN '{}' THEN {}".format(chrom, size) for chrom, size in CHROM_SIZE[SPECIES].iteritems()])
+
     # get all the non-neutral regions (defined here as all valid QTLs and gene regions +/- offset)
     results = dbc.get_records_sql("""
-        SELECT chrom, GREATEST(start - {offset}, 0) AS start, end + {offset} AS end 
-          FROM qtls
-         WHERE associationType != 'Neutral'
-           AND valid = 1
+        
+        # get all the QTLs with a valid rsnumber
+        SELECT ev.chrom, 
+               GREATEST(ev.start - {offset}, 1) AS `start`,
+               LEAST(ev.end + {offset}, CASE ev.chrom {max_chrom} END) AS `end`
+          FROM qtls q
+          JOIN ensembl_variants ev
+            ON ev.rsnumber = q.peak
+         WHERE q.associationType NOT IN ('Neutral', 'Sweep', 'MC1R')
            
-         UNION
+        UNION
          
-        SELECT chrom, GREATEST(start - {offset}, 0) AS start, end + {offset} AS end
-          FROM ensembl_genes
-          
+        # and the sweep regions
+        SELECT q.chrom, 
+               GREATEST(q.start - {offset}, 1) AS `start`, 
+               LEAST(q.end + {offset}, CASE q.chrom {max_chrom} END) AS `end`
+          FROM qtls q
+         WHERE q.associationType = 'Sweep'
+   
+        UNION        
+         
+        # and all the genes
+        SELECT eg.chrom, 
+               GREATEST(eg.start - {offset}, 1) AS `start`,
+               LEAST(eg.end + {offset}, CASE eg.chrom {max_chrom} END) AS `end`
+          FROM ensembl_genes eg
+        
       ORDER BY chrom, start, end
-           """.format(offset=GENE_OFFSET), key=None)
+           """.format(offset=GENE_OFFSET, max_chrom=max_chrom), key=None)
 
     intervals = defaultdict(list)
 

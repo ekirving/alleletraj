@@ -16,14 +16,29 @@ median = "COALESCE(sd.median, (COALESCE(c14.lower, sd.lower)+COALESCE(c14.upper,
 reads = dbc.get_records_sql("""
     SELECT sr.id AS read_id,
            {median} AS median
-      FROM samples s
-      JOIN sample_reads sr
-        ON sr.sample_id = s.id
-       AND sr.called = 1
- LEFT JOIN sample_dates sd
-        ON s.age = sd.age
- LEFT JOIN sample_dates_c14 c14
-        ON c14.accession = s.accession
+       FROM (
+                # get a unique list of GWAS peaks
+                SELECT min(id) AS id
+                  FROM qtls
+                 WHERE associationType = 'Association'
+                   AND valid = 1
+              GROUP BY peak
+                  
+            ) AS q
+       JOIN qtl_snps qs
+         ON q.id = qs.qtl_id
+       JOIN modern_snps ms
+         ON ms.id = qs.modsnp_id
+       JOIN sample_reads sr
+         ON sr.chrom = ms.chrom
+        AND sr.site = ms.site
+        AND sr.called = 1
+       JOIN samples s
+         ON s.id = sr.sample_id
+  LEFT JOIN sample_dates sd
+         ON s.age = sd.age
+  LEFT JOIN sample_dates_c14 c14
+         ON c14.accession = s.accession
     HAVING median IS NOT NULL""".format(median=median), key=None)
 
 with open("tsv/all-snps-counts.tsv", "wb") as tsv_file:
@@ -45,8 +60,16 @@ snps = dbc.get_records_sql("""
             ms.maf,
             MAX({median}) AS oldest_sample,
             MAX(IF(sr.base = ms.derived, {median}, NULL)) AS oldest_derived
-       FROM qtl_snps qs
-       JOIN qtls q
+       FROM (
+                # get a unique list of GWAS peaks
+                SELECT min(id) AS id
+                  FROM qtls
+                 WHERE associationType = 'Association'
+                   AND valid = 1
+              GROUP BY peak
+                  
+            ) AS q
+       JOIN qtl_snps qs
          ON q.id = qs.qtl_id
        JOIN traits t
          ON t.id = q.trait_id

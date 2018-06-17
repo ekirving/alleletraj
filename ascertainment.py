@@ -3,7 +3,58 @@
 
 from __future__ import print_function
 
+import unicodecsv as csv
+
 from pipeline_utils import *
+
+
+def flag_snps_near_indels():
+    """
+    Check our ascertainment against the dbsnp indel set to enforce a minimum distance.
+    """
+
+    dbc = db_conn()
+
+    begin = time()
+
+    print("INFO: Flagging dbsnp SNPs which are within +/- {} bp of an INDEL... ".format(INDEL_BUFFER))
+
+    chroms = CHROM_SIZE[SPECIES].keys()
+
+    for chrom in chroms:
+
+        indels = dbc.get_records_sql("""
+            SELECT ev.start, ev.end
+              FROM ensembl_variants ev
+             WHERE ev.chrom = '{chrom}' 
+               AND ev.type IN ('insertion', 'deletion')
+               """.format(chrom=chrom), key=None)
+
+        loci = []
+
+        for indel in indels:
+            loci.append((int(indel['start']) - INDEL_BUFFER, int(indel['end']) + INDEL_BUFFER))
+
+        # merge overlapping loci
+        loci = list(merge_intervals(loci))
+
+        print("INFO: Processing {:,} unique INDELs in chr{}".format(len(loci), chrom))
+
+        # process the INDELs in chunks
+        for i in xrange(0, len(loci), MAX_QUERY_SIZE):
+
+            # convert each locus into sql conditions
+            conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + MAX_QUERY_SIZE]]
+
+            dbc.execute_sql("""
+                UPDATE ensembl_variants
+                   SET indel = 1
+                 WHERE chrom = '{chrom}'
+                   AND ({conds})
+                   AND type = 'SNV'
+                   """.format(chrom=chrom, conds=" OR ".join(conds)))
+
+    print("INFO: Completed in {}.".format(timedelta(seconds=time() - begin)))
 
 
 def fetch_gwas_peaks():
@@ -317,53 +368,32 @@ def fetch_ancestral_snps():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def flag_snps_near_indels():
+def export_ascertained_snps():
     """
-    Check our ascertainment against the dbsnp indel set to enforce a minimum distance.
+    Export all the ascertained SNPs to a TSV.
     """
 
+    # open a db connection
     dbc = db_conn()
 
-    begin = time()
+    # get all the unique SNPs in the ascertainment
+    reads = dbc.get_records_sql("""
+        SELECT GROUP_CONCAT(DISTINCT qtl_id) AS qtls,
+               GROUP_CONCAT(DISTINCT TYPE) AS types,
+               rsnumber, chrom, site, ref, alt, chip_name, 
+               GROUP_CONCAT(DISTINCT snp_name) AS snp_name
+          FROM ascertainment
+      GROUP BY rsnumber
+      ORDER BY chrom, site
+           """.format(), key=None)
 
-    print("INFO: Flagging dbsnp SNPs which are within +/- {} bp of an INDEL... ".format(INDEL_BUFFER))
+    with open("tsv/candiate-snps.tsv", "wb") as tsv_file:
+        writer = csv.DictWriter(tsv_file, fieldnames=reads[0].keys(), delimiter='\t')
+        writer.writeheader()
 
-    chroms = CHROM_SIZE[SPECIES].keys()
-
-    for chrom in chroms:
-
-        indels = dbc.get_records_sql("""
-            SELECT ev.start, ev.end
-              FROM ensembl_variants ev
-             WHERE ev.chrom = '{chrom}' 
-               AND ev.type IN ('insertion', 'deletion')
-               """.format(chrom=chrom), key=None)
-
-        loci = []
-
-        for indel in indels:
-            loci.append((int(indel['start']) - INDEL_BUFFER, int(indel['end']) + INDEL_BUFFER))
-
-        # merge overlapping loci
-        loci = list(merge_intervals(loci))
-
-        print("INFO: Processing {:,} unique INDELs in chr{}".format(len(loci), chrom))
-
-        # process the INDELs in chunks
-        for i in xrange(0, len(loci), MAX_QUERY_SIZE):
-
-            # convert each locus into sql conditions
-            conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + MAX_QUERY_SIZE]]
-
-            dbc.execute_sql("""
-                UPDATE ensembl_variants
-                   SET indel = 1
-                 WHERE chrom = '{chrom}'
-                   AND ({conds})
-                   AND type = 'SNV'
-                   """.format(chrom=chrom, conds=" OR ".join(conds)))
-
-    print("INFO: Completed in {}.".format(timedelta(seconds=time() - begin)))
+        # write the data to disk
+        for read in reads:
+            writer.writerow(read)
 
 
 def perform_ascertainment():
@@ -399,5 +429,8 @@ def perform_ascertainment():
 
     # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
     fetch_ancestral_snps()
+
+    # export candidate SNPs to tsv
+    export_ascertained_snps()
 
     print("FINISHED: Completed ascertainment process in {}.".format(timedelta(seconds=time() - begin)))

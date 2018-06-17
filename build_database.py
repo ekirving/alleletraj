@@ -9,6 +9,12 @@ from populate_samples import populate_samples
 from ascertainment import perform_ascertainment
 from graph_derived import graph_derived
 
+# TODO change all tables back to InnoDB
+# TODO refactor to use Luigi / parallelise the SNP calling part
+# TODO chrom is top level param / use for threading pipeline
+
+# TODO in table `sample_reads` replace (interval_id ?, chrom, site) with modsnp_id
+
 # load all the Ensembl data for this species
 load_ensembl_genes()
 load_ensembl_variants()

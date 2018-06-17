@@ -20,8 +20,6 @@ def reset_flags(chrom):
 
     dbc.execute_sql("""
          UPDATE sample_reads
-           JOIN samples
-             ON samples.id = sample_reads.sample_id
             SET quality = NULL,
                 called = NULL
           WHERE chrom = '{chrom}'
@@ -36,8 +34,6 @@ def apply_quality_filters(chrom):
 
     dbc.execute_sql("""
         UPDATE sample_reads sr
-          JOIN samples s
-            ON s.id = sr.sample_id
            SET sr.quality = 1
          WHERE sr.chrom = '{chrom}'
            AND sr.baseq >= {baseq}
@@ -56,9 +52,7 @@ def choose_random_read(chrom, population):
         UPDATE sample_reads
           JOIN (  
                   SELECT SUBSTRING_INDEX(GROUP_CONCAT(sr.id ORDER BY RAND()), ',',  1) id
-                    FROM samples s
-                    JOIN sample_reads sr
-                      ON sr.sample_id = s.id
+                    FROM sample_reads sr
                     JOIN modern_snps ms
                       ON ms.population = '{population}'
                      AND ms.chrom = sr.chrom
@@ -81,8 +75,6 @@ def apply_genotype_filters(chrom):
 
     dbc.execute_sql("""
         UPDATE sample_reads sr
-          JOIN samples s
-            ON s.id = sr.sample_id
            SET sr.quality = 1,
                sr.called = 1 
          WHERE sr.chrom = '{chrom}'

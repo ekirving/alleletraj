@@ -371,6 +371,8 @@ def perform_ascertainment():
     Ascertain the best SNPs for a catpure array.
     """
 
+    begin = time()
+
     print("INFO: Starting ascertainment process")
 
     # clear any existing SNPs
@@ -397,3 +399,5 @@ def perform_ascertainment():
 
     # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
     fetch_ancestral_snps()
+
+    print("FINISHED: Completed ascertainment process in {}.".format(timedelta(seconds=time() - begin)))

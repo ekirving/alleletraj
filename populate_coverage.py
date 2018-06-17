@@ -182,7 +182,8 @@ def process_interval(args):
                 ON ev.id = ms.variant_id
              WHERE i.id = {id}""".format(id=interval_id), key='site')
 
-        print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
+        if VERBOSE:
+            print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
         # not all SNPs have a dbsnp entry, so we need to scan the reference to find which alleles are REF/ALT
         # because bcftools needs this info to constrain the diploid genotype calls
@@ -224,7 +225,8 @@ def process_interval(args):
             # get the sample
             sample = samples[sample_id]
 
-            print("INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession']))
+            if VERBOSE:
+                print("INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession']))
 
             # buffer the reads so we can bulk insert them into the db
             reads = defaultdict(list)
@@ -282,7 +284,8 @@ def process_interval(args):
 
             if diploid:
 
-                print("INFO: Calling diploid bases in {:,} sites for sample {}".format(len(diploid), sample_id))
+                if VERBOSE:
+                    print("INFO: Calling diploid bases in {:,} sites for sample {}".format(len(diploid), sample_id))
 
                 pos_file = 'vcf/diploid-int{}-sample{}.tsv'.format(interval_id, sample_id)
                 vcf_file = 'vcf/diploid-int{}-sample{}.vcf'.format(interval_id, sample_id)

@@ -143,7 +143,7 @@ MC1R_GENE_ID = {
     'horse': 'ENSECAG00000000900'
 }
 
-VERBOSE = True
+VERBOSE = False
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_BASE_QUAL = 30
@@ -152,7 +152,6 @@ MIN_GENO_QUAL = 30
 
 # number of bases to soft clip
 SOFT_CLIP_DIST = 3
-
 
 # the arbitrary +/- age uncertainty for median age dates
 MEDIAN_AGE_UNCERT = 100

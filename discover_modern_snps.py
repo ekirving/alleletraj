@@ -135,7 +135,7 @@ def process_fasta_files(args):
 
             elif num_alleles > 2:
                 if VERBOSE:
-                    print("WARNING: Pollyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids)),
+                    print("WARNING: Polyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids)),
                           file=sys.stderr)
 
         print("FINISHED: chr{} contained {} SNPs".format(chrom, num_snps))

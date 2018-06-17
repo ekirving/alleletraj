@@ -296,7 +296,7 @@ def fetch_neutral_snps():
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT q.id, q.associationType,
                    ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
-                   sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
+                   sc.chip_name, GROUP_CONCAT(DISTINCT sc.snp_name) AS snp_name
               FROM qtls q
               JOIN qtl_snps qs
                 ON q.id = qs.qtl_id
@@ -320,7 +320,9 @@ def fetch_neutral_snps():
 
 def fetch_ancestral_snps():
     """
-    Get ancestral SNPs which are in variable in ASD and SUM (Sumatran Sus scrofa)
+    Get ancestral SNPs which are variable in ASD (Asian domestic) and SUM (Sumatran Sus scrofa) populations.
+
+    Prefer SNPs which are on the SNPchip and those already chosen in a different category.
     """
 
     dbc = db_conn()
@@ -346,7 +348,7 @@ def fetch_ancestral_snps():
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT NULL, 'Ancestral',
                    ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
-                   sc.chip_name, GROUP_CONCAT(sc.snp_name) AS snp_name
+                   sc.chip_name, GROUP_CONCAT(DISTINCT sc.snp_name) AS snp_name
               FROM modern_snps asd
               JOIN modern_snps sum
                 ON sum.population = 'SUM'
@@ -357,13 +359,46 @@ def fetch_ancestral_snps():
                AND (ev.indel IS NULL OR asd.snpchip_id IS NOT NULL)
          LEFT JOIN snpchip sc
                 ON sc.rsnumber = ev.rsnumber 
+         LEFT JOIN ascertainment a
+                ON asd.chrom = a.chrom
+               AND asd.site = a.site
              WHERE asd.population = 'ASD'
                AND asd.chrom = '{chrom}'
                AND asd.derived_count > 1
           GROUP BY asd.id
-          ORDER BY asd.snpchip_id IS NULL, rand()
+          ORDER BY asd.snpchip_id IS NULL, a.id IS NULL, rand()
              LIMIT {num_snps}
                """.format(chrom=chrom, num_snps=num_snps))
+
+    print("({}).".format(timedelta(seconds=time() - start)))
+
+
+def fetch_remaining_snpchip_snps():
+    """
+    Include any SNPchip SNPs which were not already included in a previous ascertainment category.
+    """
+    dbc = db_conn()
+
+    start = time()
+
+    print("INFO: Including any reamining snpchip SNPs...", end='')
+
+    dbc.execute_sql("""
+        INSERT
+          INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
+        SELECT NULL, 'snpchip',
+               ev.rsnumber, ev.chrom, ev.start AS site, ev.ref, ev.alt,
+               sc.chip_name, GROUP_CONCAT(DISTINCT sc.snp_name) AS snp_name
+          FROM snpchip sc
+          JOIN ensembl_variants ev
+            ON ev.rsnumber = sc.rsnumber
+     LEFT JOIN ascertainment a
+            ON a.chrom = sc.chrom
+           AND a.site = sc.site
+         WHERE a.id IS NULL
+           AND ev.type = 'SNV'
+           AND length(ev.alt) = 1
+      GROUP BY ev.rsnumber""")
 
     print("({}).".format(timedelta(seconds=time() - start)))
 
@@ -378,10 +413,10 @@ def export_ascertained_snps():
 
     # get all the unique SNPs in the ascertainment
     reads = dbc.get_records_sql("""
-        SELECT GROUP_CONCAT(DISTINCT qtl_id) AS qtls,
-               GROUP_CONCAT(DISTINCT TYPE) AS types,
+        SELECT GROUP_CONCAT(DISTINCT qtl_id ORDER BY qtl_id) AS qtls,
+               GROUP_CONCAT(DISTINCT type ORDER BY type) AS types,
                rsnumber, chrom, site, ref, alt, chip_name, 
-               GROUP_CONCAT(DISTINCT snp_name) AS snp_name
+               GROUP_CONCAT(DISTINCT snp_name ORDER BY snp_name) AS snp_name
           FROM ascertainment
       GROUP BY rsnumber
       ORDER BY chrom, site
@@ -429,6 +464,9 @@ def perform_ascertainment():
 
     # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
     fetch_ancestral_snps()
+
+    # include any snpchip SNPs which are not already included
+    fetch_remaining_snpchip_snps()
 
     # export candidate SNPs to tsv
     export_ascertained_snps()

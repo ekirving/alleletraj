@@ -512,6 +512,12 @@ def load_snpchip_variants():
            IGNORE 1 LINES (chip_name, rsnumber, chrom, site, snp_name)
               """.format(pipe=pipe))
 
+    # tidy up NULL values which get imported as the string 'NULL'
+    dbc.execute_sql("""
+        UPDATE snpchip
+           SET rsnumber = NULL
+         WHERE rsnumber = 'NULL'""")
+
     # remove the named pipe
     run_cmd(["rm -f {pipe}".format(pipe=pipe)], shell=True)
 

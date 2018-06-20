@@ -106,3 +106,6 @@ def graph_derived():
 
     # now generate the plot
     run_cmd(['Rscript', 'rscript/plot-age-derived.R', 'all-snps-ages', 'Derived Allele vs. Sample Age'])
+
+    # convert to PNG
+    run_cmd(["sips -s format png pdf/all-snps-ages.pdf --out pdf/all-snps-ages.png"], shell=True)

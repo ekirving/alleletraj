@@ -9,3 +9,7 @@ bcftools mpileup --fasta-ref fasta/Equus_caballus.EquCab2.dna.toplevel.fa --bam-
 bcftools mpileup --fasta-ref fasta/Equus_caballus.EquCab2.dna.toplevel.fa --bam-list ./data/bam_files_horse_DOM2.txt \
 	| bcftools call --multiallelic-caller --output-type v \
 	| bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file ./vcf/modern_DOM2.vcf &
+
+wait
+
+echo "FINISHED calling modern horses!!"

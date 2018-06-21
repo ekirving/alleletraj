@@ -11,6 +11,10 @@ gunzip < allele_trajectory-fulldump.sql.gz \
 
 #LOAD DATA LOCAL INFILE '/Users/Evan/Downloads/PigsAgeMapping.tsv' INTO TABLE age_mapping IGNORE 1 LINES (age, confident, lower, upper, median);
 
+# SET @i=0;
+# SELECT id, name, score, @i:=@i+1 AS rank 
+#  FROM ranking 
+#  ORDER BY score DESC;
 
 #create table modern_snps_intervals
 #select ms.*

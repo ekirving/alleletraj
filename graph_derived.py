@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from db_conn import db_conn
-from populate_coverage import run_cmd
-
 import unicodecsv as csv
+
+from pipeline_utils import *
 
 
 def graph_derived():
     """
-    Produce a scatter plot of the oldes observed derived allele vs. the oldest sample at that site.
+    Produce a scatter plot of the oldest observed derived allele vs. the oldest sample at that site.
     """
 
     # open a db connection
@@ -47,7 +46,7 @@ def graph_derived():
              ON c14.accession = s.accession
         HAVING median IS NOT NULL""".format(median=median), key=None)
 
-    with open("tsv/all-snps-counts.tsv", "wb") as tsv_file:
+    with open("tsv/{}-snps-counts.tsv".format(SPECIES), "wb") as tsv_file:
 
         fields = ['read_id', 'median']
         writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
@@ -94,7 +93,7 @@ def graph_derived():
           WHERE qs.num_reads IS NOT NULL
        GROUP BY qs.modsnp_id""".format(median=median), key=None)
 
-    with open("tsv/all-snps-ages.tsv", "wb") as tsv_file:
+    with open("tsv/{}-snps-ages.tsv".format(SPECIES), "wb") as tsv_file:
 
         fields = ['modsnp_id', 'trait', 'ancestral', 'derived', 'daf', 'oldest_sample', 'oldest_derived']
         writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
@@ -105,7 +104,7 @@ def graph_derived():
             writer.writerow(snp)
 
     # now generate the plot
-    run_cmd(['Rscript', 'rscript/plot-age-derived.R', 'all-snps-ages', 'Derived Allele vs. Sample Age'])
+    run_cmd(['Rscript', 'rscript/plot-age-derived.R', '{}-snps-ages'.format(SPECIES), 'Derived Allele vs. Sample Age'])
 
     # convert to PNG
-    run_cmd(["sips -s format png pdf/all-snps-ages.pdf --out pdf/all-snps-ages.png"], shell=True)
+    run_cmd(["sips -s format png pdf/{species}-snps-ages.pdf --out pdf/{species}-snps-ages.png".format(species=SPECIES)], shell=True)

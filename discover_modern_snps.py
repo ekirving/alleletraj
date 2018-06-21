@@ -44,7 +44,7 @@ def process_fasta_files(args):
         dbc = db_conn()
 
         # get all the modern fasta files
-        fasta_files = [FASTA_PATH + '/' + sample + "/{}.fa".format(chrom) for sample in SAMPLES[population]]
+        fasta_files = [FASTA_PATH + '/' + sample + "/{}.fa".format(chrom) for sample in SAMPLES[SPECIES][population]]
 
         # get the outgroup fasta file
         outgroup_fasta = FASTA_PATH + '/' + OUTGROUP + "/{}.fa".format(chrom)
@@ -272,7 +272,7 @@ def discover_modern_snps():
 
     if MULTI_THREADED:
         # chain together an iterator for the params
-        params = itertools.chain.from_iterable(itertools.izip(chroms, itertools.repeat(pop)) for pop in SAMPLES)
+        params = itertools.chain.from_iterable(itertools.izip(chroms, itertools.repeat(pop)) for pop in SAMPLES[SPECIES])
 
         # process the chromosomes in parallel
         pool = mp.Pool(MAX_CPU_CORES)
@@ -280,7 +280,7 @@ def discover_modern_snps():
 
     else:
         for chrom in chroms:
-            for pop in SAMPLES:
+            for pop in SAMPLES[SPECIES]:
                 # ascertain the modern SNPs separately in each population
                 func((chrom, pop))
 

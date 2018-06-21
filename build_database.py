@@ -45,21 +45,21 @@ populate_intervals()
 populate_interval_snps(POPULATION)
 
 # # load the sample metadata
-populate_samples()
-
-# load the sample reads for each ascertained SNP
-populate_sample_reads()
-
-# apply quality filters to the sample reads
-discover_snps(POPULATION)
-
-# analyse the coverage and quality for SNPs in each QTLs
-analyse_qtls()
-
-if SPECIES == 'pig':
-    # pick the best SNPs to target for a capture array
-    perform_ascertainment()
-
-# graph the age of derived alleles
-graph_derived()
+# populate_samples()
+#
+# # load the sample reads for each ascertained SNP
+# populate_sample_reads()
+#
+# # apply quality filters to the sample reads
+# discover_snps(POPULATION)
+#
+# # analyse the coverage and quality for SNPs in each QTLs
+# analyse_qtls()
+#
+# if SPECIES == 'pig':
+#     # pick the best SNPs to target for a capture array
+#     perform_ascertainment()
+#
+# # graph the age of derived alleles
+# graph_derived()
 

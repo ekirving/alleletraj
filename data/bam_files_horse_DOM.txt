@@ -1,7 +1,7 @@
-Esom_0226A_Esomalicus.Horse_nuc_wY.realigned.bam
-Prze_0150A_KB3879.Horse_nuc_wY.realigned.bam
-Prze_0151A_KB7674.Horse_nuc_wY.realigned.bam
-Prze_0157A_SB293.Horse_nuc_wY.realigned.bam
-Prze_0158A_SB339.Horse_nuc_wY.realigned.bam
-Prze_0159A_SB4329.Horse_nuc_wY.realigned.bam
-Prze_0160A_SB533.Horse_nuc_wY.realigned.bam
+/home/ludo/inbox/BAMs/modern/Esom_0226A_Esomalicus.Horse_nuc_wY.realigned.bam
+/home/ludo/inbox/BAMs/modern/Prze_0150A_KB3879.Horse_nuc_wY.realigned.bam
+/home/ludo/inbox/BAMs/modern/Prze_0151A_KB7674.Horse_nuc_wY.realigned.bam
+/home/ludo/inbox/BAMs/modern/Prze_0157A_SB293.Horse_nuc_wY.realigned.bam
+/home/ludo/inbox/BAMs/modern/Prze_0158A_SB339.Horse_nuc_wY.realigned.bam
+/home/ludo/inbox/BAMs/modern/Prze_0159A_SB4329.Horse_nuc_wY.realigned.bam
+/home/ludo/inbox/BAMs/modern/Prze_0160A_SB533.Horse_nuc_wY.realigned.bam

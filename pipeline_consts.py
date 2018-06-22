@@ -17,7 +17,7 @@ POPULATION = 'DOM'
 OUTGROUP = 'Esom_0226A'  # Equus africanus somaliensis / Somali wild ass
 
 # path to the folder containing the modern fasta files
-# FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
+FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
 
 SAMPLES = {
 
@@ -57,10 +57,10 @@ SAMPLES = {
     'horse': {
 
         # the 6 Przewalski horses
-        'PRZ': ['Prze_0150A', 'Prze_0151A', 'Prze_0157A', 'Prze_0158A', 'Prze_0159A', 'Prze_0160A'],
+        'DOM': ['Prze_0150A', 'Prze_0151A', 'Prze_0157A', 'Prze_0158A', 'Prze_0159A', 'Prze_0160A'],
 
         # the 24 Domestic horses
-        'DOM': ['Arab_0237A', 'Conn_0004A', 'Duel_0238A', 'FrMo_0065A', 'Frie_0296A', 'Hano_0235A', 'Heav_0269A',
+        'DOM2': ['Arab_0237A', 'Conn_0004A', 'Duel_0238A', 'FrMo_0065A', 'Frie_0296A', 'Hano_0235A', 'Heav_0269A',
                 'Icel_0144A', 'Icel_0247A', 'Jeju_0275A', 'Marw_0239A', 'Mong_0153A', 'Mong_0215A', 'Morg_0096A',
                 'Quar_0073A', 'Shet_0249A', 'Shet_0250A', 'Sorr_0236A', 'Stan_0081A', 'Thor_0145A', 'Thor_0290A',
                 'Yaku_0163A', 'Yaku_0170A', 'Yaku_0171A'],

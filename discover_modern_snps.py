@@ -8,6 +8,7 @@ import multiprocessing as mp
 import sys
 import traceback
 from collections import Counter
+import pysam as ps
 
 from pipeline_utils import *
 
@@ -154,21 +155,94 @@ def process_vcf_files(args):
         # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
         (chrom, population) = args
 
-        site = 0
         num_snps = 0
 
         # open a private connection to the database
         dbc = db_conn()
 
-        vcf_files = []
+        vcf_file = "vcf/horse_{}_chr{}.vcf".format(population, chrom)
 
-        print("STARTED: Parsing chr{} from {} VCF files.".format(chrom, len(vcf_files)))
+        print("STARTED: Parsing chr{} in {}.".format(chrom, vcf_file))
 
-        data = []
+        # parse the VCF with pysam
+        for rec in ps.VariantFile(vcf_file).fetch():
+
+            # skip low quality sites
+            if int(rec.qual) < MIN_GENO_QUAL:
+                continue
+
+            # skip polyallelic sites
+            if len(rec.alleles) != 2:
+                continue
+
+            # get the outgroup genotype
+            out_geno = set(rec.samples[OUTGROUP]['GT'])
+
+            # skip heterozygous sites in the outgroup (as they can't be polarized)
+            if len(out_geno) != 1 or out_geno == set([None]):
+                continue
+
+            # resolve the ancestral and derived alleles from the outgroup genotype
+            ancestral = rec.alleles[out_geno.pop()]
+            derived = [base for base in rec.alleles if base != ancestral].pop()
+
+            # lets collate all the haploid observations for the two alleles
+            haploids = []
+
+            # resolve the genotypes of all the samples
+            for sample in SAMPLES[SPECIES][population]:
+
+                # get the genotype call for this site
+                geno = rec.samples[sample]['GT']
+
+                # decode the GT notation into allele calls (e.g. 0/0, 0/1, 1/1)
+                alleles = [rec.alleles[idx] for idx in geno if idx is not None]
+
+                # add them to the list
+                haploids += alleles
+
+            # count the haploid observations
+            observations = Counter(haploids)
+
+            if len(observations.keys()) != 2:
+                # skip non-variant sites
+                continue
+
+            # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
+            type = 'ts' if set(rec.alleles) == {'A', 'G'} or set(rec.alleles) == {'C', 'T'} else 'tv'
+
+            # calculate the derived allele frequency (daf)
+            daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
+
+            record = dict()
+            record['population'] = population
+            record['chrom'] = chrom
+            record['site'] = rec.pos
+            record['ancestral'] = ancestral
+            record['ancestral_count'] = observations[ancestral]
+            record['derived'] = derived
+            record['derived_count'] = observations[derived]
+            record['type'] = type
+            record['daf'] = daf
+
+            dbc.save_record('modern_snps', record)
+            num_snps += 1
 
         print("FINISHED: chr{} contained {} SNPs".format(chrom, num_snps))
 
     except Exception:
+
+        # TODO remove when done testing
+        # print(rec)
+        # print(rec.alleles)
+        # print("out_geno = {}".format(out_geno))
+        # print("genoq = {}".format(genoq))
+        # print("ancestral = {}".format(ancestral))
+        # print("derived = {}".format(derived))
+        # print("haploids = {}".format(haploids))
+        # print(observations)
+        # print("daf = {}".format(daf))
+
         # Put all exception text into an exception and raise that
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
@@ -284,7 +358,11 @@ def discover_modern_snps():
                 # ascertain the modern SNPs separately in each population
                 func((chrom, pop))
 
-    # link modern SNPs to their dbsnp, gene and snpchip records
+
+def links_modern_snps():
+    """
+    Link modern SNPs to their dbsnp, gene and snpchip records
+    """
     link_ensembl_genes()
     link_ensembl_variants()
     link_snpchip()

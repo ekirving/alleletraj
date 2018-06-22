@@ -521,6 +521,60 @@ def load_snpchip_variants():
     # remove the named pipe
     run_cmd(["rm -f {pipe}".format(pipe=pipe)], shell=True)
 
+    if SPECIES == 'horse':
+        load_axiom_mnec670_annotation()
+
+
+def load_axiom_mnec670_annotation():
+    """
+    Unfortunately the SNPchimp DB doesn't have the chrom/pos/rsnumber details for the Affymetrix Axiom EquineHD array.
+    """
+
+    # open a db connection
+    dbc = db_conn()
+
+    print("INFO: Loading Affymetrix Axiom EquineHD variants")
+
+    pipe = "/tmp/axiom_mnec670".format(SPECIES)
+
+    # the vendor supplied annotation file
+    axiom = "data/Axiom/Axiom_MNEc670_Annotation-r1-csv.zip"
+
+    # just get the relevant columns
+    awk = "awk -F ',' 'NR>1 {print $1 \"\\t\" $4 \"\\t\" $5}'"
+
+    # unzip the dump into a named pipe
+    run_cmd(["mkfifo -m0666 {pipe}".format(pipe=pipe)], shell=True)
+    run_cmd(["unzip -p {axiom} | grep -vP '^#' | {awk} > {pipe}"
+             .format(axiom=axiom, awk=awk, pipe=pipe)], shell=True, background=True)
+
+    dbc.execute_sql("""
+            LOAD DATA 
+         LOCAL INFILE '{pipe}'
+           INTO TABLE snpchip_axiom
+               FIELDS 
+          ENCLOSED BY '"' (snp_name, chrom, site)""".format(pipe=pipe))
+
+    # remove the named pipe
+    run_cmd(["rm -f {pipe}".format(pipe=pipe)], shell=True)
+
+    # fix the missing chrom/site data
+    dbc.execute_sql("""
+        UPDATE snpchip sc
+          JOIN snpchip_axiom sa
+            ON sa.snp_name = sc.snp_name
+           SET sc.chrom = sa.chrom,
+               sc.site = sa.site""")
+
+    # fix the missing rsnumbers
+    dbc.execute_sql("""
+        UPDATE snpchip sc
+          JOIN ensembl_variants ev
+            ON ev.chrom = sc.chrom
+           AND ev.start = sc.site
+           SET sc.rsnumber = ev.rsnumber
+         WHERE ev.type = 'SNV'""")
+
 
 def compute_qtl_windows():
 

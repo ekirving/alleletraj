@@ -184,20 +184,14 @@ def bin_samples():
                FROM ({age}) as age
               WHERE lower >= {binupper}
                 AND upper <= {binlower}
-             HAVING perct_overlap >= {binpercent}""".format(age=sql_age,
-                                                            binpercent=BIN_PERCENT,
-                                                            binlower=bin_lower,
-                                                            binupper=bin_upper))
+             HAVING perct_overlap >= {binpercent}
+                """.format(age=sql_age, binpercent=BIN_PERCENT, binlower=bin_lower, binupper=bin_upper))
 
 
-def populate_samples():
+def populate_pig_samples():
 
     # open a db connection
     dbc = db_conn()
-
-    if SPECIES != 'pig':
-        # TODO make this work for all species not just pigs
-        raise Exception('Not implemented yet for {}'.format(SPECIES))
 
     # get the google sheet details
     sheet = GOOGLE_SHEET[SPECIES]
@@ -208,8 +202,7 @@ def populate_samples():
     # skip samples which were never sequenced
     samples = [sample for sample in samples if sample.pop('dna', None) is not None]
 
-    if VERBOSE:
-        print("INFO: Updating {} samples".format(len(samples)))
+    print("INFO: Updating {} samples".format(len(samples)))
 
     bam_files = defaultdict(list)
 
@@ -249,5 +242,46 @@ def populate_samples():
 
     # assign samples to temporal bins
     bin_samples()
+
+    print("INFO: Finished updating {} samples".format(len(samples)))
+
+
+def populate_horse_samples():
+
+    # open a db connection
+    dbc = db_conn()
+
+    # get the google sheet details
+    sheet = GOOGLE_SHEET[SPECIES]
+
+    # fetch all the samples from the GoogleDoc spreadsheet
+    samples = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
+
+    print("INFO: Updating {} samples".format(len(samples)))
+
+    for sample in samples:
+        accession = sample['accession']
+
+        # get the file path
+        path = sample.pop('path', None)
+
+        # all horses are valid
+        sample['valid'] = 1
+
+        # save the sample record
+        dbc.save_record('samples', sample)
+
+        # fetch the sample record (so we can link the BAM files to the ID)
+        sample = dbc.get_record('samples', {'accession': accession})
+
+        bam_file = dict()
+        bam_file['sample_id'] = sample['id']
+        bam_file['path'] = '/home/ludo/inbox/BAMs/ancient/' + os.path.basename(path)
+
+        if not dbc.exists_record('sample_files', bam_file):
+            dbc.save_record('sample_files', bam_file)
+
+    # TODO assign samples to temporal bins
+    # bin_samples()
 
     print("INFO: Finished updating {} samples".format(len(samples)))

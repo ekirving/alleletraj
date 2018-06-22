@@ -7,6 +7,7 @@ from discover_snps import *
 
 import pysam as ps
 import multiprocessing as mp
+import os
 import traceback
 import sys
 import itertools
@@ -185,14 +186,17 @@ def process_interval(args):
         if VERBOSE:
             print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
+        # handle chr1 vs. 1 chromosome names
+        contig = 'chr' + chrom if SPECIES == 'horse' else chrom
+
         # not all SNPs have a dbsnp entry, so we need to scan the reference to find which alleles are REF/ALT
         # because bcftools needs this info to constrain the diploid genotype calls
-        with ps.FastaFile(REF_FILE) as fasta_file:
+        with ps.FastaFile(REF_FILE[SPECIES]) as fasta_file:
 
             for site in snps.keys():
                 if not snps[site]['ref']:
                     # fetch the ref and snp alleles
-                    ref_allele = fasta_file.fetch(chrom, site-1, site)
+                    ref_allele = fasta_file.fetch(contig, site-1, site)
                     snp_alleles = [snps[site]['ancestral'], snps[site]['derived']]
 
                     if ref_allele not in snp_alleles:
@@ -238,7 +242,7 @@ def process_interval(args):
                 with ps.AlignmentFile(path, 'rb') as bamfile:
 
                     # get the full interval
-                    for pileupcolumn in bamfile.pileup(chrom, start, end + 1):
+                    for pileupcolumn in bamfile.pileup(contig, start, end + 1):
 
                         # IMPORTANT `reference_pos` is 0 based !!!!
                         # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
@@ -310,14 +314,15 @@ def process_interval(args):
                 # use all the BAM files
                 bam_files = " ".join(sample['paths'].split(','))
 
-                params = {'region': region, 'targets': targets, 'ref': REF_FILE, 'bams': bam_files, 'vcf': vcf_file}
+                params = {'region': region, 'targets': targets, 'ref': REF_FILE[SPECIES], 'bams': bam_files,
+                          'vcf': vcf_file}
 
                 # call bases with bcftools (and drop indels and other junk)
                 # uses both --region (random access) and --targets (streaming) for optimal speed
                 # see https://samtools.github.io/bcftools/bcftools.html#mpileup
                 # TODO none of --samples-file, --ploidy or --ploidy-file given, assuming all sites are diploid
                 cmd = "bcftools mpileup --region {region} --targets-file {targets} --fasta-ref {ref} {bams} " \
-                      " | bcftools call --multiallelic-caller --targets-file {targets} --constrain alleles --output-type v " \
+                      " | bcftools call --multiallelic-caller --targets-file {targets} --constrain alleles -O v " \
                       " | bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}" \
                       .format(**params)
 
@@ -353,7 +358,8 @@ def process_interval(args):
 
                         dbc.save_record('sample_reads', read)
 
-                # TODO delete the used VCF file
+                # delete the used VCF file
+                os.remove(vcf_file)
 
             # apply hard filters before inserting (otherwise we swamp the DB with too many low quality reads)
             reads = [read for (chrom, site) in reads for read in reads[(chrom, site)]

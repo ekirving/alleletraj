@@ -16,6 +16,12 @@ POPULATION = 'DOM'
 
 OUTGROUP = 'Esom_0226A'  # Equus africanus somaliensis / Somali wild ass
 
+# location of reference genome
+REF_FILE = {
+    'pig':   "fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa",
+    'horse': "fasta/Equus_caballus.EquCab2.dna.toplevel.fa",
+}
+
 # path to the folder containing the modern fasta files
 FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
 
@@ -199,6 +205,20 @@ GOOGLE_SHEET = {
                     ('Haplogroup',        'haplogroup'),
                     ('DNA',               'dna')
                 ])
+    },
+
+    # HorseSelection_LO4EIP-TRANSFERED
+    'horse': {
+        'id':   '1BMvIwYj-d8t3mpf67rzabrEvDoB8hBZbyS6XfGwcwUU',
+        'tabs': ['Ancient'],
+        'cols': OrderedDict([
+                    ('Name',     'accession'),
+                    ('Status',   'status'),
+                    ('path',     'path'),
+                    ('Age BP',   'age'),
+                    ('Age',      'period'),
+                    ('Site',     'location'),
+                ])
     }
 }
 
@@ -262,9 +282,6 @@ INDEL_BUFFER = 10
 
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10
-
-# location of reference genome
-REF_FILE = "fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa"
 
 # minumum mapping quality (hard filtered)
 HARD_MAPQ_CUTOFF = 20

@@ -66,10 +66,9 @@ discover_snps(POPULATION)
 # analyse the coverage and quality for SNPs in each QTLs
 analyse_qtls()
 
-if SPECIES == 'pig':
-    # pick the best SNPs to target for a capture array
-    perform_ascertainment()
-
+# if SPECIES == 'pig':
+#     # pick the best SNPs to target for a capture array
+#     perform_ascertainment()
+#
 # graph the age of derived alleles
-graph_derived()
-
+# graph_derived()

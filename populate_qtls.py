@@ -252,7 +252,7 @@ def populate_neutral_loci():
            
         UNION
          
-        # and the sweep regions
+        # and all the sweep regions
         SELECT q.chrom, 
                GREATEST(q.start - {offset}, 1) AS `start`, 
                LEAST(q.end + {offset}, CASE q.chrom {max_chrom} END) AS `end`

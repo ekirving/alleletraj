@@ -53,7 +53,7 @@ def process_fasta_files(args):
         # add the outgroup to the front of the list
         fasta_files.insert(0, outgroup_fasta)
 
-        print("STARTED: Parsing chr{} from {} fasta files.".format(chrom, len(fasta_files)))
+        print("STARTED: Parsing {} chr{} from {} fasta files.".format(population, chrom, len(fasta_files)))
 
         data = []
 
@@ -139,7 +139,7 @@ def process_fasta_files(args):
                     print("WARNING: Polyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids)),
                           file=sys.stderr)
 
-        print("FINISHED: chr{} contained {:,} SNPs".format(chrom, num_snps))
+        print("FINISHED: {} chr{} contained {:,} SNPs".format(population, chrom, num_snps))
 
     except Exception:
         # Put all exception text into an exception and raise that
@@ -162,7 +162,7 @@ def process_vcf_files(args):
 
         vcf_file = "vcf/horse_{}_chr{}.vcf".format(population, chrom)
 
-        print("STARTED: Parsing chr{} in {}.".format(chrom, vcf_file))
+        print("STARTED: Parsing {} chr{} in {}.".format(population, chrom, vcf_file))
 
         # parse the VCF with pysam
         for rec in ps.VariantFile(vcf_file).fetch():
@@ -179,7 +179,7 @@ def process_vcf_files(args):
             out_geno = set(rec.samples[OUTGROUP]['GT'])
 
             # skip heterozygous sites in the outgroup (as they can't be polarized)
-            if len(out_geno) != 1 or out_geno == set([None]):
+            if len(out_geno) != 1 or out_geno == {None}:
                 continue
 
             # resolve the ancestral and derived alleles from the outgroup genotype
@@ -228,20 +228,9 @@ def process_vcf_files(args):
             dbc.save_record('modern_snps', record)
             num_snps += 1
 
-        print("FINISHED: chr{} contained {} SNPs".format(chrom, num_snps))
+        print("FINISHED: {} chr{} contained {:,} SNPs".format(population, chrom, num_snps))
 
     except Exception:
-
-        # TODO remove when done testing
-        # print(rec)
-        # print(rec.alleles)
-        # print("out_geno = {}".format(out_geno))
-        # print("genoq = {}".format(genoq))
-        # print("ancestral = {}".format(ancestral))
-        # print("derived = {}".format(derived))
-        # print("haploids = {}".format(haploids))
-        # print(observations)
-        # print("daf = {}".format(daf))
 
         # Put all exception text into an exception and raise that
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))

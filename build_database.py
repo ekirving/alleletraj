@@ -39,12 +39,13 @@ from graph_derived import graph_derived
 # populate_sweeps()
 # populate_mc1r_locus()
 # populate_neutral_loci()
-#
-# # link each QTL to the ascertained modern SNPs
-# populate_qtl_snps(POPULATION)
-#
-# # flag the modern SNPs which fall into "neutral" regions
-# mark_neutral_snps()
+
+# TODO make this work with DOM and DOM2
+# link each QTL to the ascertained modern SNPs
+populate_qtl_snps(POPULATION)
+
+# flag the modern SNPs which fall into "neutral" regions
+mark_neutral_snps()
 
 # calculate the unique set of non-overlapping genomic loci from the QTLs
 populate_intervals()

@@ -12,7 +12,7 @@ from multiprocessing import cpu_count
 # OUTGROUP = 'SVSV01U01_Sverrucosus_rh'  # Sus verrucosus / Javan warty pig
 
 SPECIES = 'horse'
-POPULATION = 'DOM'
+POPULATION = 'DOM2'
 
 OUTGROUP = 'Esom_0226A'  # Equus africanus somaliensis / Somali wild ass
 

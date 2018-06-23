@@ -139,7 +139,7 @@ def process_fasta_files(args):
                     print("WARNING: Polyallelic site chr{}:{} = {}".format(chrom, site + 1, set(haploids)),
                           file=sys.stderr)
 
-        print("FINISHED: chr{} contained {} SNPs".format(chrom, num_snps))
+        print("FINISHED: chr{} contained {:,} SNPs".format(chrom, num_snps))
 
     except Exception:
         # Put all exception text into an exception and raise that

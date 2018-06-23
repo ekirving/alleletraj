@@ -58,6 +58,7 @@ from graph_derived import graph_derived
 # elif SPECIES == 'horse':
 #     populate_horse_samples()
 
+# TODO make samples file w/ gender call for ploidy
 # load the sample reads for each ascertained SNP
 populate_sample_reads()
 

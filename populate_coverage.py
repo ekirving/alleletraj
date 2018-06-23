@@ -333,8 +333,8 @@ def process_interval(args):
                 # parse the results with pysam
                 for rec in ps.VariantFile(vcf_file).fetch():
 
-                    # get the genotype call for this site
-                    geno = rec.samples[sample['accession']]['GT']
+                    # get the genotype call for this site (without having to know the @SM code used in the BAM file)
+                    geno = rec.samples.values().pop()['GT']
 
                     # get the genotype quality
                     genoq = int(rec.qual)

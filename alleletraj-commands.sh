@@ -89,3 +89,19 @@ sips -s format png pdf/all-snps-ages.pdf --out pdf/all-snps-ages.png
 # add "chr" to front of chrom names in reference fasta
 sed -i -e 's/^>/>chr/' fasta/Equus_caballus.EquCab2.dna.toplevel.fa
 
+
+# ----------------------------------------------------------------------------------------
+# -					sort and index the BAM files that need it							 -
+# ----------------------------------------------------------------------------------------
+
+# move files from list into subfolder
+cat unsorted.list | xargs mv -t unsorted/
+
+# sort them all, and put in parent folder
+parallel "echo {} && samtools sort -O bam {} > ../{}" ::: *.bam
+
+# check the filesize of the sorted files
+ls -lh | grep -f unsorted.list
+
+# index them all 
+parallel -a unsorted.list "echo {} && samtools index {}"

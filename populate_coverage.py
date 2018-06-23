@@ -300,7 +300,7 @@ def process_interval(args):
 
                 # save all the callable positions to a file
                 with open(pos_file, 'w') as fout:
-                    fout.write("\n".join("{}\t{}\t{},{}".format(chrom, site, snps[site]['ref'], snps[site]['alt'])
+                    fout.write("\n".join("{}\t{}\t{},{}".format(contig, site, snps[site]['ref'], snps[site]['alt'])
                                          for (chrom, site) in diploid))
 
                 targets = "{}.gz".format(pos_file)
@@ -310,7 +310,7 @@ def process_interval(args):
                 run_cmd(["tabix -s1 -b2 -e2 {}".format(targets)], shell=True)
 
                 # restrict the callable region using the interval start and end
-                region = "{}:{}-{}".format(chrom, start, end)
+                region = "{}:{}-{}".format(contig, start, end)
 
                 # use all the BAM files
                 bam_files = " ".join(sample['paths'].split(','))
@@ -341,7 +341,7 @@ def process_interval(args):
 
                     if genoq >= MIN_GENO_QUAL:
                         # the genotype is good, so drop the raw reads
-                        reads.pop((rec.chrom, rec.pos))
+                        reads.pop((chrom, rec.pos))
 
                     # decode the GT notation into allele calls (e.g. 0/0, 0/1, 1/1)
                     alleles = [rec.alleles[idx] for idx in geno if idx is not None]
@@ -350,11 +350,11 @@ def process_interval(args):
                         # compose the read records
                         read = {
                             'interval_id': interval_id,
-                            'sample_id': sample_id,
-                            'chrom':    rec.chrom,
-                            'site':     rec.pos,
-                            'genoq':    genoq,
-                            'base':     allele
+                            'sample_id':   sample_id,
+                            'chrom':       chrom,
+                            'site':        rec.pos,
+                            'genoq':       genoq,
+                            'base':        allele
                         }
 
                         dbc.save_record('sample_reads', read)

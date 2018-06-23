@@ -25,7 +25,8 @@ def populate_intervals():
     results = dbc.get_records_sql("""
         SELECT DISTINCT q.chrom, q.start, q.end
           FROM qtls q
-         WHERE q.valid = 1""", key=None)
+         WHERE q.valid = 1
+      ORDER BY q.chrom, q.start, q.end""", key=None)
 
     intervals = defaultdict(list)
 

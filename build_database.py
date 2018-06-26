@@ -46,17 +46,18 @@ from graph_derived import graph_derived
 #
 # # flag the modern SNPs which fall into "neutral" regions
 # mark_neutral_snps()
-#
-# # calculate the unique set of non-overlapping genomic loci from the QTLs
-# populate_intervals()
-# populate_interval_snps(POPULATION)
-#
-# # load the sample metadata
-# if SPECIES == 'pig':
-#     populate_pig_samples()
-#
-# elif SPECIES == 'horse':
-#     populate_horse_samples()
+
+# TODO rerun for pigs
+# calculate the unique set of non-overlapping genomic loci from the QTLs
+populate_intervals()
+populate_interval_snps(POPULATION)
+
+# load the sample metadata
+if SPECIES == 'pig':
+    populate_pig_samples()
+
+elif SPECIES == 'horse':
+    populate_horse_samples()
 
 # TODO make samples file w/ gender call for ploidy
 # load the sample reads for each ascertained SNP
@@ -68,9 +69,9 @@ discover_snps(POPULATION)
 # analyse the coverage and quality for SNPs in each QTLs
 analyse_qtls()
 
-# if SPECIES == 'pig':
-#     # pick the best SNPs to target for a capture array
-#     perform_ascertainment()
-#
+if SPECIES == 'pig':
+    # pick the best SNPs to target for a capture array
+    perform_ascertainment()
+
 # graph the age of derived alleles
-# graph_derived()
+graph_derived()

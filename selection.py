@@ -76,7 +76,7 @@ def run_selection(population, modsnp_id):
 
     # compose the input and output file paths
     input_file = "selection/{}-{}-modsnp_{}.input".format(SPECIES, population, modsnp_id)
-    output_file = "selection/{}-{}-modsnp_{}".format(SPECIES, population, modsnp_id)
+    output_prefix = "selection/{}-{}-modsnp_{}".format(SPECIES, population, modsnp_id)
 
     # get the generation time, Ne and population history
     gen_time = GENERATION_TIME[SPECIES]
@@ -85,20 +85,22 @@ def run_selection(population, modsnp_id):
 
     print("INFO: Started selection for {} SNP #{}".format(population, modsnp_id))
 
-    run_cmd(['sr',
-             '-D', input_file,        # path to data input file
-             '-P', pop_hist,          # path to population size history file
-             '-o', output_file,       # output file prefix
-             '-a',                    # flag to infer allele age
-             '-G', gen_time,          # generation time
-             '-N', pop_size,          # reference population size
-             '-n', MCMC_CYCLES,       # number of MCMC cycles to run
-             '-f', MCMC_PRINT,        # frequency of printing output to the screen
-             '-s', MCMC_SAMPLE_FREQ,  # frequency of sampling from the posterior
-             '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory update move
-             '-e', MCMC_RANDOM_SEED,  # random number seed
-             ])
+    log = run_cmd(['sr',
+                   '-D', input_file,        # path to data input file
+                   '-P', pop_hist,          # path to population size history file
+                   '-o', output_prefix,     # output file prefix
+                   '-a',                    # flag to infer allele age
+                   '-G', gen_time,          # generation time
+                   '-N', pop_size,          # reference population size
+                   '-n', MCMC_CYCLES,       # number of MCMC cycles to run
+                   '-f', MCMC_PRINT,        # frequency of printing output to the screen
+                   '-s', MCMC_SAMPLE_FREQ,  # frequency of sampling from the posterior
+                   '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory update move
+                   '-e', MCMC_RANDOM_SEED,  # random number seed
+                   ])
+
+    # save the log file
+    with open(output_prefix + '.log', 'w') as fout:
+        fout.write(log)
 
     print("INFO: Finished selection for {} SNP #{} ({})".format(population, modsnp_id, timedelta(seconds=time() - begin)))
-
-

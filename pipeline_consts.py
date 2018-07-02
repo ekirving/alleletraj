@@ -142,6 +142,14 @@ POPULATION_SIZE = {
     }
 }
 
+# the population history files
+POPULATION_HISTORY = {
+    'pig': {
+        'EUD': 'data/selection/pig-EUD-constant.pop',
+        'EUW': 'data/selection/pig-EUW-constant.pop',
+    }
+}
+
 ENSEMBL_DATA = {
 
     # see ftp://ftp.ensembl.org/pub/release-89/gtf/sus_scrofa/

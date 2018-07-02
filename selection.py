@@ -69,21 +69,25 @@ def generate_sample_input(population, modsnp_id):
 
 def run_selection(population, modsnp_id):
     """
-    Run `selection` for the given SNP
+    Run `selection` for the given SNP.
     """
+
+    begin = time()
 
     # compose the input and output file paths
     input_file = "selection/{}-{}-modsnp_{}.input".format(SPECIES, population, modsnp_id)
     output_file = "selection/{}-{}-modsnp_{}".format(SPECIES, population, modsnp_id)
-    pop_history = "data/selection/{}-{}-constant.pop".format(SPECIES, population)
 
-    # get the generation time and Ne
+    # get the generation time, Ne and population history
     gen_time = GENERATION_TIME[SPECIES]
     pop_size = POPULATION_SIZE[SPECIES][population]
+    pop_hist = POPULATION_HISTORY[SPECIES][population]
+
+    print("INFO: Started selection for {} SNP #{}".format(population, modsnp_id))
 
     run_cmd(['sr',
              '-D', input_file,        # path to data input file
-             '-P', pop_history,       # path to population size history file
+             '-P', pop_hist,          # path to population size history file
              '-o', output_file,       # output file prefix
              '-a',                    # flag to infer allele age
              '-G', gen_time,          # generation time
@@ -94,5 +98,7 @@ def run_selection(population, modsnp_id):
              '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory update move
              '-e', MCMC_RANDOM_SEED,  # random number seed
              ])
+
+    print("INFO: Finished selection for {} SNP #{} ({})".format(population, modsnp_id, timedelta(seconds=time() - begin)))
 
 

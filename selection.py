@@ -103,4 +103,25 @@ def run_selection(population, modsnp_id):
     with open(output_prefix + '.log', 'w') as fout:
         fout.write(log)
 
+    # plot the allele trajectory
+    run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, pop_hist])
+
+    # TODO plot the strength of selection a1 and a2
+
     print("INFO: Finished selection for {} SNP #{} ({})".format(population, modsnp_id, timedelta(seconds=time() - begin)))
+
+
+def model_selection(args):
+    """
+    Model the allele trajectory of the given SNP.
+    """
+
+    population, modsnp_id = args
+
+    print(population, modsnp_id)
+
+    # convert the SNP data into the input format for `selection`
+    # generate_sample_input(population, modsnp_id)
+
+    # run `selection` and plot the results
+    # run_selection(population, modsnp_id)

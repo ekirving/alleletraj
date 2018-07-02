@@ -333,7 +333,10 @@ MAX_INSERT_SIZE = 50000
 MAX_QUERY_SIZE = 5000
 
 # number of MCMC cycles to run
-MCMC_CYCLES = 500000  # TODO is this enough
+MCMC_CYCLES = int(5e5)  # TODO is this reasonable?
+
+# number of MCMC cycles to discard as burn in
+MCMC_BURN_IN = int(5e3)  # TODO is this reasonable?
 
 # frequency of printing output to the screen
 MCMC_PRINT = 1000

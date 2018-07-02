@@ -104,7 +104,7 @@ def run_selection(population, modsnp_id):
         fout.write(log)
 
     # plot the allele trajectory
-    run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, pop_hist])
+    run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, pop_hist, MCMC_BURN_IN])
 
     # TODO plot the strength of selection a1 and a2
 
@@ -118,10 +118,8 @@ def model_selection(args):
 
     population, modsnp_id = args
 
-    print(population, modsnp_id)
-
     # convert the SNP data into the input format for `selection`
-    # generate_sample_input(population, modsnp_id)
+    generate_sample_input(population, modsnp_id)
 
     # run `selection` and plot the results
-    # run_selection(population, modsnp_id)
+    run_selection(population, modsnp_id)

@@ -66,6 +66,8 @@ mysqldump -u root -p allele_trajectory ensembl_variants ensembl_genes | gzip > e
 # restore dump
 gunzip < alleletraj_pig-20180608-1555.sql.gz  | mysql -u root -p -D alleletraj_pig
 
+gunzip < alleletraj_horse-20180623-1004.sql.gz  | mysql -u root -p -D alleletraj_horse
+
 
 bcftools mpileup --fasta-ref fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa /home/ludo/inbox/BAMslices/Modern/*.bam \
 	| bcftools call --multiallelic-caller --output-type v \
@@ -103,5 +105,5 @@ parallel "echo {} && samtools sort -O bam {} > ../{}" ::: *.bam
 # check the filesize of the sorted files
 ls -lh | grep -f unsorted.list
 
-# index them all 
+# index them all
 parallel -a unsorted.list "echo {} && samtools index {}"

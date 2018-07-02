@@ -130,12 +130,12 @@ CHROM_SIZE = {
 
 
 # the average generation time in years
-GEN_TIME = {
+GENERATION_TIME = {
     'pig': 5  # see https://www.nature.com/articles/ng.3197
 }
 
 # the reference effective population size
-POP_SIZE = {
+POPULATION_SIZE = {
     'pig': {  # see https://www.nature.com/articles/ng.3394
         'EUD': 20563,
         'EUW': 8497

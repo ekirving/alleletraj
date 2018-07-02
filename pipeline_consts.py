@@ -128,6 +128,20 @@ CHROM_SIZE = {
 
 }
 
+
+# the average generation time in years
+GEN_TIME = {
+    'pig': 5  # see https://www.nature.com/articles/ng.3197
+}
+
+# the reference effective population size
+POP_SIZE = {
+    'pig': {  # see https://www.nature.com/articles/ng.3394
+        'EUD': 20563,
+        'EUW': 8497
+    }
+}
+
 ENSEMBL_DATA = {
 
     # see ftp://ftp.ensembl.org/pub/release-89/gtf/sus_scrofa/
@@ -309,3 +323,18 @@ MAX_INSERT_SIZE = 50000
 
 # the maximum number of conditions in a single query
 MAX_QUERY_SIZE = 5000
+
+# number of MCMC cycles to run
+MCMC_CYCLES = 500000  # TODO is this enough
+
+# frequency of printing output to the screen
+MCMC_PRINT = 1000
+
+# frequency of sampling from the posterior
+MCMC_SAMPLE_FREQ = 100
+
+# fraction of the allele frequency to update during a trajectory update move
+MCMC_FRACTION = 20
+
+# random number seed
+MCMC_RANDOM_SEED = 234395

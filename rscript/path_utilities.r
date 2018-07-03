@@ -29,6 +29,7 @@ make_command_string = function(sam_times,sam_sizes,sam_counts,outFile,dt=.001,n=
 #reads sampled paths from MCMC
 #outname should be the PREFIX, it automatically reads both times and trajectories
 read.path = function(outname,n=-1L) {
+    # TODO replace w/ code from https://gist.github.com/hadley/6353939
 	traj = readLines(paste(outname,".traj",sep=""),n=n)
 	traj = lapply(traj, function(x) {temp = as.numeric(unlist(strsplit(x,split=" "))); temp[2:length(temp)]})
 	time = readLines(paste(outname,".time",sep=""),n=n)
@@ -45,10 +46,10 @@ plot.posterior.paths = function(paths,sam_freqs,sam_times,ylim=c(0,1),truePath=c
 		paths$traj = pathsTemp$traj[burnin:length(pathsTemp$traj)]
 		rm(pathsTemp)
 	}
-	
+
 	#find the oldest age
 	oldest = min(sapply(paths$time,min))
-	#find the time of the most recent sample 
+	#find the time of the most recent sample
 	present = max(paths$time[[1]])
 	#make the vector of times to sample
 	post_times = seq(oldest,present,dt)
@@ -64,7 +65,7 @@ plot.posterior.paths = function(paths,sam_freqs,sam_times,ylim=c(0,1),truePath=c
 		cur_time = c(fake_time,paths$time[[i]])
 		cur_spline = splinefun(cur_time,cur_traj)
 		post_paths[i,] = cur_spline(post_times)
-	}	
+	}
 	path_quantiles = t(apply(post_paths,2,quantile,probs=c(.05,.25,.5,.75,.95)))
 	par(mar = c(5, 4, 4, 4) + 0.3)
 	five_percent_age = quantile(ages,.05)
@@ -86,7 +87,7 @@ plot.posterior.paths = function(paths,sam_freqs,sam_times,ylim=c(0,1),truePath=c
 		first_nonzero_post = min(which(post_times>=first_nonzero_time))
 		age_dens = density(ages,to=first_nonzero_time)
 		age_dens_spline = splinefun(age_dens$x,age_dens$y)
-		par(new=T)	
+		par(new=T)
 		print("Trying to plot density of times")
 		print(c(first_time_ind,first_nonzero_post))
 		if (is.null(xlim)) {
@@ -147,7 +148,7 @@ rejection_sample_age = function(n,popSize,ancient,recent=0,M=1) {
 		}
 	}
 	return(dat)
-	
+
 }
 
 #generates sample data by simulating and sampling alleles
@@ -162,12 +163,12 @@ generate_sample_data = function(n,sample_times,sample_sizes, a,t_1,t_2,gamma,h,t
 	sample_counts = matrix(nrow=n,ncol=length(sample_times))
 	for (i in 1:n) {
 		if (print_i) {
-			print(c(i,gamma[i],h[i],t_1[i]))	
+			print(c(i,gamma[i],h[i],t_1[i]))
 		}
 		seg = FALSE
 		while (seg == FALSE) {
 			test = sim_wf_diploid_popsize(a=a,t_1=t_1[i],t_2=t_2,gamma=gamma[i],h=h[i],t_len=t_len, popSize = popSize)
-			if (test[2,ncol(test)] < 1 && test[2,ncol(test)] > 0) {	
+			if (test[2,ncol(test)] < 1 && test[2,ncol(test)] > 0) {
 				if (t_1[i]<sample_times[1]) {
 					first_in_t = 1
 				} else {
@@ -180,7 +181,7 @@ generate_sample_data = function(n,sample_times,sample_sizes, a,t_1,t_2,gamma,h,t
 					seg=TRUE
 				} else if (!one_nonzero) {
 					seg=TRUE
-				} 
+				}
 			}
 		}
 		paths[[i]] = test
@@ -189,15 +190,15 @@ generate_sample_data = function(n,sample_times,sample_sizes, a,t_1,t_2,gamma,h,t
 	freq = t(t(sample_counts)/sample_sizes)
 	return(list(counts=sample_counts,sizes=sample_sizes,times=sample_times,paths=paths,freq=freq))
 }
-	
+
 
 #Generate a command string from a list of sims
 #... are arguments to be passed to make_command_string
 make_command_string_from_sims = function(sim_data, outPrefix, ...) {
 	cmd_string = c()
-	if (is.matrix(sim_data$counts)) { 
+	if (is.matrix(sim_data$counts)) {
 		for (i in 1:nrow(sim_data$counts)) {
-			cmd_string = c(cmd_string, make_command_string(sim_data$times,sim_data$sizes,sim_data$counts[i,],paste(outPrefix,i,sep="_"),...))	
+			cmd_string = c(cmd_string, make_command_string(sim_data$times,sim_data$sizes,sim_data$counts[i,],paste(outPrefix,i,sep="_"),...))
 		}
 	} else {
 		cmd_string = c(cmd_string, make_command_string(sim_data$times,sim_data$sizes,sim_data$counts,outPrefix,...))
@@ -277,7 +278,7 @@ wf_iterate_likelihood_diploid = function(sample_count,sample_size,sample_time,al
 	#make the wf matrix for the parameters
 	wf_matrix = construct_wf_matrix_diploid(s,h,N)
 
-	
+
 	#figure out which samples are older than the allele age
 	first_sample = min(which(sample_time_gen>age_gen))
 	if (first_sample != 1 && sample_count[first_sample-1]>0) {
@@ -288,7 +289,7 @@ wf_iterate_likelihood_diploid = function(sample_count,sample_size,sample_time,al
 	#precompute all necessary transition matrices
 	uniqueBetween = unique(c(diff(sample_time_gen),sample_time_gen[first_sample]-age_gen))
 	wfTrans = lapply(uniqueBetween,function(s){wf_matrix%^%s})
-	
+
 	#now it's just a hidden markov model
 	freqs = 0:(2*N)/(2*N)
 	initial_states = c(0,1,rep(0,2*N-1))
@@ -334,7 +335,7 @@ inv_wf = function(path) {
 
 #############DIFFUSION FUNCTIONS##################
 
-#infinitesimal mean of the transformed Wright-Fisher diffusion 
+#infinitesimal mean of the transformed Wright-Fisher diffusion
 mu_wf_diploid = function(x,gam,h) {
 	1/4*(gam*sin(x)*(1+(2*h-1)*cos(x))-2/tan(x))
 }
@@ -346,10 +347,10 @@ H_wf_diploid = function(x,gam,h) {
 
 #derivative of infinitesimal mean of transformed Wright-Fisher diffusion
 dmudx_wf_diploid = function(x,gam,h) {
-	1/4*(gam*cos(x)+(2*h-1)*gam*cos(2*x)+2*1/sin(x)^2)	
+	1/4*(gam*cos(x)+(2*h-1)*gam*cos(2*x)+2*1/sin(x)^2)
 }
 
-#infinitesimal mean of the transformed Wright-Fisher diffusion 
+#infinitesimal mean of the transformed Wright-Fisher diffusion
 #relative to Bes(0)
 mu_wf_diploid_bes0 = function(x,gam,h) {
 	res = 1/4*(gam*sin(x)*(1+(2*h-1)*cos(x))-2/tan(x))- -1/2*1/x
@@ -385,7 +386,7 @@ dmudx_wf_diploid_bes0 = function(x,gam,h) {
 
 #Likelihood of transformed Wright-Fisher path with two different selection coefficients
 girsanov_wfwf = function(path,t_vec, alpha1, alpha2, h1, h2) {
-	m1 = H_wf_diploid(path[length(path)],alpha1,h1) - 
+	m1 = H_wf_diploid(path[length(path)],alpha1,h1) -
 		H_wf_diploid(path[1],alpha1,h1) -
 		1/2*riemann_integral(dmudx_wf_diploid(path,alpha1,h1),t_vec) -
 		1/2*riemann_integral(mu_wf_diploid(path,alpha1,h1)^2,t_vec)
@@ -398,9 +399,9 @@ girsanov_wfwf = function(path,t_vec, alpha1, alpha2, h1, h2) {
 
 #Likelihood of Wright-Fisher path relative to Bes(0)
 girsanov_wfbes0_limit = function(path,t_vec,alpha,h) {
-	m1 = H_wf_diploid_bes0(path[length(path)],alpha,h) - 
-		H_wf_diploid_bes0(path[1],alpha,h) - 
-		1/2*riemann_integral(dmudx_wf_diploid_bes0(path,alpha,h),t_vec) - 
+	m1 = H_wf_diploid_bes0(path[length(path)],alpha,h) -
+		H_wf_diploid_bes0(path[1],alpha,h) -
+		1/2*riemann_integral(dmudx_wf_diploid_bes0(path,alpha,h),t_vec) -
 		1/2*riemann_integral(mu_squared_wf_diploid_bes0(path,alpha,h),t_vec)
 	return(m1)
 }

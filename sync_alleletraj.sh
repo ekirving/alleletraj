@@ -16,4 +16,5 @@ rsync -avz --partial \
            --exclude 'screening' \
            --exclude 'fastq' \
            --exclude 'vcf' \
+           --exclude 'selection' \
            evan@palaeoprime:~/alleletraj/ ~/Dropbox/Code/alleletraj/

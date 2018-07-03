@@ -103,6 +103,8 @@ def run_selection(population, modsnp_id):
     with open(output_prefix + '.log', 'w') as fout:
         fout.write(log)
 
+    # TODO measure ESS and enforce threshold (see https://www.rdocumentation.org/packages/LaplacesDemon/versions/16.1.0/topics/ESS)
+
     print("INFO: Finished selection for {} SNP #{} ({})".format(population, modsnp_id, timedelta(seconds=time() - begin)))
 
 

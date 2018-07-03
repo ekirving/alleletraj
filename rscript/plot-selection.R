@@ -11,8 +11,8 @@ burn_in <- strtoi(args[5])
 
 # TODO remove when done testing
 # setwd('/Users/Evan/Dropbox/Code/alleletraj')
-# input_file <- 'selection/pig-EUD-modsnp_25822357.input'
-# output_prefix <- 'selection/pig-EUD-modsnp_25822357'
+# input_file <- 'selection/pig-EUD-modsnp_37375102.input'
+# output_prefix <- 'selection/pig-EUD-modsnp_37375102'
 # gen_time <- strtoi('5')
 # pop_size <- strtoi('20563')
 # burn_in <- 500
@@ -22,7 +22,8 @@ samples <- read.table(input_file, col.names=c('derived_count', 'sample_size', 'b
 
 # get the data in the right format
 samples$freq <- samples$derived_count/samples$sample_size
-samples$time <- rowMeans(samples[c('bin_high', 'bin_low')]) / (2 * pop_size * gen_time)
+# samples$time <- rowMeans(samples[c('bin_high', 'bin_low')]) / (2 * pop_size * gen_time)
+samples$time <- rowMeans(samples[c('bin_high', 'bin_low')]) / pop_size
 
 # load the MCMC run (WARNING: very CPU and memory costly!)
 paths <- read.path(output_prefix)

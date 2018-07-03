@@ -113,14 +113,37 @@ def confirm_age_mapping():
         quit()
 
 
-def mark_valid_samples():
+def confirm_country_mapping():
     """
-    Samples are valid if they are from Europe and have a BAM file.
+    Make sure that all the free-text countries have been properly mapped to Europe.
     """
 
-    if SPECIES != 'pig':
-        # TODO make this work for all species not just pigs
-        raise Exception('Not implemented yet for {}'.format(SPECIES))
+    dbc = db_conn()
+
+    print("INFO: Confirming country mappings")
+
+    # make a list of known countries
+    world = "','".join(EUROPE + NON_EUROPE)
+
+    missing = dbc.get_records_sql("""
+        SELECT DISTINCT s.country
+          FROM samples s
+         WHERE s.country NOT IN ('{world}')
+           """.format(world=world), key=None)
+
+    if missing:
+        print("ERROR: Not all countries have been mapped!")
+
+        for country in missing:
+            print(country['country'])
+
+        quit()
+
+
+def mark_valid_pigs():
+    """
+    Pig samples are valid if they are from Europe and have a BAM file or MC1R genotype.
+    """
 
     dbc = db_conn()
 
@@ -130,11 +153,13 @@ def mark_valid_samples():
     europe = "','".join(EUROPE)
 
     dbc.execute_sql("""
-        UPDATE samples
-          JOIN sample_files
-            ON sample_files.sample_id = samples.id
-           SET valid = 1
-         WHERE country IN ('{europe}')""".format(europe=europe))
+        UPDATE samples s
+     LEFT JOIN sample_files sf
+            ON sf.sample_id = s.id
+           SET s.valid = 1
+         WHERE s.country IN ('{europe}')
+           AND (sf.id IS NOT NULL 
+            OR  s.mc1r_snp IS NOT NULL) """.format(europe=europe))
 
 
 def bin_samples():
@@ -144,9 +169,12 @@ def bin_samples():
 
     dbc = db_conn()
 
+    print("INFO: Binning samples")
+
     # sample_bins
     dbc.execute_sql("TRUNCATE TABLE sample_bins")
 
+    # TODO update to just use the median age
     # SQL fragment to get the most precise dates for each sample
     sql_age = """
         SELECT s.id sample_id,
@@ -241,8 +269,11 @@ def populate_pig_samples():
     # make sure that all the free-text dates have proper numeric mappings
     confirm_age_mapping()
 
+    # make sure that all the free-text countries have been properly mapped to Europe
+    confirm_country_mapping()
+
     # samples are valid if they are from Europe and have a BAM file
-    mark_valid_samples()
+    mark_valid_pigs()
 
     # assign samples to temporal bins
     bin_samples()

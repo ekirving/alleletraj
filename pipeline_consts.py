@@ -291,9 +291,15 @@ RADIOCARBON_SHEET = {
 
 
 # list of permissible countries in Europe
-EUROPE = ['Belgium', 'Bulgaria', 'Croatia', 'Czech Rep.', 'Denmark', 'England', 'Estonia', 'Faroes', 'France',
-          'Germany', 'Greece', 'Hungary', 'Iceland', 'Italy', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Poland',
-          'Portugal', 'Romania', 'Serbia', 'Slovakia', 'Spain', 'Sweden', 'Switzerland', 'Ukraine']
+EUROPE = ['Austria', 'Belgium', 'Bosnia-Herzegovina', 'Bulgaria', 'Crimea, Ukraine', 'Croatia', 'Czech Rep.', 'Denmark',
+          'England', 'Estonia', 'Europe', 'Faroe Islands', 'Faroes', 'Finland', 'France', 'Germany', 'Greece', 'Hungary',
+          'Iberia', 'Iceland', 'Ireland', 'Italy', 'Macedonia', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Norway',
+          'Poland', 'Portugal', 'Portugal/France', 'Romania', 'Russia', 'Sardinia', 'Scotland', 'Serbia', 'Slovakia',
+          'Spain', 'Sweden', 'Switzerland', 'UK', 'Ukraine', 'West Caucasus, north slope']
+
+# list of non-permissible countries outside of Europe
+NON_EUROPE = ['Africa', 'Armenia', 'Azerbaijan', 'Cyprus', 'Egypt', 'Egyptian', 'EuroAm', 'Georgia', 'Iran', 'Iraq',
+              'Israel', 'Morocco', 'Sudan', 'Syria', 'Tunisia', 'Turkey', 'Turkmenistan', 'United Arab Emirates']
 
 # the number of flanking SNPs (on either side) to include
 QTL_FLANK_NUM_SNPS = 3

@@ -110,7 +110,7 @@ def plot_selection(population, modsnp_id):
     """
     Plot the allele trajectory.
 
-    WARNING: very CPU and memory costly!
+    WARNING: very slow and memory costly!
     """
 
     begin = time()
@@ -118,14 +118,15 @@ def plot_selection(population, modsnp_id):
     # compose the input and output file paths
     input_file = "selection/{}-{}-modsnp_{}.input".format(SPECIES, population, modsnp_id)
     output_prefix = "selection/{}-{}-modsnp_{}".format(SPECIES, population, modsnp_id)
+    gen_time = GENERATION_TIME[SPECIES]
     pop_size = POPULATION_SIZE[SPECIES][population]
 
     print("INFO: Started plotting for {} SNP #{}".format(population, modsnp_id))
 
     # plot the allele trajectory
-    run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, pop_size, MCMC_BURN_IN])
+    run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, gen_time, pop_size, MCMC_BURN_IN])
 
-    # TODO plot the strength of selection a1 and a2
+    # TODO plot the strength of selection (a1 and a2)
 
     print("INFO: Finished plotting for {} SNP #{} ({})".format(population, modsnp_id, timedelta(seconds=time() - begin)))
 

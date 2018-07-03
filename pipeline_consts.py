@@ -339,7 +339,7 @@ MCMC_CYCLES = int(5e5)  # TODO is this reasonable?
 MCMC_SAMPLE_FREQ = 100
 
 # number of MCMC cycles to discard as burn in (N.B. this is applied AFTER sampling)
-MCMC_BURN_IN = int(5e4) / MCMC_SAMPLE_FREQ  # TODO is this reasonable?
+MCMC_BURN_IN = int(MCMC_CYCLES / MCMC_SAMPLE_FREQ * 0.10)
 
 # frequency of printing output to the screen
 MCMC_PRINT = 1000

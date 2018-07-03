@@ -11,8 +11,8 @@ burn_in <- strtoi(args[5])
 
 # TODO remove when done testing
 # setwd('/Users/Evan/Dropbox/Code/alleletraj')
-# input_file <- 'selection/pig-EUD-modsnp_37375102.input'
-# output_prefix <- 'selection/pig-EUD-modsnp_37375102'
+# input_file <- 'selection/pig-EUD-modsnp_71891.input'
+# output_prefix <- 'selection/pig-EUD-modsnp_71891'
 # gen_time <- strtoi('5')
 # pop_size <- strtoi('20563')
 # burn_in <- 500

@@ -259,7 +259,7 @@ GOOGLE_SHEET = {
 }
 
 # list of junk input to mask with NULL
-SHEET_NA = ['n/a', 'NA', '-', '?', 'NULL', 'None', '...', '']
+SHEET_NA = ['n/a', 'NA', 'N', '-', '?', 'NULL', 'None', '...', '']
 
 AGE_MAP = {
 

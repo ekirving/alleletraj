@@ -208,22 +208,38 @@ BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
 GOOGLE_SHEET = {
 
     # Pig_Table_Final_05_03_18
+    # 'pig': {
+    #     'id':   '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI',
+    #     'tabs': ['Everything for the paper - updated'],
+    #     'cols': OrderedDict([
+    #                 ('Extract No.',       'accession'),
+    #                 ('Total Reads',       'map_reads'),
+    #                 ('% Mapped',          'map_prcnt'),
+    #                 ('Age',               'age'),
+    #                 ('Period',            'period'),
+    #                 ('Location',          'location'),
+    #                 ('Country',           'country'),
+    #                 ('Wild/Dom Status',   'status'),
+    #                 ('GMM Status',        'gmm_status'),
+    #                 ('Group',             'group'),
+    #                 ('Haplogroup',        'haplogroup'),
+    #                 ('DNA',               'dna')
+    #             ])
+    # },
+
     'pig': {
-        'id':   '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI',
-        'tabs': ['Everything for the paper - updated'],
+        'id': '1GBxNiRWAqPdz4MdSpi0ec_K8x4TRns31VgUcICq68qo',
+        'tabs': ['updated'],
         'cols': OrderedDict([
-                    ('Extract No.',       'accession'),
-                    ('Total Reads',       'map_reads'),
-                    ('% Mapped',          'map_prcnt'),
-                    ('Age',               'age'),
-                    ('Period',            'period'),
-                    ('Location',          'location'),
-                    ('Country',           'country'),
-                    ('Wild/Dom Status',   'status'),
-                    ('GMM Status',        'gmm_status'),
-                    ('Group',             'group'),
-                    ('Haplogroup',        'haplogroup'),
-                    ('DNA',               'dna')
+                    ('Extract No. / Accession', 'accession'),
+                    ('Total Reads', 'map_reads'),
+                    ('% Mapped', 'map_prcnt'),
+                    ('Age', 'age'),
+                    ('Period', 'period'),
+                    ('Location', 'location'),
+                    ('Country', 'country'),
+                    ('Final status (MC1R+Morpho+Context)', 'status'),
+                    ('Genotype MC1R', 'mc1r_snp')
                 ])
     },
 
@@ -333,7 +349,7 @@ MAX_INSERT_SIZE = 50000
 MAX_QUERY_SIZE = 5000
 
 # number of MCMC cycles to run
-MCMC_CYCLES = int(5e5)  # TODO is this reasonable?
+MCMC_CYCLES = int(5e4)  # TODO is this reasonable?
 
 # frequency of sampling from the posterior
 MCMC_SAMPLE_FREQ = 100

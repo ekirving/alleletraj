@@ -96,18 +96,19 @@ def confirm_age_mapping():
 
     # check if any samples have an age which is unmapped
     missing = dbc.get_records_sql("""
-        SELECT s.*
+        SELECT s.age
           FROM samples s
      LEFT JOIN sample_dates sd
             ON s.age = sd.age
          WHERE s.age IS NOT NULL
-           AND sd.id IS NULL""")
+           AND sd.id IS NULL
+      GROUP BY s.age""", key=None)
 
     if missing:
         print("ERROR: Not all sample ages have numeric mappings!")
 
-        for id, sample in missing.iteritems():
-            print("{} - '{}'".format(sample['accession'], sample['age']))
+        for age in missing:
+            print(age['age'])
 
         quit()
 
@@ -199,9 +200,6 @@ def populate_pig_samples():
     # fetch all the samples from the GoogleDoc spreadsheet
     samples = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
 
-    # skip samples which were never sequenced
-    samples = [sample for sample in samples if sample.pop('dna', None) is not None]
-
     print("INFO: Updating {} samples".format(len(samples)))
 
     bam_files = defaultdict(list)
@@ -215,6 +213,12 @@ def populate_pig_samples():
 
     for sample in samples:
         accession = sample['accession']
+
+        try:
+            sample['map_reads'] = int(sample['map_reads'])
+        except (ValueError, TypeError, KeyError):
+            # handle missing and malformed map_reads info
+            sample['map_reads'] = None
 
         # save the sample record
         dbc.save_record('samples', sample)

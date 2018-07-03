@@ -103,12 +103,25 @@ def run_selection(population, modsnp_id):
     with open(output_prefix + '.log', 'w') as fout:
         fout.write(log)
 
+    print("INFO: Finished selection for {} SNP #{} ({})".format(population, modsnp_id, timedelta(seconds=time() - begin)))
+
+
+def plot_selection(population, modsnp_id):
+    """
+    Plot the allele trajectory.
+
+    WARNING: very CPU and memory costly!
+    """
+
+    # compose the input and output file paths
+    input_file = "selection/{}-{}-modsnp_{}.input".format(SPECIES, population, modsnp_id)
+    output_prefix = "selection/{}-{}-modsnp_{}".format(SPECIES, population, modsnp_id)
+    pop_size = POPULATION_SIZE[SPECIES][population]
+
     # plot the allele trajectory
-    run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, pop_hist, MCMC_BURN_IN])
+    run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, pop_size, MCMC_BURN_IN])
 
     # TODO plot the strength of selection a1 and a2
-
-    print("INFO: Finished selection for {} SNP #{} ({})".format(population, modsnp_id, timedelta(seconds=time() - begin)))
 
 
 def model_selection(args):
@@ -116,10 +129,15 @@ def model_selection(args):
     Model the allele trajectory of the given SNP.
     """
 
-    population, modsnp_id = args
+    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+    (population, modsnp_id) = args
 
     # convert the SNP data into the input format for `selection`
     generate_sample_input(population, modsnp_id)
 
-    # run `selection` and plot the results
+    # run `selection` for the given SNP
     run_selection(population, modsnp_id)
+
+    # plot the allele trajectory
+    plot_selection(population, modsnp_id)
+

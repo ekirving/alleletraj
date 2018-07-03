@@ -335,14 +335,14 @@ MAX_QUERY_SIZE = 5000
 # number of MCMC cycles to run
 MCMC_CYCLES = int(5e5)  # TODO is this reasonable?
 
-# number of MCMC cycles to discard as burn in
-MCMC_BURN_IN = int(5e3)  # TODO is this reasonable?
+# frequency of sampling from the posterior
+MCMC_SAMPLE_FREQ = 100
+
+# number of MCMC cycles to discard as burn in (N.B. this is applied AFTER sampling)
+MCMC_BURN_IN = int(5e4) / MCMC_SAMPLE_FREQ  # TODO is this reasonable?
 
 # frequency of printing output to the screen
 MCMC_PRINT = 1000
-
-# frequency of sampling from the posterior
-MCMC_SAMPLE_FREQ = 100
 
 # fraction of the allele frequency to update during a trajectory update move
 MCMC_FRACTION = 20

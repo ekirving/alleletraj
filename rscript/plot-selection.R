@@ -1,12 +1,12 @@
 #!/usr/bin/env Rscript
-suppressWarnings(source("rscript/path_utilities.r"))
+suppressMessages(source("rscript/path_utilities.r"))
 
 # get the command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 input_file <- args[1]
 output_prefix <- args[2]
 pop_size <- strtoi(args[3])
-burn_in <- strtoi(args[3])
+burn_in <- strtoi(args[4])
 
 # TODO remove when done testing
 # setwd('/Users/Evan/Dropbox/Code/alleletraj')
@@ -22,10 +22,10 @@ samples <- read.table(input_file, col.names=c('derived_count', 'sample_size', 'b
 samples$freq <- samples$derived_count/samples$sample_size
 samples$time <- rowMeans(samples[c('bin_high', 'bin_low')], na.rm=TRUE) / pop_size
 
-# load the MCMC run (very slow and memory costly)
+# load the MCMC run (WARNING: very CPU and memory costly!)
 paths <- read.path(output_prefix)
 
-pdf(file=paste0(output_prefix, ".pdf"), width = 8, height = 6)
+pdf(file=paste0('pdf/', basename(output_prefix), ".pdf"), width = 8, height = 6)
 
 # plot the trajectory
 plot.posterior.paths(paths, samples$freq, samples$time, burnin=burn_in)

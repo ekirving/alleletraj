@@ -139,7 +139,7 @@ def run_selection(population, modsnp_id, mcmc_cycles, mcmc_freq):
                    '-a',                    # flag to infer allele age
                    '-G', gen_time,          # generation time
                    '-N', pop_size,          # reference population size
-                   '-n', int(mcmc_cycles),  # number of MCMC cycles to run
+                   '-n', mcmc_cycles,       # number of MCMC cycles to run
                    '-f', MCMC_PRINT,        # frequency of printing output to the screen
                    '-s', mcmc_freq,         # frequency of sampling from the posterior
                    '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory update move

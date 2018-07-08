@@ -3,6 +3,8 @@
 
 from __future__ import print_function
 
+import traceback
+import sys
 import unicodecsv as csv
 
 from pipeline_utils import *
@@ -188,15 +190,21 @@ def model_selection(args):
     Model the allele trajectory of the given SNP.
     """
 
-    # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
-    (population, modsnp_id) = args
+    try:
 
-    if SPECIES == 'pig' and modsnp_id == 71891:
-        # handle special case of PCR data
-        generate_mc1r_snp_input(population)
-    else:
-        # convert the SNP data into the input format for `selection`
-        generate_sample_input(population, modsnp_id)
+        # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
+        (population, modsnp_id) = args
 
-    # run `selection` for the given SNP
-    run_selection(population, modsnp_id)
+        if SPECIES == 'pig' and modsnp_id == 71891:
+            # handle special case of PCR data
+            generate_mc1r_snp_input(population)
+        else:
+            # convert the SNP data into the input format for `selection`
+            generate_sample_input(population, modsnp_id)
+
+        # run `selection` for the given SNP
+        run_selection(population, modsnp_id)
+
+    except Exception:
+        # Put all exception text into an exception and raise that
+        raise Exception("".join(traceback.format_exception(*sys.exc_info())))

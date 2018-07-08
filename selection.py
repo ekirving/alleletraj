@@ -28,13 +28,15 @@ def generate_sample_input(population, modsnp_id):
 
     print("INFO: Generating sample input file for SNP #{}".format(modsnp_id))
 
-    # TODO filter for population
+    gen_time = GENERATION_TIME[SPECIES]
+    pop_size = POPULATION_SIZE[SPECIES][population]
+
     samples = dbc.get_records_sql("""
         # get the ancient frequencies in each bin
         SELECT SUM(sr.base = ms.derived) AS derived_count,
                COUNT(sr.id) AS sample_size,
-                -CAST(SUBSTRING_INDEX(sb.bin, ' - ',  1) AS SIGNED INTEGER) AS bin_high,
-                -CAST(SUBSTRING_INDEX(sb.bin, ' - ', -1) AS SIGNED INTEGER) - 1 AS bin_low
+               -(age - (age % 500) + 500) / (2 * {pop_size} * {gen_time}) AS bin_high,
+               -(age - (age % 500) + 1) / (2 * {pop_size} * {gen_time}) AS bin_low
           FROM modern_snps ms
           JOIN sample_reads sr
             ON sr.chrom = ms.chrom
@@ -42,10 +44,10 @@ def generate_sample_input(population, modsnp_id):
            AND sr.called = 1
           JOIN samples s
             ON s.id = sr.sample_id
-          JOIN sample_bins sb
-            ON sb.sample_id = s.id
          WHERE ms.id = {modsnp_id}
-      GROUP BY sb.bin
+           AND s.age IS NOT NULL
+           AND s.status = '{population}'
+      GROUP BY bin_high
 
          UNION
 
@@ -54,7 +56,8 @@ def generate_sample_input(population, modsnp_id):
           FROM modern_snps ms
          WHERE ms.id = {modsnp_id}
 
-      ORDER BY bin_high""".format(modsnp_id=modsnp_id), key=None)
+      ORDER BY bin_high
+        """.format(modsnp_id=modsnp_id, population=population, gen_time=gen_time, pop_size=pop_size), key=None)
 
     # write the sample input file
     with open("selection/{}-{}-modsnp_{}.input".format(SPECIES, population, modsnp_id), "wb") as tsv_file:
@@ -137,8 +140,6 @@ def run_selection(population, modsnp_id):
                    '-P', pop_hist,          # path to population size history file
                    '-o', output_prefix,     # output file prefix
                    '-a',                    # flag to infer allele age
-                   '-G', gen_time,          # generation time
-                   '-N', pop_size,          # reference population size
                    '-n', MCMC_CYCLES,       # number of MCMC cycles to run
                    '-f', MCMC_PRINT,        # frequency of printing output to the screen
                    '-s', MCMC_SAMPLE_FREQ,  # frequency of sampling from the posterior
@@ -150,7 +151,9 @@ def run_selection(population, modsnp_id):
     with open(output_prefix + '.log', 'w') as fout:
         fout.write(log)
 
-    # TODO measure ESS and enforce threshold (see https://www.rdocumentation.org/packages/LaplacesDemon/versions/16.1.0/topics/ESS)
+    # TODO measure ESS and enforce threshold
+    # https://www.rdocumentation.org/packages/LaplacesDemon/versions/16.1.0/topics/ESS
+    # https://cran.r-project.org/web/packages/coda/index.html
 
     print("INFO: Finished selection for {} SNP #{} ({})".format(population, modsnp_id, timedelta(seconds=time() - begin)))
 
@@ -188,7 +191,8 @@ def model_selection(args):
     # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
     (population, modsnp_id) = args
 
-    if modsnp_id == 71891:
+    if SPECIES == 'pig' and modsnp_id == 71891:
+        # handle special case of PCR data
         generate_mc1r_snp_input(population)
     else:
         # convert the SNP data into the input format for `selection`
@@ -196,6 +200,3 @@ def model_selection(args):
 
     # run `selection` for the given SNP
     run_selection(population, modsnp_id)
-
-    # plot the allele trajectory
-    plot_selection(population, modsnp_id)

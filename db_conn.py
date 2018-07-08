@@ -100,7 +100,14 @@ class db_conn:
         """
         Get all matching records for a given SQL query
         """
-        self.cursor.execute(sql)
+        try:
+            self.cursor.execute(sql)
+
+        except Exception as e:
+            # dump the record before throwing the exception
+            print("ERROR: db_conn.save_records()")
+            pprint(sql)
+            raise e
 
         if key is None:
             return list(self.cursor)

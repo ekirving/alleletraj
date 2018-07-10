@@ -8,7 +8,7 @@ import multiprocessing as mp
 
 from selection import *
 
-population = 'DOM2'
+population = 'EUD'
 
 dbc = db_conn()
 

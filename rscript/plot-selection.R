@@ -23,6 +23,7 @@ samples <- read.table(input_file, col.names=c('derived_count', 'sample_size', 'b
 # get the data in the right format
 samples$freq <- samples$derived_count/samples$sample_size
 samples$time <- rowMeans(samples[c('bin_high', 'bin_low')]) / (2 * pop_size * gen_time)
+# samples$time <- rowMeans(samples[c('bin_high', 'bin_low')])
 
 # load the MCMC run (WARNING: very CPU and memory costly!)
 paths <- read.path(output_prefix)

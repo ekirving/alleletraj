@@ -142,6 +142,12 @@ def run_selection(population, modsnp_id):
                    '-P', pop_hist,          # path to population size history file
                    '-o', output_prefix,     # output file prefix
                    '-a',                    # flag to infer allele age
+
+                   # run for horse SNPs
+                   '-A', 0.6,               # ascertainment freq / might help with failures
+                   '-h', 0.5,               # derived allele is: 1=dominant, 0=recessive, 0.5=additive
+
+
                    '-n', MCMC_CYCLES,       # number of MCMC cycles to run
                    '-f', MCMC_PRINT,        # frequency of printing output to the screen
                    '-s', MCMC_SAMPLE_FREQ,  # frequency of sampling from the posterior

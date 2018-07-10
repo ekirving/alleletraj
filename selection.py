@@ -141,6 +141,10 @@ def run_selection(population, modsnp_id):
                    '-a',                    # flag to infer allele age
                    '-G', gen_time,          # generation time
                    '-N', pop_size,          # reference population size
+
+                   # run for pig SNP (do this tonight!!)
+                   '-h', 1,                 # derived allele is: 1=dominant, 0=recessive, 0.5=additive
+
                    '-n', MCMC_CYCLES,       # number of MCMC cycles to run
                    '-f', MCMC_PRINT,        # frequency of printing output to the screen
                    '-s', MCMC_SAMPLE_FREQ,  # frequency of sampling from the posterior

@@ -22,14 +22,8 @@ dbc = db_conn()
 #        AND ms.neutral IS NULL""").keys()
 
 # hand picked horse SNPs of interest
-modsnps = [5333105,   # White markings
-           6892292,   # White markings
-           16832731,  # Temperament / heterospecific interaction trait
-           7733000,   # Altitude adaptation
-           6101266,   # Racing performance
-           11908332,  # Sperm concentration
-           13569570,  # Sperm count
-           12492837,  # Semen volume
+modsnps = [
+           71891,     # Black markings
            ]
 
 if MULTI_THREADED:

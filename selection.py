@@ -129,6 +129,7 @@ def run_selection(population, modsnp_id):
     # compose the input and output file paths
     input_file = "selection/{}-{}-modsnp_{}.input".format(SPECIES, population, modsnp_id)
     output_prefix = "selection/{}-{}-modsnp_{}".format(SPECIES, population, modsnp_id)
+    log_file = output_prefix + '.log'
 
     # get the generation time, Ne and population history
     gen_time = GENERATION_TIME[SPECIES]
@@ -137,27 +138,22 @@ def run_selection(population, modsnp_id):
 
     print("INFO: Started selection for {} SNP #{}".format(population, modsnp_id))
 
-    log = run_cmd(['sr',
-                   '-D', input_file,        # path to data input file
-                   '-P', pop_hist,          # path to population size history file
-                   '-o', output_prefix,     # output file prefix
-                   '-a',                    # flag to infer allele age
+    run_cmd(['sr',
+             '-D', input_file,        # path to data input file
+             '-P', pop_hist,          # path to population size history file
+             '-o', output_prefix,     # output file prefix
+             '-a',                    # flag to infer allele age
 
-                   # run for horse SNPs
-                   '-A', 0.6,               # ascertainment freq / might help with failures
-                   '-h', 0.5,               # derived allele is: 1=dominant, 0=recessive, 0.5=additive
+             # run for horse SNPs
+             '-A', 0.6,               # ascertainment freq / might help with failures
+             '-h', 0.5,               # derived allele is: 1=dominant, 0=recessive, 0.5=additive
 
-
-                   '-n', MCMC_CYCLES,       # number of MCMC cycles to run
-                   '-f', MCMC_PRINT,        # frequency of printing output to the screen
-                   '-s', MCMC_SAMPLE_FREQ,  # frequency of sampling from the posterior
-                   '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory update move
-                   '-e', MCMC_RANDOM_SEED,  # random number seed
-                   ])
-
-    # save the log file
-    with open(output_prefix + '.log', 'w') as fout:
-        fout.write(log)
+             '-n', MCMC_CYCLES,       # number of MCMC cycles to run
+             '-f', MCMC_PRINT,        # frequency of printing output to the screen
+             '-s', MCMC_SAMPLE_FREQ,  # frequency of sampling from the posterior
+             '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory update move
+             '-e', MCMC_RANDOM_SEED,  # random number seed
+             ], stdout=log_file)
 
     # TODO measure ESS and enforce threshold
     # https://www.rdocumentation.org/packages/LaplacesDemon/versions/16.1.0/topics/ESS

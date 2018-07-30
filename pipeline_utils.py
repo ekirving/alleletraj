@@ -15,7 +15,7 @@ from db_conn import db_conn
 from pipeline_consts import *
 
 
-def run_cmd(cmd, shell=False, background=False):
+def run_cmd(cmd, shell=False, background=False, stdout=None):
     """
     Executes the given command in a system subprocess
 
@@ -33,17 +33,32 @@ def run_cmd(cmd, shell=False, background=False):
         subprocess.Popen(cmd, shell=shell)
 
     else:
-        # run the command
-        proc = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-        # fetch the output and error
-        (stdout, stderr) = proc.communicate()
+        if stdout:
+            # open a file handle to redirect stdout and stderr
+            with open(stdout, 'w', 0) as fout:
+                # save the command that was run
+                fout.write(' '.join(cmd) + "\n\n")
 
-        # bail if something went wrong
-        if proc.returncode:
-            raise Exception(stderr)
+                proc = subprocess.Popen(cmd, shell=shell, stdout=fout, stderr=fout)
+                proc.communicate()
+
+            if proc.returncode:
+                raise Exception("Error logged to {}".format(stdout))
+
+        else:
+            # buffer the output so we can return the value
+            proc = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            # fetch the output and error
+            (stdout, stderr) = proc.communicate()
+
+            # bail if something went wrong
+            if proc.returncode:
+                raise Exception(stderr)
 
         return stdout
+
 
 
 def merge_intervals(ranges, capped=True):

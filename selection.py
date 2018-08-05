@@ -5,6 +5,7 @@ from __future__ import print_function
 
 import traceback
 import sys
+import os.path
 import unicodecsv as csv
 
 from pipeline_utils import *
@@ -27,6 +28,12 @@ def generate_sample_input(population, modsnp_id):
     """
 
     dbc = db_conn()
+
+    input_file = "selection/{}-{}-modsnp_{}.input".format(SPECIES, population, modsnp_id)
+
+    if os.path.isfile(input_file):
+        # don't bother if the file already exists
+        return
 
     print("INFO: Generating sample input file for SNP #{}".format(modsnp_id))
 
@@ -62,7 +69,7 @@ def generate_sample_input(population, modsnp_id):
         """.format(modsnp_id=modsnp_id, population=population, gen_time=gen_time, pop_size=pop_size), key=None)
 
     # write the sample input file
-    with open("selection/{}-{}-modsnp_{}.input".format(SPECIES, population, modsnp_id), "wb") as tsv_file:
+    with open(input_file, "wb") as tsv_file:
 
         fields = ['derived_count', 'sample_size', 'bin_high', 'bin_low']
         writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')

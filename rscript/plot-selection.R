@@ -28,11 +28,6 @@ samples$time <- rowMeans(samples[c('bin_high', 'bin_low')])
 # load the MCMC run (WARNING: very CPU and memory costly!)
 paths <- read.path(output_prefix)
 
-# plot the trajectory
-pdf(file=paste0('pdf/', basename(output_prefix), "-noburnin.pdf"), width = 8, height = 6)
-plot.posterior.paths(paths, samples$freq, samples$time)
-dev.off()
-
 # plot the trajectoy
 pdf(file=paste0('pdf/', basename(output_prefix), ".pdf"), width = 8, height = 6)
 plot.posterior.paths(paths, samples$freq, samples$time, burnin=burn_in)

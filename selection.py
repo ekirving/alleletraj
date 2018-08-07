@@ -216,4 +216,4 @@ def model_selection(args):
 
     except Exception:
         # Put all exception text into an exception and raise that
-        print("".join(traceback.format_exception(*sys.exc_info()), file=sys.stderr))
+        print("".join(traceback.format_exception(*sys.exc_info())), file=sys.stderr)

@@ -41,7 +41,7 @@ class SelectionInputFile(luigi.Task):
         gen_time = GENERATION_TIME[self.species]
         pop_size = POPULATION_SIZE[self.species][self.population]
 
-        samples = dbc.get_records_sql("""
+        bins = dbc.get_records_sql("""
             # get the ancient frequencies in each bin
             SELECT SUM(sr.base = ms.derived) AS derived_count,
                    COUNT(sr.id) AS sample_size,
@@ -70,6 +70,9 @@ class SelectionInputFile(luigi.Task):
                """.format(modsnp_id=self.modsnp_id, population=self.population, gen_time=gen_time,
                           pop_size=pop_size), key=None)
 
+        if len(bins) < MCMC_MIN_BINS:
+            raise RuntimeError('ERROR: Insufficient time bins to run `selection` (n={})'.format(len(bins)))
+
         # write the sample input file
         with open(self.output().path, "wb") as tsv_file:
 
@@ -77,8 +80,8 @@ class SelectionInputFile(luigi.Task):
             writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
 
             # write the data to disk
-            for sample in samples:
-                writer.writerow(sample)
+            for bin in bins:
+                writer.writerow(bin)
 
 
 class SelectionRunMCMC(luigi.Task):

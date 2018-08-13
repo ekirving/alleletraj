@@ -389,6 +389,9 @@ MCMC_DOMINANCE = 0.5
 # random number seed
 MCMC_RANDOM_SEED = 234395
 
+# minimum number of time bins
+MCMC_MIN_BINS = 3
+
 # luigi priority flags
 PRIORITY_LOW  = 0
 PRIORITY_MED  = 1

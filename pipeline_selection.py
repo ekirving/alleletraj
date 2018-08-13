@@ -3,10 +3,10 @@
 
 from __future__ import print_function
 
-from selection import *
-from pipeline_utils import *
-
 import luigi
+import unicodecsv as csv
+
+from pipeline_utils import *
 
 
 class SelectionInputFile(luigi.Task):
@@ -193,10 +193,7 @@ class SelectionHorseGWAS(luigi.WrapperTask):
                 ON qs.qtl_id = q.id
                AND qs.modsnp_id = ms.id 
              WHERE q.associationType = 'Association'
-               AND q.valid = 1
-               
-             LIMIT 2
-               """)
+               AND q.valid = 1""")
 
         for modsnp_id in modsnps:
             yield SelectionPlot('horse', 'DOM2', modsnp_id)

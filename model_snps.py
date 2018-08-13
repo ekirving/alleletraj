@@ -6,7 +6,7 @@ from __future__ import print_function
 import itertools
 import multiprocessing as mp
 
-from selection import *
+from selection_mc1r import *
 
 population = 'DOM2'
 

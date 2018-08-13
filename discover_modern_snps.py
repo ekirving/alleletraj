@@ -338,7 +338,7 @@ def discover_modern_snps():
         params = itertools.chain.from_iterable(itertools.izip(chroms, itertools.repeat(pop)) for pop in SAMPLES[SPECIES])
 
         # process the chromosomes in parallel
-        pool = mp.Pool(MAX_CPU_CORES)
+        pool = mp.Pool(CPU_CORES_MAX)
         pool.map(func, params)
 
     else:

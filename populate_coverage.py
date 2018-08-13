@@ -145,7 +145,7 @@ def populate_sample_reads():
 
     if MULTI_THREADED:
         # process the chromosomes with multi-threading to make this faster
-        pool = mp.Pool(MAX_CPU_CORES)
+        pool = mp.Pool(CPU_CORES_MAX)
         pool.map(process_interval, itertools.izip(intervals.values(), itertools.repeat(samples)))
     else:
         # process the chromosomes without multi-threading

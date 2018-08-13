@@ -34,7 +34,7 @@ modsnps = [5333105,   # White markings
 
 if MULTI_THREADED:
     # process the SNPs with multi-threading to make this faster
-    pool = mp.Pool(MAX_CPU_CORES)
+    pool = mp.Pool(CPU_CORES_MAX)
     pool.map(model_selection, itertools.izip(itertools.repeat(population), modsnps))
 else:
     # process the SNPs without multi-threading

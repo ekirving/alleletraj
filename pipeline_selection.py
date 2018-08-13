@@ -28,6 +28,7 @@ class SelectionInputFile(luigi.Task):
     population = luigi.Parameter()
     modsnp_id = luigi.IntParameter()
 
+    priority = PRIORITY_LOW
     resources = {'cpu-cores': CPU_CORES_ONE}
 
     def output(self):
@@ -88,6 +89,7 @@ class SelectionRunMCMC(luigi.Task):
     population = luigi.Parameter()
     modsnp_id = luigi.IntParameter()
 
+    priority = PRIORITY_HIGH
     resources = {'cpu-cores': CPU_CORES_ONE}
 
     def requires(self):
@@ -142,7 +144,8 @@ class SelectionPlot(luigi.Task):
     population = luigi.Parameter()
     modsnp_id = luigi.IntParameter()
 
-    resources = {'cpu-cores': CPU_CORES_ONE, 'ram-gb': 16}
+    priority = PRIORITY_MAX
+    resources = {'cpu-cores': CPU_CORES_ONE, 'ram-gb': 64}
 
     def requires(self):
         return SelectionRunMCMC(self.species, self.population, self.modsnp_id)

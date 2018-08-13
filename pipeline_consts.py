@@ -388,3 +388,10 @@ MCMC_DOMINANCE = 0.5
 
 # random number seed
 MCMC_RANDOM_SEED = 234395
+
+# luigi priority flags
+PRIORITY_LOW  = 0
+PRIORITY_MED  = 1
+PRIORITY_HIGH = 2
+PRIORITY_MAX  = 3
+

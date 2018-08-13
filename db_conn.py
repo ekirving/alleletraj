@@ -20,11 +20,13 @@ class db_conn:
     db_config = {
       'user':     'root',
       'password': '',
-      'host':     '127.0.0.1',
-      'database': 'alleletraj_{}'.format(SPECIES)
+      'host':     '127.0.0.1'
     }
 
-    def __init__(self):
+    def __init__(self, species=SPECIES):
+        # set the database name
+        self.db_config['database'] = 'alleletraj_{}'.format(species)
+
         # connect to the db
         self.cnx = mysql.connector.connect(**self.db_config)
         self.cursor = self.cnx.cursor(dictionary=True)

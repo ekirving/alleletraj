@@ -35,7 +35,7 @@ class SelectionInputFile(luigi.Task):
 
     def run(self):
 
-        dbc = db_conn()
+        dbc = db_conn(self.species)
 
         gen_time = GENERATION_TIME[self.species]
         pop_size = POPULATION_SIZE[self.species][self.population]
@@ -179,7 +179,7 @@ class SelectionHorseGWAS(luigi.WrapperTask):
 
     def requires(self):
 
-        dbc = db_conn()
+        dbc = db_conn('horse')
 
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""

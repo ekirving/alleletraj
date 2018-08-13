@@ -23,8 +23,6 @@ def calculate_summary_stats():
     # remove any existing stats for this chromosome
     dbc.execute_sql("TRUNCATE qtl_stats")
 
-    dbc = db_conn()
-
     start = time()
 
     print("INFO: Calculating QTL summary stats... ", end='')

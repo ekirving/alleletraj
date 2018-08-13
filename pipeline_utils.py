@@ -9,6 +9,7 @@ from datetime import timedelta
 from pprint import pprint
 from time import time
 from multiprocessing import Process
+import os
 
 # import my libraries
 from db_conn import db_conn
@@ -27,7 +28,7 @@ def run_cmd(cmd, shell=False, background=False, stdout=None):
     # subprocess only accepts strings
     cmd = [str(args) for args in cmd]
 
-    # print(u' '.join(cmd))
+    print(u' '.join(cmd))
 
     if background:
         subprocess.Popen(cmd, shell=shell)
@@ -40,11 +41,11 @@ def run_cmd(cmd, shell=False, background=False, stdout=None):
                 # save the command that was run
                 fout.write(' '.join(cmd) + "\n\n")
 
-                proc = subprocess.Popen(cmd, shell=shell, stdout=fout, stderr=fout)
-                proc.communicate()
+                proc = subprocess.Popen(cmd, shell=shell, stdout=fout, stderr=subprocess.PIPE)
+                stderr = proc.communicate()
 
             if proc.returncode:
-                raise Exception("Error logged to {}".format(stdout))
+                raise RuntimeError(stderr)
 
         else:
             # buffer the output so we can return the value
@@ -55,7 +56,7 @@ def run_cmd(cmd, shell=False, background=False, stdout=None):
 
             # bail if something went wrong
             if proc.returncode:
-                raise Exception(stderr)
+                raise RuntimeError(stderr)
 
         return stdout
 
@@ -134,3 +135,17 @@ def run_in_parallel(*fns):
 
     for p in proc:
         p.join()
+
+
+def trim_ext(fullpath, n=1):
+    return ('.').join(fullpath.split('.')[:-n])
+
+
+def trim_path_ext(fullpath):
+    return trim_ext(os.path.basename(fullpath))
+
+
+def insert_suffix(fullpath, suffix):
+    splitpath = fullpath.split('.')
+    splitpath.insert(-1, suffix)
+    return ('.').join(splitpath)

@@ -383,5 +383,8 @@ MCMC_PRINT = 1000
 # fraction of the allele frequency to update during a trajectory update move
 MCMC_FRACTION = 20
 
+# derived allele is: 1=dominant, 0=recessive, 0.5=additive
+MCMC_DOMINANCE = 0.5
+
 # random number seed
 MCMC_RANDOM_SEED = 234395

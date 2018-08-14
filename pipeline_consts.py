@@ -369,10 +369,10 @@ MAX_INSERT_SIZE = 50000
 MAX_QUERY_SIZE = 5000
 
 # number of MCMC cycles to run
-MCMC_CYCLES = int(5e6)  # TODO is this reasonable?
+MCMC_CYCLES = int(5e7)
 
 # frequency of sampling from the posterior
-MCMC_SAMPLE_FREQ = 1000
+MCMC_SAMPLE_FREQ = 10000
 
 # number of MCMC cycles to discard as burn in (N.B. this is applied AFTER sampling)
 MCMC_BURN_IN = int(MCMC_CYCLES / MCMC_SAMPLE_FREQ * 0.2)

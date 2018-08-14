@@ -18,4 +18,5 @@ rsync -avz --partial \
            --exclude 'vcf' \
            --exclude 'selection/*.traj' \
            --exclude 'selection/*.time' \
+           --exclude '*.gz' \
            evan@palaeoprime:~/alleletraj/ ~/Dropbox/Code/alleletraj/

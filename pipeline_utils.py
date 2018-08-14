@@ -37,29 +37,28 @@ def run_cmd(cmd, shell=False, background=False, stdout=None):
 
         if stdout:
             # open a file handle to redirect stdout and stderr
-            with open(stdout, 'w', 0) as fout:
-                # save the command that was run
-                fout.write(' '.join(cmd) + "\n\n")
+            fout = open(stdout, 'w', 0)
 
-                proc = subprocess.Popen(cmd, shell=shell, stdout=fout, stderr=subprocess.PIPE)
-                stderr = proc.communicate()
+            # save the command that was run
+            fout.write(' '.join(cmd) + "\n\n")
 
-            if proc.returncode:
-                raise RuntimeError(stderr)
+            # run the command
+            proc = subprocess.Popen(cmd, shell=shell, stdout=fout, stderr=subprocess.PIPE)
+
+            fout.close()
 
         else:
             # buffer the output so we can return the value
             proc = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
-            # fetch the output and error
-            (stdout, stderr) = proc.communicate()
+        # fetch the output and error
+        (stdout, stderr) = proc.communicate()
 
-            # bail if something went wrong
-            if proc.returncode:
-                raise RuntimeError(stderr)
+        # bail if something went wrong
+        if proc.returncode != 0:
+            raise RuntimeError(stderr)
 
         return stdout
-
 
 
 def merge_intervals(ranges, capped=True):

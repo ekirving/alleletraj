@@ -201,8 +201,12 @@ class SelectionHorseGWAS(luigi.WrapperTask):
              WHERE q.associationType = 'Association'
                AND q.valid = 1""")
 
+        # TODO why do these 5 fail?
+        bad = [5860440, 4993470, 7833738, 14185088, 9410404]
+
         for modsnp_id in modsnps:
-            yield SelectionPlot('horse', 'DOM2', modsnp_id)
+            if modsnp_id not in bad:
+                yield SelectionPlot('horse', 'DOM2', modsnp_id)
 
 
 if __name__ == '__main__':

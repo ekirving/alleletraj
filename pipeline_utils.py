@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import subprocess
+import luigi
+import os
 
 # import common libraries
 from collections import OrderedDict, defaultdict
@@ -9,7 +11,6 @@ from datetime import timedelta
 from pprint import pprint
 from time import time
 from multiprocessing import Process
-import os
 
 # import my libraries
 from db_conn import db_conn
@@ -148,3 +149,26 @@ def insert_suffix(fullpath, suffix):
     splitpath = fullpath.split('.')
     splitpath.insert(-1, suffix)
     return ('.').join(splitpath)
+
+
+class PipelineTask(luigi.Task):
+    """
+    PrioritisedTask that implements a dynamic priority method
+    """
+
+    priority = PRIORITY_LOW
+    resources = {'cpu-cores': 1}
+
+    @property
+    def basename(self):
+        """
+        Collapse all the param values into a hyphen delimited list
+        """
+        return '-'.join([str(getattr(self, name)) for name in self.get_param_names()])
+
+    def all_params(self):
+        """
+        Get all the params as as list
+        :return:
+        """
+        return [getattr(self, name) for name in self.get_param_names()]

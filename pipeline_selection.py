@@ -9,7 +9,7 @@ import unicodecsv as csv
 from pipeline_utils import *
 
 
-class SelectionInputFile(luigi.Task):
+class SelectionInputFile(PipelineTask):
     """
     Generate the 4-column sample input file for `selection` (Schraiber et al., 2016)
 
@@ -28,11 +28,8 @@ class SelectionInputFile(luigi.Task):
     population = luigi.Parameter()
     modsnp_id = luigi.IntParameter()
 
-    priority = PRIORITY_LOW
-    resources = {'cpu-cores': CPU_CORES_ONE}
-
     def output(self):
-        return luigi.LocalTarget("selection/{}-{}-{}.input".format(self.species, self.population, self.modsnp_id))
+        return luigi.LocalTarget("selection/{}.input".format(self.basename))
 
     def run(self):
 
@@ -84,7 +81,7 @@ class SelectionInputFile(luigi.Task):
                 writer.writerow(bin)
 
 
-class SelectionRunMCMC(luigi.Task):
+class SelectionRunMCMC(PipelineTask):
     """
     Run `selection` for the given SNP.
     """
@@ -95,13 +92,12 @@ class SelectionRunMCMC(luigi.Task):
     mcmc_freq = luigi.IntParameter()
 
     priority = PRIORITY_HIGH
-    resources = {'cpu-cores': CPU_CORES_ONE}
 
     def requires(self):
         return SelectionInputFile(self.species, self.population, self.modsnp_id)
 
     def output(self):
-        return [luigi.LocalTarget("selection/{}-{}-{}.{}".format(self.species, self.population, self.modsnp_id, ext))
+        return [luigi.LocalTarget("selection/{}.{}".format(self.basename, ext))
                     for ext in ['log', 'param', 'time', 'traj']]
 
     def run(self):
@@ -141,7 +137,7 @@ class SelectionRunMCMC(luigi.Task):
         # https://cran.r-project.org/web/packages/coda/index.html
 
 
-class SelectionPlot(luigi.Task):
+class SelectionPlot(PipelineTask):
     """
     Plot the allele trajectory.
     """
@@ -155,10 +151,10 @@ class SelectionPlot(luigi.Task):
     resources = {'cpu-cores': CPU_CORES_ONE, 'ram-gb': 64}
 
     def requires(self):
-        return SelectionRunMCMC(self.species, self.population, self.modsnp_id, self.mcmc_cycles, self.mcmc_freq)
+        return SelectionRunMCMC(*self.all_params())
 
     def output(self):
-        return luigi.LocalTarget("pdf/{}-{}-{}.pdf".format(self.species, self.population, self.modsnp_id))
+        return luigi.LocalTarget("pdf/{}.pdf".format(self.basename))
 
     def run(self):
 
@@ -174,13 +170,13 @@ class SelectionPlot(luigi.Task):
             # plot the allele trajectory
             run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, gen_time, pop_size, burn_in])
 
+            # TODO plot the strength of selection (a1 and a2)
+
         except RuntimeError as e:
             # delete the broken PDF
             self.output().remove()
 
             raise RuntimeError(e)
-
-        # TODO plot the strength of selection (a1 and a2)
 
 
 class SelectionHorseGWAS(luigi.WrapperTask):
@@ -222,13 +218,13 @@ class SelectionHorseTest(luigi.WrapperTask):
     def requires(self):
 
         # hand-picked set of SNPs
-        modsnps = [5049478] #, 5102390, 5114900, 5840461, 5872529]
+        modsnps = [5049478, 5102390, 5114900, 5840461, 5872529]
 
         # try a few different options
-        params = [(1e6, 1e2),]
-                  # (1e6, 1e3),
-                  # (1e7, 1e3),
-                  # (1e7, 1e4)]
+        params = [(1e6, 1e2),
+                  (1e6, 1e3),
+                  (1e7, 1e3),
+                  (1e7, 1e4)]
 
         for modsnp_id in modsnps:
             for cycles, freq in params:

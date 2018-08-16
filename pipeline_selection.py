@@ -165,7 +165,7 @@ class SelectionPlot(PipelineTask):
 
         # compose the input and output file paths
         input_file = "selection/{}-{}-{}.input".format(self.species, self.population, self.modsnp_id)
-        output_prefix = trim_ext(input_file)
+        output_prefix = trim_ext(self.input()[0].path)
 
         gen_time = GENERATION_TIME[self.species]
         pop_size = POPULATION_SIZE[self.species][self.population]
@@ -179,7 +179,8 @@ class SelectionPlot(PipelineTask):
 
         except RuntimeError as e:
             # delete the broken PDF
-            self.output().remove()
+            if os.path.isfile(self.output().path):
+                self.output().remove()
 
             raise RuntimeError(e)
 

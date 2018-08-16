@@ -142,7 +142,8 @@ POPULATION_SIZE = {
         'EUW': 8497
     },
     'horse': {  # see https://www.sciencedirect.com/science/article/pii/S0960982215010039
-        'DOM2': 16000
+        'DOM2': 16000,
+        'DOM2WLD': 16000
     }
 }
 

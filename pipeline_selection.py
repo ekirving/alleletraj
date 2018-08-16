@@ -38,6 +38,9 @@ class SelectionInputFile(PipelineTask):
         gen_time = GENERATION_TIME[self.species]
         pop_size = POPULATION_SIZE[self.species][self.population]
 
+        # resolve pseudo-population DOM2WLD
+        pop = self.population if self.population != 'DOM2WLD' else "DOM2', 'WILD"
+
         bins = dbc.get_records_sql("""
             # get the ancient frequencies in each bin
             SELECT SUM(sr.base = ms.derived) AS derived_count,
@@ -53,7 +56,7 @@ class SelectionInputFile(PipelineTask):
                 ON s.id = sr.sample_id
              WHERE ms.id = {modsnp_id}
                AND s.age IS NOT NULL
-               AND s.status = '{population}'
+               AND s.status IN ('{population}')
           GROUP BY bin_high
 
              UNION
@@ -64,7 +67,7 @@ class SelectionInputFile(PipelineTask):
              WHERE ms.id = {modsnp_id}
 
           ORDER BY bin_high
-               """.format(modsnp_id=self.modsnp_id, population=self.population, gen_time=gen_time,
+               """.format(modsnp_id=self.modsnp_id, population=pop, gen_time=gen_time,
                           pop_size=pop_size), key=None)
 
         if len(bins) < MCMC_MIN_BINS:
@@ -219,8 +222,15 @@ class SelectionHorseTest(luigi.WrapperTask):
 
     def requires(self):
 
+        # run for DOM2 and DOM2 + WLD
+        pops = ['DOM2', 'DOM2WLD']
+
         # hand-picked set of SNPs
-        modsnps = [5049478, 5102390, 5114900, 5840461, 5872529]
+        modsnps = [5049478, 5102390]
+
+        # run for both constant pop and full demography
+        histories = [MCMC_POP_CONST,
+                     MCMC_POP_DEMOG]
 
         # try a few different options
         params = [(1e6, 1e2),
@@ -229,10 +239,11 @@ class SelectionHorseTest(luigi.WrapperTask):
                   (1e7, 1e4),
                   (1e8, 1e4)]
 
-        for modsnp_id in modsnps:
-            for pop_hist in [MCMC_POP_CONST, MCMC_POP_DEMOG]:
-                for cycles, freq in params:
-                    yield SelectionPlot('horse', 'DOM2', modsnp_id, pop_hist, int(cycles), int(freq))
+        for pop in pops:
+            for modsnp_id in modsnps:
+                for pop_hist in histories:
+                    for cycles, freq in params:
+                        yield SelectionPlot('horse', pop, modsnp_id, pop_hist, int(cycles), int(freq))
 
 
 if __name__ == '__main__':

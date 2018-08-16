@@ -146,17 +146,6 @@ POPULATION_SIZE = {
     }
 }
 
-# the population history files
-POPULATION_HISTORY = {
-    'pig': {
-        'EUD': 'data/selection/pig-EUD-constant.pop',
-        'EUW': 'data/selection/pig-EUW-constant.pop',
-    },
-    'horse': {
-        'DOM2': 'data/selection/horse-DOM2-full.pop'
-    }
-}
-
 ENSEMBL_DATA = {
 
     # see ftp://ftp.ensembl.org/pub/release-89/gtf/sus_scrofa/
@@ -367,6 +356,10 @@ MAX_INSERT_SIZE = 50000
 
 # the maximum number of conditions in a single query
 MAX_QUERY_SIZE = 5000
+
+# the population history is either: constant, or a fully specified complex demography
+MCMC_POP_CONST = 'const'
+MCMC_POP_DEMOG = 'demog'
 
 # number of MCMC cycles to run
 MCMC_CYCLES = int(5e7)

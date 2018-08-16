@@ -88,6 +88,7 @@ class SelectionRunMCMC(PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp_id = luigi.IntParameter()
+    pop_hist = luigi.Parameter()
     mcmc_cycles = luigi.IntParameter()
     mcmc_freq = luigi.IntParameter()
 
@@ -108,7 +109,7 @@ class SelectionRunMCMC(PipelineTask):
         output_prefix = trim_ext(log_file)
         
         # get path of the population history file
-        pop_hist = POPULATION_HISTORY[self.species][self.population]
+        pop_hist = 'data/selection/{}-{}-{}.pop'.format(self.species, self.population, self.pop_hist)
 
         try:
             # run `selection`
@@ -144,6 +145,7 @@ class SelectionPlot(PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp_id = luigi.IntParameter()
+    pop_hist = luigi.Parameter(default=MCMC_POP_CONST)
     mcmc_cycles = luigi.IntParameter(default=MCMC_CYCLES)
     mcmc_freq = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
 
@@ -224,11 +226,13 @@ class SelectionHorseTest(luigi.WrapperTask):
         params = [(1e6, 1e2),
                   (1e6, 1e3),
                   (1e7, 1e3),
-                  (1e7, 1e4)]
+                  (1e7, 1e4),
+                  (1e8, 1e4)]
 
         for modsnp_id in modsnps:
-            for cycles, freq in params:
-                yield SelectionPlot('horse', 'DOM2', modsnp_id, int(cycles), int(freq))
+            for pop_hist in [MCMC_POP_CONST, MCMC_POP_DEMOG]:
+                for cycles, freq in params:
+                    yield SelectionPlot('horse', 'DOM2', modsnp_id, pop_hist, int(cycles), int(freq))
 
 
 if __name__ == '__main__':

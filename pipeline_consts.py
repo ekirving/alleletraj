@@ -374,8 +374,8 @@ MCMC_CYCLES = int(5e7)
 # frequency of sampling from the posterior
 MCMC_SAMPLE_FREQ = 10000
 
-# number of MCMC cycles to discard as burn in (N.B. this is applied AFTER sampling)
-MCMC_BURN_IN = int(MCMC_CYCLES / MCMC_SAMPLE_FREQ * 0.2)
+# fraction of MCMC cycles to discard as burn in
+MCMC_BURN_IN = 0.2
 
 # frequency of printing output to the screen
 MCMC_PRINT = 1000

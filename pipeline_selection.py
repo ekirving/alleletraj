@@ -91,6 +91,8 @@ class SelectionRunMCMC(luigi.Task):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp_id = luigi.IntParameter()
+    mcmc_cycles = luigi.IntParameter()
+    mcmc_freq = luigi.IntParameter()
 
     priority = PRIORITY_HIGH
     resources = {'cpu-cores': CPU_CORES_ONE}
@@ -120,9 +122,9 @@ class SelectionRunMCMC(luigi.Task):
                      '-o', output_prefix,     # output file prefix
                      '-a',                    # flag to infer allele age
                      '-h', MCMC_DOMINANCE,    # derived allele is: 1=dominant, 0=recessive, 0.5=additive
-                     '-n', MCMC_CYCLES,       # number of MCMC cycles to run
+                     '-n', self.mcmc_cycles,  # number of MCMC cycles to run
+                     '-s', self.mcmc_freq,    # frequency of sampling from the posterior
                      '-f', MCMC_PRINT,        # frequency of printing output to the screen
-                     '-s', MCMC_SAMPLE_FREQ,  # frequency of sampling from the posterior
                      '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory move
                      '-e', MCMC_RANDOM_SEED,  # random number seed
                      ], stdout=log_file)
@@ -146,12 +148,14 @@ class SelectionPlot(luigi.Task):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp_id = luigi.IntParameter()
+    mcmc_cycles = luigi.IntParameter(default=MCMC_CYCLES)
+    mcmc_freq = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
 
     priority = PRIORITY_MAX
     resources = {'cpu-cores': CPU_CORES_ONE, 'ram-gb': 64}
 
     def requires(self):
-        return SelectionRunMCMC(self.species, self.population, self.modsnp_id)
+        return SelectionRunMCMC(self.species, self.population, self.modsnp_id, self.mcmc_cycles, self.mcmc_freq)
 
     def output(self):
         return luigi.LocalTarget("pdf/{}-{}-{}.pdf".format(self.species, self.population, self.modsnp_id))
@@ -164,10 +168,11 @@ class SelectionPlot(luigi.Task):
 
         gen_time = GENERATION_TIME[self.species]
         pop_size = POPULATION_SIZE[self.species][self.population]
+        burn_in = int(self.mcmc_cycles / self.mcmc_freq * MCMC_BURN_IN)
 
         try:
             # plot the allele trajectory
-            run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, gen_time, pop_size, MCMC_BURN_IN])
+            run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, gen_time, pop_size, burn_in])
 
         except RuntimeError as e:
             # delete the broken PDF
@@ -207,6 +212,27 @@ class SelectionHorseGWAS(luigi.WrapperTask):
         for modsnp_id in modsnps:
             if modsnp_id not in bad:
                 yield SelectionPlot('horse', 'DOM2', modsnp_id)
+
+
+class SelectionHorseTest(luigi.WrapperTask):
+    """
+    Run `selection` on all a sub-set of SNPs to test MCMC params.
+    """
+
+    def requires(self):
+
+        # hand-picked set of SNPs
+        modsnps = [5049478] #, 5102390, 5114900, 5840461, 5872529]
+
+        # try a few different options
+        params = [(1e6, 1e2),]
+                  # (1e6, 1e3),
+                  # (1e7, 1e3),
+                  # (1e7, 1e4)]
+
+        for modsnp_id in modsnps:
+            for cycles, freq in params:
+                yield SelectionPlot('horse', 'DOM2', modsnp_id, int(cycles), int(freq))
 
 
 if __name__ == '__main__':

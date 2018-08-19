@@ -213,7 +213,7 @@ class SelectionHorseGWAS(luigi.WrapperTask):
 
         for modsnp_id in modsnps:
             if modsnp_id not in bad:
-                yield SelectionPlot('horse', 'DOM2', modsnp_id)
+                yield SelectionPlot('horse', 'DOM2', modsnp_id, MCMC_POP_CONST)
 
 
 class SelectionHorseTest(luigi.WrapperTask):

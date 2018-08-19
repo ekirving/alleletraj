@@ -57,6 +57,11 @@ def run_cmd(cmd, shell=False, background=False, stdout=None):
 
         # bail if something went wrong
         if proc.returncode != 0:
+
+            # decode return codes
+            if proc.returncode == 139:
+                stderr = 'Segmentation fault (core dumped) ' + stderr
+
             raise RuntimeError(stderr)
 
         return stdout

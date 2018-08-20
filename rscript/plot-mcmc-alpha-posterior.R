@@ -11,41 +11,29 @@ files = list.files(path="selection", pattern="*.param", full.names = T)
 mcmc.params = suppressMessages(lapply(files, function(x) read_tsv(x, col_names = F, skip = burnin + 1))) %>% bind_rows()
 names(mcmc.params) <- suppressMessages(names(read_tsv(files[1], col_names = T, n_max = 0)))
 
-# convert diffusion units into calendar years
-mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time
+min_x <- -50
+max_x <- 250
+brk_width <- 50
 
-# TODO command line params
-pop_size <- 16000
-gen_time <- 8
-
-dom1.age <- -5500
-dom2.age <- -4000
-
-max_age <- -50000
-brk_width <- 5000
-
-ggplot(mcmc.params, aes(ageyrs)) +
+ggplot(mcmc.params, aes(alpha1)) +
 
     # show a density plot of the calander ages
     geom_density(fill="darkgrey") +
 
-    # plot the ages of the main domestication events
-    geom_vline(xintercept=c(dom1.age, dom2.age), linetype = "dashed", colour = 'red') +
-
     # set the breaks for the x-axis
-    scale_x_continuous(limits = c(max_age - 5000, 0),
-                       breaks = seq(max_age, 0, by = brk_width),
-                       labels = seq(max_age, 0, by = brk_width)/1000,
+    scale_x_continuous(limits = c(min_x, max_x),
+                       breaks = seq(min_x, max_x, by = brk_width),
+                       labels = seq(min_x, max_x, by = brk_width),
                        minor_breaks = NULL,
                        expand = c(0.01, 0)) +
 
     # using limits() drops all data points that are not within the specified range,
     # causing discontinuity of the density plot, while coord_cartesian() zooms
     # without losing the data points.
-    coord_cartesian(xlim = c(max_age, 0)) +
+    # coord_cartesian(xlim = c(max_age, 0)) +
 
     # label the plot and the axes
-    xlab("kyr BP") +
+    xlab("Alpha1") +
     ylab("Density") +
 
     # tweak the theme

@@ -34,7 +34,7 @@ pdf(file=paste('rscript/mcmc-2d-age-alpha.pdf', sep=''), width = 8, height = 4.5
 ggplot(mcmc.params) +
 
     # plot 2D density of Age vs Alpha
-    stat_density_2d(aes(x=ageyrs, y=alpha1, fill=..level..), geom="polygon") +
+    stat_density_2d(aes(x=ageyrs, y=alpha1, fill=..level..), geom="polygon", show.legend=F) +
 
     scale_fill_viridis(name = "Density", direction = -1) +
 
@@ -66,7 +66,7 @@ pdf(file=paste('rscript/mcmc-2d-age-end_freq.pdf', sep=''), width = 8, height = 
 ggplot(mcmc.params) +
 
     # plot 2D density of plot Age vs Freq
-    stat_density_2d(aes(x=ageyrs, y=freq, fill=..level..), geom="polygon") +
+    stat_density_2d(aes(x=ageyrs, y=freq, fill=..level..), geom="polygon", show.legend=F) +
 
     scale_fill_viridis(name = "Density", direction = -1) +
 

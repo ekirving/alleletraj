@@ -194,9 +194,13 @@ class SelectionHorseGWAS(luigi.WrapperTask):
 
         dbc = db_conn('horse')
 
+        # run for DOM2 and DOM2 + WLD
+        pops = ['DOM2', 'DOM2WLD']
+
+        # TODO WTF? why is the qtl_snps join dropping 417 rows?
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""
-            SELECT ms.id
+            SELECT DISTINCT ms.id
               FROM qtls q
               JOIN ensembl_variants ev 
                 ON ev.rsnumber = q.peak
@@ -211,9 +215,10 @@ class SelectionHorseGWAS(luigi.WrapperTask):
         # TODO why do these 5 fail?
         bad = [5860440, 4993470, 7833738, 14185088, 9410404]
 
-        for modsnp_id in modsnps:
-            if modsnp_id not in bad:
-                yield SelectionPlot('horse', 'DOM2', modsnp_id, MCMC_POP_CONST)
+        for pop in pops:
+            for modsnp_id in modsnps:
+                if modsnp_id not in bad:
+                    yield SelectionPlot('horse', pop, modsnp_id, MCMC_POP_CONST)
 
 
 class SelectionHorseTest(luigi.WrapperTask):

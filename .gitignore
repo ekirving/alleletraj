@@ -30,3 +30,7 @@ commands.sh
 # sql queries
 *.spf
 *.sql.gz
+
+*.old*
+
+Rplot*.png

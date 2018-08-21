@@ -4,7 +4,6 @@ library(ggplot2)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
 
-
 # TODO command line params
 pop_size <- 16000
 gen_time <- 8

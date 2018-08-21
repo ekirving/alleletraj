@@ -25,7 +25,7 @@ brk_width <- 5000
 
 ggplot(mcmc.params, aes(ageyrs)) +
 
-    # show a density plot of the calander ages
+    # show a density plot of the calander ages of the allele
     geom_density(fill="#48a4e2", colour="#0d4869") +
 
     # plot the ages of the main domestication events

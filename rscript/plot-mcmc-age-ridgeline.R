@@ -15,7 +15,10 @@ burnin <- 1000 # i.e. 20%
 # make a helper function to load the param files
 read_tsv_param <- function(filename) {
     ret <- suppressMessages(read_tsv(filename, col_names = F, skip = burnin + 1))
-    ret$source <- as.integer(str_extract(filename, "(?<=-)[0-9]+")) # extract the modsnp id
+    if (nrow(ret) > 1) {
+        # extract the modsnp id
+        ret$source <- as.integer(str_extract(filename, "(?<=-)[0-9]+"))
+    }
     ret
 }
 
@@ -63,15 +66,16 @@ ggplot() +
     stat_density_ridges(data=mcmc.params,
                         aes(x=ageyrs, y=trait, fill=0.5 - abs(0.5-..ecdf..)),
                         scale = 3,
+                        bandwidth=1000,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
-    scale_fill_viridis(name = "Tail probability", direction = -1) +
+    scale_fill_viridis(name = "Posterior", direction = -1) +
 
     # plot the ages of the main domestication events
     geom_vline(xintercept=c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
 
     # set the breaks for the x-axis
-    scale_x_continuous(limits = c(max_age - 5000, 0),
+    scale_x_continuous(limits = c(max_age - 150000, 0),
                        breaks = seq(max_age, 0, by = brk_width),
                        labels = seq(max_age, 0, by = brk_width)/1000,
                        minor_breaks = NULL,
@@ -84,7 +88,7 @@ ggplot() +
 
     # label the plot and the axes
     xlab("kyr BP") +
-    ylab("Density") +
+    ylab("Trait") +
 
     # tweak the theme
     theme_minimal(base_size = 10) +

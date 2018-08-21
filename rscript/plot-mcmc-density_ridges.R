@@ -16,18 +16,27 @@ burnin <- 1000 # i.e. 20%
 
 # make a helper function to load the param files
 read_tsv_param <- function(filename) {
-    ret <- suppressMessages(read_tsv(filename, col_names = F, skip = burnin + 1))
-    if (nrow(ret) > 1) {
-        # extract the modsnp id
-        ret$source <- as.integer(str_extract(filename, "(?<=-)[0-9]+"))
+    params <- suppressMessages(read_tsv(filename, col_names = T))
+    params <- params[(burnin+1):nrow(params),]
+
+    if (nrow(params) < 4000) {
+        return()
     }
-    ret
+
+    # enforce a min ESS
+    if (min(effectiveSize(params[,!names(params) %in% c("gen")])) < 100) {
+        return()
+    }
+
+    # extract the modsnp id
+    params$id <- as.integer(str_extract(filename, "(?<=-)[0-9]+"))
+
+    params
 }
 
 # load all the param files
 files = list.files(path="selection", pattern="*.param", full.names = T)
 mcmc.params = lapply(files, read_tsv_param) %>% bind_rows()
-names(mcmc.params) <- suppressMessages(c(names(read_tsv(files[1], col_names = T, n_max = 0)), 'id'))
 
 # convert diffusion units into calendar years
 mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time
@@ -35,6 +44,7 @@ mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time
 # convert end_freq back into an actual frequency
 mcmc.params$freq <- (1-cos(mcmc.params$end_freq))/2
 
+# add a dummy variable to allow single line density plots
 mcmc.params$density <- ''
 
 # connect to the remote server

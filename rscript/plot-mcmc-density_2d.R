@@ -10,10 +10,29 @@ pop_size <- 16000
 gen_time <- 8
 burnin <- 1000 # i.e. 20%
 
+# make a helper function to load the param files
+read_tsv_param <- function(filename) {
+    params <- suppressMessages(read_tsv(filename, col_names = T))
+    params <- params[(burnin+1):nrow(params),]
+
+    if (nrow(params) < 4000) {
+        return()
+    }
+
+    # enforce a min ESS
+    if (min(effectiveSize(params[,!names(params) %in% c("gen")])) < 100) {
+        return()
+    }
+
+    # extract the modsnp id
+    params$id <- as.integer(str_extract(filename, "(?<=-)[0-9]+"))
+
+    params
+}
+
 # load all the param files
 files = list.files(path="selection", pattern="*.param", full.names = T)
-mcmc.params = suppressMessages(lapply(files, function(x) read_tsv(x, col_names = F, skip = burnin + 1))) %>% bind_rows()
-names(mcmc.params) <- suppressMessages(names(read_tsv(files[1], col_names = T, n_max = 0)))
+mcmc.params = suppressMessages(lapply(files, read_tsv_param)) %>% bind_rows()
 
 # convert diffusion units into calendar years
 mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time

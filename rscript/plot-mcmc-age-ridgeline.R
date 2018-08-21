@@ -35,6 +35,8 @@ mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time
 # convert end_freq back into an actual frequency
 mcmc.params$freq <- (1-cos(mcmc.params$end_freq))/2
 
+mcmc.params$density <- ''
+
 # connect to the remote server
 mydb = dbConnect(MySQL(), user='root', password='', dbname='alleletraj_horse', host='localhost')
 
@@ -59,16 +61,63 @@ modsnp <- fetch(rs, n=-1)
 # join the traits onto the param files
 mcmc.params <- left_join(mcmc.params, modsnp, by = 'id')
 
+# ------------------------------------------------------------------------------
+# --                           Age                                            --
+# ------------------------------------------------------------------------------
+
 dom1.age <- -5500
 dom2.age <- -4000
 
 max_age <- -50000
 brk_width <- 5000
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
+# all traits...
 
-pdf(file=paste('rscript/mcmc-ridgeline-age.pdf', sep=''), width = 8, height = 4.5)
+pdf(file=paste('rscript/mcmc-age.pdf', sep=''), width = 8, height = 4.5)
+
+ggplot() +
+
+    # display the sample dates as a rigline plot
+    stat_density_ridges(data=mcmc.params,
+                        aes(x=ageyrs, y=density, fill=0.5 - abs(0.5-..ecdf..)),
+                        scale = 100000,
+                        bandwidth=1000,
+                        geom = "density_ridges_gradient", calc_ecdf = TRUE) +
+
+    scale_fill_viridis(name = "Posterior", direction = -1) +
+
+    # plot the ages of the main domestication events
+    geom_vline(xintercept=c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
+
+    # set the breaks for the x-axis
+    scale_x_continuous(limits = c(max_age - 150000, 0),
+                       breaks = seq(max_age, 0, by = brk_width),
+                       labels = seq(max_age, 0, by = brk_width)/1000,
+                       minor_breaks = NULL,
+                       expand = c(0.01, 0)) +
+
+    # using limits() drops all data points that are not within the specified range,
+    # causing discontinuity of the density plot, while coord_cartesian() zooms
+    # without losing the data points.
+    coord_cartesian(xlim = c(max_age, 0)) +
+
+    # label the plot and the axes
+    xlab("kyr BP") +
+    ylab("Density") +
+
+    # tweak the theme
+    theme_minimal(base_size = 10) +
+    theme(
+        # remove the vertical grid lines
+        panel.grid.major.x = element_blank()
+    )
+
+dev.off()
+
+
+# traits as ridgelines...
+
+pdf(file=paste('rscript/mcmc-age-ridgeline.pdf', sep=''), width = 8, height = 4.5)
 
 ggplot() +
 
@@ -110,10 +159,40 @@ ggplot() +
 dev.off()
 
 # ------------------------------------------------------------------------------
+# --                            End Freq                                      --
 # ------------------------------------------------------------------------------
 
+# all traits...
 
-pdf(file=paste('rscript/mcmc-ridgeline-end_freq.pdf', sep=''), width = 8, height = 4.5)
+pdf(file=paste('rscript/mcmc-end_freq.pdf', sep=''), width = 8, height = 4.5)
+
+ggplot() +
+
+    # display the end_freq as a rigline plot
+    stat_density_ridges(data=mcmc.params,
+                        aes(x=freq, y=density, fill=0.5 - abs(0.5-..ecdf..)),
+                        scale = 3,
+                        geom = "density_ridges_gradient", calc_ecdf = TRUE) +
+
+    scale_fill_viridis(name = "Posterior", direction = -1) +
+
+    # label the plot and the axes
+    xlab("End Frequency") +
+    ylab("Density") +
+
+    # tweak the theme
+    theme_minimal(base_size = 10) +
+    theme(
+        # remove the vertical grid lines
+        panel.grid.major.x = element_blank()
+    )
+
+dev.off()
+
+
+# traits as ridgelines...
+
+pdf(file=paste('rscript/mcmc-end_freq-ridgeline.pdf', sep=''), width = 8, height = 4.5)
 
 ggplot() +
 
@@ -138,21 +217,64 @@ ggplot() +
 
 dev.off()
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
 
-pdf(file=paste('rscript/mcmc-ridgeline-alpha.pdf', sep=''), width = 8, height = 4.5)
+# ------------------------------------------------------------------------------
+# --                            Alpha1                                        --
+# ------------------------------------------------------------------------------
 
 min_x <- -50
 max_x <- 250
 brk_width <- 50
+
+# all traits...
+
+pdf(file=paste('rscript/mcmc-alpha.pdf', sep=''), width = 8, height = 4.5)
+
+ggplot() +
+
+    # display the end_freq as a rigline plot
+    stat_density_ridges(data=mcmc.params,
+                        aes(x=alpha1, y=density, fill=0.5 - abs(0.5-..ecdf..)),
+                        scale = 40,
+                        geom = "density_ridges_gradient", calc_ecdf = TRUE) +
+
+    scale_fill_viridis(name = "Posterior", direction = -1) +
+
+    # set the breaks for the x-axis
+    scale_x_continuous(limits = c(min_x-50, max_x+50),
+                       breaks = seq(min_x, max_x, by = brk_width),
+                       labels = seq(min_x, max_x, by = brk_width),
+                       minor_breaks = NULL,
+                       expand = c(0.01, 0)) +
+
+    # using limits() drops all data points that are not within the specified range,
+    # causing discontinuity of the density plot, while coord_cartesian() zooms
+    # without losing the data points.
+    coord_cartesian(xlim = c(min_x, max_x)) +
+
+    # label the plot and the axes
+    xlab("Alpha1") +
+    ylab("Density") +
+
+    # tweak the theme
+    theme_minimal(base_size = 10) +
+    theme(
+        # remove the vertical grid lines
+        panel.grid.major.x = element_blank()
+    )
+
+dev.off()
+
+
+# traits as ridgelines...
+
+pdf(file=paste('rscript/mcmc-alpha-ridgeline.pdf', sep=''), width = 8, height = 4.5)
 
 ggplot() +
 
     # display the end_freq as a rigline plot
     stat_density_ridges(data=mcmc.params,
                         aes(x=alpha1, y=trait, fill=0.5 - abs(0.5-..ecdf..)),
-                        # scale = 3,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
     scale_fill_viridis(name = "Posterior", direction = -1) +

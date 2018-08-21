@@ -1,6 +1,7 @@
 library(readr)
 library(dplyr)
 library(ggplot2)
+library(viridis)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
 
@@ -24,17 +25,20 @@ mcmc.params$freq <- (1-cos(mcmc.params$end_freq))/2
 max_age <- -50000
 brk_width <- 5000
 
+# ------------------------------------------------------------------------------
+# --                           Age vs Alpha                                   --
+# ------------------------------------------------------------------------------
+
+pdf(file=paste('rscript/mcmc-2d-age-alpha.pdf', sep=''), width = 8, height = 4.5)
+
 ggplot(mcmc.params) +
 
     # plot 2D density of Age vs Alpha
-    stat_density_2d(aes(x=ageyrs, y=alpha1, fill=..level..), geom="polygon",
-                    colour="white", show.legend=F) +
+    stat_density_2d(aes(x=ageyrs, y=alpha1, fill=..level..), geom="polygon") +
 
-    # # plot 2D density of plot Age vs Freq
-    # stat_density_2d(aes(x=ageyrs, y=freq, fill=..level..), geom="polygon",
-    #                 colour="white", show.legend=F) +
+    scale_fill_viridis(name = "Density", direction = -1) +
 
-    scale_x_continuous(limits = c(max_age - 5000, 0),
+    scale_x_continuous(limits = c(max_age - 150000, 0),
                        breaks = seq(max_age, 0, by = brk_width),
                        labels = seq(max_age, 0, by = brk_width)/1000,
                        minor_breaks = NULL) +
@@ -46,9 +50,63 @@ ggplot(mcmc.params) +
 
     # label the plot and the axes
     xlab("kyr BP") +
-    # ylab("Frequency") +
     ylab("Alpha") +
 
     # tweak the theme
     theme_minimal(base_size = 10)
 
+dev.off()
+
+# ------------------------------------------------------------------------------
+# --                           Age vs End Freq                                --
+# ------------------------------------------------------------------------------
+
+pdf(file=paste('rscript/mcmc-2d-age-end_freq.pdf', sep=''), width = 8, height = 4.5)
+
+ggplot(mcmc.params) +
+
+    # plot 2D density of plot Age vs Freq
+    stat_density_2d(aes(x=ageyrs, y=freq, fill=..level..), geom="polygon") +
+
+    scale_fill_viridis(name = "Density", direction = -1) +
+
+    scale_x_continuous(limits = c(max_age - 150000, 0),
+                       breaks = seq(max_age, 0, by = brk_width),
+                       labels = seq(max_age, 0, by = brk_width)/1000,
+                       minor_breaks = NULL) +
+
+    # using limits() drops all data points that are not within the specified range,
+    # causing discontinuity of the density plot, while coord_cartesian() zooms
+    # without losing the data points.
+    coord_cartesian(xlim = c(max_age, 0)) +
+
+    # label the plot and the axes
+    xlab("kyr BP") +
+    ylab("Frequency") +
+
+    # tweak the theme
+    theme_minimal(base_size = 10)
+
+dev.off()
+
+# ------------------------------------------------------------------------------
+# --                           Age vs End Freq                                --
+# ------------------------------------------------------------------------------
+
+pdf(file=paste('rscript/mcmc-2d-alpha-end_freq.pdf', sep=''), width = 8, height = 4.5)
+
+ggplot(mcmc.params) +
+
+    # plot 2D density of plot Age vs Freq
+    stat_density_2d(aes(x=alpha1, y=freq, fill=..level..), geom="polygon", show.legend=F) +
+
+    scale_fill_viridis(name = "Density", direction = -1) +
+
+    # label the plot and the axes
+    xlab("Alpha1") +
+    ylab("Frequency") +
+
+    # tweak the theme
+    theme_minimal(base_size = 10)
+
+dev.off()

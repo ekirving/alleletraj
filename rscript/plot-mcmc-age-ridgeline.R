@@ -4,6 +4,7 @@ library(ggplot2)
 library(ggridges)
 library(RMySQL)
 library(stringr)
+library(viridis)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
 
@@ -60,6 +61,8 @@ dom2.age <- -4000
 max_age <- -50000
 brk_width <- 5000
 
+pdf(file=paste('rscript/mcmc-age-ridgeline.pdf', sep=''), width = 16, height = 9)
+
 ggplot() +
 
     # display the sample dates as a rigline plot
@@ -96,3 +99,5 @@ ggplot() +
         # remove the vertical grid lines
         panel.grid.major.x = element_blank()
     )
+
+dev.off()

@@ -231,7 +231,7 @@ class SelectionHorseGWASFlankingSNPs(luigi.WrapperTask):
 
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""
-            SELECT DISTINCT qs.modsnp_id
+            SELECT DISTINCT qs.modsnp_id AS id
               FROM qtls q
               JOIN qtl_snps qs
                 ON qs.qtl_id = q.id

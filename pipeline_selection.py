@@ -220,6 +220,27 @@ class SelectionHorseGWAS(luigi.WrapperTask):
                 if modsnp_id not in bad:
                     yield SelectionPlot('horse', pop, modsnp_id, MCMC_POP_CONST)
 
+class SelectionHorseGWASFlankingSNPs(luigi.WrapperTask):
+    """
+    Run `selection` on all the direct GWAS hits for horses.
+    """
+
+    def requires(self):
+
+        dbc = db_conn('horse')
+
+        # get the modsnp_id for every GWAS hit
+        modsnps = dbc.get_records_sql("""
+            SELECT DISTINCT qs.modsnp_id
+              FROM qtls q
+              JOIN qtl_snps qs
+                ON qs.qtl_id = q.id
+               AND qs.best IS NOT NULL
+             WHERE q.associationType = 'Association'
+               AND q.valid = 1""")
+
+        for modsnp_id in modsnps:
+            yield SelectionPlot('horse', 'DOM2WLD', modsnp_id, MCMC_POP_CONST)
 
 class SelectionHorseTest(luigi.WrapperTask):
     """

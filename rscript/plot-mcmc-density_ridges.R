@@ -6,6 +6,7 @@ library(RMySQL)
 library(stringr)
 library(viridis)
 library(stringr)
+library(coda)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
 

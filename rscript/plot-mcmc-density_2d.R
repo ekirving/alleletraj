@@ -2,6 +2,7 @@ library(readr)
 library(dplyr)
 library(ggplot2)
 library(viridis)
+library(stringr)
 library(coda)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')

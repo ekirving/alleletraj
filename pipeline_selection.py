@@ -80,8 +80,8 @@ class SelectionInputFile(PipelineTask):
             writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
 
             # write the data to disk
-            for bin in bins:
-                writer.writerow(bin)
+            for b in bins:
+                writer.writerow(b)
 
 
 class SelectionRunMCMC(PipelineTask):
@@ -220,6 +220,7 @@ class SelectionHorseGWAS(luigi.WrapperTask):
                 if modsnp_id not in bad:
                     yield SelectionPlot('horse', pop, modsnp_id, MCMC_POP_CONST)
 
+
 class SelectionHorseGWASFlankingSNPs(luigi.WrapperTask):
     """
     Run `selection` on all the direct GWAS hits for horses.
@@ -241,6 +242,7 @@ class SelectionHorseGWASFlankingSNPs(luigi.WrapperTask):
 
         for modsnp_id in modsnps:
             yield SelectionPlot('horse', 'DOM2WLD', modsnp_id, MCMC_POP_CONST)
+
 
 class SelectionHorseTest(luigi.WrapperTask):
     """

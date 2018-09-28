@@ -384,3 +384,17 @@ PRIORITY_MED  = 1
 PRIORITY_HIGH = 2
 PRIORITY_MAX  = 3
 
+# QTLdb settings
+QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'
+QTLDB_CHUNK_SIZE = 10
+QTLDB_RELEASE = 'rel36'
+
+QTL_FILES = {
+    'pig':    "data/AnimalQTLdb/{}/cM/pig.txt".format(QTLDB_RELEASE),
+    'cattle': "data/AnimalQTLdb/{}/cM/cattle.txt".format(QTLDB_RELEASE),
+    'horse':  "data/AnimalQTLdb/{}/cM/horse.txt".format(QTLDB_RELEASE),
+}
+
+# wait 10 seconds beforey retyring a failed request
+QTLDB_WAIT_TIME = 10
+

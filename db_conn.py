@@ -25,7 +25,7 @@ class db_conn:
 
     def __init__(self, species=SPECIES):
         # set the database name
-        self.db_config['database'] = 'alleletraj_{}'.format(species)
+        self.db_config['database'] = 'alleletraj_{}_{}'.format(species, QTLDB_RELEASE)
 
         # connect to the db
         self.cnx = mysql.connector.connect(**self.db_config)

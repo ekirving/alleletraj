@@ -10,17 +10,7 @@ from time import sleep
 from collections import OrderedDict
 from xml.sax.saxutils import escape
 
-QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'
-QTLDB_CHUNK_SIZE = 10
-
-QTL_FILES = {
-    'pig':    'data/AnimalQTLdb/rel35/cM/pig.txt',
-    'cattle': 'data/AnimalQTLdb/rel35/cM/cattle.txt',
-    'horse':  'data/AnimalQTLdb/rel35/cM/horse.txt',
-}
-
-# wait 10 seconds beforey retyring a failed request
-QTLDB_WAIT_TIME = 10
+from pipeline_consts import *
 
 
 class qtldb_api:

@@ -61,7 +61,7 @@ def populate_qtls():
 
             # setup the trait record
             trait = dict((field.replace('trait', '').lower(), value) for field, value in trait.iteritems())
-            trait['type'] = api.get_trait_type(SPECIES, trait['id'], trait['name'])  # TODO this is broken!!
+            trait['type'] = ''  # api.get_trait_type(SPECIES, trait['id'], trait['name'])  # TODO this is broken!!
 
             dbc.save_record('traits', trait, insert=True)
 

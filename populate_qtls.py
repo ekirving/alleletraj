@@ -319,6 +319,56 @@ def populate_neutral_loci():
     print("INFO: Added {:,} neutral loci".format(num_loci))
 
 
+def populate_pig_mummies_loci():
+    """
+    Balancing selection on a recessive lethal deletion with pleiotropic effects on two neighboring genes in the porcine
+    genome.
+
+    See https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1007661
+    """
+
+    dbc = db_conn()
+
+    # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
+    max_chrom = " ".join(["WHEN '{}' THEN {}".format(chrom, size) for chrom, size in CHROM_SIZE[SPECIES].iteritems()])
+
+    # get all pig mummy SNPs and turn them into pseudo-loci
+    results = dbc.get_records_sql("""
+        SELECT ev.rsnumber, ev.chrom, 
+               GREATEST(ev.start - {offset}, 1) AS `start`,
+               LEAST(ev.end + {offset}, CASE ev.chrom {max_chrom} END) AS `end`
+          FROM ensembl_variants ev
+         WHERE rsnumber IN ('rs321688936','rs324480289','rs331589427','rs333966168','rs334806226','rs337374395',
+                            'rs340056046','rs340481593','rs341362223','rs342358904','rs81238716','rs81255938',
+                            'rs81270496','rs81317835','rs81469247','rs81469256','rs81469273','rs81469281','rs81469291',
+                            'rs81469298','rs81469311','rs81469316','rs81469337','rs81469339','rs81469341','rs81469348')
+           """.format(offset=GENE_OFFSET, max_chrom=max_chrom), key=None)
+
+    num_loci = 0
+
+    for result in results:
+
+        # setup a dummy QTL record
+        qtl = {
+            'associationType': 'Mummy',
+            'chrom': result['chrom'],
+            'peak':  result['peak'],
+            'valid': 1,
+            'start': result['start'],
+            'end': result['end'],
+        }
+
+        # check if this QTL already exists
+        if dbc.get_record('qtls', qtl):
+            continue
+
+        dbc.save_record('qtls', qtl)
+
+        num_loci += 1
+
+    print("INFO: Added {:,} pig mummy loci".format(num_loci))
+
+
 def populate_qtl_snps(population):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.

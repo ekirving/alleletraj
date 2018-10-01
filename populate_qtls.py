@@ -69,7 +69,7 @@ def populate_qtls():
         if not dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
 
             # setup the pubmed record
-            pubmed = api.get_publication(SPECIES, record['pubmedID'])
+            pubmed = False # api.get_publication(SPECIES, record['pubmedID'])  # TODO this is broken!!
 
             if pubmed:
                 pubmed['id'] = pubmed.pop('pubmed_ID')

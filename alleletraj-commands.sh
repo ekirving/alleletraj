@@ -107,3 +107,12 @@ ls -lh | grep -f unsorted.list
 
 # index them all
 parallel -a unsorted.list "echo {} && samtools index {}"
+
+# ----------------------------------------------------------------------------------------
+
+# get the rsnumbers for the pig mummy markers
+grep -E 'WU_10.2_18_43089973|ASGA0079708|ALGA0098112|MARC0069672|MARC0089391|WU_10.2_18_43161644|WU_10.2_18_43204315|ASGA0097792|MARC0046857|WU_10.2_18_43287167|H3GA0050799|ASGA0079716|WU_10.2_18_43418494|WU_10.2_18_43464036|ASGA0079719|ASGA0079723|ASGA0079726|ASGA0079728|WU_10.2_18_43630319|WU_10.2_18_43773633|WU_10.2_18_43778188|WU_10.2_18_43803484|ASGA0079732|H3GA0050810|ASGA0079734|ALGA0098146' ~/Downloads/SNPchimp_result_3294637283.tsv
+
+nohup python -u build_database.py &> nohup-pigs.log &
+tail -f nohup-pigs.log
+

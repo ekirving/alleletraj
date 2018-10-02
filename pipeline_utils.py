@@ -29,7 +29,7 @@ def run_cmd(cmd, shell=False, background=False, stdout=None):
     # subprocess only accepts strings
     cmd = [str(args) for args in cmd]
 
-    print(u' '.join(cmd))
+    # print(u' '.join(cmd))
 
     if background:
         subprocess.Popen(cmd, shell=shell)

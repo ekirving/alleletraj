@@ -248,6 +248,10 @@ def populate_pig_samples():
             # handle missing and malformed map_reads info
             sample['map_reads'] = None
 
+        # limit free-text age to 255 chracters
+        if sample['age']:
+            sample['age'] = unicode_truncate(sample['age'], 255)
+
         # save the sample record
         dbc.save_record('samples', sample)
 

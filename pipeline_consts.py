@@ -218,12 +218,13 @@ GOOGLE_SHEET = {
 
     'pig': {
         'id': '1GBxNiRWAqPdz4MdSpi0ec_K8x4TRns31VgUcICq68qo',
-        'tabs': ['updated'],
+        'tabs': ['final combined'],
         'cols': OrderedDict([
-                    ('Extract No. / Accession', 'accession'),
+                    ('Extract No. / Lab code', 'accession'),
                     ('Total Reads', 'map_reads'),
                     ('% Mapped', 'map_prcnt'),
                     ('Age', 'age'),
+                    ('Age (Mean years BP)', 'age_int'),
                     ('Period', 'period'),
                     ('Location', 'location'),
                     ('Country', 'country'),

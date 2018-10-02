@@ -156,6 +156,11 @@ def insert_suffix(fullpath, suffix):
     return ('.').join(splitpath)
 
 
+def unicode_truncate(s, length, encoding='utf-8'):
+    encoded = s.encode(encoding)[:length]
+    return encoded.decode(encoding, 'ignore')
+
+
 class PipelineTask(luigi.Task):
     """
     PrioritisedTask that implements a dynamic priority method

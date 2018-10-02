@@ -38,22 +38,22 @@ from graph_derived import graph_derived
 # # load pseudo-QTLs from other sources
 # populate_sweeps()
 # populate_mc1r_locus()
-
-if SPECIES == 'pig':
-    populate_pig_mummies_loci()
-
-populate_neutral_loci()
-
-# TODO make this work with DOM and DOM2
-# link each QTL to the ascertained modern SNPs
-populate_qtl_snps(POPULATION)
-
-# flag the modern SNPs which fall into "neutral" regions
-mark_neutral_snps()
-
-# calculate the unique set of non-overlapping genomic loci from the QTLs
-populate_intervals()
-populate_interval_snps(POPULATION)
+#
+# if SPECIES == 'pig':
+#     populate_pig_mummies_loci()
+#
+# populate_neutral_loci()
+#
+# # TODO make this work with DOM and DOM2
+# # link each QTL to the ascertained modern SNPs
+# populate_qtl_snps(POPULATION)
+#
+# # flag the modern SNPs which fall into "neutral" regions
+# mark_neutral_snps()
+#
+# # calculate the unique set of non-overlapping genomic loci from the QTLs
+# populate_intervals()
+# populate_interval_snps(POPULATION)
 
 # load the sample metadata
 if SPECIES == 'pig':

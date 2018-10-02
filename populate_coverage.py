@@ -87,7 +87,7 @@ def populate_interval_snps(population):
 
     print("INFO: Populating all the interval SNPs")
 
-    # tidy up an unfinished interval SNPs
+    # tidy up any unfinished interval SNPs
     dbc.execute_sql("""
         DELETE s 
           FROM intervals_snps s
@@ -111,6 +111,8 @@ def populate_interval_snps(population):
                   WHERE i.finished = 0
                     AND i.chrom = '{chrom}'
                     AND ms.daf >= {mindaf}""".format(population=population, chrom=chrom, mindaf=MIN_DAF))
+
+    print("INFO: Finished populating the interval SNPs")
 
 
 def populate_sample_reads():

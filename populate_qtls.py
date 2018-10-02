@@ -352,10 +352,10 @@ def populate_pig_mummies_loci():
         qtl = {
             'associationType': 'Mummy',
             'chrom': result['chrom'],
-            'peak':  result['peak'],
+            'peak':  result['rsnumber'],
             'valid': 1,
             'start': result['start'],
-            'end': result['end'],
+            'end':   result['end'],
         }
 
         # check if this QTL already exists

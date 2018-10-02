@@ -31,13 +31,13 @@ from graph_derived import graph_derived
 #
 # # link modern SNPs to their dbsnp, gene and snpchip records
 # links_modern_snps()
-
-# load the QTLs from the AnimalQTL database
-populate_qtls()
-
-# load pseudo-QTLs from other sources
-populate_sweeps()
-populate_mc1r_locus()
+#
+# # load the QTLs from the AnimalQTL database
+# populate_qtls()
+#
+# # load pseudo-QTLs from other sources
+# populate_sweeps()
+# populate_mc1r_locus()
 populate_neutral_loci()
 
 if SPECIES == 'pig':

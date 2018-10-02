@@ -38,10 +38,11 @@ from graph_derived import graph_derived
 # # load pseudo-QTLs from other sources
 # populate_sweeps()
 # populate_mc1r_locus()
-populate_neutral_loci()
 
 if SPECIES == 'pig':
     populate_pig_mummies_loci()
+
+populate_neutral_loci()
 
 # TODO make this work with DOM and DOM2
 # link each QTL to the ascertained modern SNPs

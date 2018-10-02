@@ -108,7 +108,7 @@ def confirm_age_mapping():
         print("ERROR: Not all sample ages have numeric mappings!")
 
         for age in missing:
-            print(age['age'])
+            print(age['age'].encode('utf-8'))
 
         quit()
 

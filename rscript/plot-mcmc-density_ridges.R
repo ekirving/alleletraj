@@ -87,7 +87,7 @@ brk_width <- 5000
 
 # all traits...
 
-pdf(file=paste('rscript/mcmc-age.pdf', sep=''), width = 8, height = 4.5)
+pdf(file=paste('rscript/pdf/mcmc-age.pdf', sep=''), width = 8, height = 4.5)
 
 ggplot() +
 
@@ -131,7 +131,7 @@ dev.off()
 
 # traits as ridgelines...
 
-pdf(file=paste('rscript/mcmc-age-ridgeline.pdf', sep=''), width = 8, height = 4.5)
+pdf(file=paste('rscript/pdf/mcmc-age-ridgeline.pdf', sep=''), width = 8, height = 4.5)
 
 ggplot() +
 
@@ -178,7 +178,7 @@ dev.off()
 
 # all traits...
 
-pdf(file=paste('rscript/mcmc-end_freq.pdf', sep=''), width = 8, height = 4.5)
+pdf(file=paste('rscript/pdf/mcmc-end_freq.pdf', sep=''), width = 8, height = 4.5)
 
 ggplot() +
 
@@ -206,7 +206,7 @@ dev.off()
 
 # traits as ridgelines...
 
-pdf(file=paste('rscript/mcmc-end_freq-ridgeline.pdf', sep=''), width = 8, height = 4.5)
+pdf(file=paste('rscript/pdf/mcmc-end_freq-ridgeline.pdf', sep=''), width = 8, height = 4.5)
 
 ggplot() +
 
@@ -242,7 +242,7 @@ brk_width <- 50
 
 # all traits...
 
-pdf(file=paste('rscript/mcmc-alpha.pdf', sep=''), width = 8, height = 4.5)
+pdf(file=paste('rscript/pdf/mcmc-alpha.pdf', sep=''), width = 8, height = 4.5)
 
 ggplot() +
 
@@ -282,7 +282,7 @@ dev.off()
 
 # traits as ridgelines...
 
-pdf(file=paste('rscript/mcmc-alpha-ridgeline.pdf', sep=''), width = 8, height = 4.5)
+pdf(file=paste('rscript/pdf/mcmc-alpha-ridgeline.pdf', sep=''), width = 8, height = 4.5)
 
 ggplot() +
 

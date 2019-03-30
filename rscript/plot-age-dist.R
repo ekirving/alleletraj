@@ -1,21 +1,28 @@
-# install.packages("ggridges")
+#!/usr/bin/env Rscript
 
-library(ggplot2)
-library(ggridges)
-library(reshape2)
+library(ggplot2, quietly = T)
+library(ggridges, quietly = T)
+library(reshape2, quietly = T)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
 
-# basename <- 'dates-all-samples'
-# basename <- 'dates-modsnp-547444'
-# basename <- 'dates-modsnp-4499449'
-# basename <- 'dates-modsnp-8130030'
-# basename <- 'dates-modsnp-8130095'
-# basename <- 'dates-modsnp-8130326'
-basename <- 'dates-modsnp-5242077'
-
 # import the sample ages
-ages <- read.table(paste('rscript/', basename, '.tsv', sep=''), header = T)
+# ages <- read.table(paste('rscript/', basename, '.tsv', sep=''), header = T)
+
+# TODO make command line param
+modsnp <- '5242077'
+
+# connect to the remote server
+mydb = dbConnect(MySQL(), user='root', password='', dbname='allele_trajectory', host='localhost')
+
+# TODO fetch info from query
+# execute the query (which caches the resultset)
+rs = dbSendQuery(mydb,
+    ""
+)
+
+# fetch the resultset from the DB
+ages = fetch(rs, n=-1)
 
 # drop missing dates
 ages <- ages[!is.na(ages$confident),]
@@ -37,7 +44,7 @@ colnames(sim.data) <- ages$label
 # melt the data
 sim.melt <- melt(sim.data)
 
-pdf(file=paste('rscript/', basename, '.pdf', sep=''), width = 10, height = length(ages$accession)/7)
+pdf(file=paste('pdf/', basename, '.pdf', sep=''), width = 10, height = length(ages$accession)/7)
 
 # display it as a rigline plot
 ggplot(sim.melt, aes(x = value, y = variable, fill = variable, color=variable)) +

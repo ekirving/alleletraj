@@ -72,6 +72,9 @@ rs = dbSendQuery(mydb,
 
 traits <- fetch(rs, n=-1)
 
+# standardise sentance casing
+traits$trait <- str_to_sentence(traits$trait)
+
 # join the traits onto the param files
 mcmc.params <- inner_join(mcmc.params, traits, by = 'id')
 
@@ -129,7 +132,7 @@ ggplot() +
 dev.off()
 
 
-# traits as ridgelines...
+# trait classes as ridgelines...
 
 pdf(file=paste('rscript/pdf/mcmc-age-ridgeline.pdf', sep=''), width = 8, height = 4.5)
 
@@ -138,7 +141,7 @@ ggplot() +
     # display the sample dates as a rigline plot
     stat_density_ridges(data=mcmc.params,
                         aes(x=ageyrs, y=class, fill=0.5 - abs(0.5-..ecdf..)),
-                        scale = 3,
+                        scale = 2,
                         bandwidth=1000,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
@@ -172,6 +175,58 @@ ggplot() +
 
 dev.off()
 
+
+# traits from each class as ridgelines...
+
+classes <- unique(mcmc.params$class)
+
+for (cls in classes) {
+
+    # count the number of traits
+    num_traits <- length(unique(mcmc.params[mcmc.params$class == cls,]$trait))
+
+    pdf(file=paste0('rscript/pdf/mcmc-age-', str_to_lower(cls), '-ridgeline.pdf'), width = 8, height = max(num_traits * 0.8, 1.6))
+
+    print(ggplot() +
+
+        # display the data as a rigline plot
+        stat_density_ridges(data=mcmc.params[mcmc.params$class == cls,],
+                            aes(x=ageyrs, y=trait, fill=0.5 - abs(0.5-..ecdf..)),
+                            scale = ifelse(num_traits > 1, 1.5, 100000),
+                            bandwidth=1000,
+                            geom = "density_ridges_gradient", calc_ecdf = TRUE) +
+
+        scale_fill_viridis(name = "Posterior", direction = -1) +
+
+        # plot the ages of the main domestication events
+        geom_vline(xintercept=c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
+
+        # set the breaks for the x-axis
+        scale_x_continuous(limits = c(max_age - 150000, 0),
+                           breaks = seq(max_age, 0, by = brk_width),
+                           labels = seq(max_age, 0, by = brk_width)/1000,
+                           minor_breaks = NULL,
+                           expand = c(0.01, 0)) +
+
+        # using limits() drops all data points that are not within the specified range,
+        # causing discontinuity of the density plot, while coord_cartesian() zooms
+        # without losing the data points.
+        coord_cartesian(xlim = c(max_age, 0)) +
+
+        # label the plot and the axes
+        xlab("kyr BP") +
+        ylab(cls) +
+
+        # tweak the theme
+        theme_minimal(base_size = 10) +
+        theme(
+            # remove the vertical grid lines
+            panel.grid.major.x = element_blank()
+        ))
+
+    dev.off()
+}
+
 # ------------------------------------------------------------------------------
 # --                            End Freq                                      --
 # ------------------------------------------------------------------------------
@@ -185,7 +240,7 @@ ggplot() +
     # display the end_freq as a rigline plot
     stat_density_ridges(data=mcmc.params,
                         aes(x=freq, y=density, fill=0.5 - abs(0.5-..ecdf..)),
-                        scale = 3,
+                        scale = 2,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
     scale_fill_viridis(name = "Posterior", direction = -1) +
@@ -213,7 +268,7 @@ ggplot() +
     # display the end_freq as a rigline plot
     stat_density_ridges(data=mcmc.params,
                         aes(x=freq, y=class, fill=0.5 - abs(0.5-..ecdf..)),
-                        scale = 3,
+                        scale = 2,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
     scale_fill_viridis(name = "Posterior", direction = -1) +
@@ -249,7 +304,7 @@ ggplot() +
     # display the end_freq as a rigline plot
     stat_density_ridges(data=mcmc.params,
                         aes(x=alpha1, y=density, fill=0.5 - abs(0.5-..ecdf..)),
-                        scale = 40,
+                        scale = 20,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
     scale_fill_viridis(name = "Posterior", direction = -1) +

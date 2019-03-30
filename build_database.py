@@ -19,41 +19,41 @@ from graph_derived import graph_derived
 # TODO map samples / indicate time / don't want to confuse geography for time
 # TODO have a look at the "pulse" model in Loog paper
 
-# # load all the Ensembl data for this species
-# load_ensembl_genes()
-# load_ensembl_variants()
-#
-# # load the SNP Chip data
-# load_snpchip_variants()
-#
-# # ascertain SNPs in modern whole genome data
-# discover_modern_snps()
-#
-# # link modern SNPs to their dbsnp, gene and snpchip records
-# links_modern_snps()
-#
-# # load the QTLs from the AnimalQTL database
-# populate_qtls()
-#
-# # load pseudo-QTLs from other sources
-# populate_sweeps()
-# populate_mc1r_locus()
-#
-# if SPECIES == 'pig':
-#     populate_pig_mummies_loci()
-#
-# populate_neutral_loci()
-#
-# # TODO make this work with DOM and DOM2
-# # link each QTL to the ascertained modern SNPs
-# populate_qtl_snps(POPULATION)
-#
-# # flag the modern SNPs which fall into "neutral" regions
-# mark_neutral_snps()
-#
-# # calculate the unique set of non-overlapping genomic loci from the QTLs
-# populate_intervals()
-# populate_interval_snps(POPULATION)
+# load all the Ensembl data for this species
+load_ensembl_genes()
+load_ensembl_variants()
+
+# load the SNP Chip data
+load_snpchip_variants()
+
+# ascertain SNPs in modern whole genome data
+discover_modern_snps()
+
+# link modern SNPs to their dbsnp, gene and snpchip records
+links_modern_snps()
+
+# load the QTLs from the AnimalQTL database
+populate_qtls()
+
+# load pseudo-QTLs from other sources
+populate_sweeps()
+populate_mc1r_locus()
+
+if SPECIES == 'pig':
+    populate_pig_mummies_loci()
+
+populate_neutral_loci()
+
+# TODO make this work with DOM and DOM2
+# link each QTL to the ascertained modern SNPs
+populate_qtl_snps(POPULATION)
+
+# flag the modern SNPs which fall into "neutral" regions
+mark_neutral_snps()
+
+# calculate the unique set of non-overlapping genomic loci from the QTLs
+populate_intervals()
+populate_interval_snps(POPULATION)
 
 # load the sample metadata
 if SPECIES == 'pig':

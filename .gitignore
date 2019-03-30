@@ -4,6 +4,9 @@
 # R environment files
 .RData
 .Rhistory
+.Rproj.user
+*.Rproj
+Rplot*
 
 # output logging from nohup command
 nohup*
@@ -31,6 +34,6 @@ commands.sh
 *.spf
 *.sql.gz
 
+# old files or folders
 *.old*
 
-Rplot*.png

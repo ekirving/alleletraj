@@ -1,12 +1,14 @@
-library(readr)
-library(dplyr)
-library(ggplot2)
-library(ggridges)
-library(RMySQL)
-library(stringr)
-library(viridis)
-library(stringr)
-library(coda)
+#!/usr/bin/env Rscript
+
+library(readr, quietly = T)
+library(dplyr, quietly = T)
+library(ggplot2, quietly = T)
+library(ggridges, quietly = T)
+library(RMySQL, quietly = T)
+library(stringr, quietly = T)
+library(viridis, quietly = T)
+library(stringr, quietly = T)
+library(coda, quietly = T)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
 
@@ -51,9 +53,10 @@ mcmc.params$density <- ''
 # connect to the remote server
 mydb = dbConnect(MySQL(), user='root', password='', dbname='alleletraj_horse', host='localhost')
 
+# TODO this is explicitly dropping all non-GWAS hits, which is fine for now but needs updating later
 # fetch the details of the SNP
 rs = dbSendQuery(mydb,
-    "SELECT DISTINCT ms.id, t.class AS trait
+    "SELECT DISTINCT ms.id, t.class, t.name AS trait
        FROM qtls q
        JOIN traits t
          ON t.id = q.trait_id
@@ -67,10 +70,10 @@ rs = dbSendQuery(mydb,
       WHERE q.associationType = 'Association'
         AND q.valid = 1")
 
-modsnp <- fetch(rs, n=-1)
+traits <- fetch(rs, n=-1)
 
 # join the traits onto the param files
-mcmc.params <- left_join(mcmc.params, modsnp, by = 'id')
+mcmc.params <- inner_join(mcmc.params, traits, by = 'id')
 
 # ------------------------------------------------------------------------------
 # --                           Age                                            --
@@ -134,7 +137,7 @@ ggplot() +
 
     # display the sample dates as a rigline plot
     stat_density_ridges(data=mcmc.params,
-                        aes(x=ageyrs, y=trait, fill=0.5 - abs(0.5-..ecdf..)),
+                        aes(x=ageyrs, y=class, fill=0.5 - abs(0.5-..ecdf..)),
                         scale = 3,
                         bandwidth=1000,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
@@ -209,7 +212,7 @@ ggplot() +
 
     # display the end_freq as a rigline plot
     stat_density_ridges(data=mcmc.params,
-                        aes(x=freq, y=trait, fill=0.5 - abs(0.5-..ecdf..)),
+                        aes(x=freq, y=class, fill=0.5 - abs(0.5-..ecdf..)),
                         scale = 3,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
@@ -285,7 +288,7 @@ ggplot() +
 
     # display the end_freq as a rigline plot
     stat_density_ridges(data=mcmc.params,
-                        aes(x=alpha1, y=trait, fill=0.5 - abs(0.5-..ecdf..)),
+                        aes(x=alpha1, y=class, fill=0.5 - abs(0.5-..ecdf..)),
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
     scale_fill_viridis(name = "Posterior", direction = -1) +

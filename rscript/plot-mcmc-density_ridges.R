@@ -54,9 +54,6 @@ read_tsv_param <- function(filename) {
 files <- list.files(path = "selection", pattern = paste(species, population, "(.+).param", sep = '-'), full.names = T)
 mcmc.params <- lapply(files, read_tsv_param) %>% bind_rows()
 
-# add a dummy variable to make ggridges behave like a normal density plot
-mcmc.params$density <- ''
-
 # connect to the remote server
 mydb <- dbConnect(MySQL(), user = 'root', password = '', dbname = 'alleletraj_horse', host = 'localhost')
 
@@ -84,6 +81,15 @@ traits$trait <- str_to_sentence(traits$trait)
 
 # join the traits onto the param files
 mcmc.params <- inner_join(mcmc.params, traits, by = 'id')
+
+# add a dummy variable so we can aggregate all SNPs together
+mcmc.params$allsnp <- 'GWAS hits'
+
+# count how many SNPs each class and trait has
+mcmc.params <- mcmc.params %>%
+    group_by(class) %>% mutate(class.n = paste0(class, ' (n=', n_distinct(id), ')')) %>%
+    group_by(trait) %>% mutate(trait.n = paste0(trait, ' (n=', n_distinct(id), ')')) %>%
+    group_by(allsnp) %>% mutate(allsnp.n = paste0(allsnp, ' (n=', n_distinct(id), ')'))
 
 # function for plotting the MCMC params
 plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks = NULL,
@@ -137,7 +143,8 @@ plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks
     # joint density plot
     # --------------------------------------------------------------------------
 
-    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-all.pdf'), width = 16, height = 4.5)
+    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-all.pdf'),
+        width = 16, height = 4.5)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
@@ -145,7 +152,7 @@ plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks
         # add the density plot
         stat_density_ridges(
             data = mcmc.params,
-            aes_string(x = param, y = 'density', fill = '0.5 - abs(0.5-..ecdf..)'),
+            aes_string(x = param, y = 'allsnp.n', fill = '0.5 - abs(0.5-..ecdf..)'),
             geom = "density_ridges_gradient", calc_ecdf = TRUE,
             bandwidth = bandwidth,  # controls smoothing in density plot
             rel_min_height = 0.005, # trim the trailing lines
@@ -170,7 +177,8 @@ plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks
     # scale height relative to the number of classes
     pdf.height <- length(unique(mcmc.params$class)) * 0.75
 
-    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-classes.pdf'), width = 16, height = pdf.height)
+    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-classes.pdf'),
+        width = 16, height = pdf.height)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
@@ -178,7 +186,7 @@ plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks
         # add the trait classes
         stat_density_ridges(
             data = mcmc.params,
-            aes_string(x = param, y = 'fct_rev(class)', fill = '0.5 - abs(0.5-..ecdf..)'),
+            aes_string(x = param, y = 'fct_rev(class.n)', fill = '0.5 - abs(0.5-..ecdf..)'),
             geom = "density_ridges_gradient", calc_ecdf = TRUE,
             bandwidth = bandwidth,  # controls smoothing in density plot
             rel_min_height = 0.01,  # trim the trailing lines
@@ -203,7 +211,8 @@ plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks
     # scale height relative to the number of traits
     pdf.height <- length(unique(mcmc.params$trait)) * 0.225
 
-    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-traits.pdf'), width = 16, height = pdf.height)
+    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-traits.pdf'),
+        width = 16, height = pdf.height)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
@@ -211,7 +220,7 @@ plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks
         # add the traits
         stat_density_ridges(
             data = mcmc.params,
-            aes_string(x = param, y = 'fct_rev(trait)', fill = '0.5 - abs(0.5-..ecdf..)'),
+            aes_string(x = param, y = 'fct_rev(trait.n)', fill = '0.5 - abs(0.5-..ecdf..)'),
             geom = "density_ridges_gradient", calc_ecdf = TRUE,
             bandwidth = bandwidth,  # controls smoothing in density plot
             rel_min_height = 0.01,  # trim the trailing lines
@@ -219,7 +228,7 @@ plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks
         ) +
 
         # use facets to split the traits by class
-        facet_wrap(facets = vars(class), ncol = 1, scales = "free_y") +
+        facet_wrap(facets = vars(class.n), ncol = 1, scales = "free_y") +
 
         # label the y-axis
         ylab("Trait") +

@@ -13,17 +13,25 @@ library(forcats, quietly = T)
 library(grid, quietly = T)
 library(gtable, quietly = T)
 
-setwd('/Users/Evan/Dropbox/Code/alleletraj')
+# get the command line arguments
+args <- commandArgs(trailingOnly = TRUE)
+species <- args[1]
+population <- args[2]
+burnin <- strtoi(args[3])
+pop_size <- strtoi(args[4])
+gen_time <- strtoi(args[5])
 
-# TODO command line params
-pop_size <- 16000
-gen_time <- 8
-burnin <- 1000 # i.e. 20%
-species <- 'horse'
-population <- 'DOM2'
+# TODO remove when done testing
+# setwd('/Users/Evan/Dropbox/Code/alleletraj')
+# species <- 'horse'
+# population <- 'DOM2'
+# burnin <- 1000 # i.e. 20%
+# pop_size <- 16000
+# gen_time <- 8
 
 # make a helper function to load the param files
 read_tsv_param <- function(filename) {
+
     params <- suppressMessages(read_tsv(filename, col_names = T))
     params <- params[(burnin+1):nrow(params),]
 
@@ -46,7 +54,7 @@ read_tsv_param <- function(filename) {
 files <- list.files(path = "selection", pattern = paste(species, population, "(.+).param", sep = '-'), full.names = T)
 mcmc.params <- lapply(files, read_tsv_param) %>% bind_rows()
 
-# add a dummy variable to allow single line density plots
+# add a dummy variable to make ggridges behave like a normal density plot
 mcmc.params$density <- ''
 
 # connect to the remote server
@@ -266,9 +274,10 @@ plot_params(param = 'ageyrs', xlab = 'kyr BP', min_x = -50000, max_x = 0, brk_w 
 # convert end_freq back into an actual frequency
 mcmc.params$freq <- (1-cos(mcmc.params$end_freq))/2
 
-x_breaks <- seq(0, max_x, by = brk_w)
-x_labels <- seq(0, max_x, by = brk_w)
+x_breaks <- seq(0, 1, by = 0.25)
+x_labels <- seq(0, 1, by = 0.25)
 
+# TODO fix issue with negative values in the density estimage due to many near zero value
 plot_params(param = 'freq', xlab = 'End Frequency', min_x = -0.03, max_x = 1, brk_w = 0.25, lim_x = 0, x_breaks = x_breaks, x_labels = x_labels)
 
 # ------------------------------------------------------------------------------

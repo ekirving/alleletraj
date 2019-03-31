@@ -1,9 +1,11 @@
-library(readr)
-library(dplyr)
-library(ggplot2)
-library(viridis)
-library(stringr)
-library(coda)
+#!/usr/bin/env Rscript
+
+library(readr, quietly = T)
+library(dplyr, quietly = T)
+library(ggplot2, quietly = T)
+library(viridis, quietly = T)
+library(stringr, quietly = T)
+library(coda, quietly = T)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
 

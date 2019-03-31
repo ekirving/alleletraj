@@ -305,53 +305,66 @@ min_x <- -0.005
 max_x <-  0.015
 brk_width <- 0.005
 
+# the common settings for the selection plots
+gglayers <- list(
+
+    # add a dashed vertical line at 0
+    geom_vline(xintercept=0, linetype = "dashed", colour = '#c94904'),
+
+    # set the colour scheme for the density plot
+    scale_fill_viridis(name = "Posterior", direction = -1),
+
+    # set the breaks for the x-axis
+    scale_x_continuous(limits = c(min_x-brk_width, max_x+brk_width),
+                       breaks = seq(min_x, max_x, by = brk_width),
+                       labels = seq(min_x, max_x, by = brk_width),
+                       minor_breaks = NULL,
+                       expand = c(0.01, 0)),
+
+    # using limits() drops all data points that are not within the specified range,
+    # causing discontinuity of the density plot, while coord_cartesian() zooms
+    # without losing the data points.
+    coord_cartesian(xlim = c(min_x, max_x)),
+
+    # label the x axis (using subscript notation)
+    xlab(ifelse(s=='s1',
+                expression(paste("s"[1])),
+                expression(paste("s"[2])))),
+
+    # tweak the theme
+    theme_minimal(base_size = 10),
+
+    # remove the vertical grid lines
+    theme(panel.grid.major.x = element_blank())
+)
+
 for (s in c('s1','s2')) {
 
     # --------------------------------------------------------------------------
-    # classes as ridgelines
+    # all data as a density plot
     # --------------------------------------------------------------------------
 
-    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '.pdf'), width = 16, height = 4.5)
+    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-all.pdf'), width = 16, height = 4.5)
 
     # built the plot, but don't display it yet
-    print(ggplot() +
+    g <- ggplot() +
 
-          # display the end_freq as a rigline plot
-          stat_density_ridges(data=mcmc.params,
-                              aes_string(x=s, y='density', fill='0.5 - abs(0.5-..ecdf..)'),
-                              scale = 2, # controls vertival overlap
-                              rel_min_height = 0.005, # trim the trailing lines
-                              geom = "density_ridges_gradient",
-                              calc_ecdf = TRUE) +
+        # add the density plot
+        stat_density_ridges(data=mcmc.params,
+                            aes_string(x=s, y='density', fill='0.5 - abs(0.5-..ecdf..)'),
+                            geom = "density_ridges_gradient", calc_ecdf = TRUE,
+                            rel_min_height = 0.005, # trim the trailing lines
+                            scale = 2               # controls vertival overlap
+        ) +
 
-          scale_fill_viridis(name = "Posterior", direction = -1) +
+        # label the y-axis
+        ylab("Density") +
 
-          # a vertical line a 0
-          geom_vline(xintercept=0, linetype = "dashed", colour = '#c94904') +
+        # add the common layers
+        gglayers
 
-          # set the breaks for the x-axis
-          scale_x_continuous(limits = c(min_x-brk_width, max_x+brk_width),
-                             breaks = seq(min_x, max_x, by = brk_width),
-                             labels = seq(min_x, max_x, by = brk_width),
-                             minor_breaks = NULL,
-                             expand = c(0.01, 0)) +
-
-          # using limits() drops all data points that are not within the specified range,
-          # causing discontinuity of the density plot, while coord_cartesian() zooms
-          # without losing the data points.
-          coord_cartesian(xlim = c(min_x, max_x)) +
-
-          # label the plot and the axes
-          xlab(ifelse(s=='s1', expression(paste("s"[1])),
-                               expression(paste("s"[2])))) +
-          ylab("Density") +
-
-          # tweak the theme
-          theme_minimal(base_size = 10) +
-          theme(
-              # remove the vertical grid lines
-              panel.grid.major.x = element_blank()
-          ))
+    # draw the finished plot
+    print(g)
 
     dev.off()
 
@@ -365,44 +378,24 @@ for (s in c('s1','s2')) {
     pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-classes.pdf'), width = 16, height = pdf.height)
 
     # built the plot, but don't display it yet
-    print(ggplot() +
+    g <- ggplot() +
 
-        # display the end_freq as a rigline plot
+        # add the trait classes
         stat_density_ridges(data=mcmc.params,
                             aes_string(x=s, y='fct_rev(class)', fill='0.5 - abs(0.5-..ecdf..)'),
-                            scale = 2, # controls vertival overlap
-                            rel_min_height = 0.01, # trim the trailing lines
-                            geom = "density_ridges_gradient",
-                            calc_ecdf = TRUE) +
+                            geom = "density_ridges_gradient", calc_ecdf = TRUE,
+                            rel_min_height = 0.01,  # trim the trailing lines
+                            scale = 2               # controls vertival overlap
+        ) +
 
-        scale_fill_viridis(name = "Posterior", direction = -1) +
-
-        # a vertical line a 0
-        geom_vline(xintercept=0, linetype = "dashed", colour = '#c94904') +
-
-        # set the breaks for the x-axis
-        scale_x_continuous(limits = c(min_x-brk_width, max_x+brk_width),
-                           breaks = seq(min_x, max_x, by = brk_width),
-                           labels = seq(min_x, max_x, by = brk_width),
-                           minor_breaks = NULL,
-                           expand = c(0.01, 0)) +
-
-        # using limits() drops all data points that are not within the specified range,
-        # causing discontinuity of the density plot, while coord_cartesian() zooms
-        # without losing the data points.
-        coord_cartesian(xlim = c(min_x, max_x)) +
-
-        # label the plot and the axes
-        xlab(ifelse(s=='s1', expression(paste("s"[1])),
-                             expression(paste("s"[2])))) +
+        # label the y-axis
         ylab("Class") +
 
-        # tweak the theme
-        theme_minimal(base_size = 10) +
-        theme(
-            # remove the vertical grid lines
-            panel.grid.major.x = element_blank()
-        ))
+        # add the common layers
+        gglayers
+
+    # draw the finished plot
+    print(g)
 
     dev.off()
 
@@ -413,50 +406,27 @@ for (s in c('s1','s2')) {
     # scale height relative to the number of traits
     pdf.height <- length(unique(mcmc.params$trait)) * 0.225
 
-    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-class-traits.pdf'), width = 16, height = pdf.height)
+    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-traits.pdf'), width = 16, height = pdf.height)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
 
-        # display the end_freq as a rigline plot
+        # add the traits
         stat_density_ridges(data=mcmc.params,
                             aes_string(x=s, y='fct_rev(trait)', fill='0.5 - abs(0.5-..ecdf..)'),
-                            scale = 2, # controls vertival overlap
-                            rel_min_height = 0.01, # trim the trailing lines
-                            geom = "density_ridges_gradient",
-                            calc_ecdf = TRUE) +
+                            geom = "density_ridges_gradient", calc_ecdf = TRUE,
+                            rel_min_height = 0.01,  # trim the trailing lines
+                            scale = 2               # controls vertival overlap
+        ) +
 
         # use facets to split the traits by class
         facet_wrap(facets=vars(class), ncol=1, scales="free_y") +
 
-        scale_fill_viridis(name = "Posterior", direction = -1) +
-
-        # a vertical line a 0
-        geom_vline(xintercept=0, linetype = "dashed", colour = '#c94904') +
-
-        # set the breaks for the x-axis
-        scale_x_continuous(limits = c(min_x-brk_width, max_x+brk_width),
-                           breaks = seq(min_x, max_x, by = brk_width),
-                           labels = seq(min_x, max_x, by = brk_width),
-                           minor_breaks = NULL,
-                           expand = c(0.01, 0)) +
-
-        # using limits() drops all data points that are not within the specified range,
-        # causing discontinuity of the density plot, while coord_cartesian() zooms
-        # without losing the data points.
-        coord_cartesian(xlim = c(min_x, max_x)) +
-
-        # label the plot and the axes
-        xlab(ifelse(s=='s1', expression(paste("s"[1])),
-                             expression(paste("s"[2])))) +
+        # label the y-axis
         ylab("Trait") +
 
-        # tweak the theme
-        theme_minimal(base_size = 10) +
-        theme(
-            # remove the vertical grid lines
-            panel.grid.major.x = element_blank()
-        )
+        # add the common layers
+        gglayers
 
     # make a table object to control the facet layout
     gt = ggplot_gtable(ggplot_build(g))

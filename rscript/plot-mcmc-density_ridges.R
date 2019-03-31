@@ -89,249 +89,56 @@ traits$trait <- str_to_sentence(traits$trait)
 mcmc.params <- inner_join(mcmc.params, traits, by = 'id')
 
 # ------------------------------------------------------------------------------
-# --                           Age                                            --
-# ------------------------------------------------------------------------------
-
-dom1.age <- -5500
-dom2.age <- -4000
-
-max_age <- -50000
-brk_w <- 5000
-
-# all traits...
-
-pdf(file = paste('rscript/pdf/mcmc-age.pdf', sep = ''), width = 8, height = 4.5)
-
-ggplot() +
-
-    # display the sample dates as a rigline plot
-    stat_density_ridges(data = mcmc.params,
-                        aes(x = ageyrs, y = density, fill = 0.5 - abs(0.5-..ecdf..)),
-                        scale = 100000,
-                        bandwidth = 1000,
-                        geom = "density_ridges_gradient", calc_ecdf = TRUE) +
-
-    scale_fill_viridis(name = "Posterior", direction = -1) +
-
-    # plot the ages of the main domestication events
-    geom_vline(xintercept = c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
-
-    # set the breaks for the x-axis
-    scale_x_continuous(limits = c(max_age - 150000, 0),
-                       breaks = seq(max_age, 0, by = brk_w),
-                       labels = seq(max_age, 0, by = brk_w)/1000,
-                       minor_breaks = NULL,
-                       expand = c(0.01, 0)) +
-
-    # using limits() drops all data points that are not within the specified range,
-    # causing discontinuity of the density plot, while coord_cartesian() zooms
-    # without losing the data points.
-    coord_cartesian(xlim = c(max_age, 0)) +
-
-    # label the plot and the axes
-    xlab("kyr BP") +
-    ylab("Density") +
-
-    # tweak the theme
-    theme_minimal(base_size = 10) +
-    theme(
-        # remove the vertical grid lines
-        panel.grid.major.x = element_blank()
-    )
-
-dev.off()
-
-
-# trait classes as ridgelines...
-
-pdf(file = paste('rscript/pdf/mcmc-age-ridgeline.pdf', sep = ''), width = 8, height = 4.5)
-
-ggplot() +
-
-    # display the sample dates as a rigline plot
-    stat_density_ridges(data = mcmc.params,
-                        aes(x = ageyrs, y = class, fill = 0.5 - abs(0.5-..ecdf..)),
-                        scale = 2,
-                        bandwidth = 1000,
-                        geom = "density_ridges_gradient", calc_ecdf = TRUE) +
-
-    scale_fill_viridis(name = "Posterior", direction = -1) +
-
-    # plot the ages of the main domestication events
-    geom_vline(xintercept = c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
-
-    # set the breaks for the x-axis
-    scale_x_continuous(limits = c(max_age - 150000, 0),
-                       breaks = seq(max_age, 0, by = brk_w),
-                       labels = seq(max_age, 0, by = brk_w)/1000,
-                       minor_breaks = NULL,
-                       expand = c(0.01, 0)) +
-
-    # using limits() drops all data points that are not within the specified range,
-    # causing discontinuity of the density plot, while coord_cartesian() zooms
-    # without losing the data points.
-    coord_cartesian(xlim = c(max_age, 0)) +
-
-    # label the plot and the axes
-    xlab("kyr BP") +
-    ylab("Trait") +
-
-    # tweak the theme
-    theme_minimal(base_size = 10) +
-    theme(
-        # remove the vertical grid lines
-        panel.grid.major.x = element_blank()
-    )
-
-dev.off()
-
-
-# traits from each class as ridgelines...
-
-classes <- unique(mcmc.params$class)
-
-for (cls in classes) {
-
-    # count the number of traits
-    num_traits <- length(unique(mcmc.params[mcmc.params$class == cls,]$trait))
-
-    pdf(file = paste0('rscript/pdf/mcmc-age-', str_to_lower(cls), '-ridgeline.pdf'), width = 8, height = max(num_traits * 0.8, 1.6))
-
-    print(ggplot() +
-
-        # display the data as a rigline plot
-        stat_density_ridges(data = mcmc.params[mcmc.params$class == cls,],
-                            aes(x = ageyrs, y = trait, fill = 0.5 - abs(0.5-..ecdf..)),
-                            scale = ifelse(num_traits > 1, 1.5, 100000),
-                            bandwidth = 1000,
-                            geom = "density_ridges_gradient", calc_ecdf = TRUE) +
-
-        scale_fill_viridis(name = "Posterior", direction = -1) +
-
-        # plot the ages of the main domestication events
-        geom_vline(xintercept = c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
-
-        # set the breaks for the x-axis
-        scale_x_continuous(limits = c(max_age - 150000, 0),
-                           breaks = seq(max_age, 0, by = brk_w),
-                           labels = seq(max_age, 0, by = brk_w)/1000,
-                           minor_breaks = NULL,
-                           expand = c(0.01, 0)) +
-
-        # using limits() drops all data points that are not within the specified range,
-        # causing discontinuity of the density plot, while coord_cartesian() zooms
-        # without losing the data points.
-        coord_cartesian(xlim = c(max_age, 0)) +
-
-        # label the plot and the axes
-        xlab("kyr BP") +
-        ylab(cls) +
-
-        # tweak the theme
-        theme_minimal(base_size = 10) +
-        theme(
-            # remove the vertical grid lines
-            panel.grid.major.x = element_blank()
-        ))
-
-    dev.off()
-}
-
-# ------------------------------------------------------------------------------
-# --                            End Freq                                      --
-# ------------------------------------------------------------------------------
-
-# all traits...
-
-pdf(file = paste('rscript/pdf/mcmc-end_freq.pdf', sep = ''), width = 8, height = 4.5)
-
-ggplot() +
-
-    # display the end_freq as a rigline plot
-    stat_density_ridges(data = mcmc.params,
-                        aes(x = freq, y = density, fill = 0.5 - abs(0.5-..ecdf..)),
-                        scale = 2,
-                        geom = "density_ridges_gradient", calc_ecdf = TRUE) +
-
-    scale_fill_viridis(name = "Posterior", direction = -1) +
-
-    # label the plot and the axes
-    xlab("End Frequency") +
-    ylab("Density") +
-
-    # tweak the theme
-    theme_minimal(base_size = 10) +
-    theme(
-        # remove the vertical grid lines
-        panel.grid.major.x = element_blank()
-    )
-
-dev.off()
-
-
-# traits as ridgelines...
-
-pdf(file = paste('rscript/pdf/mcmc-end_freq-ridgeline.pdf', sep = ''), width = 8, height = 4.5)
-
-ggplot() +
-
-    # display the end_freq as a rigline plot
-    stat_density_ridges(data = mcmc.params,
-                        aes(x = freq, y = class, fill = 0.5 - abs(0.5-..ecdf..)),
-                        scale = 2,
-                        geom = "density_ridges_gradient", calc_ecdf = TRUE) +
-
-    scale_fill_viridis(name = "Posterior", direction = -1) +
-
-    # label the plot and the axes
-    xlab("End Frequency") +
-    ylab("Trait") +
-
-    # tweak the theme
-    theme_minimal(base_size = 10) +
-    theme(
-        # remove the vertical grid lines
-        panel.grid.major.x = element_blank()
-    )
-
-dev.off()
-
-
-# ------------------------------------------------------------------------------
 # --                           S1 / S2                                        --
 # ------------------------------------------------------------------------------
 
-for (param in c('s1', 'ageyrs')) {
+for (param in c('freq')) {
+
+plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x, bandwidth, x_breaks, x_labels, vline) {
 
     # set the param specific setting for the plots
-    if (param == 's1' || param == 's3') {
+    if (param == 'ageyrs') {
+        xlab <- 'kyr BP'
+        min_x <- -50000
+        max_x <- 0
+        brk_w <- 5000
+        lim_x <- 150000
+        bandwidth <- 1000
+
+        # show x-axis label in units of kya
+        x_breaks <- seq(min_x, max_x, by = brk_w)
+        x_labels <- x_breaks/1000
+
+        # add a dashed vertical line for the two main domestication timepoints
+        vline <- geom_vline(xintercept = c(-5500, -4000), linetype = "dashed", colour = '#c94904')
+
+    } else if (param == 's1' || param == 's3') {
 
         # use subscript notation for the label
-        xlab <- ifelse(param == 's1',
-                       expression(paste("s"[1])),
-                       expression(paste("s"[2])))
+        xlab <- ifelse(param == 's1', expression(paste("s"[1])), expression(paste("s"[2])))
         min_x <- -0.005
         max_x <-  0.015
         brk_w <- 0.005
         lim_x <- brk_w
         bandwidth <- NULL
 
+        x_breaks <- seq(min_x, max_x, by = brk_w)
+        x_labels <- x_breaks
+
         # add a dashed vertical line at 0
         vline <- geom_vline(xintercept = 0, linetype = "dashed", colour = '#c94904')
 
-    } else if (param == 'ageyrs') {
-        xlab <- 'kyr BP'
-        min_x <- -50000
-        max_x <- 0
-        lim_x <- 150000
-        brk_w <- 5000
-        bandwidth <- 1000
+    } else if (param == 'freq') {
+        xlab <- 'End Frequency'
+        min_x <- -0.03
+        max_x <- 1
+        brk_w <- 0.25
+        lim_x <- 0
+        vline <- NULL
+        bandwidth <- NULL
 
-        dom1.age <- -5500
-        dom2.age <- -4000
-
-        # add a dashed vertical line for the two main domestication timepoints
-        vline <- geom_vline(xintercept = c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904')
+        x_breaks <- seq(0, max_x, by = brk_w)
+        x_labels <- seq(0, max_x, by = brk_w)
     }
 
     # setup shared layers for the selection plots
@@ -345,8 +152,8 @@ for (param in c('s1', 'ageyrs')) {
 
         # set the breaks for the x-axis
         scale_x_continuous(limits = c(min_x - lim_x, max_x),
-                           breaks = seq(min_x, max_x, by = brk_w),
-                           labels = seq(min_x, max_x, by = brk_w),
+                           breaks = x_breaks,
+                           labels = x_labels,
                            minor_breaks = NULL,
                            expand = c(0.01, 0)),
 
@@ -381,7 +188,7 @@ for (param in c('s1', 'ageyrs')) {
             geom = "density_ridges_gradient", calc_ecdf = TRUE,
             bandwidth = bandwidth,  # controls smoothing in density plot
             rel_min_height = 0.005, # trim the trailing lines
-            scale = 10000            # controls vertival overlap
+            scale = 10000           # large vertial overlap for single ridgeline
         ) +
 
         # label the y-axis

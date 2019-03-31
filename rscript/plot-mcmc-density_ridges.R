@@ -9,6 +9,7 @@ library(stringr, quietly = T)
 library(viridis, quietly = T)
 library(stringr, quietly = T)
 library(coda, quietly = T)
+library(forcats, quietly = T)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
 
@@ -46,6 +47,10 @@ mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time
 
 # convert end_freq back into an actual frequency
 mcmc.params$freq <- (1-cos(mcmc.params$end_freq))/2
+
+# convert alpha params into s
+mcmc.params$s1 <- mcmc.params$alpha1 / (2 * pop_size )
+mcmc.params$s2 <- mcmc.params$alpha2 / (2 * pop_size )
 
 # add a dummy variable to allow single line density plots
 mcmc.params$density <- ''
@@ -288,88 +293,105 @@ dev.off()
 
 
 # ------------------------------------------------------------------------------
-# --                            Alpha1                                        --
+# --                                S1                                        --
 # ------------------------------------------------------------------------------
 
-min_x <- -50
-max_x <- 250
-brk_width <- 50
+min_x <- -0.005
+max_x <-  0.015
+brk_width <- 0.005
 
-# all traits...
+for (s in c('s1','s2')) {
 
-pdf(file=paste('rscript/pdf/mcmc-alpha.pdf', sep=''), width = 8, height = 4.5)
+    # all traits...
 
-ggplot() +
+    pdf(file=paste0('rscript/pdf/mcmc-', s, '.pdf'), width = 8, height = 4.5)
 
-    # display the end_freq as a rigline plot
-    stat_density_ridges(data=mcmc.params,
-                        aes(x=alpha1, y=density, fill=0.5 - abs(0.5-..ecdf..)),
-                        scale = 20,
-                        geom = "density_ridges_gradient", calc_ecdf = TRUE) +
+    print(ggplot() +
 
-    scale_fill_viridis(name = "Posterior", direction = -1) +
+        # display the end_freq as a rigline plot
+        stat_density_ridges(data=mcmc.params,
+                            aes_string(x=s, y='density', fill='0.5 - abs(0.5-..ecdf..)'),
+                            scale = 3,
+                            geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
-    # set the breaks for the x-axis
-    scale_x_continuous(limits = c(min_x-50, max_x+50),
-                       breaks = seq(min_x, max_x, by = brk_width),
-                       labels = seq(min_x, max_x, by = brk_width),
-                       minor_breaks = NULL,
-                       expand = c(0.01, 0)) +
+        scale_fill_viridis(name = "Posterior", direction = -1) +
 
-    # using limits() drops all data points that are not within the specified range,
-    # causing discontinuity of the density plot, while coord_cartesian() zooms
-    # without losing the data points.
-    coord_cartesian(xlim = c(min_x, max_x)) +
+        # set the breaks for the x-axis
+        scale_x_continuous(limits = c(min_x-brk_width, max_x+brk_width),
+                           breaks = seq(min_x, max_x, by = brk_width),
+                           labels = seq(min_x, max_x, by = brk_width),
+                           minor_breaks = NULL,
+                           expand = c(0.01, 0)) +
 
-    # label the plot and the axes
-    xlab("Alpha1") +
-    ylab("Density") +
+        # using limits() drops all data points that are not within the specified range,
+        # causing discontinuity of the density plot, while coord_cartesian() zooms
+        # without losing the data points.
+        coord_cartesian(xlim = c(min_x, max_x)) +
 
-    # tweak the theme
-    theme_minimal(base_size = 10) +
-    theme(
-        # remove the vertical grid lines
-        panel.grid.major.x = element_blank()
-    )
+        # label the plot and the axes
+        xlab(s) +
+        ylab("Density") +
 
-dev.off()
+        # tweak the theme
+        theme_minimal(base_size = 10) +
+        theme(
+            # remove the vertical grid lines
+            panel.grid.major.x = element_blank()
+        ))
+
+    dev.off()
 
 
-# traits as ridgelines...
+    # traits as ridgelines...
 
-pdf(file=paste('rscript/pdf/mcmc-alpha-ridgeline.pdf', sep=''), width = 8, height = 4.5)
+    # count the number of traits
+    num_traits <- length(unique(mcmc.params$trait))
 
-ggplot() +
+    pdf(file=paste0('rscript/pdf/mcmc-', s, '-ridgeline.pdf'), width = 16, height = num_traits * 0.225)
 
-    # display the end_freq as a rigline plot
-    stat_density_ridges(data=mcmc.params,
-                        aes(x=alpha1, y=class, fill=0.5 - abs(0.5-..ecdf..)),
-                        geom = "density_ridges_gradient", calc_ecdf = TRUE) +
+    print(ggplot() +
 
-    scale_fill_viridis(name = "Posterior", direction = -1) +
+        # display the end_freq as a rigline plot
+        stat_density_ridges(data=mcmc.params,
+                            aes_string(x=s, y='fct_rev(trait)', fill='0.5 - abs(0.5-..ecdf..)'),
+                            scale=2, rel_min_height = 0.01,
+                            geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
-    # set the breaks for the x-axis
-    scale_x_continuous(limits = c(min_x-50, max_x+50),
-                       breaks = seq(min_x, max_x, by = brk_width),
-                       labels = seq(min_x, max_x, by = brk_width),
-                       minor_breaks = NULL,
-                       expand = c(0.01, 0)) +
+        facet_wrap(facets=vars(class),
+                   ncol=1,
+                   scales="free_y",
+                   drop=TRUE,
+                   shrink=TRUE
+                   ) +
 
-    # using limits() drops all data points that are not within the specified range,
-    # causing discontinuity of the density plot, while coord_cartesian() zooms
-    # without losing the data points.
-    coord_cartesian(xlim = c(min_x, max_x)) +
+        scale_fill_viridis(name = "Posterior", direction = -1) +
 
-    # label the plot and the axes
-    xlab("Alpha1") +
-    ylab("Trait") +
+        # plot the ages of the main domestication events
+        geom_vline(xintercept=0, linetype = "dashed", colour = '#c94904') +
 
-    # tweak the theme
-    theme_minimal(base_size = 10) +
-    theme(
-        # remove the vertical grid lines
-        panel.grid.major.x = element_blank()
-    )
+        # set the breaks for the x-axis
+        scale_x_continuous(limits = c(min_x-brk_width, max_x+brk_width),
+                           breaks = seq(min_x, max_x, by = brk_width),
+                           labels = seq(min_x, max_x, by = brk_width),
+                           minor_breaks = NULL,
+                           expand = c(0.01, 0)) +
 
-dev.off()
+        # using limits() drops all data points that are not within the specified range,
+        # causing discontinuity of the density plot, while coord_cartesian() zooms
+        # without losing the data points.
+        coord_cartesian(xlim = c(min_x, max_x)) +
 
+        # label the plot and the axes
+        xlab(ifelse(s=='s1', expression(paste("s"[1])),
+                             expression(paste("s"[2])))) +
+        ylab("Trait") +
+
+        # tweak the theme
+        theme_minimal(base_size = 10) +
+        theme(
+            # remove the vertical grid lines
+            panel.grid.major.x = element_blank()
+        ))
+
+    dev.off()
+}

@@ -10,6 +10,8 @@ library(viridis, quietly = T)
 library(stringr, quietly = T)
 library(coda, quietly = T)
 library(forcats, quietly = T)
+library(grid, quietly = T)
+library(gtable, quietly = T)
 
 setwd('/Users/Evan/Dropbox/Code/alleletraj')
 
@@ -341,7 +343,6 @@ for (s in c('s1','s2')) {
 
     dev.off()
 
-
     # traits as ridgelines...
 
     # count the number of traits
@@ -349,20 +350,19 @@ for (s in c('s1','s2')) {
 
     pdf(file=paste0('rscript/pdf/mcmc-', s, '-ridgeline.pdf'), width = 16, height = num_traits * 0.225)
 
-    print(ggplot() +
+    # built the plot, but don't display it yet
+    g <- ggplot() +
 
         # display the end_freq as a rigline plot
         stat_density_ridges(data=mcmc.params,
                             aes_string(x=s, y='fct_rev(trait)', fill='0.5 - abs(0.5-..ecdf..)'),
-                            scale=2, rel_min_height = 0.01,
-                            geom = "density_ridges_gradient", calc_ecdf = TRUE) +
+                            scale = 2, # controls vertival overlap
+                            rel_min_height = 0.01, # trim the trailing lines
+                            geom = "density_ridges_gradient",
+                            calc_ecdf = TRUE) +
 
-        facet_wrap(facets=vars(class),
-                   ncol=1,
-                   scales="free_y",
-                   drop=TRUE,
-                   shrink=TRUE
-                   ) +
+        # use facets to split the traits by class
+        facet_wrap(facets=vars(class), ncol=1, scales="free_y") +
 
         scale_fill_viridis(name = "Posterior", direction = -1) +
 
@@ -391,7 +391,27 @@ for (s in c('s1','s2')) {
         theme(
             # remove the vertical grid lines
             panel.grid.major.x = element_blank()
-        ))
+        )
+
+    # make a table object to control the facet layout
+    gt = ggplot_gtable(ggplot_build(g))
+
+    # count how many traits each class has
+    ntraits <- mcmc.params %>%
+        group_by(class) %>%
+        summarise(ntraits = n_distinct(trait))
+
+    # set the heights of each facet relative to the number of traits
+    for (i in 1:nrow(ntraits)) {
+        row <- i * 5 + 3
+        height <- ntraits[i,2]/5
+        gt$heights[row] = unit(height, units = "null")
+    }
+
+    # helper funtion which shows the margins of the layout
+    # gtable_show_layout(gt)
+
+    grid.draw(gt)
 
     dev.off()
 }

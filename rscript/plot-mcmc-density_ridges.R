@@ -19,6 +19,9 @@ setwd('/Users/Evan/Dropbox/Code/alleletraj')
 pop_size <- 16000
 gen_time <- 8
 burnin <- 1000 # i.e. 20%
+species <- 'horse'
+population <- 'DOM2'
+
 
 # make a helper function to load the param files
 read_tsv_param <- function(filename) {
@@ -41,8 +44,8 @@ read_tsv_param <- function(filename) {
 }
 
 # load all the param files
-files = list.files(path="selection", pattern="*.param", full.names = T)
-mcmc.params = lapply(files, read_tsv_param) %>% bind_rows()
+files <- list.files(path="selection", pattern=paste(species, population, "(.+).param", sep = '-'), full.names = T)
+mcmc.params <- lapply(files, read_tsv_param) %>% bind_rows()
 
 # convert diffusion units into calendar years
 mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time

@@ -61,11 +61,11 @@ mcmc.params$s2 <- mcmc.params$alpha2 / (2 * pop_size )
 mcmc.params$density <- ''
 
 # connect to the remote server
-mydb = dbConnect(MySQL(), user='root', password='', dbname='alleletraj_horse', host='localhost')
+mydb <- dbConnect(MySQL(), user='root', password='', dbname='alleletraj_horse', host='localhost')
 
 # TODO this is explicitly dropping all non-GWAS hits, which is fine for now but needs updating later
 # fetch the details of the SNP
-rs = dbSendQuery(mydb,
+rs <- dbSendQuery(mydb,
     "SELECT DISTINCT ms.id, t.class, t.name AS trait
        FROM qtls q
        JOIN traits t

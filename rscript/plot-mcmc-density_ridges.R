@@ -307,19 +307,78 @@ brk_width <- 0.005
 
 for (s in c('s1','s2')) {
 
-    # all traits...
+    # --------------------------------------------------------------------------
+    # classes as ridgelines
+    # --------------------------------------------------------------------------
 
-    pdf(file=paste0('rscript/pdf/mcmc-', s, '.pdf'), width = 8, height = 4.5)
+    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '.pdf'), width = 16, height = 4.5)
 
+    # built the plot, but don't display it yet
+    print(ggplot() +
+
+          # display the end_freq as a rigline plot
+          stat_density_ridges(data=mcmc.params,
+                              aes_string(x=s, y='density', fill='0.5 - abs(0.5-..ecdf..)'),
+                              scale = 2, # controls vertival overlap
+                              rel_min_height = 0.005, # trim the trailing lines
+                              geom = "density_ridges_gradient",
+                              calc_ecdf = TRUE) +
+
+          scale_fill_viridis(name = "Posterior", direction = -1) +
+
+          # a vertical line a 0
+          geom_vline(xintercept=0, linetype = "dashed", colour = '#c94904') +
+
+          # set the breaks for the x-axis
+          scale_x_continuous(limits = c(min_x-brk_width, max_x+brk_width),
+                             breaks = seq(min_x, max_x, by = brk_width),
+                             labels = seq(min_x, max_x, by = brk_width),
+                             minor_breaks = NULL,
+                             expand = c(0.01, 0)) +
+
+          # using limits() drops all data points that are not within the specified range,
+          # causing discontinuity of the density plot, while coord_cartesian() zooms
+          # without losing the data points.
+          coord_cartesian(xlim = c(min_x, max_x)) +
+
+          # label the plot and the axes
+          xlab(ifelse(s=='s1', expression(paste("s"[1])),
+                               expression(paste("s"[2])))) +
+          ylab("Density") +
+
+          # tweak the theme
+          theme_minimal(base_size = 10) +
+          theme(
+              # remove the vertical grid lines
+              panel.grid.major.x = element_blank()
+          ))
+
+    dev.off()
+
+    # --------------------------------------------------------------------------
+    # classes as ridgelines
+    # --------------------------------------------------------------------------
+
+    # scale height relative to the number of classes
+    pdf.height <- length(unique(mcmc.params$class)) * 0.75
+
+    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-classes.pdf'), width = 16, height = pdf.height)
+
+    # built the plot, but don't display it yet
     print(ggplot() +
 
         # display the end_freq as a rigline plot
         stat_density_ridges(data=mcmc.params,
-                            aes_string(x=s, y='density', fill='0.5 - abs(0.5-..ecdf..)'),
-                            scale = 3,
-                            geom = "density_ridges_gradient", calc_ecdf = TRUE) +
+                            aes_string(x=s, y='fct_rev(class)', fill='0.5 - abs(0.5-..ecdf..)'),
+                            scale = 2, # controls vertival overlap
+                            rel_min_height = 0.01, # trim the trailing lines
+                            geom = "density_ridges_gradient",
+                            calc_ecdf = TRUE) +
 
         scale_fill_viridis(name = "Posterior", direction = -1) +
+
+        # a vertical line a 0
+        geom_vline(xintercept=0, linetype = "dashed", colour = '#c94904') +
 
         # set the breaks for the x-axis
         scale_x_continuous(limits = c(min_x-brk_width, max_x+brk_width),
@@ -334,8 +393,9 @@ for (s in c('s1','s2')) {
         coord_cartesian(xlim = c(min_x, max_x)) +
 
         # label the plot and the axes
-        xlab(s) +
-        ylab("Density") +
+        xlab(ifelse(s=='s1', expression(paste("s"[1])),
+                             expression(paste("s"[2])))) +
+        ylab("Class") +
 
         # tweak the theme
         theme_minimal(base_size = 10) +
@@ -346,12 +406,14 @@ for (s in c('s1','s2')) {
 
     dev.off()
 
-    # traits as ridgelines...
+    # --------------------------------------------------------------------------
+    # traits as ridgelines, facted by class
+    # --------------------------------------------------------------------------
 
-    # count the number of traits
-    num_traits <- length(unique(mcmc.params$trait))
+    # scale height relative to the number of traits
+    pdf.height <- length(unique(mcmc.params$trait)) * 0.225
 
-    pdf(file=paste0('rscript/pdf/mcmc-', s, '-ridgeline.pdf'), width = 16, height = num_traits * 0.225)
+    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-class-traits.pdf'), width = 16, height = pdf.height)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
@@ -369,7 +431,7 @@ for (s in c('s1','s2')) {
 
         scale_fill_viridis(name = "Posterior", direction = -1) +
 
-        # plot the ages of the main domestication events
+        # a vertical line a 0
         geom_vline(xintercept=0, linetype = "dashed", colour = '#c94904') +
 
         # set the breaks for the x-axis
@@ -414,6 +476,7 @@ for (s in c('s1','s2')) {
     # helper funtion which shows the margins of the layout
     # gtable_show_layout(gt)
 
+    # draw the finished plot
     grid.draw(gt)
 
     dev.off()

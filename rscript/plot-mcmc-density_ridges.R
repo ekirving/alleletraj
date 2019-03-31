@@ -22,7 +22,6 @@ burnin <- 1000 # i.e. 20%
 species <- 'horse'
 population <- 'DOM2'
 
-
 # make a helper function to load the param files
 read_tsv_param <- function(filename) {
     params <- suppressMessages(read_tsv(filename, col_names = T))
@@ -46,16 +45,6 @@ read_tsv_param <- function(filename) {
 # load all the param files
 files <- list.files(path = "selection", pattern = paste(species, population, "(.+).param", sep = '-'), full.names = T)
 mcmc.params <- lapply(files, read_tsv_param) %>% bind_rows()
-
-# convert diffusion units into calendar years
-mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time
-
-# convert end_freq back into an actual frequency
-mcmc.params$freq <- (1-cos(mcmc.params$end_freq))/2
-
-# convert alpha params into s
-mcmc.params$s1 <- mcmc.params$alpha1 / (2 * pop_size )
-mcmc.params$s2 <- mcmc.params$alpha2 / (2 * pop_size )
 
 # add a dummy variable to allow single line density plots
 mcmc.params$density <- ''
@@ -88,63 +77,27 @@ traits$trait <- str_to_sentence(traits$trait)
 # join the traits onto the param files
 mcmc.params <- inner_join(mcmc.params, traits, by = 'id')
 
-# ------------------------------------------------------------------------------
-# --                           S1 / S2                                        --
-# ------------------------------------------------------------------------------
+# function for plotting the MCMC params
+plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks = NULL,
+                        x_labels = NULL, bandwidth = NULL, vline = NULL) {
 
-for (param in c('freq')) {
-
-plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x, bandwidth, x_breaks, x_labels, vline) {
-
-    # set the param specific setting for the plots
-    if (param == 'ageyrs') {
-        xlab <- 'kyr BP'
-        min_x <- -50000
-        max_x <- 0
-        brk_w <- 5000
-        lim_x <- 150000
-        bandwidth <- 1000
-
-        # show x-axis label in units of kya
-        x_breaks <- seq(min_x, max_x, by = brk_w)
-        x_labels <- x_breaks/1000
-
-        # add a dashed vertical line for the two main domestication timepoints
-        vline <- geom_vline(xintercept = c(-5500, -4000), linetype = "dashed", colour = '#c94904')
-
-    } else if (param == 's1' || param == 's3') {
-
-        # use subscript notation for the label
-        xlab <- ifelse(param == 's1', expression(paste("s"[1])), expression(paste("s"[2])))
-        min_x <- -0.005
-        max_x <-  0.015
-        brk_w <- 0.005
+    # set default limits, breaks and labels
+    if (is.null(lim_x)) {
         lim_x <- brk_w
-        bandwidth <- NULL
+    }
 
+    if (is.null(x_breaks)) {
         x_breaks <- seq(min_x, max_x, by = brk_w)
+    }
+
+    if (is.null(x_labels)) {
         x_labels <- x_breaks
-
-        # add a dashed vertical line at 0
-        vline <- geom_vline(xintercept = 0, linetype = "dashed", colour = '#c94904')
-
-    } else if (param == 'freq') {
-        xlab <- 'End Frequency'
-        min_x <- -0.03
-        max_x <- 1
-        brk_w <- 0.25
-        lim_x <- 0
-        vline <- NULL
-        bandwidth <- NULL
-
-        x_breaks <- seq(0, max_x, by = brk_w)
-        x_labels <- seq(0, max_x, by = brk_w)
     }
 
     # setup shared layers for the selection plots
     gglayers <- list(
 
-        # add the vertial line for this plot
+        # add optional vertial line(s) to the plot
         vline,
 
         # set the colour scheme for the density plot
@@ -289,3 +242,45 @@ plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x, bandwidth, x_br
 
     dev.off()
 }
+
+# ------------------------------------------------------------------------------
+# plot the Age of the allele
+# ------------------------------------------------------------------------------
+
+# convert diffusion units into calendar years
+mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time
+
+# show x-axis label in units of kya
+x_breaks <- seq(-50000, 0, by = 5000)
+x_labels <- x_breaks/1000
+
+# add a dashed vertical line for the two main domestication timepoints
+vline <- geom_vline(xintercept = c(-5500, -4000), linetype = "dashed", colour = '#c94904')
+
+plot_params(param = 'ageyrs', xlab = 'kyr BP', min_x = -50000, max_x = 0, brk_w = 5000, lim_x = 150000, x_breaks = x_breaks, x_labels = x_labels, bandwidth = 1000, vline = vline)
+
+# ------------------------------------------------------------------------------
+# plot the End frequency
+# ------------------------------------------------------------------------------
+
+# convert end_freq back into an actual frequency
+mcmc.params$freq <- (1-cos(mcmc.params$end_freq))/2
+
+x_breaks <- seq(0, max_x, by = brk_w)
+x_labels <- seq(0, max_x, by = brk_w)
+
+plot_params(param = 'freq', xlab = 'End Frequency', min_x = -0.03, max_x = 1, brk_w = 0.25, lim_x = 0, x_breaks = x_breaks, x_labels = x_labels)
+
+# ------------------------------------------------------------------------------
+# plot the Selection coefficients
+# ------------------------------------------------------------------------------
+
+# convert alpha params into s values
+mcmc.params$s1 <- mcmc.params$alpha1 / (2 * pop_size)
+mcmc.params$s2 <- mcmc.params$alpha2 / (2 * pop_size)
+
+# add a dashed vertical line at 0
+vline <- geom_vline(xintercept = 0, linetype = "dashed", colour = '#c94904')
+
+plot_params(param = 's1', xlab = expression(paste("s"[1])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)
+plot_params(param = 's2', xlab = expression(paste("s"[2])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)

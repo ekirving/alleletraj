@@ -44,7 +44,7 @@ read_tsv_param <- function(filename) {
 }
 
 # load all the param files
-files <- list.files(path="selection", pattern=paste(species, population, "(.+).param", sep = '-'), full.names = T)
+files <- list.files(path = "selection", pattern = paste(species, population, "(.+).param", sep = '-'), full.names = T)
 mcmc.params <- lapply(files, read_tsv_param) %>% bind_rows()
 
 # convert diffusion units into calendar years
@@ -61,7 +61,7 @@ mcmc.params$s2 <- mcmc.params$alpha2 / (2 * pop_size )
 mcmc.params$density <- ''
 
 # connect to the remote server
-mydb <- dbConnect(MySQL(), user='root', password='', dbname='alleletraj_horse', host='localhost')
+mydb <- dbConnect(MySQL(), user = 'root', password = '', dbname = 'alleletraj_horse', host = 'localhost')
 
 # TODO this is explicitly dropping all non-GWAS hits, which is fine for now but needs updating later
 # fetch the details of the SNP
@@ -80,7 +80,7 @@ rs <- dbSendQuery(mydb,
       WHERE q.associationType = 'Association'
         AND q.valid = 1")
 
-traits <- fetch(rs, n=-1)
+traits <- fetch(rs, n = -1)
 
 # standardise sentance casing
 traits$trait <- str_to_sentence(traits$trait)
@@ -96,30 +96,30 @@ dom1.age <- -5500
 dom2.age <- -4000
 
 max_age <- -50000
-brk_width <- 5000
+brk_w <- 5000
 
 # all traits...
 
-pdf(file=paste('rscript/pdf/mcmc-age.pdf', sep=''), width = 8, height = 4.5)
+pdf(file = paste('rscript/pdf/mcmc-age.pdf', sep = ''), width = 8, height = 4.5)
 
 ggplot() +
 
     # display the sample dates as a rigline plot
-    stat_density_ridges(data=mcmc.params,
-                        aes(x=ageyrs, y=density, fill=0.5 - abs(0.5-..ecdf..)),
+    stat_density_ridges(data = mcmc.params,
+                        aes(x = ageyrs, y = density, fill = 0.5 - abs(0.5-..ecdf..)),
                         scale = 100000,
-                        bandwidth=1000,
+                        bandwidth = 1000,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
     scale_fill_viridis(name = "Posterior", direction = -1) +
 
     # plot the ages of the main domestication events
-    geom_vline(xintercept=c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
+    geom_vline(xintercept = c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
 
     # set the breaks for the x-axis
     scale_x_continuous(limits = c(max_age - 150000, 0),
-                       breaks = seq(max_age, 0, by = brk_width),
-                       labels = seq(max_age, 0, by = brk_width)/1000,
+                       breaks = seq(max_age, 0, by = brk_w),
+                       labels = seq(max_age, 0, by = brk_w)/1000,
                        minor_breaks = NULL,
                        expand = c(0.01, 0)) +
 
@@ -144,26 +144,26 @@ dev.off()
 
 # trait classes as ridgelines...
 
-pdf(file=paste('rscript/pdf/mcmc-age-ridgeline.pdf', sep=''), width = 8, height = 4.5)
+pdf(file = paste('rscript/pdf/mcmc-age-ridgeline.pdf', sep = ''), width = 8, height = 4.5)
 
 ggplot() +
 
     # display the sample dates as a rigline plot
-    stat_density_ridges(data=mcmc.params,
-                        aes(x=ageyrs, y=class, fill=0.5 - abs(0.5-..ecdf..)),
+    stat_density_ridges(data = mcmc.params,
+                        aes(x = ageyrs, y = class, fill = 0.5 - abs(0.5-..ecdf..)),
                         scale = 2,
-                        bandwidth=1000,
+                        bandwidth = 1000,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
     scale_fill_viridis(name = "Posterior", direction = -1) +
 
     # plot the ages of the main domestication events
-    geom_vline(xintercept=c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
+    geom_vline(xintercept = c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
 
     # set the breaks for the x-axis
     scale_x_continuous(limits = c(max_age - 150000, 0),
-                       breaks = seq(max_age, 0, by = brk_width),
-                       labels = seq(max_age, 0, by = brk_width)/1000,
+                       breaks = seq(max_age, 0, by = brk_w),
+                       labels = seq(max_age, 0, by = brk_w)/1000,
                        minor_breaks = NULL,
                        expand = c(0.01, 0)) +
 
@@ -195,26 +195,26 @@ for (cls in classes) {
     # count the number of traits
     num_traits <- length(unique(mcmc.params[mcmc.params$class == cls,]$trait))
 
-    pdf(file=paste0('rscript/pdf/mcmc-age-', str_to_lower(cls), '-ridgeline.pdf'), width = 8, height = max(num_traits * 0.8, 1.6))
+    pdf(file = paste0('rscript/pdf/mcmc-age-', str_to_lower(cls), '-ridgeline.pdf'), width = 8, height = max(num_traits * 0.8, 1.6))
 
     print(ggplot() +
 
         # display the data as a rigline plot
-        stat_density_ridges(data=mcmc.params[mcmc.params$class == cls,],
-                            aes(x=ageyrs, y=trait, fill=0.5 - abs(0.5-..ecdf..)),
+        stat_density_ridges(data = mcmc.params[mcmc.params$class == cls,],
+                            aes(x = ageyrs, y = trait, fill = 0.5 - abs(0.5-..ecdf..)),
                             scale = ifelse(num_traits > 1, 1.5, 100000),
-                            bandwidth=1000,
+                            bandwidth = 1000,
                             geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
         scale_fill_viridis(name = "Posterior", direction = -1) +
 
         # plot the ages of the main domestication events
-        geom_vline(xintercept=c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
+        geom_vline(xintercept = c(dom1.age, dom2.age), linetype = "dashed", colour = '#c94904') +
 
         # set the breaks for the x-axis
         scale_x_continuous(limits = c(max_age - 150000, 0),
-                           breaks = seq(max_age, 0, by = brk_width),
-                           labels = seq(max_age, 0, by = brk_width)/1000,
+                           breaks = seq(max_age, 0, by = brk_w),
+                           labels = seq(max_age, 0, by = brk_w)/1000,
                            minor_breaks = NULL,
                            expand = c(0.01, 0)) +
 
@@ -243,13 +243,13 @@ for (cls in classes) {
 
 # all traits...
 
-pdf(file=paste('rscript/pdf/mcmc-end_freq.pdf', sep=''), width = 8, height = 4.5)
+pdf(file = paste('rscript/pdf/mcmc-end_freq.pdf', sep = ''), width = 8, height = 4.5)
 
 ggplot() +
 
     # display the end_freq as a rigline plot
-    stat_density_ridges(data=mcmc.params,
-                        aes(x=freq, y=density, fill=0.5 - abs(0.5-..ecdf..)),
+    stat_density_ridges(data = mcmc.params,
+                        aes(x = freq, y = density, fill = 0.5 - abs(0.5-..ecdf..)),
                         scale = 2,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
@@ -271,13 +271,13 @@ dev.off()
 
 # traits as ridgelines...
 
-pdf(file=paste('rscript/pdf/mcmc-end_freq-ridgeline.pdf', sep=''), width = 8, height = 4.5)
+pdf(file = paste('rscript/pdf/mcmc-end_freq-ridgeline.pdf', sep = ''), width = 8, height = 4.5)
 
 ggplot() +
 
     # display the end_freq as a rigline plot
-    stat_density_ridges(data=mcmc.params,
-                        aes(x=freq, y=class, fill=0.5 - abs(0.5-..ecdf..)),
+    stat_density_ridges(data = mcmc.params,
+                        aes(x = freq, y = class, fill = 0.5 - abs(0.5-..ecdf..)),
                         scale = 2,
                         geom = "density_ridges_gradient", calc_ecdf = TRUE) +
 
@@ -298,26 +298,26 @@ dev.off()
 
 
 # ------------------------------------------------------------------------------
-# --                                S1                                        --
+# --                           S1 / S2                                        --
 # ------------------------------------------------------------------------------
 
 min_x <- -0.005
 max_x <-  0.015
-brk_width <- 0.005
+brk_w <- 0.005
 
-# the common settings for the selection plots
+# setup shared layers for the selection plots
 gglayers <- list(
 
     # add a dashed vertical line at 0
-    geom_vline(xintercept=0, linetype = "dashed", colour = '#c94904'),
+    geom_vline(xintercept = 0, linetype = "dashed", colour = '#c94904'),
 
     # set the colour scheme for the density plot
     scale_fill_viridis(name = "Posterior", direction = -1),
 
     # set the breaks for the x-axis
-    scale_x_continuous(limits = c(min_x-brk_width, max_x+brk_width),
-                       breaks = seq(min_x, max_x, by = brk_width),
-                       labels = seq(min_x, max_x, by = brk_width),
+    scale_x_continuous(limits = c(min_x-brk_w, max_x+brk_w),
+                       breaks = seq(min_x, max_x, by = brk_w),
+                       labels = seq(min_x, max_x, by = brk_w),
                        minor_breaks = NULL,
                        expand = c(0.01, 0)),
 
@@ -327,7 +327,7 @@ gglayers <- list(
     coord_cartesian(xlim = c(min_x, max_x)),
 
     # label the x axis (using subscript notation)
-    xlab(ifelse(s=='s1',
+    xlab(ifelse(s == 's1',
                 expression(paste("s"[1])),
                 expression(paste("s"[2])))),
 
@@ -341,17 +341,17 @@ gglayers <- list(
 for (s in c('s1','s2')) {
 
     # --------------------------------------------------------------------------
-    # all data as a density plot
+    # joint density plot
     # --------------------------------------------------------------------------
 
-    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-all.pdf'), width = 16, height = 4.5)
+    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-all.pdf'), width = 16, height = 4.5)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
 
         # add the density plot
-        stat_density_ridges(data=mcmc.params,
-                            aes_string(x=s, y='density', fill='0.5 - abs(0.5-..ecdf..)'),
+        stat_density_ridges(data = mcmc.params,
+                            aes_string(x = s, y = 'density', fill = '0.5 - abs(0.5-..ecdf..)'),
                             geom = "density_ridges_gradient", calc_ecdf = TRUE,
                             rel_min_height = 0.005, # trim the trailing lines
                             scale = 2               # controls vertival overlap
@@ -375,14 +375,14 @@ for (s in c('s1','s2')) {
     # scale height relative to the number of classes
     pdf.height <- length(unique(mcmc.params$class)) * 0.75
 
-    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-classes.pdf'), width = 16, height = pdf.height)
+    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-classes.pdf'), width = 16, height = pdf.height)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
 
         # add the trait classes
-        stat_density_ridges(data=mcmc.params,
-                            aes_string(x=s, y='fct_rev(class)', fill='0.5 - abs(0.5-..ecdf..)'),
+        stat_density_ridges(data = mcmc.params,
+                            aes_string(x = s, y = 'fct_rev(class)', fill = '0.5 - abs(0.5-..ecdf..)'),
                             geom = "density_ridges_gradient", calc_ecdf = TRUE,
                             rel_min_height = 0.01,  # trim the trailing lines
                             scale = 2               # controls vertival overlap
@@ -406,21 +406,21 @@ for (s in c('s1','s2')) {
     # scale height relative to the number of traits
     pdf.height <- length(unique(mcmc.params$trait)) * 0.225
 
-    pdf(file=paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-traits.pdf'), width = 16, height = pdf.height)
+    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', s, '-traits.pdf'), width = 16, height = pdf.height)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
 
         # add the traits
-        stat_density_ridges(data=mcmc.params,
-                            aes_string(x=s, y='fct_rev(trait)', fill='0.5 - abs(0.5-..ecdf..)'),
+        stat_density_ridges(data = mcmc.params,
+                            aes_string(x = s, y = 'fct_rev(trait)', fill = '0.5 - abs(0.5-..ecdf..)'),
                             geom = "density_ridges_gradient", calc_ecdf = TRUE,
                             rel_min_height = 0.01,  # trim the trailing lines
                             scale = 2               # controls vertival overlap
         ) +
 
         # use facets to split the traits by class
-        facet_wrap(facets=vars(class), ncol=1, scales="free_y") +
+        facet_wrap(facets = vars(class), ncol = 1, scales = "free_y") +
 
         # label the y-axis
         ylab("Trait") +

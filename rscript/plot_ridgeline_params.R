@@ -92,7 +92,7 @@ mcmc.params <- mcmc.params %>%
     group_by(allsnp) %>% mutate(allsnp.n = paste0(allsnp, ' (n=', n_distinct(id), ')'))
 
 # function for plotting the MCMC params
-plot_params <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks = NULL,
+plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks = NULL,
                         x_labels = NULL, bandwidth = NULL, vline = NULL) {
 
     # set default limits, breaks and labels
@@ -274,20 +274,20 @@ x_labels <- x_breaks/1000
 # add a dashed vertical line for the two main domestication timepoints
 vline <- geom_vline(xintercept = c(-5500, -4000), linetype = "dashed", colour = '#c94904')
 
-plot_params(param = 'ageyrs', xlab = 'kyr BP', min_x = -50000, max_x = 0, brk_w = 5000, lim_x = 150000, x_breaks = x_breaks, x_labels = x_labels, bandwidth = 1000, vline = vline)
+plot_ridgeline(param = 'ageyrs', xlab = 'kyr BP', min_x = -50000, max_x = 0, brk_w = 5000, lim_x = 150000, x_breaks = x_breaks, x_labels = x_labels, bandwidth = 1000, vline = vline)
 
 # ------------------------------------------------------------------------------
 # plot the End frequency
 # ------------------------------------------------------------------------------
 
 # convert end_freq back into an actual frequency
-mcmc.params$freq <- (1-cos(mcmc.params$end_freq))/2
+mcmc.params$freq <- (1 - cos(mcmc.params$end_freq)) / 2
 
 x_breaks <- seq(0, 1, by = 0.25)
 x_labels <- seq(0, 1, by = 0.25)
 
 # TODO fix issue with negative values in the density estimage due to many near zero value
-plot_params(param = 'freq', xlab = 'End Frequency', min_x = -0.03, max_x = 1, brk_w = 0.25, lim_x = 0, x_breaks = x_breaks, x_labels = x_labels)
+plot_ridgeline(param = 'freq', xlab = 'End Frequency', min_x = -0.03, max_x = 1, brk_w = 0.25, lim_x = 0, x_breaks = x_breaks, x_labels = x_labels)
 
 # ------------------------------------------------------------------------------
 # plot the Selection coefficients
@@ -300,5 +300,5 @@ mcmc.params$s2 <- mcmc.params$alpha2 / (2 * pop_size)
 # add a dashed vertical line at 0
 vline <- geom_vline(xintercept = 0, linetype = "dashed", colour = '#c94904')
 
-plot_params(param = 's1', xlab = expression(paste("s"[1])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)
-plot_params(param = 's2', xlab = expression(paste("s"[2])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)
+plot_ridgeline(param = 's1', xlab = expression(paste("s"[1])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)
+plot_ridgeline(param = 's2', xlab = expression(paste("s"[2])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)

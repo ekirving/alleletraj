@@ -13,6 +13,8 @@ library(forcats, quietly = T)
 library(grid, quietly = T)
 library(gtable, quietly = T)
 
+# TODO should density ridges be multiplied by the number of SNPs?
+
 # get the command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 species <- args[1]
@@ -156,7 +158,7 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
             geom = "density_ridges_gradient", calc_ecdf = TRUE,
             bandwidth = bandwidth,  # controls smoothing in density plot
             rel_min_height = 0.005, # trim the trailing lines
-            scale = 10000           # large vertial overlap for single ridgeline
+            scale = 1000000         # set massive scale so single ridgeline uses all space
         ) +
 
         # label the y-axis
@@ -174,11 +176,8 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
     # classes as ridgelines
     # --------------------------------------------------------------------------
 
-    # scale height relative to the number of classes
-    pdf.height <- length(unique(mcmc.params$class)) * 0.75
-
     pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-classes.pdf'),
-        width = 16, height = pdf.height)
+        width = 16, height = 9)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
@@ -208,11 +207,8 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
     # traits as ridgelines, facted by class
     # --------------------------------------------------------------------------
 
-    # scale height relative to the number of traits
-    pdf.height <- length(unique(mcmc.params$trait)) * 0.225
-
     pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-traits.pdf'),
-        width = 16, height = pdf.height)
+        width = 16, height = 9)
 
     # built the plot, but don't display it yet
     g <- ggplot() +

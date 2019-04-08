@@ -37,3 +37,7 @@ seedms
 # old files or folders
 *.old*
 
+
+# other junk
+*.gz
+*.tsv

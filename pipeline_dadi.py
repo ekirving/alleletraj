@@ -24,9 +24,9 @@ class ModernVCF(luigi.ExternalTask):
         return luigi.LocalTarget("vcf/{}-{}-{}.vcf".format(self.species, self.population, self.chrom))
 
 
-class DepthOfCoverage(PipelineTask):
+class QuantilesOfCoverage(PipelineTask):
     """
-    Extract the depth of coverage for every site in a VCF.
+    Calculate the quantiles of the depth of coverage for a VCF.
 
     :type species: str
     :type population: str
@@ -41,41 +41,23 @@ class DepthOfCoverage(PipelineTask):
         return ModernVCF(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget("vcf/{}.depth".format(self.basename))
-
-    def run(self):
-        with self.output().open('w') as fout:
-
-            # iterate over the VCF and extract the depth of coverage at each site
-            for rec in VariantFile(self.input().path).fetch():
-                try:
-                    fout.write('{}\n'.format(rec.info['DP']))
-                except KeyError:
-                    pass
-
-
-class QuantilesOfCoverage(PipelineTask):
-    """
-    Calculate the quantiles of the depth of coverage for a VCF.
-
-    :type species: str
-    :type population: str
-    :type chrom: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    chrom = luigi.Parameter()
-
-    def requires(self):
-        return DepthOfCoverage(self.species, self.population, self.chrom)
-
-    def output(self):
         return luigi.LocalTarget("vcf/{}.quant".format(self.basename))
 
     def run(self):
-        depth = np.loadtxt(self.input().path)
-        quant = np.quantile(depth, [QUANTILE_LOW, QUANTILE_HIGH])
-        np.savetxt(self.output().path, quant)
+        depth = []
+
+        # iterate over the VCF and extract the depth of coverage at each site
+        for rec in VariantFile(self.input().path).fetch():
+            try:
+                depth.append(rec.info['DP'])
+            except KeyError:
+                pass
+
+        # calculate the quantiles
+        quants = np.quantile(depth, [QUANTILE_LOW, QUANTILE_HIGH])
+
+        with self.output().open('w') as fout:
+            fout.write('{} {}'.format(int(quants[0]), int(quants[0])))
 
 
 class FilterQuantiles(PipelineTask):

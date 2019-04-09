@@ -4,9 +4,10 @@
 import subprocess
 import luigi
 import os
+import numpy as np
 
 # import common libraries
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict, defaultdict, Iterable
 from datetime import timedelta
 from pprint import pprint
 from time import time
@@ -17,54 +18,47 @@ from db_conn import db_conn
 from pipeline_consts import *
 
 
-def run_cmd(cmd, shell=False, background=False, stdout=None):
+def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
     """
     Executes the given command in a system subprocess
 
     :param cmd: The system command to run (list|string)
     :param shell: Use the native shell
-    :param background: Run the process in the background
+    :param background: Flag to tun the process in the background
+    :param stdout: File handle to redirect stdout
+    :param stderr: File handle to redirect stderr
+    :param pwd: Handle commands than run natively from other locations
     :return: The stdout stream
     """
     # subprocess only accepts strings
     cmd = [str(args) for args in cmd]
 
-    # print(u' '.join(cmd))
+    print(u' '.join(cmd))
 
     if background:
         subprocess.Popen(cmd, shell=shell)
 
     else:
 
-        if stdout:
-            # open a file handle to redirect stdout and stderr
-            fout = open(stdout, 'w', 0)
+        stdout = subprocess.PIPE if not stdout else stdout
+        stderr = subprocess.PIPE if not stderr else stderr
 
-            # save the command that was run
-            fout.write(' '.join(cmd) + "\n\n")
+        # run the command
+        proc = subprocess.Popen(cmd, shell=shell, stdout=stdout, stderr=stderr)
 
-            # run the command
-            proc = subprocess.Popen(cmd, shell=shell, stdout=fout, stderr=subprocess.PIPE)
-
-            fout.close()
-
-        else:
-            # buffer the output so we can return the value
-            proc = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        # fetch the output and error
-        (stdout, stderr) = proc.communicate()
+        # fetch any output and error
+        (out, err) = proc.communicate()
 
         # bail if something went wrong
         if proc.returncode != 0:
 
             # decode return codes
             if proc.returncode == 139:
-                stderr = 'Segmentation fault (core dumped) ' + stderr
+                err = 'Segmentation fault (core dumped) ' + err
 
-            raise RuntimeError(stderr)
+            raise RuntimeError(err)
 
-        return stdout
+        return out
 
 
 def merge_intervals(ranges, capped=True):
@@ -165,20 +159,51 @@ class PipelineTask(luigi.Task):
     """
     PrioritisedTask that implements a dynamic priority method
     """
-
     priority = PRIORITY_LOW
     resources = {'cpu-cores': 1}
+
+    @property
+    def priority(self):
+        """
+        Set a dynamic priority for tasks.
+        """
+        # TODO do CPU intensive tasks first
+        # offset = 10*
+
+        # deprioritise lage values of K
+        offset = -sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
+
+        return 100+offset if offset else 0
 
     @property
     def basename(self):
         """
         Collapse all the param values into a hyphen delimited list
         """
-        return '-'.join([str(getattr(self, name)) for name in self.get_param_names()])
+        params = []
+
+        for name, value in self.all_params():
+            if isinstance(value, str):
+                params.append(value)
+            elif isinstance(value, bool):
+                if value:
+                    params.append(name)
+            elif isinstance(value, Iterable):
+                params.append('{}({})'.format(name, u','.join([a for a in value])))
+            else:
+                if value is not None:
+                    params.append('{}{}'.format(name, value))
+
+        return '-'.join(params)
 
     def all_params(self):
         """
-        Get all the params as as list
+        Get all the params as a (name, value) tuple
         :return:
         """
-        return [getattr(self, name) for name in self.get_param_names()]
+        return [(name, getattr(self, name)) for name in self.get_param_names()]
+
+    @property
+    def java_mem(self):
+        # memory to allocate to java
+        return "-Xmx{}G".format(self.resources['ram-gb'])

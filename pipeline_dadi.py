@@ -48,7 +48,10 @@ class DepthOfCoverage(PipelineTask):
 
             # iterate over the VCF and extract the depth of coverage at each site
             for rec in VariantFile(self.input().path).fetch():
-                fout.write('{}\n'.format(rec.info['DP']))
+                try:
+                    fout.write('{}\n'.format(rec.info['DP']))
+                except KeyError:
+                    pass
 
 
 class QuantilesOfCoverage(PipelineTask):
@@ -102,12 +105,39 @@ class FilterQuantiles(PipelineTask):
         # get the quantiles
         qlow, qhigh = np.loadtxt(quant_file.path)
 
-        with self.output().open('w') as out:
+        with self.output().open('w') as vcf_out:
 
             run_cmd(["bcftools",
                      "filter",
                      "--exclude", "DP<{} | DP>{}".format(int(qlow), int(qhigh)),
-                     vcf_input.path], stdout=out)
+                     vcf_input.path], stdout=vcf_out)
+
+
+class MergeVCF(PipelineTask):
+    """
+    Merge the chromosome level VCFs into a single file.
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def requires(self):
+        # TODO replace with CHROM[self.species]
+        for chrom in ['chr1', 'chr2']:
+            yield FilterQuantiles(self.species, self.population, chrom)
+
+    def output(self):
+        return luigi.LocalTarget("vcf/{}.chrAll.filtered.vcf".format(self.basename))
+
+    def run(self):
+
+        # unpack the input params
+        vcf_files = [vcf.path for vcf in self.input()]
+
+        with self.output().open('w') as vcf_out:
+            run_cmd(["bcftools", "concat"] + vcf_files, stdout=vcf_out)
 
 
 class EasySFS(PipelineTask):
@@ -153,7 +183,7 @@ class PipelineDadi(luigi.WrapperTask):
     # print('\n\n\n-----------------\n\n\n')
 
     def requires(self):
-        yield FilterQuantiles('horse', 'DOM', 'chr1')
+        yield MergeVCF('horse', 'DOM')
 
 
 if __name__ == '__main__':

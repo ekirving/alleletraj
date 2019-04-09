@@ -24,7 +24,7 @@ class ModernVCF(luigi.ExternalTask):
         return luigi.LocalTarget("vcf/{}-{}-{}.vcf".format(self.species, self.population, self.chrom))
 
 
-class QuantilesOfCoverage(PipelineTask):
+class QuantilesOfCoverageVCF(PipelineTask):
     """
     Calculate the quantiles of the depth of coverage for a VCF.
 
@@ -57,10 +57,10 @@ class QuantilesOfCoverage(PipelineTask):
         quants = np.quantile(depth, [QUANTILE_LOW, QUANTILE_HIGH])
 
         with self.output().open('w') as fout:
-            fout.write('{} {}'.format(int(quants[0]), int(quants[0])))
+            fout.write('{} {}'.format(int(quants[0]), int(quants[1])))
 
 
-class FilterQuantiles(PipelineTask):
+class FilterQuantilesVCF(PipelineTask):
     """
     Remove sites in the upper and lower quantiles of the depth of coverage distribution.
 
@@ -74,10 +74,10 @@ class FilterQuantiles(PipelineTask):
 
     def requires(self):
         yield ModernVCF(self.species, self.population, self.chrom)
-        yield QuantilesOfCoverage(self.species, self.population, self.chrom)
+        yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget("vcf/{}.filtered.vcf".format(self.basename))
+        return luigi.LocalTarget("vcf/{}.quant.vcf".format(self.basename))
 
     def run(self):
 
@@ -95,7 +95,7 @@ class FilterQuantiles(PipelineTask):
                      vcf_input.path], stdout=vcf_out)
 
 
-class MergeVCF(PipelineTask):
+class MergeFilteredVCFs(PipelineTask):
     """
     Merge the chromosome level VCFs into a single file.
 
@@ -107,11 +107,11 @@ class MergeVCF(PipelineTask):
 
     def requires(self):
         # TODO replace with CHROM[self.species]
-        for chrom in ['chr1', 'chr2']:
-            yield FilterQuantiles(self.species, self.population, chrom)
+        for chrom in ['1', '2']:
+            yield FilterQuantilesVCF(self.species, self.population, 'chr{}'.format(chrom))
 
     def output(self):
-        return luigi.LocalTarget("vcf/{}.chrAll.filtered.vcf".format(self.basename))
+        return luigi.LocalTarget("vcf/{}.chrAll.quant.vcf".format(self.basename))
 
     def run(self):
 
@@ -132,40 +132,26 @@ class EasySFS(PipelineTask):
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
-    chrom = luigi.Parameter()
 
     def requires(self):
-        yield FilterQuantiles(self.species, self.population, self.chrom)
+        yield MergeFilteredVCFs(self.species, self.population)
 
     def output(self):
         return luigi.LocalTarget("dadi/{}.sfs".format(self.basename))
 
     def run(self):
-
-        # unpack the input params
-        vcf_input, quant_file = self.input()
-
-        # get the quantiles
-        qlow, qhigh = np.loadtxt(quant_file.path)
-
-        with self.output().open('w') as out:
-
-            run_cmd(["bcftools",
-                     "filter",
-                     "--exclude", "DP<{} | DP>{}".format(int(qlow), int(qhigh)),
-                     vcf_input.path], stdout=out)
-
+        pass
 
 
 class PipelineDadi(luigi.WrapperTask):
     """
-    Blah...
+    Run the dadi pipeline
     """
 
     # print('\n\n\n-----------------\n\n\n')
 
     def requires(self):
-        yield MergeVCF('horse', 'DOM')
+        yield EasySFS('horse', 'DOM')
 
 
 if __name__ == '__main__':

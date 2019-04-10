@@ -212,7 +212,7 @@ class PolarizeVCF(PipelineTask):
             if rec.ref != anc:
 
                 # get all the alleles at this site, minus the ancestral
-                alt = set((rec.ref,) + rec.alts)
+                alt = set(tuple(rec.ref) + tuple(rec.alts))
                 alt.remove(anc)
 
                 # VCFs store the GT as an allele index, so we have to update the indices
@@ -257,6 +257,72 @@ class SubsetSNPsVCF(PipelineTask):
                      self.input().path])
 
 
+class CountCallableSites(PipelineTask):
+    """
+    Count the number of callable sites, as dadi needs this number to estimate the ancestral population size from theta.
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def requires(self):
+        return SubsetSNPsVCF(self.species, self.population)
+
+    def output(self):
+        return luigi.LocalTarget('vcf/{}-chrAll-DoC-polar.size'.format(self.basename))
+
+    def run(self):
+
+        # count all unique sites
+        size = run_cmd(["bcftools query -f '%CHROM %POS\n' {} | uniq | wc -l".format(self.input().path)], shell=True)
+
+        with self.output().open('w') as fout:
+            fout.write(size)
+
+
+class EasySFS(PipelineTask):
+    """
+    Calculate the Site Frequency Spectrum.
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def requires(self):
+        return SubsetSNPsVCF(self.species, self.population)
+
+    def output(self):
+        return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
+
+    def run(self):
+
+        # make a sample/population file
+        pop_file = 'sfs/{}.pops'.format(self.basename)
+        num_samples = 0
+
+        with open(pop_file, 'w') as fout:
+            for sample in SAMPLES[self.species][self.population]:
+                if sample not in SFS_EXCLUSIONS[self.species]:
+                    fout.write('{}\t{}\n'.format(sample, self.population))
+                    num_samples += 1
+
+        params = {
+            'vcf': self.input().path,
+            'pops': pop_file,
+            'out': self.basename,
+            'prj': num_samples * 2  # don't project down
+        }
+
+        # pass 'yes' into easySFS to get past the interactive prompt
+        cmd = "echo 'yes' | easySFS.py -a -i {vcf} -p {pops} -o sfs/{out} --proj {prj} --unfolded".format(**params)
+
+        run_cmd([cmd], shell=True)
+
+
 class PipelineDadi(luigi.WrapperTask):
     """
     Run the dadi pipeline
@@ -265,7 +331,7 @@ class PipelineDadi(luigi.WrapperTask):
     # print('\n\n\n-----------------\n\n\n')
 
     def requires(self):
-        yield PolarizeVCF('horse', 'DOM2')
+        yield EasySFS('horse', 'DOM2')
 
 
 if __name__ == '__main__':

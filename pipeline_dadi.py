@@ -48,7 +48,7 @@ class BCFToolsCall(PipelineTask):
     def run(self):
 
         # bcftools needs the sex specified in a separate file
-        sex_file = './data/{}_{}.sex'.format(self.species, self.population)
+        sex_file = 'data/{}_{}.sex'.format(self.species, self.population)
 
         with open(sex_file, 'w') as fout:
             for sample in SAMPLES[self.species][self.population]:
@@ -59,15 +59,15 @@ class BCFToolsCall(PipelineTask):
                 'ref': REF_FILE[self.species],
                 'chr': self.chrom,
                 'bam': ' '.join([bam.path for bam in self.input()]),
-                'pld': './data/{}.ploidy'.format(self.species),
+                'pld': 'data/{}.ploidy'.format(self.species),
                 'sex': sex_file,
                 'cpu': self.resources['cpu-cores'] - 1,  # threads to use in *addition* to main thread
                 'vcf': vcf_out
             }
 
-            cmd = "bcftools mpileup --fasta-ref {ref} --regions {chr} {bam} | bcftools call --multiallelic-caller " \
-                  " --gvcf 1 --ploidy-file {pld} --samples-file {sex} --threads {cpu} --output-type z --output {vcf} " \
-                  .format(**params)
+            cmd = "bcftools mpileup --fasta-ref {ref} --regions {chr} --output-type u {bam} | " \
+                  "bcftools call  --multiallelic-caller --ploidy-file {pld} --samples-file {sex} --threads {cpu} " \
+                  " --output-type z --output {vcf}".format(**params)
 
             run_cmd([cmd], shell=True)
 

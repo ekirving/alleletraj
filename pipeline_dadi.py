@@ -62,7 +62,7 @@ class BCFToolsCall(PipelineTask):
                 'vcf':    vcf_out
             }
 
-            cmd = "bcftools mpileup --fasta-ref {ref} --regions chr{chr} {bams} | bcftools call --multiallelic-caller" \
+            cmd = "bcftools mpileup --fasta-ref {ref} --regions {chr} {bams} | bcftools call --multiallelic-caller" \
                   " --ploidy-file {ploidy} --samples-file {sex} --output-type z --output {vcf}".format(**params)
 
             run_cmd([cmd], shell=True)

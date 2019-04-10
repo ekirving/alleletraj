@@ -155,6 +155,12 @@ def unicode_truncate(s, length, encoding='utf-8'):
     return encoded.decode(encoding, 'ignore')
 
 
+def dump(obj):
+   for attr in dir(obj):
+       if hasattr( obj, attr ):
+           print( "obj.%s = %s" % (attr, getattr(obj, attr)))
+
+
 class PipelineTask(luigi.Task):
     """
     PrioritisedTask that implements a dynamic priority method

@@ -135,7 +135,7 @@ class FilterCoverageVCF(PipelineTask):
         with self.output().temporary_path() as vcf_out:
             run_cmd(['bcftools',
                      'filter',
-                     '--exclude', 'DP<{} | DP>{}'.format(int(qlow), int(qhigh)),
+                     '--exclude', 'QUAL<{} | DP<{} | DP>{})'.format(MIN_GENO_QUAL, int(qlow), int(qhigh)),
                      '--output-type', 'z',
                      '--output', vcf_out,
                      vcf_input.path])

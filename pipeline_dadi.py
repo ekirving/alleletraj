@@ -36,6 +36,8 @@ class BCFToolsCall(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
+    resources = {'cpu-cores': 2}
+
     def requires(self):
         for sample in SAMPLES[self.species][self.population]:
             yield BAMfile(self.species, sample)
@@ -54,16 +56,18 @@ class BCFToolsCall(PipelineTask):
 
         with self.output().temporary_path() as vcf_out:
             params = {
-                'ref':    REF_FILE[self.species],
-                'chr':    self.chrom,
-                'bams':   ' '.join([bam.path for bam in self.input()]),
-                'ploidy': './data/{}.ploidy'.format(self.species),
-                'sex':    sex_file,
-                'vcf':    vcf_out
+                'ref': REF_FILE[self.species],
+                'chr': self.chrom,
+                'bam': ' '.join([bam.path for bam in self.input()]),
+                'pld': './data/{}.ploidy'.format(self.species),
+                'sex': sex_file,
+                'cpu': self.resources['cpu-cores'] - 1,  # threads to use in *addition* to main thread
+                'vcf': vcf_out
             }
 
-            cmd = "bcftools mpileup --fasta-ref {ref} --regions {chr} {bams} | bcftools call --multiallelic-caller" \
-                  " --ploidy-file {ploidy} --samples-file {sex} --output-type z --output {vcf}".format(**params)
+            cmd = "bcftools mpileup --fasta-ref {ref} --regions {chr} {bam} | bcftools call --multiallelic-caller " \
+                  " --gvcf 1 --ploidy-file {pld} --samples-file {sex} --threads {cpu} --output-type z --output {vcf} " \
+                  .format(**params)
 
             run_cmd([cmd], shell=True)
 
@@ -116,6 +120,8 @@ class FilterCoverageVCF(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
+    resources = {'cpu-cores': 2}
+
     def requires(self):
         yield BCFToolsCall(self.species, self.population, self.chrom)
         yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom)
@@ -135,6 +141,7 @@ class FilterCoverageVCF(PipelineTask):
             run_cmd(['bcftools',
                      'filter',
                      '--exclude', 'DP<{} | DP>{}'.format(int(qlow), int(qhigh)),
+                     '--threads', self.resources['cpu-cores'] - 1,
                      '--output-type', 'z',
                      '--output', vcf_out,
                      vcf_input.path])
@@ -149,6 +156,8 @@ class ConcatFilteredVCFs(PipelineTask):
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
+
+    resources = {'cpu-cores': 2}
 
     def requires(self):
         for chrom in CHROM_SIZE[self.species]:
@@ -165,6 +174,7 @@ class ConcatFilteredVCFs(PipelineTask):
         with self.output().temporary_path() as vcf_out:
             run_cmd(['bcftools',
                      'concat',
+                     '--threads', self.resources['cpu-cores'] - 1,
                      '--output-type', 'z',
                      '--output', vcf_out,
                      ] + vcf_files)
@@ -180,6 +190,8 @@ class SubsetSNPsVCF(PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
 
+    resources = {'cpu-cores': 2}
+
     def requires(self):
         return ConcatFilteredVCFs(self.species, self.population)
 
@@ -193,6 +205,7 @@ class SubsetSNPsVCF(PipelineTask):
                      'view',
                      '--types', 'snps',
                      '--exclude', 'INFO/INDEL=1',
+                     '--threads', self.resources['cpu-cores'] - 1,
                      '--output-type', 'z',
                      '--output', vcf_out,
                      self.input().path])

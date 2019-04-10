@@ -38,7 +38,7 @@ class BCFToolsCall(PipelineTask):
 
     def requires(self):
         for sample in SAMPLES[self.species][self.population]:
-            yield BAMfile(sample)
+            yield BAMfile(self.species, sample)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}.vcf.gz'.format(self.basename))
@@ -62,8 +62,8 @@ class BCFToolsCall(PipelineTask):
                 'vcf':    vcf_out
             }
 
-            cmd = "bcftools mpileup --fasta-ref {ref} --regions chr{chr} {bams} " \
-                  " | bcftools call --multiallelic-caller --ploidy-file {ploidy} --samples-file {sex} --output-type z --output {vcf}".format(**params)
+            cmd = "bcftools mpileup --fasta-ref {ref} --regions chr{chr} {bams} | bcftools call --multiallelic-caller" \
+                  " --ploidy-file {ploidy} --samples-file {sex} --output-type z --output {vcf}".format(**params)
 
             run_cmd([cmd], shell=True)
 

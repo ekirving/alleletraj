@@ -268,15 +268,15 @@ class CountCallableSites(PipelineTask):
     population = luigi.Parameter()
 
     def requires(self):
-        return SubsetSNPsVCF(self.species, self.population)
+        return PolarizeVCF(self.species, self.population)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-DoC-polar.size'.format(self.basename))
+        return luigi.LocalTarget('sfs/{}.L'.format(self.basename))
 
     def run(self):
 
         # count all unique sites
-        size = run_cmd(["bcftools query -f '%CHROM %POS\n' {} | uniq | wc -l".format(self.input().path)], shell=True)
+        size = run_cmd(["bcftools query -f '%CHROM %POS\\n' {} | uniq | wc -l".format(self.input().path)], shell=True)
 
         with self.output().open('w') as fout:
             fout.write(size)
@@ -311,14 +311,14 @@ class EasySFS(PipelineTask):
                     num_samples += 1
 
         params = {
-            'vcf': self.input().path,
+            'vcf':  self.input().path,
             'pops': pop_file,
-            'out': self.basename,
-            'prj': num_samples * 2  # don't project down
+            'out':  self.basename,
+            'proj': num_samples * 2  # don't project down
         }
 
         # pass 'yes' into easySFS to get past the interactive prompt
-        cmd = "echo 'yes' | easySFS.py -a -i {vcf} -p {pops} -o sfs/{out} --proj {prj} --unfolded".format(**params)
+        cmd = "echo 'yes' | easySFS.py -a -i {vcf} -p {pops} -o sfs/{out} --proj {proj} --unfolded".format(**params)
 
         run_cmd([cmd], shell=True)
 
@@ -332,6 +332,7 @@ class PipelineDadi(luigi.WrapperTask):
 
     def requires(self):
         yield EasySFS('horse', 'DOM2')
+        yield CountCallableSites('horse', 'DOM2')
 
 
 if __name__ == '__main__':

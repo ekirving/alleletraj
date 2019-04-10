@@ -171,9 +171,11 @@ class ConcatFilteredVCFs(PipelineTask):
                      ] + vcf_files)
 
 
-class SubsetSNPsVCF(PipelineTask):
+class PolarizeVCF(PipelineTask):
     """
-    Extract all the SNPs from the VCF.
+    Switch the REF allele for the ancestral allele, based on an outgroup present in the VCF.
+
+    Drops any sites which are heterozygous or uncallable in the outgroup.
 
     :type species: str
     :type population: str
@@ -185,35 +187,7 @@ class SubsetSNPsVCF(PipelineTask):
         return ConcatFilteredVCFs(self.species, self.population)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-DoC-SNPs.vcf.gz'.format(self.basename))
-
-    def run(self):
-
-        with self.output().temporary_path() as vcf_out:
-            run_cmd(['bcftools',
-                     'view',
-                     '--types', 'snps',
-                     '--exclude', 'INFO/INDEL=1',
-                     '--output-type', 'z',
-                     '--output', vcf_out,
-                     self.input().path])
-
-
-class PolarizeVCF(PipelineTask):
-    """
-    Switch the REF/ALT to match the ancestral/derived allele, based on an outgroup in the VCF.
-
-    :type species: str
-    :type population: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-
-    def requires(self):
-        return SubsetSNPsVCF(self.species, self.population)
-
-    def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-DoC-SNPs-polar.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-chrAll-DoC-polar.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -253,6 +227,34 @@ class PolarizeVCF(PipelineTask):
                 rec.alts = alt
 
             vcf_out.write(rec)
+
+
+class SubsetSNPsVCF(PipelineTask):
+    """
+    Extract all the SNPs from the VCF.
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def requires(self):
+        return PolarizeVCF(self.species, self.population)
+
+    def output(self):
+        return luigi.LocalTarget('vcf/{}-chrAll-DoC-polar-SNPs.vcf.gz'.format(self.basename))
+
+    def run(self):
+
+        with self.output().temporary_path() as vcf_out:
+            run_cmd(['bcftools',
+                     'view',
+                     '--types', 'snps',
+                     '--exclude', 'INFO/INDEL=1',
+                     '--output-type', 'z',
+                     '--output', vcf_out,
+                     self.input().path])
 
 
 class PipelineDadi(luigi.WrapperTask):

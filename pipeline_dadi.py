@@ -14,6 +14,7 @@ class BAMfile(luigi.ExternalTask):
 
     N.B. These have been created outside the workflow of this pipeline.
 
+    :type species: str
     :type sample: str
     """
     species = luigi.Parameter()
@@ -40,30 +41,36 @@ class BCFToolsCall(PipelineTask):
             yield BAMfile(sample)
 
     def output(self):
-        # TODO make vcf.gz and propagate
-        return luigi.LocalTarget('vcf/{}.vcf'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}.vcf.gz'.format(self.basename))
 
     def run(self):
 
-        params = {
-            'ref': REF_FILE[self.species],
-            'chr': self.chrom,
-            'bams': ' '.join([bam.path for bam in self.input()]),
-            'ploidy':  './data/{}.ploidy'.format(self.species),
-            'samples': './data/horses_DOM.samples',
-            'vcfout':  './vcf/horse_DOM_chr{}.vcf'
-        }
+        # bcftools needs the sex specified in a separate file
+        sex_file = './data/{}_{}.sex'.format(self.species, self.population)
 
-        cmd = "bcftools mpileup --fasta-ref {ref} --regions chr{chr} {bams}" \
-              " | bcftools call --multiallelic-caller --ploidy-file {ploidy} --samples-file {samples} --output-type v" \
-              " | bcftools view --exclude INFO/INDEL=1 --output-file {vcfout}".format(**params)
+        with open(sex_file, 'w') as fout:
+            for sample in SAMPLES[self.species][self.population]:
+                fout.write('{}\t{}\n'.format(sample, SAMPLE_SEX[self.species][sample]))
 
-        run_cmd([cmd], shell=True)
+        with self.output().temporary_path() as vcf_out:
+            params = {
+                'ref':    REF_FILE[self.species],
+                'chr':    self.chrom,
+                'bams':   ' '.join([bam.path for bam in self.input()]),
+                'ploidy': './data/{}.ploidy'.format(self.species),
+                'sex':    sex_file,
+                'vcf':    vcf_out
+            }
+
+            cmd = "bcftools mpileup --fasta-ref {ref} --regions chr{chr} {bams} " \
+                  " | bcftools call --multiallelic-caller --ploidy-file {ploidy} --samples-file {sex} --output-type z --output {vcf}".format(**params)
+
+            run_cmd([cmd], shell=True)
 
 
 class QuantilesOfCoverageVCF(PipelineTask):
     """
-    Calculate the quantiles of the depth of coverage for a VCF.
+    Calculate the upper and lower quantiles of the depth of coverage for a VCF.
 
     :type species: str
     :type population: str
@@ -74,11 +81,10 @@ class QuantilesOfCoverageVCF(PipelineTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        # TODO link back to task that made the VCF
         return BCFToolsCall(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}.quant'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}.DoC'.format(self.basename))
 
     def run(self):
         depth = []
@@ -93,11 +99,12 @@ class QuantilesOfCoverageVCF(PipelineTask):
         # calculate the quantiles
         quants = np.quantile(depth, [QUANTILE_LOW, QUANTILE_HIGH])
 
+        # save them to disk
         with self.output().open('w') as fout:
             fout.write('{} {}'.format(int(quants[0]), int(quants[1])))
 
 
-class FilterQuantilesVCF(PipelineTask):
+class FilterCoverageVCF(PipelineTask):
     """
     Remove sites in the upper and lower quantiles of the depth of coverage distribution.
 
@@ -110,11 +117,11 @@ class FilterQuantilesVCF(PipelineTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        yield ModernVCF(self.species, self.population, self.chrom)
+        yield BCFToolsCall(self.species, self.population, self.chrom)
         yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}.quant.vcf'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}.DoC.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -124,17 +131,18 @@ class FilterQuantilesVCF(PipelineTask):
         # get the quantiles
         qlow, qhigh = np.loadtxt(quant_file.path)
 
-        with self.output().open('w') as vcf_out:
-
+        with self.output().temporary_path() as vcf_out:
             run_cmd(['bcftools',
                      'filter',
                      '--exclude', 'DP<{} | DP>{}'.format(int(qlow), int(qhigh)),
-                     vcf_input.path], stdout=vcf_out)
+                     '--output-type', 'z',
+                     '--output', vcf_out,
+                     vcf_input.path])
 
 
-class MergeFilteredVCFs(PipelineTask):
+class ConcatFilteredVCFs(PipelineTask):
     """
-    Merge the chromosome level VCFs into a single file.
+    Concatenate the chromosome level VCFs into a single file.
 
     :type species: str
     :type population: str
@@ -143,20 +151,51 @@ class MergeFilteredVCFs(PipelineTask):
     population = luigi.Parameter()
 
     def requires(self):
-        # TODO replace with CHROM[self.species]
-        for chrom in ['10']:
-            yield FilterQuantilesVCF(self.species, self.population, 'chr{}'.format(chrom))
+        for chrom in CHROM_SIZE[self.species]:
+            yield FilterCoverageVCF(self.species, self.population, 'chr{}'.format(chrom))
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-quant.vcf'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-chrAll-DoC.vcf.gz'.format(self.basename))
 
     def run(self):
 
         # unpack the input params
         vcf_files = [vcf.path for vcf in self.input()]
 
-        with self.output().open('w') as vcf_out:
-            run_cmd(['bcftools', 'concat'] + vcf_files, stdout=vcf_out)
+        with self.output().temporary_path() as vcf_out:
+            run_cmd(['bcftools',
+                     'concat',
+                     '--output-type', 'z',
+                     '--output', vcf_out,
+                     ] + vcf_files)
+
+
+class SubsetSNPsVCF(PipelineTask):
+    """
+    Extract all the SNPs from the VCF.
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def requires(self):
+        return ConcatFilteredVCFs(self.species, self.population)
+
+    def output(self):
+        return luigi.LocalTarget('vcf/{}-chrAll-DoC-SNPs.vcf.gz'.format(self.basename))
+
+    def run(self):
+
+        with self.output().temporary_path() as vcf_out:
+            run_cmd(['bcftools',
+                     'view',
+                     '--types', 'snps',
+                     '--exclude', 'INFO/INDEL=1',
+                     '--output-type', 'z',
+                     '--output', vcf_out,
+                     self.input().path])
 
 
 class PolarizeVCF(PipelineTask):
@@ -170,10 +209,10 @@ class PolarizeVCF(PipelineTask):
     population = luigi.Parameter()
 
     def requires(self):
-        return MergeFilteredVCFs(self.species, self.population)
+        return SubsetSNPsVCF(self.species, self.population)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-quant-polar.vcf'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-chrAll-DoC-SNPs-polar.vcf.gz'.format(self.basename))
 
     def run(self):
 

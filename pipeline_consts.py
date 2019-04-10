@@ -71,6 +71,44 @@ SAMPLES = {
     }
 }
 
+SAMPLE_SEX = {
+
+    'horse': {
+        'Arab_0237A': 'M',
+        'Conn_0004A': 'M',
+        'Duel_0238A': 'F',
+        'Esom_0226A': 'F',
+        'Frie_0296A': 'M',
+        'FrMo_0065A': 'M',
+        'Hano_0235A': 'M',
+        'Heav_0269A': 'M',
+        'Icel_0144A': 'M',
+        'Icel_0247A': 'M',
+        'Jeju_0275A': 'M',
+        'Marw_0239A': 'M',
+        'Mong_0153A': 'M',
+        'Mong_0215A': 'M',
+        'Morg_0096A': 'F',
+        'Prze_0150A': 'F',
+        'Prze_0151A': 'M',
+        'Prze_0157A': 'M',
+        'Prze_0158A': 'F',
+        'Prze_0159A': 'M',
+        'Prze_0160A': 'M',
+        'Quar_0073A': 'M',
+        'Shet_0249A': 'F',
+        'Shet_0250A': 'F',
+        'Sorr_0236A': 'M',
+        'Stan_0081A': 'M',
+        'Thor_0145A': 'F',
+        'Thor_0290A': 'M',
+        'Yaku_0163A': 'M',
+        'Yaku_0170A': 'M',
+        'Yaku_0171A': 'M'
+    }
+}
+
+
 BAM_FILES = {
     'horse': {
         'A_Ch40_CGG_1_016168': '/home/ludo/inbox/BAMs/ancient/A_Ch40_CGG_1_016168.Horse_nuc_wY.realigned.r.t.bam',
@@ -350,7 +388,6 @@ BAM_FILES = {
         'Yaku_0171A': '/home/ludo/inbox/BAMs/modern/Yaku_0171A_Yak9.Horse_nuc_wY.realigned.bam',
         'YER28_CGG_1_020254': '/home/ludo/inbox/BAMs/ancient/YER28_CGG_1_020254.Horse_nuc_wY.realigned.r.t.m.1.3p.s.bam',
     }
-
 }
 
 # possible values include:

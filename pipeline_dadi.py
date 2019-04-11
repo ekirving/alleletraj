@@ -15,7 +15,7 @@ from pipeline_utils import PipelineTask, run_cmd
 DADI_MAX_EPOCHS = 5
 
 # how many iterations to use to optimise params
-# DADI_MAX_ITER = 50
+# DADI_MAX_ITER = 50  # TODO put back to 50
 DADI_MAX_ITER = 2
 
 
@@ -138,13 +138,13 @@ class DadiOptimizeParams(PipelineTask):
         return EasySFS(self.species, self.population, self.folded)
 
     def output(self):
-        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['opt', 'log']]
+        return [luigi.LocalTarget("sfs/{}-optima.{}".format(self.basename, ext)) for ext in ['pickle', 'log']]
 
     def run(self):
 
         # unpack the inputs/outputs
         sfs_file = self.input()
-        opt_file, log_file = self.output()
+        pkl_file, log_file = self.output()
 
         # load the frequency spectrum
         spec = dadi.Spectrum.from_file(sfs_file.path)
@@ -163,7 +163,7 @@ class DadiOptimizeParams(PipelineTask):
                                                 pts=100, verbose=50, output_file=log_file.path, full_output=True)
 
         # save the optimal params by pickling them in a file
-        with opt_file.open('w') as fout:
+        with pkl_file.open('w') as fout:
             pickle.dump(best, fout)
 
 

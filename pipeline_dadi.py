@@ -5,18 +5,19 @@ import dadi
 import luigi
 import pickle
 import random
+import scipy.stats as st
 
 # import my custom modules
 from pipeline_consts import *
 from pipeline_snp_call import PolarizeVCF, SubsetSNPsVCF
-from pipeline_utils import PipelineTask, run_cmd
+from pipeline_utils import PipelineTask, run_cmd, dump
 
 # number of sequential epochs to test
 DADI_MAX_EPOCHS = 5
 
-# how many iterations to use to optimise params
-# DADI_MAX_ITER = 50  # TODO put back to 50
-DADI_MAX_ITER = 2
+# how many independent runs should we do to find global maximum of params
+DADI_MAX_REPS = 50  # TODO put back to 50
+# DADI_MAX_ITER = 2
 
 
 def dadi_epoch_model(params, ns, pts):
@@ -118,27 +119,27 @@ class EasySFS(PipelineTask):
         run_cmd([cmd], shell=True)
 
 
-class DadiOptimizeParams(PipelineTask):
+class DadiEpochOptimizeParams(PipelineTask):
     """
     Optimise the log likelihood of the model parameters for the given SFS.
 
     :type species: str
     :type population: str
     :type folded: bool
-    :type epochs: int
+    :type epoch: int
     :type n: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     folded = luigi.BoolParameter()
-    epochs = luigi.IntParameter()
+    epoch = luigi.IntParameter()
     n = luigi.IntParameter()
 
     def requires(self):
         return EasySFS(self.species, self.population, self.folded)
 
     def output(self):
-        return [luigi.LocalTarget("sfs/{}-optima.{}".format(self.basename, ext)) for ext in ['pickle', 'log']]
+        return [luigi.LocalTarget("sfs/{}-params.{}".format(self.basename, ext)) for ext in ['pickle', 'log']]
 
     def run(self):
 
@@ -147,24 +148,81 @@ class DadiOptimizeParams(PipelineTask):
         pkl_file, log_file = self.output()
 
         # load the frequency spectrum
-        spec = dadi.Spectrum.from_file(sfs_file.path)
+        fs = dadi.Spectrum.from_file(sfs_file.path)
 
-        # set the upper and lower parameter bounding
-        lower = [.01] * self.epochs + [0] * self.epochs
-        upper = [100] * self.epochs + [5] * self.epochs
+        # set the upper and lower parameter bounds
+        lower = [.01] * self.epoch + [0] * self.epoch
+        upper = [100] * self.epoch + [5] * self.epoch
 
-        # pick random starting values (bounded by lower/upper)
-        start = [random.uniform(lower[i], upper[i]) for i in range(0, self.epochs * 2)]
+        # TODO pick random starting values (bounded by lower/upper)
+        # start = [random.uniform(lower[i], upper[i]) for i in range(0, self.epoch * 2)]
+
+        # pick random starting values (bounded by 0-2)
+        start = st.uniform.rvs(scale=2, size=self.epoch * 2)
 
         print("start = {}".format(start))
 
         # optimize log(params) to fit model to data using Nelder-Mead algorithm
-        best = dadi.Inference.optimize_log_fmin(start, spec, dadi_epoch_model, lower_bound=lower, upper_bound=upper,
-                                                pts=100, verbose=50, output_file=log_file.path, full_output=True)
+        p_opt = dadi.Inference.optimize_log_fmin(start, fs, dadi_epoch_model, lower_bound=lower, upper_bound=upper,
+                                                 pts=100, verbose=50, output_file=log_file.path, full_output=True)
 
-        # save the optimal params by pickling them in a file
+        # save the params by pickling them in a file
         with pkl_file.open('w') as fout:
-            pickle.dump(best, fout)
+            pickle.dump(p_opt, fout)
+
+        # # calculate the best-fit model AFS
+        # model = dadi_epoch_model(p_opt, fs.sample_sizes, self.grid_size)
+        #
+        # # likelihood of the data given the model AFS
+        # ll_model = dadi.Inference.ll_multinom(model, fs)
+        #
+        # # the optimal value of theta given the model
+        # theta = dadi.Inference.optimal_sfs_scaling(model, fs)
+        #
+        # # record the best fitting params for this run
+        # best = [ll_model, theta] + list(p_opt)
+        #
+        # # save the params by pickling them in a file
+        # with pkl_file.open('w') as fout:
+        #     pickle.dump(best, fout)
+
+
+class DadiEpochMaximumLikelihood(PipelineTask):
+    """
+    Find the model run with the maximum likelihood out of all the replicates.
+
+    Because dadi gets stuck easily in local maxima we run multiple replicates.
+
+    :type species: str
+    :type population: str
+    :type folded: bool
+    :type epoch: int
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    folded = luigi.BoolParameter()
+    epoch = luigi.IntParameter()
+
+    def requires(self):
+        for n in range(1, DADI_MAX_REPS + 1):
+            yield DadiEpochOptimizeParams(self.species, self.population, self.folded, self.epoch, n)
+
+    def output(self):
+        return luigi.LocalTarget("sfs/{}-best.{}".format(self.basename, 'pickle'))
+
+    def run(self):
+
+        params = []
+
+        # load all the pickled param values from the replicate runs
+        for pkl_file, log_file in self.input():
+            with pkl_file.open('r') as fin:
+                params.append(pickle.load(fin))
+
+        # TODO find the best one
+        print('\n\n\n----------------------\n\n\n')
+        dump(params)
+        print('\n\n\n----------------------\n\n\n')
 
 
 class DadiModelDemography(luigi.WrapperTask):
@@ -173,13 +231,9 @@ class DadiModelDemography(luigi.WrapperTask):
     """
 
     def requires(self):
-
-        # run multiple sequential epochs
-        for epochs in range(1, DADI_MAX_EPOCHS + 1):
-
-            # each each epoch, run multiple replicates
-            for n in range(1, DADI_MAX_ITER + 1):
-                yield DadiOptimizeParams('horse', 'DOM2', False, epochs, n)
+        # run multiple epochs, with multiple independent replicates
+        for epoch in range(1, DADI_MAX_EPOCHS + 1):
+            yield DadiEpochMaximumLikelihood('horse', 'DOM2', False, epoch)
 
 
 if __name__ == '__main__':

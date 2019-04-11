@@ -109,9 +109,9 @@ class QuantilesOfCoverageVCF(PipelineTask):
             fout.write('{} {}'.format(int(quants[0]), int(quants[1])))
 
 
-class FilterCoverageVCF(PipelineTask):
+class FilterVCF(PipelineTask):
     """
-    Remove sites in the upper and lower quantiles of the depth of coverage distribution.
+    Remove low quality sites and those in the upper and lower quantiles of the depth of coverage distribution.
 
     :type species: str
     :type population: str
@@ -126,7 +126,7 @@ class FilterCoverageVCF(PipelineTask):
         yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}.DoC.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-filtered.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -157,10 +157,10 @@ class ConcatFilteredVCFs(PipelineTask):
 
     def requires(self):
         for chrom in CHROM_SIZE[self.species]:
-            yield FilterCoverageVCF(self.species, self.population, 'chr{}'.format(chrom))
+            yield FilterVCF(self.species, self.population, 'chr{}'.format(chrom))
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-DoC.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-chrAll-filtered.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -191,7 +191,7 @@ class PolarizeVCF(PipelineTask):
         return ConcatFilteredVCFs(self.species, self.population)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-DoC-polar.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -247,7 +247,7 @@ class SubsetSNPsVCF(PipelineTask):
         return PolarizeVCF(self.species, self.population)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-DoC-polar-SNPs.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.basename))
 
     def run(self):
 

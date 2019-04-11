@@ -89,7 +89,7 @@ class QuantilesOfCoverageVCF(PipelineTask):
         return BCFToolsCall(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}.DoC'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}.quantiles'.format(self.basename))
 
     def run(self):
         depth = []

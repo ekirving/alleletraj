@@ -135,18 +135,18 @@ def run_in_parallel(*fns):
         p.join()
 
 
-def trim_ext(fullpath, n=1):
-    return ('.').join(fullpath.split('.')[:-n])
+def trim_ext(full_path, n=1):
+    return '.'.join(full_path.split('.')[:-n])
 
 
-def trim_path_ext(fullpath):
-    return trim_ext(os.path.basename(fullpath))
+def trim_path_ext(full_path):
+    return trim_ext(os.path.basename(full_path))
 
 
-def insert_suffix(fullpath, suffix):
-    splitpath = fullpath.split('.')
+def insert_suffix(full_path, suffix):
+    splitpath = full_path.split('.')
     splitpath.insert(-1, suffix)
-    return ('.').join(splitpath)
+    return '.'.join(splitpath)
 
 
 def unicode_truncate(s, length, encoding='utf-8'):
@@ -155,19 +155,9 @@ def unicode_truncate(s, length, encoding='utf-8'):
 
 
 def dump(obj):
-   for attr in dir(obj):
-       if hasattr( obj, attr ):
-           print( "obj.%s = %s" % (attr, getattr(obj, attr)))
-
-
-class LogBuffer(object):
-    """
-    Simple class to act as a buffer for the logging module so we can inspect warnings created by dadi
-    """
-    log = []
-
-    def write(self, data):
-        self.log.append(data)
+    for attr in dir(obj):
+        if hasattr(obj, attr):
+            print("obj.%s = %s" % (attr, getattr(obj, attr)))
 
 
 class PipelineTask(luigi.Task):

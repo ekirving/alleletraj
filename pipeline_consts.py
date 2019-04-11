@@ -720,12 +720,9 @@ QTL_FILES = {
     'horse':  "data/AnimalQTLdb/{}/cM/horse.txt".format(QTLDB_RELEASE),
 }
 
-# wait 10 seconds beforey retyring a failed request
+# wait 10 seconds before retrying a failed request
 QTLDB_WAIT_TIME = 10
 
 # quantiles for filtering VCF files
 QUANTILE_LOW = 0.05
 QUANTILE_HIGH = 0.95
-
-# how many iterations to use to optimise params
-DADI_MAX_ITER = 100

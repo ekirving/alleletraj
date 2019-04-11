@@ -2,16 +2,53 @@
 # -*- coding: utf-8 -*-
 
 import dadi
-import logging
 import luigi
 import pickle
-
-from datetime import datetime
+import random
 
 # import my custom modules
 from pipeline_consts import *
 from pipeline_snp_call import PolarizeVCF, SubsetSNPsVCF
-from pipeline_utils import PipelineTask, run_cmd, LogBuffer
+from pipeline_utils import PipelineTask, run_cmd
+
+# number of sequential epochs to test
+DADI_MAX_EPOCHS = 5
+
+# how many iterations to use to optimise params
+# DADI_MAX_ITER = 50
+DADI_MAX_ITER = 2
+
+
+def dadi_epoch_model(params, ns, pts):
+    """
+    Sequential epoch model for dadi.
+
+    :param params: Times and population sizes of the epochs (e.g. t1, t2, ..., n1, n2)
+    :param ns: The number of samples
+    :param pts: The number of points in the grid
+    """
+
+    # each epoch has a time and a size
+    num_epoch = len(params) / 2
+
+    # split the two types of params
+    time = params[num_epoch:]
+    size = params[:num_epoch]
+
+    # make the grid
+    grid = dadi.Numerics.default_grid(pts)
+
+    # one-dimensional phi for a constant-sized population
+    phi = dadi.PhiManip.phi_1D(grid)
+
+    for i in range(num_epoch):
+        # integrate a 1-dimensional phi forward
+        phi = dadi.Integration.one_pop(phi, grid, time[i], size[i])
+
+    # compute sample Spectrum from population frequency distribution phi
+    fs = dadi.Spectrum.from_phi(phi, ns, [grid])
+
+    return fs
 
 
 class CountCallableSites(PipelineTask):
@@ -48,7 +85,7 @@ class EasySFS(PipelineTask):
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
-    polarised = luigi.BoolParameter()
+    folded = luigi.BoolParameter()
 
     def requires(self):
         return SubsetSNPsVCF(self.species, self.population)
@@ -72,7 +109,7 @@ class EasySFS(PipelineTask):
             'pops': pop_file,
             'out':  self.basename,
             'proj': len(samples) * 2,  # don't project down
-            'fold': '--unfolded' if self.polarised else ''
+            'fold': '--unfolded' if not self.folded else ''
         }
 
         # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
@@ -85,119 +122,49 @@ class DadiOptimizeParams(PipelineTask):
     """
     Optimise the log likelihood of the model parameters for the given SFS.
 
-    # TODO add param types
+    :type species: str
+    :type population: str
+    :type folded: bool
+    :type epochs: int
+    :type n: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
-    polarised = luigi.BoolParameter()
-
-    model = luigi.Parameter()
-    scenario = luigi.Parameter()
-    grid_size = luigi.ListParameter()
-    upper_bound = luigi.ListParameter()
-    lower_bound = luigi.ListParameter()
-    param_start = luigi.ListParameter(significant=False)
-
+    folded = luigi.BoolParameter()
+    epochs = luigi.IntParameter()
     n = luigi.IntParameter()
 
     def requires(self):
-        return EasySFS(self.species, self.population, self.polarised)
+        return EasySFS(self.species, self.population, self.folded)
 
     def output(self):
-        return luigi.LocalTarget("sfs/{}.opt".format(self.basename))
+        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['opt', 'log']]
 
     def run(self):
 
+        # unpack the inputs/outputs
+        sfs_file = self.input()
+        opt_file, log_file = self.output()
+
         # load the frequency spectrum
-        fs = dadi.Spectrum.from_file(self.input().path)
-        ns = fs.sample_sizes
+        spec = dadi.Spectrum.from_file(sfs_file.path)
 
-        # get the demographic model to test
-        func = getattr(dadi.Demographics2D, self.model)
+        # set the upper and lower parameter bounding
+        lower = [.01] * self.epochs + [0] * self.epochs
+        upper = [100] * self.epochs + [5] * self.epochs
 
-        # Make the extrapolating version of our demographic model function.
-        func_ex = dadi.Numerics.make_extrap_log_func(func)
+        # pick random starting values (bounded by lower/upper)
+        start = [random.uniform(lower[i], upper[i]) for i in range(0, self.epochs * 2)]
 
-        # keep a list of the optimal params
-        p_best = []
+        print("start = {}".format(start))
 
-        # buffer the logs created by dadi so we can inspect them
-        log_buffer = LogBuffer()
-        logger = logging.getLogger('Inference')
-        logger.addHandler(logging.StreamHandler(log_buffer))
+        # optimize log(params) to fit model to data using Nelder-Mead algorithm
+        best = dadi.Inference.optimize_log_fmin(start, spec, dadi_epoch_model, lower_bound=lower, upper_bound=upper,
+                                                pts=100, verbose=50, output_file=log_file.path, full_output=True)
 
-        # run the optimisation many times
-        for i in range(0, DADI_MAX_ITER):
-
-            # Perturb our parameters before optimization. This does so by taking each
-            # parameter a up to a factor of two up or down.
-            p_perturb = dadi.Misc.perturb_params(self.param_start,
-                                                 fold=1,
-                                                 upper_bound=self.upper_bound,
-                                                 lower_bound=self.lower_bound)
-
-            print('Started optimization: {:<12} | {:<8} | {:<8} | {:<9} | {:<15} | n={:>3} | i={:>3} |'.format(
-                self.group, self.pop1, self.pop2, self.model, self.scenario, self.n, i))
-
-            start = datetime.now()
-
-            # do the optimization...
-            p_opt = dadi.Inference.optimize_log(p_perturb, fs, func_ex, self.grid_size,
-                                                lower_bound=self.lower_bound,
-                                                upper_bound=self.upper_bound,
-                                                fixed_params=self.fixed_params,
-                                                verbose=20,
-                                                maxiter=DADI_MAX_ITER)
-
-            end = datetime.now()
-            diff = (end - start).total_seconds() / 60
-
-            print('Finshed optimization: {:<12} | {:<8} | {:<8} | {:<9} | {:<15} | n={:>3} | i={:>3} | t={:>3.1f} mins'.format(
-                self.group, self.pop1, self.pop2, self.model, self.scenario, self.n, i, diff))
-
-            # reset the log buffer
-            log_buffer.log = []
-
-            # Calculate the best-fit model AFS.
-            model = func_ex(p_opt, ns, self.grid_size)
-
-            # Likelihood of the data given the model AFS.
-            ll_model = dadi.Inference.ll_multinom(model, fs)
-
-            # The optimal value of theta given the model.
-            theta = dadi.Inference.optimal_sfs_scaling(model, fs)
-
-            # get the buffered warnings
-            warnings = " ".join(log_buffer.log)
-
-            # we only care about non-masked data
-            if "Model is masked" not in warnings:
-
-                print('Maximum log composite likelihood: {0}'.format(ll_model))
-                print('Optimal value of theta: {0}'.format(theta))
-
-                # record the best fitting params for this run
-                p_best.append([ll_model, theta] + list(p_opt))
-
-                # sort the params (largest ll_model first)
-                p_best.sort(reverse=True)
-
-            try:
-                # run the optimisation again, starting from the best fit we've seen so far
-                self.param_start = p_best[0][2:]
-            except IndexError:
-                # otherwise, generate a set of new random starting params (so we don't get stuck in bad param space)
-                self.param_start = random_params(self.lower_bound, self.upper_bound, self.fixed_params)
-
-        # if we've run the iteration DADI_MAX_ITER times and not found any non-masked params then we've failed
-        if not p_best:
-            raise Exception("{} | {} | {} | n={}: FAILED to find any non-masked params".format(self.group,
-                                                                                               self.model,
-                                                                                               self.scenario,
-                                                                                               self.n))
-        # save the list of optimal params by pickeling them in a file
-        with self.output().open('w') as fout:
-            pickle.dump(p_best, fout)
+        # save the optimal params by pickling them in a file
+        with opt_file.open('w') as fout:
+            pickle.dump(best, fout)
 
 
 class DadiModelDemography(luigi.WrapperTask):
@@ -206,7 +173,13 @@ class DadiModelDemography(luigi.WrapperTask):
     """
 
     def requires(self):
-        return EasySFS('horse', 'DOM2')
+
+        # run multiple sequential epochs
+        for epochs in range(1, DADI_MAX_EPOCHS + 1):
+
+            # each each epoch, run multiple replicates
+            for n in range(1, DADI_MAX_ITER + 1):
+                yield DadiOptimizeParams('horse', 'DOM2', False, epochs, n)
 
 
 if __name__ == '__main__':

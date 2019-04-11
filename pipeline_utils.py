@@ -4,7 +4,6 @@
 import subprocess
 import luigi
 import os
-import numpy as np
 
 # import common libraries
 from collections import OrderedDict, defaultdict, Iterable
@@ -159,6 +158,16 @@ def dump(obj):
    for attr in dir(obj):
        if hasattr( obj, attr ):
            print( "obj.%s = %s" % (attr, getattr(obj, attr)))
+
+
+class LogBuffer(object):
+    """
+    Simple class to act as a buffer for the logging module so we can inspect warnings created by dadi
+    """
+    log = []
+
+    def write(self, data):
+        self.log.append(data)
 
 
 class PipelineTask(luigi.Task):

@@ -1,10 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# import my custom modules
-from pipeline_utils import *
+import dadi
+import logging
+import luigi
+import pickle
 
+from datetime import datetime
+
+# import my custom modules
+from pipeline_consts import *
 from pipeline_snp_call import PolarizeVCF, SubsetSNPsVCF
+from pipeline_utils import PipelineTask, run_cmd, LogBuffer
+
+# buffer the logs created by dadi so we can inspect them
+log_buffer = LogBuffer()
+logger = logging.getLogger('Inference')
+logger.addHandler(logging.StreamHandler(log_buffer))
 
 
 class CountCallableSites(PipelineTask):
@@ -41,6 +53,7 @@ class EasySFS(PipelineTask):
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
+    polarised = luigi.BoolParameter()
 
     def requires(self):
         return SubsetSNPsVCF(self.species, self.population)
@@ -63,11 +76,12 @@ class EasySFS(PipelineTask):
             'vcf':  self.input().path,
             'pops': pop_file,
             'out':  self.basename,
-            'proj': len(samples) * 2  # don't project down
+            'proj': len(samples) * 2,  # don't project down
+            'fold': '--unfolded' if self.polarised else ''
         }
 
         # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
-        cmd = "echo 'yes' | easySFS.py -a -i {vcf} -p {pops} -o sfs/{out} --proj {proj} --unfolded".format(**params)
+        cmd = "echo 'yes' | easySFS.py -a -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
 
         run_cmd([cmd], shell=True)
 

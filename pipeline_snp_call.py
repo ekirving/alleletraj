@@ -1,8 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import luigi
+import numpy
+
 # import my custom modules
-from pipeline_utils import *
+from pipeline_consts import *
+from pipeline_utils import PipelineTask, run_cmd
 
 # VCF parser
 from pysam import VariantFile
@@ -98,7 +102,7 @@ class QuantilesOfCoverageVCF(PipelineTask):
                 pass
 
         # calculate the quantiles
-        quants = np.quantile(depth, [QUANTILE_LOW, QUANTILE_HIGH])
+        quants = numpy.quantile(depth, [QUANTILE_LOW, QUANTILE_HIGH])
 
         # save them to disk
         with self.output().open('w') as fout:
@@ -130,12 +134,12 @@ class FilterCoverageVCF(PipelineTask):
         vcf_input, quant_file = self.input()
 
         # get the quantiles
-        qlow, qhigh = np.loadtxt(quant_file.path)
+        qlow, qhigh = numpy.loadtxt(quant_file.path)
 
         with self.output().temporary_path() as vcf_out:
             run_cmd(['bcftools',
                      'filter',
-                     '--exclude', 'QUAL<{} | DP<{} | DP>{})'.format(MIN_GENO_QUAL, int(qlow), int(qhigh)),
+                     '--exclude', 'QUAL<{} | DP<{} | DP>{}'.format(MIN_GENO_QUAL, int(qlow), int(qhigh)),
                      '--output-type', 'z',
                      '--output', vcf_out,
                      vcf_input.path])

@@ -50,24 +50,23 @@ class EasySFS(PipelineTask):
 
     def run(self):
 
+        # get all the samples to use
+        samples = [s for s in SAMPLES[self.species][self.population] if s not in SFS_EXCLUSIONS[self.species]]
+
         # make a sample/population file
         pop_file = 'sfs/{}.pops'.format(self.basename)
-        num_samples = 0
-
         with open(pop_file, 'w') as fout:
-            for sample in SAMPLES[self.species][self.population]:
-                if sample not in SFS_EXCLUSIONS[self.species]:
-                    fout.write('{}\t{}\n'.format(sample, self.population))
-                    num_samples += 1
+            for sample in samples:
+                fout.write('{}\t{}\n'.format(sample, self.population))
 
         params = {
             'vcf':  self.input().path,
             'pops': pop_file,
             'out':  self.basename,
-            'proj': num_samples * 2  # don't project down
+            'proj': len(samples) * 2  # don't project down
         }
 
-        # pass 'yes' into easySFS to get past the interactive prompt
+        # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
         cmd = "echo 'yes' | easySFS.py -a -i {vcf} -p {pops} -o sfs/{out} --proj {proj} --unfolded".format(**params)
 
         run_cmd([cmd], shell=True)

@@ -6,7 +6,8 @@ import luigi
 import math
 import pickle
 import random
-import scipy.stats as st
+
+from pprint import pprint
 
 # import my custom modules
 from pipeline_consts import *
@@ -23,21 +24,21 @@ DADI_REPLICATES = 50
 DADI_GRID_PTS = 100
 
 
-def dadi_epoch_model(params, ns, pts):
+def dadi_n_epoch(params, ns, pts):
     """
     Sequential epoch model for dadi.
 
-    :param params: Times and population sizes of the epochs (e.g. t1, t2, ..., n1, n2)
-    :param ns: The number of samples
-    :param pts: The number of points in the grid
+    :param params: Population sizes and times of the epochs (e.g. n1, n2... t1, t2)
+    :param ns: Number of samples in resulting Spectrum
+    :param pts: Number of grid points to use in integration
     """
 
-    # each epoch has a time and a size
-    num_epoch = len(params) / 2
+    # how many epochs does this model have (each epoch has 2 params)
+    epochs = len(params) / 2
 
-    # split the two types of params
-    time = params[num_epoch:]
-    size = params[:num_epoch]
+    # nu: Ratio of contemporary to ancient population size
+    # T:  Time in the past at which size change happened (in units of 2*Na generations)
+    nu, T = params[:epochs], params[epochs:]
 
     # make the grid
     grid = dadi.Numerics.default_grid(pts)
@@ -45,9 +46,9 @@ def dadi_epoch_model(params, ns, pts):
     # one-dimensional phi for a constant-sized population
     phi = dadi.PhiManip.phi_1D(grid)
 
-    for i in range(num_epoch):
+    for i in range(epochs):
         # integrate a 1-dimensional phi forward
-        phi = dadi.Integration.one_pop(phi, grid, time[i], size[i])
+        phi = dadi.Integration.one_pop(phi, grid, T[i], nu[i])
 
     # compute sample Spectrum from population frequency distribution phi
     fs = dadi.Spectrum.from_phi(phi, ns, [grid])
@@ -132,19 +133,16 @@ class DadiEpochOptimizeParams(PipelineTask):
         lower = [.01] * self.epoch + [0] * self.epoch
         upper = [100] * self.epoch + [5] * self.epoch
 
-        # TODO pick random starting values (bounded by lower/upper)
-        # start = [random.uniform(lower[i], upper[i]) for i in range(0, self.epoch * 2)]
-
-        # pick random starting values (bounded by 0-2)
-        start = st.uniform.rvs(scale=2, size=self.epoch * 2)
+        # pick random starting values, bounded by the upper and lower parameter limits
+        start = [random.uniform(lower[i], upper[i]) for i in range(0, self.epoch * 2)]
 
         # optimize log(params) to fit model to data using Nelder-Mead algorithm
-        p_opt = dadi.Inference.optimize_log_fmin(start, fs, dadi_epoch_model, lower_bound=lower, upper_bound=upper,
+        p_opt = dadi.Inference.optimize_log_fmin(start, fs, dadi_n_epoch, lower_bound=lower, upper_bound=upper,
                                                  pts=DADI_GRID_PTS, verbose=50, output_file=log_file.path,
                                                  full_output=True)
 
         # fit the optimised model
-        model = dadi_epoch_model(p_opt[0], fs.sample_sizes, DADI_GRID_PTS)
+        model = dadi_n_epoch(p_opt[0], fs.sample_sizes, DADI_GRID_PTS)
 
         # calculate theta given the model
         theta = dadi.Inference.optimal_sfs_scaling(model, fs)
@@ -239,7 +237,7 @@ class DadiEpochBestModel(PipelineTask):
         epochs.sort(key=lambda x: x['relL'], reverse=True)
 
         if epochs[1]['relL'] > 0.05:
-            raise Exception('ERROR: Cannot reject second best model based on relative likelihood of AIC')
+            raise Warning('ERROR: Cannot reject second best model based on relative likelihood of AIC')
 
         # save the results by pickling them in a file
         with self.output().open('w') as fout:

@@ -210,39 +210,58 @@ class DadiEpochBestModel(PipelineTask):
     folded = luigi.BoolParameter()
 
     def requires(self):
+        yield EasySFS(self.species, self.population, self.folded)
+
         for epoch in range(1, DADI_EPOCHS + 1):
             yield DadiEpochMaximumLikelihood(self.species, self.population, self.folded, epoch)
 
     def output(self):
-        return luigi.LocalTarget("sfs/{}.pickle".format(self.basename))
+        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['pickle', 'pdf']]
 
     def run(self):
+        # unpack the inputs/outputs
+        sfs_file, epoch_pkls = self.input()[0], self.input()[1:]
+        pkl_out, pdf_out = self.output()
+
         epochs = []
 
         # load the pickled max lnL params from each of the epoch models
-        for pkl_file in self.input():
+        for pkl_file, _ in epoch_pkls:
             with pkl_file.open('r') as fin:
                 epochs.append(pickle.load(fin))
 
-        # calculate the AIC - i.e. AIC = 2 * num_params - 2 * lnL
+        # calculate the AIC = 2 * num_params - 2 * lnL
         for epoch in epochs:
             epoch['aic'] = (2 * len(epoch['params'])) - (2 * epoch['lnL'])
 
         # get the min AIC
         min_aic = min(e['aic'] for e in epochs)
 
-        # compute the relative likelihood of each model - i.e. exp((AICmin − AICi)/2)
+        # compute the relative likelihood of each model = exp((AICmin − AICi)/2)
         for epoch in epochs:
             epoch['relL'] = math.exp((min_aic - epoch['aic']) / 2)
 
         # reverse sort by relative likelihood
         epochs.sort(key=lambda x: x['relL'], reverse=True)
 
-        if epochs[1]['relL'] > 0.05:
-            raise Warning('ERROR: Cannot reject second best model based on relative likelihood of AIC')
+        # reject modelling if 2nd best model has a relative likelihood greater than acceptable
+        if epochs[1]['relL'] > DADI_MAX_RELATIVE_LL:
+            raise Exception('ERROR: Cannot reject second best model based on relative likelihood.\n' + str(epochs[:2]))
+
+        # load the frequency spectrum
+        fs = dadi.Spectrum.from_file(sfs_file.path)
+
+        # fit the optimised model
+        model = dadi_n_epoch(epochs[0]['params'], fs.sample_sizes, DADI_GRID_PTS)
+
+        # plot the figure
+        fig = plt.figure(1)
+        dadi.Plotting.plot_1d_comp_multinom(model, fs, fig_num=1, plot_masked=True)
+        fig.savefig(pdf_out.path)
+        plt.close(fig)
 
         # save the results by pickling them in a file
-        with self.output().open('w') as fout:
+        with pkl_out.open('w') as fout:
             pickle.dump(epochs, fout)
 
 

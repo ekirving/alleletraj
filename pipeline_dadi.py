@@ -139,7 +139,7 @@ class DadiEpochOptimizeParams(PipelineTask):
         return EasySFS(self.species, self.population, self.folded)
 
     def output(self):
-        return [luigi.LocalTarget("sfs/{}-params.{}".format(self.basename, ext)) for ext in ['pickle', 'log']]
+        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['pickle', 'log']]
 
     def run(self):
 
@@ -208,7 +208,7 @@ class DadiEpochMaximumLikelihood(PipelineTask):
             yield DadiEpochOptimizeParams(self.species, self.population, self.folded, self.epoch, n)
 
     def output(self):
-        return luigi.LocalTarget("sfs/{}-best.{}".format(self.basename, 'pickle'))
+        return luigi.LocalTarget("sfs/{}-best.pickle".format(self.basename))
 
     def run(self):
 

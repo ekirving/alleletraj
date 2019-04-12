@@ -4,10 +4,9 @@
 import dadi
 import luigi
 import math
+import matplotlib.pyplot as plt
 import pickle
 import random
-
-from pprint import pprint
 
 # import my custom modules
 from pipeline_consts import *
@@ -18,10 +17,13 @@ from pipeline_utils import PipelineTask, run_cmd
 DADI_EPOCHS = 5
 
 # how many independent runs should we do to find global maximum of params
-DADI_REPLICATES = 50
+DADI_REPLICATES = 100
 
 # number of points to use in the grid
 DADI_GRID_PTS = 100
+
+# maximum relative log likelihood to not reject the second best model
+DADI_MAX_RELATIVE_LL = 0.10
 
 
 def dadi_n_epoch(params, ns, pts):
@@ -129,7 +131,7 @@ class DadiEpochOptimizeParams(PipelineTask):
         # load the frequency spectrum
         fs = dadi.Spectrum.from_file(sfs_file.path)
 
-        # set the upper and lower parameter bounds
+        # set the upper and lower parameter bounds (0.01 < nu < 100 | 0 < T < 5)
         lower = [.01] * self.epoch + [0] * self.epoch
         upper = [100] * self.epoch + [5] * self.epoch
 

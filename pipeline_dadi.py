@@ -55,31 +55,6 @@ def dadi_epoch_model(params, ns, pts):
     return fs
 
 
-class CountCallableSites(PipelineTask):
-    """
-    Count the number of callable sites, as dadi needs this number to estimate the ancestral population size from theta.
-
-    :type species: str
-    :type population: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-
-    def requires(self):
-        return PolarizeVCF(self.species, self.population)
-
-    def output(self):
-        return luigi.LocalTarget('sfs/{}.L'.format(self.basename))
-
-    def run(self):
-
-        # count all unique sites
-        size = run_cmd(["bcftools query -f '%CHROM %POS\\n' {} | uniq | wc -l".format(self.input().path)], shell=True)
-
-        with self.output().open('w') as fout:
-            fout.write(size)
-
-
 class EasySFS(PipelineTask):
     """
     Calculate the Site Frequency Spectrum.
@@ -269,6 +244,31 @@ class DadiEpochBestModel(PipelineTask):
         # save the results by pickling them in a file
         with self.output().open('w') as fout:
             pickle.dump(epochs, fout)
+
+
+class CountCallableSites(PipelineTask):
+    """
+    Count the number of callable sites, as dadi needs this number to estimate the ancestral population size from theta.
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def requires(self):
+        return PolarizeVCF(self.species, self.population)
+
+    def output(self):
+        return luigi.LocalTarget('sfs/{}.L'.format(self.basename))
+
+    def run(self):
+
+        # count all unique sites
+        size = run_cmd(["bcftools query -f '%CHROM %POS\\n' {} | uniq | wc -l".format(self.input().path)], shell=True)
+
+        with self.output().open('w') as fout:
+            fout.write(size)
 
 
 class DadiModelDemography(luigi.WrapperTask):

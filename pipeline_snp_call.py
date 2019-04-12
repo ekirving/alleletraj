@@ -40,8 +40,15 @@ class BCFToolsCall(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
+    @property
+    def samples(self):
+        """
+        Include the outgroup in the sample list, as we need it for polarization
+        """
+        return [OUTGROUP] + SAMPLES[self.species][self.population]
+
     def requires(self):
-        for sample in SAMPLES[self.species][self.population]:
+        for sample in self.samples:
             yield BAMfile(self.species, sample)
 
     def output(self):
@@ -53,7 +60,7 @@ class BCFToolsCall(PipelineTask):
         sex_file = 'data/{}_{}.sex'.format(self.species, self.population)
 
         with open(sex_file, 'w') as fout:
-            for sample in SAMPLES[self.species][self.population]:
+            for sample in self.samples:
                 fout.write('{}\t{}\n'.format(sample, SAMPLE_SEX[self.species][sample]))
 
         with self.output().temporary_path() as vcf_out:
@@ -267,7 +274,8 @@ class BCFtoolsCallSNPs(luigi.WrapperTask):
     """
 
     def requires(self):
-        return SubsetSNPsVCF('horse', 'DOM2')
+        yield SubsetSNPsVCF('horse', 'DOM')
+        yield SubsetSNPsVCF('horse', 'DOM2')
 
 
 if __name__ == '__main__':

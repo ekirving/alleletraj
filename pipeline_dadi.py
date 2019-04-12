@@ -14,10 +14,10 @@ from pipeline_snp_call import PolarizeVCF, SubsetSNPsVCF
 from pipeline_utils import PipelineTask, run_cmd
 
 # number of sequential epochs to test
-DADI_MAX_EPOCHS = 5
+DADI_EPOCHS = 5
 
 # how many independent runs should we do to find global maximum of params
-DADI_MAX_REPS = 10  # TODO put back to 50
+DADI_REPLICATES = 50
 
 # number of points to use in the grid
 DADI_GRID_PTS = 100
@@ -163,8 +163,6 @@ class DadiEpochOptimizeParams(PipelineTask):
         # pick random starting values (bounded by 0-2)
         start = st.uniform.rvs(scale=2, size=self.epoch * 2)
 
-        print("start = {}".format(start))
-
         # optimize log(params) to fit model to data using Nelder-Mead algorithm
         p_opt = dadi.Inference.optimize_log_fmin(start, fs, dadi_epoch_model, lower_bound=lower, upper_bound=upper,
                                                  pts=DADI_GRID_PTS, verbose=50, output_file=log_file.path,
@@ -201,7 +199,7 @@ class DadiEpochMaximumLikelihood(PipelineTask):
     epoch = luigi.IntParameter()
 
     def requires(self):
-        for n in range(1, DADI_MAX_REPS + 1):
+        for n in range(1, DADI_REPLICATES + 1):
             yield DadiEpochOptimizeParams(self.species, self.population, self.folded, self.epoch, n)
 
     def output(self):
@@ -237,7 +235,7 @@ class DadiEpochBestModel(PipelineTask):
     folded = luigi.BoolParameter()
 
     def requires(self):
-        for epoch in range(1, DADI_MAX_EPOCHS + 1):
+        for epoch in range(1, DADI_EPOCHS + 1):
             yield DadiEpochMaximumLikelihood(self.species, self.population, self.folded, epoch)
 
     def output(self):

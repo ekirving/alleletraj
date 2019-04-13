@@ -679,34 +679,6 @@ MAX_INSERT_SIZE = 50000
 # the maximum number of conditions in a single query
 MAX_QUERY_SIZE = 5000
 
-# the population history is either: constant, or a fully specified complex demography
-MCMC_POP_CONST = 'const'
-MCMC_POP_DEMOG = 'demog'
-
-# number of MCMC cycles to run
-MCMC_CYCLES = int(5e7)
-
-# frequency of sampling from the posterior
-MCMC_SAMPLE_FREQ = 10000
-
-# fraction of MCMC cycles to discard as burn in
-MCMC_BURN_IN = 0.2
-
-# frequency of printing output to the screen
-MCMC_PRINT = 1000
-
-# fraction of the allele frequency to update during a trajectory update move
-MCMC_FRACTION = 20
-
-# derived allele is: 1=dominant, 0=recessive, 0.5=additive
-MCMC_DOMINANCE = 0.5
-
-# random number seed
-MCMC_RANDOM_SEED = 234395
-
-# minimum number of time bins
-MCMC_MIN_BINS = 3
-
 # luigi priority flags
 PRIORITY_LOW  = 0
 PRIORITY_MED  = 1

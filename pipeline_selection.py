@@ -4,9 +4,41 @@
 from __future__ import print_function
 
 import luigi
+import os
 import unicodecsv as csv
 
-from pipeline_utils import *
+# import my custom modules
+from pipeline_consts import *
+from pipeline_utils import PipelineTask, db_conn, run_cmd, trim_ext
+
+
+# the population history is either: constant, or a fully specified complex demography
+MCMC_POP_CONST = 'const'
+MCMC_POP_DEMOG = 'demog'
+
+# number of MCMC cycles to run
+MCMC_CYCLES = int(5e7)
+
+# frequency of sampling from the posterior
+MCMC_SAMPLE_FREQ = 10000
+
+# fraction of MCMC cycles to discard as burn in
+MCMC_BURN_IN = 0.2
+
+# frequency of printing output to the screen
+MCMC_PRINT = 1000
+
+# fraction of the allele frequency to update during a trajectory update move
+MCMC_FRACTION = 20
+
+# derived allele is: 1=dominant, 0=recessive, 0.5=additive
+MCMC_DOMINANCE = 0.5
+
+# random number seed
+MCMC_RANDOM_SEED = 234395
+
+# minimum number of time bins
+MCMC_MIN_BINS = 3
 
 
 class SelectionInputFile(PipelineTask):
@@ -102,7 +134,7 @@ class SelectionRunMCMC(PipelineTask):
 
     def output(self):
         return [luigi.LocalTarget("selection/{}.{}".format(self.basename, ext))
-                    for ext in ['log', 'param', 'time', 'traj']]
+                for ext in ['log', 'param', 'time', 'traj']]
 
     def run(self):
 
@@ -144,6 +176,9 @@ class SelectionRunMCMC(PipelineTask):
 class SelectionPlot(PipelineTask):
     """
     Plot the allele trajectory.
+
+    :type mcmc_cycles: int
+    :type mcmc_freq: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -169,7 +204,7 @@ class SelectionPlot(PipelineTask):
 
         gen_time = GENERATION_TIME[self.species]
         pop_size = POPULATION_SIZE[self.species][self.population]
-        burn_in = int(self.mcmc_cycles / self.mcmc_freq * MCMC_BURN_IN)
+        burn_in = self.mcmc_cycles / self.mcmc_freq * MCMC_BURN_IN
 
         try:
             # plot the allele trajectory

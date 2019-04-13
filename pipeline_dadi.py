@@ -122,7 +122,7 @@ class DadiEpochOptimizeParams(PipelineTask):
         return EasySFS(self.species, self.population, self.folded)
 
     def output(self):
-        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['pickle', 'log']]
+        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['pkl', 'log']]
 
     def run(self):
 
@@ -139,6 +139,8 @@ class DadiEpochOptimizeParams(PipelineTask):
 
         # pick random starting values, bounded by the upper and lower parameter limits
         start = [random.uniform(lower[i], upper[i]) for i in range(0, self.epoch * 2)]
+
+        # TODO Numerics.make_extrap_log_func()
 
         # optimize log(params) to fit model to data using Nelder-Mead algorithm
         p_opt = dadi.Inference.optimize_log_fmin(start, fs, dadi_n_epoch, lower_bound=lower, upper_bound=upper,
@@ -180,7 +182,7 @@ class DadiEpochMaximumLikelihood(PipelineTask):
             yield DadiEpochOptimizeParams(self.species, self.population, self.folded, self.epoch, n)
 
     def output(self):
-        return luigi.LocalTarget("sfs/{}-maxlnL.pickle".format(self.basename))
+        return luigi.LocalTarget("sfs/{}-maxlnL.pkl".format(self.basename))
 
     def run(self):
 
@@ -218,7 +220,7 @@ class DadiEpochBestModel(PipelineTask):
             yield DadiEpochMaximumLikelihood(self.species, self.population, self.folded, epoch)
 
     def output(self):
-        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['pickle', 'pdf']]
+        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['pkl', 'pdf']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -338,18 +340,16 @@ class DadiDemography(PipelineTask):
         # TODO times are given in units of 2Nref generations
 
         # unpack the params
-        nu, T = params[:best['epoch']], params[epoch:]
+        sizes, times = params[:best['epoch']], params[epoch:]
 
         # reverse the param order (newest first, oldest last)
-        nu.reverse()
-        T.reverse()
-
-        print(best)
+        sizes.reverse()
+        times.reverse()
 
         # save the demography file
         with self.output().open('w') as fout:
             for i in range(epoch):
-                fout.write("{:.4f}\t0.0\t-{}\n".format(nu[i], T[i]))
+                fout.write("{:.4f}\t0.0\t-{}\n".format(sizes[i], times[i]))
 
             # add the infinite time-point
             fout.write("1.0\t0\t-Inf\n")

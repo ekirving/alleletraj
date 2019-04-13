@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import dadi
 import luigi
 import math
+import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import dadi
 import pickle
 import random
 
@@ -12,6 +13,7 @@ import random
 from pipeline_consts import *
 from pipeline_snp_call import PolarizeVCF, SubsetSNPsVCF
 from pipeline_utils import PipelineTask, run_cmd
+
 
 # number of sequential epochs to test
 DADI_EPOCHS = 5
@@ -226,7 +228,7 @@ class DadiEpochBestModel(PipelineTask):
         epochs = []
 
         # load the pickled max lnL params from each of the epoch models
-        for pkl_file, _ in epoch_pkls:
+        for pkl_file in epoch_pkls:
             with pkl_file.open('r') as fin:
                 epochs.append(pickle.load(fin))
 
@@ -290,14 +292,76 @@ class CountCallableSites(PipelineTask):
             fout.write(size)
 
 
+class DadiDemography(PipelineTask):
+    """
+    Convert the best fitting dadi model into a demography file for `selection`
+
+    :type species: str
+    :type population: str
+    :type folded: bool
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    folded = luigi.BoolParameter()
+
+    def requires(self):
+        yield DadiEpochBestModel(self.species, self.population, self.folded)
+        yield CountCallableSites(self.species, self.population)
+
+    def output(self):
+        return luigi.LocalTarget("data/selection/{}-demog.pop".format(self.basename))
+
+    def run(self):
+        # unpack the inputs
+        (pkl_file, _), size_file = self.input()
+
+        # load the best epoch model
+        with pkl_file.open('r') as fin:
+            best = pickle.load(fin)[0]
+
+        # unpack the values
+        theta, params, epoch = best['theta'], list(best['params']), best['epoch']
+
+        # get the mutation rate
+        mu = MUTATION_RATE[self.species]
+
+        # get the count of all callable sites
+        # L = int(size_file.open().read())
+        # TODO remove when we have real results (assume full coverage of chromosome)
+        L = 83980604
+
+        # dadi scales population size by 2*Nref, where Nref is the size of the most ancient population
+        # in dadi, θ = 4*Nref*µ, so to solve to Nref
+        # TODO what now?
+        Nref = theta / (4 * mu * L)  # Nref = 43,938
+
+        # TODO times are given in units of 2Nref generations
+
+        # unpack the params
+        nu, T = params[:best['epoch']], params[epoch:]
+
+        # reverse the param order (newest first, oldest last)
+        nu.reverse()
+        T.reverse()
+
+        print(best)
+
+        # save the demography file
+        with self.output().open('w') as fout:
+            for i in range(epoch):
+                fout.write("{:.4f}\t0.0\t-{}\n".format(nu[i], T[i]))
+
+            # add the infinite time-point
+            fout.write("1.0\t0\t-Inf\n")
+
+
 class DadiModelDemography(luigi.WrapperTask):
     """
-    Find the best fitting of 5 sequential epoch models (i.e. 1 epoch, 2 epoch, etc.).
+    Find the best fitting of 5 sequential epoch ∂a∂i models (i.e. 1 epoch, 2 epoch, etc.).
     """
 
     def requires(self):
-        # run multiple epochs, with multiple independent replicates
-        return DadiEpochBestModel('horse', 'DOM2', False)
+        return DadiDemography('horse', 'DOM2', False)
 
 
 if __name__ == '__main__':

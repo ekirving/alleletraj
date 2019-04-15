@@ -26,7 +26,7 @@ module load gsl
 models=($(ls selection/*.input))
 
 # set the number of runs that each SLURM task should do
-per_task=$NUMBER_CPUS/$NUMBER_REPS  # arcus-b nodes have 16 CPUs, but we run 4 independent replicates of each model
+per_task=${NUMBER_CPUS}/${NUMBER_REPS}  # arcus-b nodes have 16 CPUs, but we run 4 independent replicates of each model
 
 # calculate the starting and ending values for this task based on the SLURM task and the number of runs per task
 start_num=$(( ($SLURM_ARRAY_TASK_ID - 1) * $per_task + 1 ))
@@ -53,8 +53,8 @@ for (( i=$start_num; i<=end_num; i++ )); do
             cmd="sr -D $input -o data/${input%.*}-n${n} -P $POP_HISTORY -a -n $MCMC_CYCLES -s $SAMPLE_FREQ -f $OUTPUT_FREQ -F $ALLELE_FREQ -e $RANDOM"
 
             # run selection, and log the command
-            echo $cmd | tee ${input%.*}.log
-            eval $cmd >> ${input%.*}.log &
+            echo ${cmd} | tee ${input%.*}.log
+            eval ${cmd} >> ${input%.*}.log &
         done
     fi
 done

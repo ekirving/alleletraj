@@ -11,6 +11,7 @@ rsync -avz --partial \
            --exclude '*.r' \
            --exclude '*.R' \
            --exclude '*.old*' \
+           --exclude '*.bak' \
            --exclude '*tmp*' \
            --exclude '*.ld' \
            --exclude 'screening' \

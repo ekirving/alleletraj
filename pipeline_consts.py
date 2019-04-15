@@ -688,7 +688,7 @@ PRIORITY_MAX  = 3
 # QTLdb settings
 QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'
 QTLDB_CHUNK_SIZE = 10
-QTLDB_RELEASE = 'rel36'
+QTLDB_RELEASE = 'rel35'  # TODO fix me
 
 QTL_FILES = {
     'pig':    "data/AnimalQTLdb/{}/cM/pig.txt".format(QTLDB_RELEASE),

@@ -140,31 +140,32 @@ class SelectionRunMCMC(PipelineTask):
 
         # compose the input and output file paths
         input_file = self.input().path
-        log_file = self.output()[0].path
-        output_prefix = trim_ext(log_file)
+        log_file, param_file, time_file, traj_file = self.output()
+        output_prefix = trim_ext(log_file.path)
         
         # get path of the population history file
         pop_hist = 'data/selection/{}-{}-{}.pop'.format(self.species, self.population, self.pop_hist)
 
         try:
-            # run `selection`
-            run_cmd(['sr',
-                     '-D', input_file,        # path to data input file
-                     '-P', pop_hist,          # path to population size history file
-                     '-o', output_prefix,     # output file prefix
-                     '-a',                    # flag to infer allele age
-                     '-h', MCMC_DOMINANCE,    # derived allele is: 1=dominant, 0=recessive, 0.5=additive
-                     '-n', self.mcmc_cycles,  # number of MCMC cycles to run
-                     '-s', self.mcmc_freq,    # frequency of sampling from the posterior
-                     '-f', MCMC_PRINT,        # frequency of printing output to the screen
-                     '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory move
-                     '-e', MCMC_RANDOM_SEED,  # random number seed
-                     ], stdout=log_file)
+            with log_file.open('w') as fout:
+                # run `selection`
+                run_cmd(['sr',
+                         '-D', input_file,        # path to data input file
+                         '-P', pop_hist,          # path to population size history file
+                         '-o', output_prefix,     # output file prefix
+                         '-a',                    # flag to infer allele age
+                         # '-h', MCMC_DOMINANCE,    # derived allele is: 1=dominant, 0=recessive, 0.5=additive
+                         '-n', self.mcmc_cycles,  # number of MCMC cycles to run
+                         '-s', self.mcmc_freq,    # frequency of sampling from the posterior
+                         '-f', MCMC_PRINT,        # frequency of printing output to the screen
+                         '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory move
+                         '-e', MCMC_RANDOM_SEED,  # random number seed
+                         ], stdout=fout)
 
         except RuntimeError as e:
             # delete the unfinished *.time and *.traj files
-            self.output()[2].remove()
-            self.output()[3].remove()
+            time_file.remove()
+            traj_file.remove()
 
             raise RuntimeError(e)
 
@@ -191,7 +192,7 @@ class SelectionPlot(PipelineTask):
     resources = {'cpu-cores': CPU_CORES_ONE, 'ram-gb': 64}
 
     def requires(self):
-        return SelectionRunMCMC(*self.all_params())
+        return SelectionRunMCMC(self.species, self.population, self.modsnp_id, self.pop_hist, self.mcmc_cycles, self.mcmc_freq)
 
     def output(self):
         return luigi.LocalTarget("pdf/{}.pdf".format(self.basename))

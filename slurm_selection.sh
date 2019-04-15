@@ -17,8 +17,6 @@ ALLELE_FREQ=20          # fraction of the allele frequency to update during a tr
 NUMBER_CPUS=16          # how many CPUs are available on each node
 NUMBER_REPS=4           # number of independent replicates to run
 
-OUTPUT_DIR='/data/arch-undead/scro2860'
-
 pwd; hostname; date
 
 # we need the GSL library to run selection
@@ -52,11 +50,11 @@ for (( i=$start_num; i<=end_num; i++ )); do
         for (( n=1; n<=NUMBER_REPS; n++ )); do
 
             # compose the command to run
-            cmd="sr -D $input -o ${OUTPUT_DIR}/${input%.*}-n${n} -P $POP_HISTORY -a -n $MCMC_CYCLES -s $SAMPLE_FREQ -f $OUTPUT_FREQ -F $ALLELE_FREQ -e $RANDOM"
+            cmd="sr -D $input -o data/${input%.*}-n${n} -P $POP_HISTORY -a -n $MCMC_CYCLES -s $SAMPLE_FREQ -f $OUTPUT_FREQ -F $ALLELE_FREQ -e $RANDOM"
 
             # run selection, and log the command
             echo $cmd | tee ${input%.*}.log
-#            eval $cmd >> ${input%.*}.log &
+            eval $cmd >> ${input%.*}.log &
         done
     fi
 done

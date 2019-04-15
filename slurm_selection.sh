@@ -8,12 +8,16 @@
 #SBATCH --time=01:30:00             # Time limit hrs:min:sec (each cycle takes ~7e-5 seconds, so 5e7 = 3,500 sec = ~ 1hr)
 #SBATCH --output=array_%A-%a.out    # Standard output and error log
 
-# This is an example script that combines array tasks with
-# bash loops to process many short runs. Array jobs are convenient
-# for running lots of tasks, but if each task is short, they
-# quickly become inefficient, taking more time to schedule than
-# they spend doing any work and bogging down the scheduler for
-# all users.
+# fixed params for running the models
+POP_HISTORY='horse-DOM2-const.pop'
+MCMC_CYCLES=50000000    # number of MCMC cycles to run
+SAMPLE_FREQ=10000       # frequency of sampling from the posterior
+OUTPUT_FREQ=1000        # frequency of printing output to the screen
+ALLELE_FREQ=20          # fraction of the allele frequency to update during a trajectory update move
+NUMBER_CPUS=16          # how many CPUs are available on each node
+NUMBER_REPS=4           # number of independent replicates to run
+
+OUTPUT_DIR='/data/arch-undead/scro2860'
 
 pwd; hostname; date
 
@@ -24,40 +28,40 @@ module load gsl
 models=($(ls selection/*.input))
 
 # set the number of runs that each SLURM task should do
-PER_TASK=16  # arcus-b nodes have 16 CPUs
+per_task=$NUMBER_CPUS/$NUMBER_REPS  # arcus-b nodes have 16 CPUs, but we run 4 independent replicates of each model
 
 # calculate the starting and ending values for this task based on the SLURM task and the number of runs per task
-START_NUM=$(( ($SLURM_ARRAY_TASK_ID - 1) * $PER_TASK + 1 ))
-END_NUM=$(( $SLURM_ARRAY_TASK_ID * $PER_TASK ))
+start_num=$(( ($SLURM_ARRAY_TASK_ID - 1) * $per_task + 1 ))
+end_num=$(( $SLURM_ARRAY_TASK_ID * $per_task ))
 
 # don't overshoot the list of models
-if (( $END_NUM > ${#models[@]} )); then
-    END_NUM=${#models[@]}
+if (( $end_num > ${#models[@]} )); then
+    end_num=${#models[@]}
 fi
 
 # Print the task and run range
-echo "This is task $SLURM_ARRAY_TASK_ID, which will do models $START_NUM to $END_NUM."
+echo "This is SLURM_ARRAY_TASK $SLURM_ARRAY_TASK_ID, which will do models $start_num to $end_num with $NUMBER_REPS replicates each.\n"
 
-POP_HISTORY='horse-DOM2-const.pop'
-MCMC_CYCLES=50000000
-SAMPLE_FREQ=10000
-PRINTL_FREQ=1000
-ALLELE_FREQ=20
+# run the inputs for this task
+for (( i=$start_num; i<=end_num; i++ )); do
 
-# Run the loop of runs for this task.
-for (( run=$START_NUM; run<=END_NUM; run++ )); do
-    input=${models[$run-1]}
+    input=${models[$i-1]}
     if test "$input+isset}"; then
 
-        cmd="sr -D $input -o ${input%.*} -P $POP_HISTORY -a -n $MCMC_CYCLES -s $SAMPLE_FREQ -f $PRINTL_FREQ -F $ALLELE_FREQ -e $RANDOM"
+        # run the replicates for this input
+        for (( n=1; n<=NUMBER_REPS; n++ )); do
 
-        # run selection, and log the command
-        echo $cmd | tee ${input%.*}.log
-        eval $cmd >> ${input%.*}.log &
+            # compose the command to run
+            cmd="sr -D $input -o ${OUTPUT_DIR}/${input%.*}-n${n} -P $POP_HISTORY -a -n $MCMC_CYCLES -s $SAMPLE_FREQ -f $OUTPUT_FREQ -F $ALLELE_FREQ -e $RANDOM"
+
+            # run selection, and log the command
+            echo $cmd | tee ${input%.*}.log
+#            eval $cmd >> ${input%.*}.log &
+        done
     fi
 done
 
-# wait for all the background jobs to finish
+# wait for all the background jobs to finish, or else the script ends and SLURM terminates the jobs
 wait
 
 date

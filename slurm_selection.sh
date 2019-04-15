@@ -38,7 +38,7 @@ if (( $end_num > ${#models[@]} )); then
 fi
 
 # Print the task and run range
-echo "This is SLURM_ARRAY_TASK $SLURM_ARRAY_TASK_ID, which will do models $start_num to $end_num with $NUMBER_REPS replicates each.\n"
+echo "This is SLURM_ARRAY_TASK $SLURM_ARRAY_TASK_ID, which will do models $start_num to $end_num with $NUMBER_REPS replicates each."
 
 # run the inputs for this task
 for (( i=$start_num; i<=end_num; i++ )); do
@@ -51,10 +51,11 @@ for (( i=$start_num; i<=end_num; i++ )); do
 
             # compose the command to run
             cmd="sr -D $input -o data/${input%.*}-n${n} -P $POP_HISTORY -a -n $MCMC_CYCLES -s $SAMPLE_FREQ -f $OUTPUT_FREQ -F $ALLELE_FREQ -e $RANDOM"
+            log="data/${input%.*}.log"
 
             # run selection, and log the command
-            echo ${cmd} | tee ${input%.*}.log
-            eval ${cmd} >> ${input%.*}.log &
+            echo ${cmd} | tee ${log}
+            eval ${cmd} >> ${log} &
         done
     fi
 done

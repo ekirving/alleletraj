@@ -372,7 +372,9 @@ class DadiModelDemography(luigi.WrapperTask):
     """
 
     def requires(self):
-        return DadiDemography('horse', 'DOM2')
+        yield DadiDemography('horse', 'DOM')
+        yield DadiDemography('horse', 'DOM2')
+
 
 
 if __name__ == '__main__':

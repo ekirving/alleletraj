@@ -18,8 +18,8 @@ from pipeline_utils import PipelineTask, run_cmd
 # number of sequential epochs to test
 DADI_EPOCHS = 5
 
-# how many independent replicates should we runs to find the global maximum params (dadi can get stuck in local maxima)
-DADI_REPLICATES = 1e6
+# how many independent replicates should we run to find the global maximum params (dadi can get stuck in local maxima)
+DADI_REPLICATES = 200  # TODO increase this
 
 # number of points to use in the grid
 DADI_GRID_PTS = 100
@@ -374,7 +374,6 @@ class DadiModelDemography(luigi.WrapperTask):
     def requires(self):
         yield DadiDemography('horse', 'DOM')
         yield DadiDemography('horse', 'DOM2')
-
 
 
 if __name__ == '__main__':

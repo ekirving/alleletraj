@@ -269,11 +269,12 @@ class ExtractSNPsVCF(PipelineTask):
         with self.output().temporary_path() as vcf_out:
             run_cmd(['bcftools',
                      'view',
-                     '--types', 'snps',            # only keep biallelic SNPs
-                     '--min-alleles', 2,
+                     '--types', 'snps',            # only keep SNPs
+                     '--min-alleles', 2,           # which are biallelic
                      '--max-alleles', 2,
                      '--exclude', 'INFO/INDEL=1',  # exclude sites marked as INDELs in INFO tag
                      '--samples', '^' + OUTGROUP,  # exclude the outgroup
+                     '--min-ac', '1:nref',         # exclude sites exclusively hom-ALT, as these are likely mispolarised
                      '--output-type', 'z',
                      '--output', vcf_out,
                      self.input().path])
@@ -285,7 +286,7 @@ class BCFtoolsCallSNPs(luigi.WrapperTask):
     """
 
     def requires(self):
-        yield ExtractSNPsVCF('horse', 'DOM')
+        # yield ExtractSNPsVCF('horse', 'DOM')
         yield ExtractSNPsVCF('horse', 'DOM2')
 
 

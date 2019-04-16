@@ -162,7 +162,7 @@ class FilterVCF(PipelineTask):
 
 class ConcatFilteredVCFs(PipelineTask):
     """
-    Concatenate the chromosome level VCFs into a single file.
+    Concatenate the chromosome VCFs into a single file, normalise indels and merge multiallelic sites.
 
     :type species: str
     :type population: str
@@ -182,12 +182,17 @@ class ConcatFilteredVCFs(PipelineTask):
         # unpack the input params
         vcf_files = [vcf.path for vcf in self.input()]
 
-        with self.output().temporary_path() as vcf_out:
-            run_cmd(['bcftools',
-                     'concat',
-                     '--output-type', 'z',
-                     '--output', vcf_out,
-                     ] + vcf_files)
+        with self.output().temporary_path() as tmp_out:
+            params = {
+                'vcfs': ' '.join(vcf_files),
+                'ref': REF_FILE[self.species],
+                'out': tmp_out,
+            }
+
+            cmd = 'bcftools concat {vcfs} --output-type u | bcftools norm --fasta-ref {ref} --multiallelics +any ' \
+                  ' --output-type z --output {out}'.format(**params)
+
+            run_cmd([cmd], shell=True)
 
 
 class PolarizeVCF(PipelineTask):
@@ -210,42 +215,44 @@ class PolarizeVCF(PipelineTask):
 
     def run(self):
 
-        # open both VCF files
-        vcf_in = VariantFile(self.input().path)
-        vcf_out = VariantFile(self.output().path, 'w', header=vcf_in.header)
+        with self.output().temporary_path() as tmp_out:
+            # open both VCF files
+            vcf_in = VariantFile(self.input().path)
+            vcf_out = VariantFile(tmp_out, 'w', header=vcf_in.header)
 
-        # iterate over the VCF and determine the ancestral allele
-        for rec in vcf_in.fetch():
+            # iterate over the VCF and determine the ancestral allele
+            for rec in vcf_in.fetch():
 
-            # get the outgroup alleles
-            out_alleles = rec.samples[OUTGROUP].alleles
+                # get the outgroup alleles
+                out_alleles = rec.samples[OUTGROUP].alleles
 
-            # skip sites that are either heterozygous or missing in the outgroup
-            if len(set(out_alleles)) != 1 or out_alleles[0] is None:
-                continue
+                # skip sites in the outgroup that are: heterozygous, missing or an indel
+                if len(set(out_alleles)) != 1 or out_alleles[0] is None or len(out_alleles[0]) != 1:
+                    continue
 
-            # get the ancestral allele
-            anc = out_alleles[0]
+                # get the ancestral allele
+                anc = out_alleles[0]
 
-            # do we need to polarize this site
-            if rec.ref != anc:
+                # do we need to polarize this site
+                if rec.ref != anc:
 
-                # get all the alleles at this site, minus the ancestral
-                alt = set(tuple(rec.ref) + tuple(rec.alts))
-                alt.remove(anc)
+                    # get all the alleles at this site, minus the ancestral
+                    alt = set(tuple(rec.ref) + tuple(rec.alts))
+                    alt.remove(anc)
 
-                # VCFs store the GT as an allele index, so we have to update the indices
-                alleles = list(anc) + list(alt)
-                indices = dict(zip(alleles, range(0, len(alleles))))
+                    # VCFs store the GT as an allele index, so we have to update the indices
+                    alleles = list(anc) + list(alt)
+                    indices = dict(zip(alleles, range(0, len(alleles))))
 
-                for sample in rec.samples:
-                    rec.samples[sample].allele_indices = [indices.get(gt, None) for gt in rec.samples[sample].alleles]
+                    for sample in rec.samples:
+                        rec.samples[sample].allele_indices = [indices.get(gt, None) for gt in rec.samples[sample].alleles]
 
-                # polarize the REF/ALT alleles
-                rec.ref = anc
-                rec.alts = alt
+                    # polarize the REF/ALT alleles
+                    rec.ref = anc
+                    rec.alts = alt
 
-            vcf_out.write(rec)
+
+                vcf_out.write(rec)
 
 
 class ExtractSNPsVCF(PipelineTask):
@@ -286,7 +293,7 @@ class BCFtoolsCallSNPs(luigi.WrapperTask):
     """
 
     def requires(self):
-        # yield ExtractSNPsVCF('horse', 'DOM')
+        yield ExtractSNPsVCF('horse', 'DOM')
         yield ExtractSNPsVCF('horse', 'DOM2')
 
 

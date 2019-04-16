@@ -8,8 +8,9 @@
 #SBATCH --time=01:30:00             # Time limit hrs:min:sec (each cycle takes ~7e-5 seconds, so 5e7 = 3,500 sec = ~ 1hr)
 #SBATCH --output=array_%A-%a.out    # Standard output and error log
 
+POPULATION='horse-DOM2'
+
 # fixed params for running the models
-POP_HISTORY='horse-DOM2-const.pop'
 MCMC_CYCLES=50000000    # number of MCMC cycles to run
 SAMPLE_FREQ=10000       # frequency of sampling from the posterior
 OUTPUT_FREQ=1000        # frequency of printing output to the screen
@@ -23,7 +24,9 @@ pwd; hostname; date
 module load gsl
 
 # get a list of all the input files
-models=($(ls selection/*.input))
+models=($(ls selection/${POPULATION}*.input))
+
+# TODO ignore models that are done
 
 # set the number of runs that each SLURM task should do
 per_task=${NUMBER_CPUS}/${NUMBER_REPS}  # arcus-b nodes have 16 CPUs, but we run 4 independent replicates of each model
@@ -38,7 +41,7 @@ if (( $end_num > ${#models[@]} )); then
 fi
 
 # Print the task and run range
-echo "This is SLURM_ARRAY_TASK $SLURM_ARRAY_TASK_ID, which will do models $start_num to $end_num with $NUMBER_REPS replicates each."
+echo "This is SLURM_ARRAY_TASK $SLURM_ARRAY_TASK_ID, which will do models ${start_num}-${end_num} with $NUMBER_REPS replicates each."
 
 # run the inputs for this task
 for (( i=$start_num; i<=end_num; i++ )); do
@@ -49,16 +52,25 @@ for (( i=$start_num; i<=end_num; i++ )); do
         # run the replicates for this input
         for (( n=1; n<=NUMBER_REPS; n++ )); do
 
-            # compose the command to run
-            cmd="sr -D $input -o data/${input%.*}-n${n} -P $POP_HISTORY -a -n $MCMC_CYCLES -s $SAMPLE_FREQ -f $OUTPUT_FREQ -F $ALLELE_FREQ -e $RANDOM"
-            log="data/${input%.*}.log"
+            # TODO output should match luigi
+            # e.g. selection/horse-DOM2-modsnp_id5049478-const-mcmc_cycles50000000-mcmc_freq10000
 
-            # run selection, and log the command
+            output="${input%.*}-n${n}"
+            log="${output}.log"
+
+            # compose the command to run
+            cmd="sr -D $input -o $output -P dadi/${POPULATION}.pop -a -n $MCMC_CYCLES -s $SAMPLE_FREQ -f $OUTPUT_FREQ -F $ALLELE_FREQ -e $RANDOM"
+
+            # log the command before we start
             echo ${cmd} | tee ${log}
-            eval ${cmd} >> ${log} &
+
+            # now run the selection, and gzip the files when we're done
+            ( eval ${cmd} >> ${log}; gzip ${output}.time; gzip ${output}.traj; ) &
         done
     fi
 done
+
+# TODO add the plotting code
 
 # wait for all the background jobs to finish, or else the script ends and SLURM terminates the jobs
 wait

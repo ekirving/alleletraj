@@ -11,7 +11,7 @@ import random
 
 # import my custom modules
 from pipeline_consts import *
-from pipeline_snp_call import PolarizeVCF, SubsetSNPsVCF
+from pipeline_snp_call import PolarizeVCF, ExtractSNPsVCF
 from pipeline_utils import PipelineTask, run_cmd
 
 
@@ -72,7 +72,7 @@ class EasySFS(PipelineTask):
     folded = luigi.BoolParameter()
 
     def requires(self):
-        return SubsetSNPsVCF(self.species, self.population)
+        return ExtractSNPsVCF(self.species, self.population)
 
     def output(self):
         return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))

@@ -224,8 +224,6 @@ class PolarizeVCF(PipelineTask):
             if len(set(out_alleles)) != 1 or out_alleles[0] is None:
                 continue
 
-            # TODO should we drop sites that are hom-REF in outgroup and hom-ALT in ingroup?
-
             # get the ancestral allele
             anc = out_alleles[0]
 
@@ -250,9 +248,9 @@ class PolarizeVCF(PipelineTask):
             vcf_out.write(rec)
 
 
-class SubsetSNPsVCF(PipelineTask):
+class ExtractSNPsVCF(PipelineTask):
     """
-    Extract all the SNPs from the VCF.
+    Extract all the biallelic SNPs from the VCF.
 
     :type species: str
     :type population: str
@@ -271,8 +269,11 @@ class SubsetSNPsVCF(PipelineTask):
         with self.output().temporary_path() as vcf_out:
             run_cmd(['bcftools',
                      'view',
-                     '--types', 'snps',
-                     '--exclude', 'INFO/INDEL=1',
+                     '--types', 'snps',            # only keep biallelic SNPs
+                     '--min-alleles', 2,
+                     '--max-alleles', 2,
+                     '--exclude', 'INFO/INDEL=1',  # exclude sites marked as INDELs in INFO tag
+                     '--samples', '^' + OUTGROUP,  # exclude the outgroup
                      '--output-type', 'z',
                      '--output', vcf_out,
                      self.input().path])
@@ -284,8 +285,8 @@ class BCFtoolsCallSNPs(luigi.WrapperTask):
     """
 
     def requires(self):
-        yield SubsetSNPsVCF('horse', 'DOM')
-        yield SubsetSNPsVCF('horse', 'DOM2')
+        yield ExtractSNPsVCF('horse', 'DOM')
+        yield ExtractSNPsVCF('horse', 'DOM2')
 
 
 if __name__ == '__main__':

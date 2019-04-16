@@ -14,6 +14,7 @@ from pipeline_utils import *
 
 # TODO convert to luigi pipeline
 # TODO update to use pipeline_snp_call
+# NB. polarized  should we drop sites that are hom-REF in outgroup and hom-ALT in ingroup?
 
 
 def decode_fasta(pileup):

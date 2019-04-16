@@ -477,6 +477,7 @@ POPULATION_SIZE = {
     }
 }
 
+# TODO add method to download this data automatically
 ENSEMBL_DATA = {
 
     # see ftp://ftp.ensembl.org/pub/release-89/gtf/sus_scrofa/

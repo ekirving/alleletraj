@@ -310,7 +310,7 @@ class DadiDemography(PipelineTask):
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
-    folded = luigi.BoolParameter()
+    folded = luigi.BoolParameter(default=False)
 
     def requires(self):
         yield DadiEpochBestModel(self.species, self.population, self.folded)
@@ -372,7 +372,7 @@ class DadiModelDemography(luigi.WrapperTask):
     """
 
     def requires(self):
-        return DadiDemography('horse', 'DOM2', False)
+        return DadiDemography('horse', 'DOM2')
 
 
 if __name__ == '__main__':

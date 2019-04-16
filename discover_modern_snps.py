@@ -12,6 +12,9 @@ import pysam as ps
 
 from pipeline_utils import *
 
+# TODO convert to luigi pipeline
+# TODO update to use pipeline_snp_call
+
 
 def decode_fasta(pileup):
     """

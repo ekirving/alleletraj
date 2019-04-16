@@ -251,7 +251,6 @@ class PolarizeVCF(PipelineTask):
                     rec.ref = anc
                     rec.alts = alt
 
-
                 vcf_out.write(rec)
 
 
@@ -283,7 +282,7 @@ class ExtractSNPsVCF(PipelineTask):
                      '--samples', '^' + OUTGROUP,  # exclude the outgroup
                      '--min-ac', '1:nref',         # exclude sites exclusively hom-ALT, as these are likely mispolarised
                      '--output-type', 'z',
-                     '--output', vcf_out,
+                     '--output-file', vcf_out,
                      self.input().path])
 
 

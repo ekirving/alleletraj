@@ -5,6 +5,8 @@ from collections import OrderedDict
 from multiprocessing import cpu_count
 from socket import gethostname
 
+# TODO move module specific constants into those modules
+
 # TODO this needs refactoring to work with multiple species
 # SPECIES = 'pig'
 # POPULATION = 'EUD'
@@ -111,7 +113,7 @@ SAMPLE_SEX = {
 # samples to leave out of the SFS calculation
 SFS_EXCLUSIONS = {
     'horse': ['Esom_0226A', 'Icel_0144A', 'Icel_0247A', 'Shet_0249A', 'Shet_0250A',
-              'Yaku_0163A', 'Yaku_0170A', 'Yaku_0171A', 'Mong_0153A', 'Mong_0215A', 'Jeju_0275A']
+              'Yaku_0163A', 'Yaku_0170A', 'Yaku_0171A', 'Mong_0153A', 'Mong_0215A', 'Jeju_0275A', 'Frie_0296A']
 }
 
 MUTATION_RATE = {

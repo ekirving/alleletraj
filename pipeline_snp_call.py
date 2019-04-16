@@ -57,7 +57,7 @@ class BCFToolsCall(PipelineTask):
     def run(self):
 
         # bcftools needs the sex specified in a separate file
-        sex_file = 'data/{}_{}.sex'.format(self.species, self.population)
+        sex_file = 'vcf/{}_{}.sex'.format(self.species, self.population)
 
         with open(sex_file, 'w') as fout:
             for sample in self.samples:
@@ -82,21 +82,25 @@ class BCFToolsCall(PipelineTask):
 
 class QuantilesOfCoverageVCF(PipelineTask):
     """
-    Calculate the upper and lower quantiles of the depth of coverage for a VCF.
+    Calculate the lower (5%) and upper (95%) quantiles of the depth of coverage for a VCF.
+
+    The DoC distribution is calculated exclusively on sites that pass the genotype quality filter.
 
     :type species: str
     :type population: str
     :type chrom: str
+    :type qual: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     chrom = luigi.Parameter()
+    qual = luigi.IntParameter()
 
     def requires(self):
         return BCFToolsCall(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}.quantiles'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}.quant'.format(self.basename))
 
     def run(self):
         depth = []
@@ -104,7 +108,9 @@ class QuantilesOfCoverageVCF(PipelineTask):
         # iterate over the VCF and extract the depth of coverage at each site
         for rec in VariantFile(self.input().path).fetch():
             try:
-                depth.append(rec.info['DP'])
+                # only count depth at sites which pass the genotype quality filter
+                if int(rec.qual) >= self.qual:
+                    depth.append(rec.info['DP'])
             except KeyError:
                 pass
 
@@ -123,17 +129,19 @@ class FilterVCF(PipelineTask):
     :type species: str
     :type population: str
     :type chrom: str
+    :type qual: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     chrom = luigi.Parameter()
+    qual = luigi.IntParameter(default=MIN_GENO_QUAL)
 
     def requires(self):
         yield BCFToolsCall(self.species, self.population, self.chrom)
-        yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom)
+        yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-filtered.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-DoC.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -215,6 +223,8 @@ class PolarizeVCF(PipelineTask):
             # skip sites that are either heterozygous or missing in the outgroup
             if len(set(out_alleles)) != 1 or out_alleles[0] is None:
                 continue
+
+            # TODO should we drop sites that are hom-REF in outgroup and hom-ALT in ingroup?
 
             # get the ancestral allele
             anc = out_alleles[0]

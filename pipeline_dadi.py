@@ -18,8 +18,8 @@ from pipeline_utils import PipelineTask, run_cmd
 # number of sequential epochs to test
 DADI_EPOCHS = 5
 
-# how many independent runs should we do to find global maximum of params
-DADI_REPLICATES = 100
+# how many independent replicates should we runs to find the global maximum params (dadi can get stuck in local maxima)
+DADI_REPLICATES = 1e6
 
 # number of points to use in the grid
 DADI_GRID_PTS = 100
@@ -122,7 +122,9 @@ class DadiEpochOptimizeParams(PipelineTask):
         return EasySFS(self.species, self.population, self.folded)
 
     def output(self):
-        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['pkl', 'log']]
+        # trim the n value from the folder name
+        folder = self.basename.rpartition('-')[0]
+        return [luigi.LocalTarget("dadi/{}/{}.{}".format(folder, self.basename, ext)) for ext in ['pkl', 'log']]
 
     def run(self):
 
@@ -140,15 +142,16 @@ class DadiEpochOptimizeParams(PipelineTask):
         # pick random starting values, bounded by the upper and lower parameter limits
         start = [random.uniform(lower[i], upper[i]) for i in range(0, self.epoch * 2)]
 
-        # TODO Numerics.make_extrap_log_func()
+        # make the extrapolating version of our demographic model function.
+        dadi_n_epoch_extrap = dadi.Numerics.make_extrap_log_func(dadi_n_epoch)
 
         # optimize log(params) to fit model to data using Nelder-Mead algorithm
-        p_opt = dadi.Inference.optimize_log_fmin(start, fs, dadi_n_epoch, lower_bound=lower, upper_bound=upper,
+        p_opt = dadi.Inference.optimize_log_fmin(start, fs, dadi_n_epoch_extrap, lower_bound=lower, upper_bound=upper,
                                                  pts=DADI_GRID_PTS, verbose=50, output_file=log_file.path,
                                                  full_output=True)
 
         # fit the optimised model
-        model = dadi_n_epoch(p_opt[0], fs.sample_sizes, DADI_GRID_PTS)
+        model = dadi_n_epoch_extrap(p_opt[0], fs.sample_sizes, DADI_GRID_PTS)
 
         # calculate theta given the model
         theta = dadi.Inference.optimal_sfs_scaling(model, fs)
@@ -178,11 +181,11 @@ class DadiEpochMaximumLikelihood(PipelineTask):
     epoch = luigi.IntParameter()
 
     def requires(self):
-        for n in range(1, DADI_REPLICATES + 1):
+        for n in range(1, int(DADI_REPLICATES) + 1):
             yield DadiEpochOptimizeParams(self.species, self.population, self.folded, self.epoch, n)
 
     def output(self):
-        return luigi.LocalTarget("sfs/{}-maxlnL.pkl".format(self.basename))
+        return luigi.LocalTarget("dadi/{}/{}-maxlnL.pkl".format(self.basename, self.basename))
 
     def run(self):
 
@@ -220,7 +223,7 @@ class DadiEpochBestModel(PipelineTask):
             yield DadiEpochMaximumLikelihood(self.species, self.population, self.folded, epoch)
 
     def output(self):
-        return [luigi.LocalTarget("sfs/{}.{}".format(self.basename, ext)) for ext in ['pkl', 'pdf']]
+        return [luigi.LocalTarget("dadi/{}.{}".format(self.basename, ext)) for ext in ['pkl', 'pdf']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -255,8 +258,11 @@ class DadiEpochBestModel(PipelineTask):
         # load the frequency spectrum
         fs = dadi.Spectrum.from_file(sfs_file.path)
 
+        # make the extrapolating version of our demographic model function.
+        dadi_n_epoch_extrap = dadi.Numerics.make_extrap_log_func(dadi_n_epoch)
+
         # fit the optimised model
-        model = dadi_n_epoch(epochs[0]['params'], fs.sample_sizes, DADI_GRID_PTS)
+        model = dadi_n_epoch_extrap(epochs[0]['params'], fs.sample_sizes, DADI_GRID_PTS)
 
         # plot the figure
         fig = plt.figure(1)
@@ -283,7 +289,7 @@ class CountCallableSites(PipelineTask):
         return PolarizeVCF(self.species, self.population)
 
     def output(self):
-        return luigi.LocalTarget('sfs/{}.L'.format(self.basename))
+        return luigi.LocalTarget('dadi/{}.L'.format(self.basename))
 
     def run(self):
 
@@ -311,11 +317,12 @@ class DadiDemography(PipelineTask):
         yield CountCallableSites(self.species, self.population)
 
     def output(self):
-        return luigi.LocalTarget("data/selection/{}-demog.pop".format(self.basename))
+        return [luigi.LocalTarget("dadi/{}.{}".format(self.basename, ext)) for ext in ['pop', 'nref']]
 
     def run(self):
-        # unpack the inputs
+        # unpack the inputs/outputs
         (pkl_file, _), size_file = self.input()
+        pop_file, nfef_file = self.output()
 
         # load the best epoch model
         with pkl_file.open('r') as fin:
@@ -328,18 +335,17 @@ class DadiDemography(PipelineTask):
         mu = MUTATION_RATE[self.species]
 
         # get the count of all callable sites
-        # L = int(size_file.open().read())
-        # TODO remove when we have real results (assume full coverage of chromosome)
-        L = 83980604
+        L = int(size_file.open().read())
 
         # dadi scales population size by 2*Nref, where Nref is the size of the most ancient population
         # in dadi, θ = 4*Nref*µ, so to solve to Nref
-        # TODO what now?
-        Nref = theta / (4 * mu * L)  # Nref = 43,938
+        nref = theta / (4 * mu * L)
 
-        # TODO times are given in units of 2Nref generations
+        # save the Nref, so we can interpret the modelling results
+        with nfef_file.open('w') as fout:
+            fout.write(int(nref))
 
-        # unpack the params
+        # unpack the dadi model params
         sizes, times = params[:best['epoch']], params[epoch:]
 
         # reverse the param order (newest first, oldest last)
@@ -347,9 +353,14 @@ class DadiDemography(PipelineTask):
         times.reverse()
 
         # save the demography file
-        with self.output().open('w') as fout:
+        with pop_file.open('w') as fout:
+            age = 0.0
             for i in range(epoch):
-                fout.write("{:.4f}\t0.0\t-{}\n".format(sizes[i], times[i]))
+                # dadi times are durations for each epoch, so we need to make them cumulative
+                age += times[i]
+
+                # save the data
+                fout.write("{:.4f}\t0.0\t-{}\n".format(sizes[i], age))
 
             # add the infinite time-point
             fout.write("1.0\t0\t-Inf\n")

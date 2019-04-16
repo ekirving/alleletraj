@@ -5,12 +5,11 @@
 #SBATCH --nodes=1                   # Use one node
 #SBATCH --ntasks=1                  # Run a single task
 #SBATCH --mem-per-cpu=1gb           # Memory per processor
-#SBATCH --time=01:30:00             # Time limit hrs:min:sec (each cycle takes ~7e-5 seconds, so 5e7 = 3,500 sec = ~ 1hr)
+#SBATCH --time=03:00:00             # Time limit hrs:min:sec (each cycle takes ~7e-5 seconds, so 5e7 = 3,500 sec = ~ 1hr)
 #SBATCH --output=array_%A-%a.out    # Standard output and error log
 
-POPULATION='horse-DOM2'
-
 # fixed params for running the models
+POPULATION='horse-DOM2' # species and pop prefix
 MCMC_CYCLES=50000000    # number of MCMC cycles to run
 SAMPLE_FREQ=10000       # frequency of sampling from the posterior
 OUTPUT_FREQ=1000        # frequency of printing output to the screen
@@ -26,7 +25,7 @@ module load gsl
 # get a list of all the input files
 models=($(ls selection/${POPULATION}*.input))
 
-# TODO ignore models that are done
+# TODO skip models that are done
 
 # set the number of runs that each SLURM task should do
 per_task=${NUMBER_CPUS}/${NUMBER_REPS}  # arcus-b nodes have 16 CPUs, but we run 4 independent replicates of each model
@@ -51,10 +50,6 @@ for (( i=$start_num; i<=end_num; i++ )); do
 
         # run the replicates for this input
         for (( n=1; n<=NUMBER_REPS; n++ )); do
-
-            # TODO output should match luigi
-            # e.g. selection/horse-DOM2-modsnp_id5049478-const-mcmc_cycles50000000-mcmc_freq10000
-
             output="${input%.*}-n${n}"
             log="${output}.log"
 
@@ -64,7 +59,7 @@ for (( i=$start_num; i<=end_num; i++ )); do
             # log the command before we start
             echo ${cmd} | tee ${log}
 
-            # now run the selection, and gzip the files when we're done
+            # now run selection, and gzip the time and trajectory files when we're done (as these are big)
             ( eval ${cmd} >> ${log}; gzip ${output}.time; gzip ${output}.traj; ) &
         done
     fi

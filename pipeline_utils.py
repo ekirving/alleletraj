@@ -175,10 +175,16 @@ class PipelineTask(luigi.Task):
         # TODO do CPU intensive tasks first
         # offset = 10*
 
-        # deprioritise lage values of K
-        offset = -sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
+        # deprioritise large values of K or m
+        offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
 
-        return 100+offset if offset else 0
+        # prioritise chromosomes by size, as running the largest chroms first is more efficient for multithreading
+        if hasattr(self, 'chrom') and hasattr(self, 'species'):
+            chrom = self.chrom.replace('chr', '')
+            sizes = CHROM_SIZE[self.species]
+            offset = sorted(sizes.values(), reverse=True).index(sizes[chrom])
+
+        return 100-offset if offset else 0
 
     @property
     def basename(self):

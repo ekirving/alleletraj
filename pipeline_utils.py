@@ -170,7 +170,6 @@ class PipelineTask(luigi.Task):
         Set a dynamic priority for tasks.
         """
         # TODO do CPU intensive tasks first
-        # offset = 10*
 
         # deprioritise large values of K or m
         offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
@@ -179,7 +178,7 @@ class PipelineTask(luigi.Task):
         if hasattr(self, 'chrom') and hasattr(self, 'species'):
             chrom = self.chrom.replace('chr', '')
             sizes = CHROM_SIZE[self.species]
-            offset = sorted(sizes.values(), reverse=True).index(sizes[chrom])
+            offset = sorted(sizes.values(), reverse=True).index(sizes[chrom]) + 1
 
         return 100-offset if offset else 0
 

@@ -3,13 +3,16 @@
 
 from __future__ import print_function
 
-from pipeline_consts import *
-
-import mysql.connector
 import itertools
+import mysql.connector
 
-from pprint import pprint
 from collections import OrderedDict
+from datetime import timedelta
+from pprint import pprint
+from time import time
+
+# import my custom modules
+from pipeline_consts import *
 
 
 class db_conn:
@@ -224,7 +227,12 @@ class db_conn:
 
     def execute_sql(self, sql):
         """
-        Execute a given SQL query
+        Execute a given SQL query, and return the time it took.
         """
+        start = time()
+
         self.cursor.execute(sql)
         self.cnx.commit()
+
+        return timedelta(seconds=time() - start)
+

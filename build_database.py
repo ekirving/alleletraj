@@ -19,59 +19,67 @@ from graph_derived import graph_derived
 # TODO map samples / indicate time / don't want to confuse geography for time
 # TODO have a look at the "pulse" model in Loog paper
 
-# load all the Ensembl data for this species
-load_ensembl_genes()
-load_ensembl_variants()
 
-# load the SNP Chip data
-load_snpchip_variants()
+class BuildDatabase(luigi.WrapperTask):
+    """
+    Build the species database
+    """
 
-# ascertain SNPs in modern whole genome data
-DiscoverModernSNPs()
+    def requires(self):
 
-# load the QTLs from the AnimalQTL database
-populate_qtls()
+        # load all the Ensembl data for this species
+        load_ensembl_genes()
+        load_ensembl_variants()
 
-# load pseudo-QTLs from other sources
-populate_sweeps()
-populate_mc1r_locus()
+        # load the SNP Chip data
+        load_snpchip_variants()
 
-if SPECIES == 'pig':
-    populate_pig_mummies_loci()
+        # ascertain SNPs in modern whole genome data
+        yield DiscoverModernSNPs()
 
-populate_neutral_loci()
+        # load the QTLs from the AnimalQTL database
+        populate_qtls()
 
-# TODO make this work with DOM and DOM2
-# link each QTL to the ascertained modern SNPs
-populate_qtl_snps(POPULATION)
+        # load pseudo-QTLs from other sources
+        populate_sweeps()
+        populate_mc1r_locus()
 
-# flag the modern SNPs which fall into "neutral" regions
-mark_neutral_snps()
+        if SPECIES == 'pig':
+            populate_pig_mummies_loci()
 
-# calculate the unique set of non-overlapping genomic loci from the QTLs
-populate_intervals()
-populate_interval_snps(POPULATION)
+        populate_neutral_loci()
 
-# load the sample metadata
-if SPECIES == 'pig':
-    populate_pig_samples()
+        # TODO make this work with DOM and DOM2
+        # link each QTL to the ascertained modern SNPs
+        populate_qtl_snps(POPULATION)
 
-elif SPECIES == 'horse':
-    populate_horse_samples()
+        # flag the modern SNPs which fall into "neutral" regions
+        mark_neutral_snps()
 
-# TODO make samples file w/ gender call for ploidy
-# load the sample reads for each ascertained SNP
-populate_sample_reads()
+        # calculate the unique set of non-overlapping genomic loci from the QTLs
+        populate_intervals()
+        populate_interval_snps(POPULATION)
 
-# apply quality filters to the sample reads
-discover_snps(POPULATION)
+        # load the sample metadata
+        if SPECIES == 'pig':
+            populate_pig_samples()
 
-# analyse the coverage and quality for SNPs in each QTLs
-analyse_qtls()
+        elif SPECIES == 'horse':
+            populate_horse_samples()
 
-if SPECIES == 'pig':
-    # pick the best SNPs to target for a capture array
-    perform_ascertainment()
+        # TODO make samples file w/ gender call for ploidy
+        # load the sample reads for each ascertained SNP
+        populate_sample_reads()
 
-# graph the age of derived alleles
-graph_derived()
+        # apply quality filters to the sample reads
+        discover_snps(POPULATION)
+
+        # analyse the coverage and quality for SNPs in each QTLs
+        analyse_qtls()
+
+        if SPECIES == 'pig':
+            # pick the best SNPs to target for a capture array
+            perform_ascertainment()
+
+        # graph the age of derived alleles
+        graph_derived()

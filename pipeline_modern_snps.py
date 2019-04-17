@@ -13,8 +13,6 @@ from pipeline_consts import *
 from pipeline_utils import PipelineTask, db_conn
 
 from collections import Counter
-from datetime import timedelta
-from time import time
 
 
 def decode_fasta(pileup):
@@ -245,9 +243,9 @@ class ProcessVCFs(PipelineTask):
         print("FINISHED: {} chr{} contained {:,} SNPs".format(self.population, self.chrom, num_snps))
 
 
-class DiscoverSNPs(luigi.WrapperTask):
+class ProcessSNPs(luigi.WrapperTask):
     """
-    Ascertain SNPs in modern whole genome data.
+    Ascertain modern SNPs in whole-genome data.
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -271,19 +269,15 @@ class LinkEnsemblGenes(PipelineTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        return DiscoverSNPs(self.species, self.population, self.chrom)
+        return ProcessSNPs(self.species, self.population, self.chrom)
 
-    # def output(self):
-    #     return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
+    def output(self):
+        return luigi.LocalTarget('sql/{}-ensembl_genes.log'.format(self.basename))
 
     def run(self):
         dbc = db_conn(self.species)
 
-        start = time()
-
-        print("INFO: Linking modern SNPs to their Ensembl genes...", end='')
-
-        dbc.execute_sql("""
+        exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN ensembl_genes eg
                 ON eg.chrom = ms.chrom
@@ -292,7 +286,8 @@ class LinkEnsemblGenes(PipelineTask):
              WHERE ms.population = '{pop}'
                AND ms.chrom = '{chrom}'""".format(pop=self.population, chrom=self.chrom))
 
-        print("({}).".format(timedelta(seconds=time() - start)))
+        with self.output().open('w') as fout:
+            fout.write('Execution took {}'.format(exec_time))
 
 
 class LinkEnsemblVariants(PipelineTask):
@@ -304,19 +299,15 @@ class LinkEnsemblVariants(PipelineTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        return DiscoverSNPs(self.species, self.population, self.chrom)
+        return ProcessSNPs(self.species, self.population, self.chrom)
 
-    # def output(self):
-    #     return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
+    def output(self):
+        return luigi.LocalTarget('sql/{}-ensembl_variants.log'.format(self.basename))
 
     def run(self):
         dbc = db_conn(self.species)
 
-        start = time()
-
-        print("INFO: Linking modern SNPs to their Ensembl dbsnp variants...", end='')
-
-        dbc.execute_sql("""
+        exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN ensembl_variants v
                 ON ms.chrom = v.chrom
@@ -329,31 +320,28 @@ class LinkEnsemblVariants(PipelineTask):
                AND v.ref IN (ms.derived, ms.ancestral)
                AND v.alt IN (ms.derived, ms.ancestral)""".format(pop=self.population, chrom=self.chrom))
 
-        print("({}).".format(timedelta(seconds=time() - start)))
+        with self.output().open('w') as fout:
+            fout.write('Execution took {}'.format(exec_time))
 
 
 class LinkSNPChip(PipelineTask):
     """
-    Link modern SNPs to their snpchip variants
+    Link modern SNPs to their SNPChip variants
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     def requires(self):
-        return DiscoverSNPs(self.species, self.population, self.chrom)
+        return ProcessSNPs(self.species, self.population, self.chrom)
 
-    # def output(self):
-    #     return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
+    def output(self):
+        return luigi.LocalTarget('sql/{}-snpchip.log'.format(self.basename))
 
     def run(self):
         dbc = db_conn(self.species)
 
-        start = time()
-
-        print("INFO: Linking modern SNPs to their snpchip variants...", end='')
-
-        dbc.execute_sql("""
+        exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN snpchip sc
                 ON sc.chrom = ms.chrom
@@ -362,19 +350,21 @@ class LinkSNPChip(PipelineTask):
              WHERE ms.population = '{pop}'
                AND ms.chrom = '{chrom}'""".format(pop=self.population, chrom=self.chrom))
 
-        print("({}).".format(timedelta(seconds=time() - start)))
+        with self.output().open('w') as fout:
+            fout.write('Execution took {}'.format(exec_time))
 
 
 class DiscoverModernSNPs(luigi.WrapperTask):
     """
     Populate the modern_snps table and link records to genes, dbsnp and snpchip records.
     """
+    species = luigi.Parameter()
 
     def requires(self):
-        species = 'horse'
 
-        for pop in SAMPLES[species]:
-            for chrom in CHROM_SIZE[species]:
-                yield LinkEnsemblGenes(species, pop, chrom)
-                yield LinkEnsemblVariants(species, pop, chrom)
-                yield LinkSNPChip(species, pop, chrom)
+        # process all the populations in chromosome chunks
+        for pop in SAMPLES[self.species]:
+            for chrom in CHROM_SIZE[self.species]:
+                yield LinkEnsemblGenes(self.species, pop, chrom)
+                yield LinkEnsemblVariants(self.species, pop, chrom)
+                yield LinkSNPChip(self.species, pop, chrom)

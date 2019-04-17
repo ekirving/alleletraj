@@ -124,7 +124,9 @@ class QuantilesOfCoverageVCF(PipelineTask):
 
 class FilterVCF(PipelineTask):
     """
-    Remove low quality sites and those in the upper and lower quantiles of the depth of coverage distribution.
+    Remove low quality sites and sites in the upper and lower quantiles of the depth of coverage distribution.
+
+    Also, normalise indels and merge multiallelic sites.
 
     :type species: str
     :type population: str
@@ -141,7 +143,7 @@ class FilterVCF(PipelineTask):
         yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-DoC.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-filtered.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -152,12 +154,19 @@ class FilterVCF(PipelineTask):
         qlow, qhigh = numpy.loadtxt(quant_file.path)
 
         with self.output().temporary_path() as vcf_out:
-            run_cmd(['bcftools',
-                     'filter',
-                     '--exclude', 'QUAL<{} | DP<{} | DP>{}'.format(MIN_GENO_QUAL, int(qlow), int(qhigh)),
-                     '--output-type', 'z',
-                     '--output', vcf_out,
-                     vcf_input.path])
+            params = {
+                'qual':  MIN_GENO_QUAL,
+                'qlow':  int(qlow),
+                'qhigh': int(qhigh),
+                'vcf': vcf_input.path,
+                'ref':   REF_FILE[self.species],
+                'out':   vcf_out,
+            }
+
+            cmd = 'bcftools filter --exclude QUAL<{qual} | DP<{qlow} | DP>{qhigh} --output-type u {vcf} | ' \
+                  'bcftools norm --fasta-ref {ref} --multiallelics +any --output-type z --output {out}'.format(**params)
+
+            run_cmd([cmd], shell=True)
 
 
 class PolarizeVCF(PipelineTask):
@@ -180,7 +189,7 @@ class PolarizeVCF(PipelineTask):
         return FilterVCF(self.species, self.population, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-DoC-polar.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-filtered-polar.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -226,7 +235,7 @@ class PolarizeVCF(PipelineTask):
 
 class WholeGenomeVCF(PipelineTask):
     """
-    Concatenate the all chromosome VCFs into a single file, normalise indels and merge multiallelic sites.
+    Concatenate the all chromosome VCFs into a single file.
 
     :type species: str
     :type population: str
@@ -244,21 +253,15 @@ class WholeGenomeVCF(PipelineTask):
 
     def run(self):
 
-        # unpack the input params
+        # get all the vcf files to concatenate
         vcf_files = [vcf.path for vcf in self.input()]
 
         with self.output().temporary_path() as tmp_out:
-            params = {
-                'vcfs': ' '.join(vcf_files),
-                'ref': REF_FILE[self.species],
-                'out': tmp_out,
-            }
-
-            # TODO move norm to earlier task
-            cmd = 'bcftools concat {vcfs} --output-type u | bcftools norm --fasta-ref {ref} --multiallelics +any ' \
-                  ' --output-type z --output {out}'.format(**params)
-
-            run_cmd([cmd], shell=True)
+            run_cmd(['bcftools',
+                     'concat',
+                     '--output-type', 'z',
+                     '--output', tmp_out
+                     ] + vcf_files)
 
 
 class BiallelicSNPsVCF(PipelineTask):

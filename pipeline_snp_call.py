@@ -226,8 +226,8 @@ class PolarizeVCF(PipelineTask):
                 # get the outgroup alleles
                 out_alleles = rec.samples[OUTGROUP].alleles
 
-                # skip sites in the outgroup that are: heterozygous, missing or an indel
-                if len(set(out_alleles)) != 1 or out_alleles[0] is None or len(out_alleles[0]) != 1:
+                # skip sites in the outgroup that are heterozygous or missing
+                if len(set(out_alleles)) != 1 or out_alleles[0] is None:
                     continue
 
                 # get the ancestral allele
@@ -237,11 +237,11 @@ class PolarizeVCF(PipelineTask):
                 if rec.ref != anc:
 
                     # get all the alleles at this site, minus the ancestral
-                    alt = set(tuple(rec.ref) + tuple(rec.alts))
+                    alt = set([rec.ref] + list(rec.alts))
                     alt.remove(anc)
 
                     # VCFs store the GT as an allele index, so we have to update the indices
-                    alleles = list(anc) + list(alt)
+                    alleles = [anc] + list(alt)  # NOTE important distinction between [] and list()
                     indices = dict(zip(alleles, range(0, len(alleles))))
 
                     for sample in rec.samples:

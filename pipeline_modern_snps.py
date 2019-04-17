@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
 import itertools
 import luigi
 import pysam
-import sys
 
 from collections import Counter
 
 # import my custom modules
-from pipeline_consts import SAMPLES, OUT_GROUP, CHROM_SIZE
+from pipeline_consts import SAMPLES, OUT_GROUP, CHROM_SIZE  # TODO make these into PipelineTask properties
 from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, db_conn
 
@@ -45,7 +42,28 @@ def stream_fasta(fin):
             yield character
 
 
-class ProcessFASTAs(PipelineTask):
+def mutation_type(alleles):
+    """
+    Is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
+    """
+    return 'ts' if set(alleles) == {'A', 'G'} or set(alleles) == {'C', 'T'} else 'tv'
+
+
+class ExternalFASTA(luigi.ExternalTask):
+    """
+    External task dependency for a whole-genome FASTA file.
+
+    N.B. These have been created outside the workflow of this pipeline.
+
+    :type sample: str
+    """
+    sample = luigi.Parameter()
+
+    def output(self):
+        return luigi.LocalTarget("{}/{}/{}.fa".format(FASTA_PATH, self.sample, self.chrom))
+
+
+class AlleleFrequencyFromFASTA(PipelineTask):
     """
     Extract all the SNPs from a given chromosome and estimate the allele frequency
     """
@@ -53,116 +71,113 @@ class ProcessFASTAs(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    # TODO
-    # def requires(self):
-    #     return ExtractSNPsVCF(self.species, self.population)
+    @property
+    def samples(self):
+        """
+        Include the outgroup in the sample list, as we need it for polarization
+        """
+        return [OUT_GROUP[self.species]] + SAMPLES[self.species][self.population]
 
-    # TODO
-    # def output(self):
-    #     return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
+    def requires(self):
+        for sample in self.samples:
+            return ExternalFASTA(sample)
+
+    def output(self):
+        return luigi.LocalTarget('db/{}-modern_snps.log'.format(self.basename))
 
     def run(self):
-
-        site = 0
-        num_snps = 0
+        # get all the input fasta files
+        fasta_files = [fasta_file.path for fasta_file in self.input()]
 
         # open a private connection to the database
         dbc = db_conn(self.species)
 
-        # get all the modern fasta files
-        fasta_files = [FASTA_PATH + '/' + sample + "/{}.fa".format(self.chrom)
-                       for sample in SAMPLES[self.species][self.population]]
+        with self.output().open('w') as fout:
+            fout.write("STARTED: Parsing {} fasta files.".format(len(fasta_files)))
 
-        # get the outgroup fasta file
-        outgroup_fasta = FASTA_PATH + '/' + OUT_GROUP[self.species] + "/{}.fa".format(self.chrom)
+            site = 0
+            num_snps = 0
+            data = []
 
-        # add the outgroup to the front of the list
-        fasta_files.insert(0, outgroup_fasta)
+            for fasta in fasta_files:
+                # load the fasta data
+                fin = open(fasta, "rU")
 
-        print("STARTED: Parsing {} chr{} from {} fasta files.".format(self.population, self.chrom, len(fasta_files)))
+                # discard header row
+                fin.readline()
 
-        data = []
+                # wrap the file in an iterator
+                data.append(stream_fasta(fin))
 
-        for fasta in fasta_files:
-            # load the fasta data
-            fin = open(fasta, "rU")
+                fout.write("LOADED: {}".format(fasta))
 
-            # discard header row
-            fin.readline()
+            # zip the sequences together so we can iterate over them one site at a time
+            for pileup in itertools.izip_longest(*data, fillvalue='N'):
 
-            # wrap the file in an iterator
-            data.append(stream_fasta(fin))
+                # increment the counter
+                site += 1
 
-            print("LOADED: {}".format(fasta))
+                # convert iterator into a list
+                pileup = list(pileup)
 
-        # zip the sequences together so we can iterate over them one site at a time
-        for pileup in itertools.izip_longest(*data, fillvalue='N'):
+                # get the outgroup alleles
+                out_allele = pileup.pop(0)
 
-            # increment the counter
-            site += 1
+                # decode the fasta format
+                haploids = decode_fasta(pileup)
 
-            # convert iterator into a list
-            pileup = list(pileup)
+                # how many alleles are there at this site
+                num_alleles = len(set(haploids))
 
-            # get the outgroup allele
-            outgroup_allele = pileup.pop(0)
-
-            # decode the fasta format
-            haploids = decode_fasta(pileup)
-
-            # how many alleles are there at this site
-            num_alleles = len(set(haploids))
-
-            # we're looking for biallelic SNPs
-            if num_alleles == 2:
+                # we only want biallelic SNPs
+                if num_alleles > 2:
+                    fout.write("WARNING: Polyallelic site chr{}:{} = {}".format(self.chrom, site, set(haploids)))
+                    continue
 
                 # count the haploid observations
                 observations = Counter(haploids)
 
                 # decode the outgroup allele
-                ancestral = set(decode_fasta(outgroup_allele))
+                ancestral = set(decode_fasta(out_allele))
 
+                # we cannot handle variable sites in the outgroup
                 if len(ancestral) != 1:
-                    print("WARNING: Unknown ancestral allele chr{}:{} = {}"
-                          .format(self.chrom, site, outgroup_allele), file=sys.stderr)
+                    fout.write("WARNING: Unknown ancestral allele chr{}:{} = {}".format(self.chrom, site, out_allele))
                     continue
 
                 ancestral = ancestral.pop()
                 alleles = observations.keys()
 
                 if ancestral not in alleles:
-                    print("WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}"
-                          .format(self.chrom, site, set(haploids), ancestral), file=sys.stderr)
+                    fout.write("WARNING: Polyallelic site chr{}:{} = {}, ancestral {}".format(self.chrom, site,
+                                                                                              set(haploids), ancestral))
                     continue
 
-                # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
-                snp_type = 'ts' if set(alleles) == {'A', 'G'} or set(alleles) == {'C', 'T'} else 'tv'
+                # is this mutation a transition or a transversion
+                snp_type = mutation_type(alleles)
 
                 alleles.remove(ancestral)
                 derived = alleles.pop()
 
-                # calculate the derived allele frequency (daf)
+                # calculate the derived allele frequency (DAF)
                 daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
 
-                record = dict()
-                record['population'] = self.population
-                record['chrom'] = self.chrom
-                record['site'] = site
-                record['ancestral'] = ancestral
-                record['ancestral_count'] = observations[ancestral]
-                record['derived'] = derived
-                record['derived_count'] = observations[derived]
-                record['type'] = snp_type
-                record['daf'] = daf
+                record = {
+                    'population': self.population,
+                    'chrom': self.chrom,
+                    'site': site,
+                    'ancestral': ancestral,
+                    'ancestral_count': observations[ancestral],
+                    'derived': derived,
+                    'derived_count': observations[derived],
+                    'type': snp_type,
+                    'daf': daf,
+                }
 
                 dbc.save_record('modern_snps', record)
                 num_snps += 1
 
-            elif num_alleles > 2:
-                print("WARNING: Polyallelic site chr{}:{} = {}".format(self.chrom, site + 1, set(haploids)),
-                      file=sys.stderr)
-
-        print("FINISHED: {} chr{} contained {:,} SNPs".format(self.population, self.chrom, num_snps))
+            fout.write("FINISHED: Added {:,} SNPs".format(num_snps))
 
 
 class AlleleFrequencyFromVCF(PipelineTask):
@@ -184,6 +199,7 @@ class AlleleFrequencyFromVCF(PipelineTask):
         return luigi.LocalTarget('db/{}-modern_snps.log'.format(self.basename))
 
     def run(self):
+        # open a private connection to the database
         dbc = db_conn(self.species)
 
         # count the number of SNPs added
@@ -214,10 +230,10 @@ class AlleleFrequencyFromVCF(PipelineTask):
                 # skip non-variant sites
                 continue
 
-            # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
-            snp_type = 'ts' if set(rec.alleles) == {'A', 'G'} or set(rec.alleles) == {'C', 'T'} else 'tv'
+            # is this mutation a transition or a transversion
+            snp_type = mutation_type(alleles)
 
-            # calculate the derived allele frequency (daf)
+            # calculate the derived allele frequency (DAF)
             daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
 
             record = {
@@ -254,7 +270,7 @@ class ProcessSNPs(luigi.WrapperTask):
     def requires(self):
         if self.species == 'pig':
             # special case of FASTA data for pig ascertainment
-            yield ProcessFASTAs(self.species, self.population, self.chrom)
+            yield AlleleFrequencyFromFASTA(self.species, self.population, self.chrom)
         else:
             # parse the VCF files for all other species
             yield AlleleFrequencyFromVCF(self.species, self.population, self.chrom)

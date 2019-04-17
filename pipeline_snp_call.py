@@ -5,6 +5,7 @@ import luigi
 import numpy
 
 # import my custom modules
+# TODO make these into PipelineTask properties
 from pipeline_consts import BAM_FILES, OUT_GROUP, SAMPLES, SAMPLE_SEX, REF_FILE, CHROM_SIZE, MIN_GENO_QUAL
 from pipeline_utils import PipelineTask, run_cmd
 
@@ -16,9 +17,9 @@ QUANTILE_LOW = 0.05
 QUANTILE_HIGH = 0.95
 
 
-class BAMfile(luigi.ExternalTask):
+class ExternalBAM(luigi.ExternalTask):
     """
-    External task dependency for the aligned BAM file.
+    External task dependency for an aligned BAM file.
 
     N.B. These have been created outside the workflow of this pipeline.
 
@@ -49,12 +50,11 @@ class BCFToolsCall(PipelineTask):
         """
         Include the outgroup in the sample list, as we need it for polarization
         """
-        # TODO make OUT_GROUP, SAMPLES, REF_FILE, etc into PipelineTask properties
         return [OUT_GROUP[self.species]] + SAMPLES[self.species][self.population]
 
     def requires(self):
         for sample in self.samples:
-            yield BAMfile(self.species, sample)
+            yield ExternalBAM(self.species, sample)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}.vcf.gz'.format(self.basename))

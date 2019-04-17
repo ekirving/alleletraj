@@ -45,6 +45,7 @@ class BCFToolsCall(PipelineTask):
         """
         Include the outgroup in the sample list, as we need it for polarization
         """
+        # TODO make OUT_GROUP, SAMPLES, REF_FILE, etc into PipelineTask properties
         return [OUT_GROUP[self.species]] + SAMPLES[self.species][self.population]
 
     def requires(self):
@@ -248,8 +249,7 @@ class WholeGenomeVCF(PipelineTask):
             yield PolarizeVCF(self.species, self.population, 'chr{}'.format(chrom))  # TODO handle chr prefixes better
 
     def output(self):
-        # TODO add index task
-        return luigi.LocalTarget('vcf/{}-chrAll-filtered.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -262,6 +262,9 @@ class WholeGenomeVCF(PipelineTask):
                      '--output-type', 'z',
                      '--output', tmp_out
                      ] + vcf_files)
+
+        # index the vcf
+        run_cmd(['bcftools', 'index', self.output().path])
 
 
 class BiallelicSNPsVCF(PipelineTask):
@@ -278,7 +281,6 @@ class BiallelicSNPsVCF(PipelineTask):
         return WholeGenomeVCF(self.species, self.population)
 
     def output(self):
-        # TODO add index task
         return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.basename))
 
     def run(self):
@@ -296,6 +298,9 @@ class BiallelicSNPsVCF(PipelineTask):
                      '--output-type', 'z',
                      '--output-file', vcf_out,
                      self.input().path])
+
+        # index the vcf
+        run_cmd(['bcftools', 'index', self.output().path])
 
 
 class BCFtoolsCallSNPs(luigi.WrapperTask):

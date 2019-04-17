@@ -218,15 +218,13 @@ class AlleleFrequencyFromVCF(PipelineTask):
             # resolve the genotypes of all the samples
             for sample in SAMPLES[self.species][self.population]:
                 # get the alleles, but skip any missing genotypes
-                alleles = [a for a in rec.samples[sample].alleles if a is not None]
-
-                # add them to the list
-                haploids += alleles
+                haploids += [alleles for alleles in rec.samples[sample].alleles if alleles is not None]
 
             # count the haploid observations
             observations = Counter(haploids)
+            alleles = observations.keys()
 
-            if len(observations.keys()) != 2:
+            if len(alleles) != 2:
                 # skip non-variant sites
                 continue
 

@@ -9,10 +9,24 @@ import pysam
 import sys
 
 # import my custom modules
-from pipeline_consts import *
+from pipeline_consts import SAMPLES, OUT_GROUP, CHROM_SIZE, MIN_GENO_QUAL
+from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, db_conn
 
 from collections import Counter
+
+# path to the folder containing the modern fasta files
+FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
+
+# extended FASTA codes for biallelic sites
+FASTA_MAP = {
+    'R': ['A', 'G'],
+    'Y': ['C', 'T'],
+    'K': ['G', 'T'],
+    'M': ['A', 'C'],
+    'S': ['C', 'G'],
+    'W': ['A', 'T'],
+}
 
 
 def decode_fasta(pileup):
@@ -107,18 +121,16 @@ class ProcessFASTAs(PipelineTask):
                 ancestral = set(decode_fasta(outgroup_allele))
 
                 if len(ancestral) != 1:
-                    if VERBOSE:
-                        print("WARNING: Unknown ancestral allele chr{}:{} = {}"
-                              .format(self.chrom, site, outgroup_allele), file=sys.stderr)
+                    print("WARNING: Unknown ancestral allele chr{}:{} = {}"
+                          .format(self.chrom, site, outgroup_allele), file=sys.stderr)
                     continue
 
                 ancestral = ancestral.pop()
                 alleles = observations.keys()
 
                 if ancestral not in alleles:
-                    if VERBOSE:
-                        print("WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}"
-                              .format(self.chrom, site, set(haploids), ancestral), file=sys.stderr)
+                    print("WARNING: Pollyallelic site chr{}:{} = {}, ancestral {}"
+                          .format(self.chrom, site, set(haploids), ancestral), file=sys.stderr)
                     continue
 
                 # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
@@ -145,9 +157,8 @@ class ProcessFASTAs(PipelineTask):
                 num_snps += 1
 
             elif num_alleles > 2:
-                if VERBOSE:
-                    print("WARNING: Polyallelic site chr{}:{} = {}".format(self.chrom, site + 1, set(haploids)),
-                          file=sys.stderr)
+                print("WARNING: Polyallelic site chr{}:{} = {}".format(self.chrom, site + 1, set(haploids)),
+                      file=sys.stderr)
 
         print("FINISHED: {} chr{} contained {:,} SNPs".format(self.population, self.chrom, num_snps))
 
@@ -160,8 +171,8 @@ class ProcessVCFs(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    # def requires(self):
-    #     return ExtractSNPsVCF(self.species, self.population)
+    def requires(self):
+        return BiallelicSNPsVCF(self.species, self.population)
 
     # def output(self):
     #     return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))

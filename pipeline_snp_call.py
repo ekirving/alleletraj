@@ -5,11 +5,15 @@ import luigi
 import numpy
 
 # import my custom modules
-from pipeline_consts import *
+from pipeline_consts import BAM_FILES, OUT_GROUP, SAMPLES, SAMPLE_SEX, REF_FILE, CHROM_SIZE, MIN_GENO_QUAL
 from pipeline_utils import PipelineTask, run_cmd
 
 # VCF parser
 from pysam import VariantFile
+
+# quantiles for filtering VCF files
+QUANTILE_LOW = 0.05
+QUANTILE_HIGH = 0.95
 
 
 class BAMfile(luigi.ExternalTask):
@@ -236,7 +240,7 @@ class PolarizeVCF(PipelineTask):
 
 class BiallelicSNPsVCF(PipelineTask):
     """
-    Extract all the biallelic SNPs from the whole-genome VCF.
+    Extract all the biallelic SNPs from the filtered and polarised VCF.
 
     :type species: str
     :type population: str

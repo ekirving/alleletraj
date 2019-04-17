@@ -19,8 +19,6 @@ REF_FILE = {
     'horse': "fasta/Equus_caballus.EquCab2.dna.toplevel.fa",
 }
 
-# path to the folder containing the modern fasta files
-FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
 
 SAMPLES = {
 
@@ -107,11 +105,6 @@ SAMPLE_SEX = {
     }
 }
 
-# samples to leave out of the SFS calculation
-SFS_EXCLUSIONS = {
-    'horse': ['Esom_0226A', 'Icel_0144A', 'Icel_0247A', 'Shet_0249A', 'Shet_0250A',
-              'Yaku_0163A', 'Yaku_0170A', 'Yaku_0171A', 'Mong_0153A', 'Mong_0215A', 'Jeju_0275A', 'Frie_0296A']
-}
 
 BAM_FILES = {
     'horse': {
@@ -392,16 +385,6 @@ BAM_FILES = {
         'Yaku_0171A': '/home/ludo/inbox/BAMs/modern/Yaku_0171A_Yak9.Horse_nuc_wY.realigned.bam',
         'YER28_CGG_1_020254': '/home/ludo/inbox/BAMs/ancient/YER28_CGG_1_020254.Horse_nuc_wY.realigned.r.t.m.1.3p.s.bam',
     }
-}
-
-# possible values include:
-FASTA_MAP = {
-    'R': ['A', 'G'],
-    'Y': ['C', 'T'],
-    'K': ['G', 'T'],
-    'M': ['A', 'C'],
-    'S': ['C', 'G'],
-    'W': ['A', 'T'],
 }
 
 # enforce max interval size of 1 Gb
@@ -698,7 +681,3 @@ QTL_FILES = {
 
 # wait 10 seconds before retrying a failed request
 QTLDB_WAIT_TIME = 10
-
-# quantiles for filtering VCF files
-QUANTILE_LOW = 0.05
-QUANTILE_HIGH = 0.95

@@ -8,12 +8,12 @@ import luigi
 import pysam
 import sys
 
+from collections import Counter
+
 # import my custom modules
-from pipeline_consts import SAMPLES, OUT_GROUP, CHROM_SIZE, MIN_GENO_QUAL
+from pipeline_consts import SAMPLES, OUT_GROUP, CHROM_SIZE
 from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, db_conn
-
-from collections import Counter
 
 # path to the folder containing the modern fasta files
 FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
@@ -53,9 +53,11 @@ class ProcessFASTAs(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
+    # TODO
     # def requires(self):
     #     return ExtractSNPsVCF(self.species, self.population)
 
+    # TODO
     # def output(self):
     #     return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
 
@@ -163,9 +165,13 @@ class ProcessFASTAs(PipelineTask):
         print("FINISHED: {} chr{} contained {:,} SNPs".format(self.population, self.chrom, num_snps))
 
 
-class ProcessVCFs(PipelineTask):
+class AlleleFrequencyFromVCF(PipelineTask):
     """
-    Extract all the SNPs from a given chromosome and estimate the allele frequency
+    Estimate the allele frequency of all the SNPs in a given chromosome VCF.
+
+    :type species: str
+    :type population: str
+    :type chrom: str
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -174,52 +180,29 @@ class ProcessVCFs(PipelineTask):
     def requires(self):
         return BiallelicSNPsVCF(self.species, self.population)
 
-    # def output(self):
-    #     return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
+    def output(self):
+        return luigi.LocalTarget('db/{}-modern_snps.log'.format(self.basename))
 
     def run(self):
-        num_snps = 0
-
-        # open a private connection to the database
         dbc = db_conn(self.species)
 
-        vcf_file = "vcf/horse_{}_chr{}.vcf".format(self.population, self.chrom)
-
-        print("STARTED: Parsing {} chr{} in {}.".format(self.population, self.chrom, vcf_file))
+        # count the number of SNPs added
+        num_snps = 0
 
         # parse the VCF with pysam
-        for rec in pysam.VariantFile(vcf_file).fetch():
+        for rec in pysam.VariantFile(self.input().path).fetch():
 
-            # skip low quality sites
-            if int(rec.qual) < MIN_GENO_QUAL:
-                continue
-
-            # skip polyallelic sites
-            if len(rec.alleles) != 2:
-                continue
-
-            # get the outgroup genotype
-            out_geno = set(rec.samples[OUT_GROUP[self.species]]['GT'])
-
-            # skip heterozygous sites in the outgroup (as they can't be polarized)
-            if len(out_geno) != 1 or out_geno == {None}:
-                continue
-
-            # resolve the ancestral and derived alleles from the outgroup genotype
-            ancestral = rec.alleles[out_geno.pop()]
-            derived = [base for base in rec.alleles if base != ancestral].pop()
+            # the VCF has already been polarised, so the REF/ALT are the ancestral/derived
+            ancestral = rec.ref
+            derived = rec.alts[0]
 
             # lets collate all the haploid observations for the two alleles
             haploids = []
 
             # resolve the genotypes of all the samples
             for sample in SAMPLES[self.species][self.population]:
-
-                # get the genotype call for this site
-                geno = rec.samples[sample]['GT']
-
-                # decode the GT notation into allele calls (e.g. 0/0, 0/1, 1/1)
-                alleles = [rec.alleles[idx] for idx in geno if idx is not None]
+                # get the alleles, but skip any missing genotypes
+                alleles = [a for a in rec.samples[sample].alleles if a is not None]
 
                 # add them to the list
                 haploids += alleles
@@ -237,26 +220,32 @@ class ProcessVCFs(PipelineTask):
             # calculate the derived allele frequency (daf)
             daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
 
-            record = dict()
-            record['population'] = self.population
-            record['chrom'] = self.chrom
-            record['site'] = rec.pos
-            record['ancestral'] = ancestral
-            record['ancestral_count'] = observations[ancestral]
-            record['derived'] = derived
-            record['derived_count'] = observations[derived]
-            record['type'] = snp_type
-            record['daf'] = daf
+            record = {
+                'population': self.population,
+                'chrom': self.chrom,
+                'site': rec.pos,
+                'ancestral': ancestral,
+                'ancestral_count': observations[ancestral],
+                'derived': derived,
+                'derived_count': observations[derived],
+                'type': snp_type,
+                'daf': daf,
+            }
 
             dbc.save_record('modern_snps', record)
             num_snps += 1
 
-        print("FINISHED: {} chr{} contained {:,} SNPs".format(self.population, self.chrom, num_snps))
+        with self.output().open('w') as fout:
+            fout.write("Added {:,} SNPs".format(num_snps))
 
 
 class ProcessSNPs(luigi.WrapperTask):
     """
     Ascertain modern SNPs in whole-genome data.
+
+    :type species: str
+    :type population: str
+    :type chrom: str
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -267,13 +256,17 @@ class ProcessSNPs(luigi.WrapperTask):
             # special case of FASTA data for pig ascertainment
             yield ProcessFASTAs(self.species, self.population, self.chrom)
         else:
-            # parse the VCF files
-            yield ProcessVCFs(self.species, self.population, self.chrom)
+            # parse the VCF files for all other species
+            yield AlleleFrequencyFromVCF(self.species, self.population, self.chrom)
 
 
 class LinkEnsemblGenes(PipelineTask):
     """
     Link modern SNPs to their Ensembl genes
+
+    :type species: str
+    :type population: str
+    :type chrom: str
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -283,7 +276,7 @@ class LinkEnsemblGenes(PipelineTask):
         return ProcessSNPs(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('sql/{}-ensembl_genes.log'.format(self.basename))
+        return luigi.LocalTarget('db/{}-ensembl_genes.log'.format(self.basename))
 
     def run(self):
         dbc = db_conn(self.species)
@@ -304,6 +297,10 @@ class LinkEnsemblGenes(PipelineTask):
 class LinkEnsemblVariants(PipelineTask):
     """
     Link modern SNPs to their Ensembl dbsnp variants
+
+    :type species: str
+    :type population: str
+    :type chrom: str
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -313,7 +310,7 @@ class LinkEnsemblVariants(PipelineTask):
         return ProcessSNPs(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('sql/{}-ensembl_variants.log'.format(self.basename))
+        return luigi.LocalTarget('db/{}-ensembl_vars.log'.format(self.basename))
 
     def run(self):
         dbc = db_conn(self.species)
@@ -338,6 +335,10 @@ class LinkEnsemblVariants(PipelineTask):
 class LinkSNPChip(PipelineTask):
     """
     Link modern SNPs to their SNPChip variants
+
+    :type species: str
+    :type population: str
+    :type chrom: str
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -347,7 +348,7 @@ class LinkSNPChip(PipelineTask):
         return ProcessSNPs(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('sql/{}-snpchip.log'.format(self.basename))
+        return luigi.LocalTarget('db/{}-snpchip.log'.format(self.basename))
 
     def run(self):
         dbc = db_conn(self.species)
@@ -368,6 +369,8 @@ class LinkSNPChip(PipelineTask):
 class DiscoverModernSNPs(luigi.WrapperTask):
     """
     Populate the modern_snps table and link records to genes, dbsnp and snpchip records.
+
+    :type species: str
     """
     species = luigi.Parameter()
 

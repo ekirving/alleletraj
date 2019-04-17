@@ -271,7 +271,7 @@ class BiallelicSNPsVCF(PipelineTask):
                      self.input().path])
 
         # index the vcf
-        run_cmd(['bcftools', 'index', self.output().path])
+        run_cmd(['bcftools', 'index', '--tbi', self.output().path])
 
 
 class WholeGenomeSNPsVCF(PipelineTask):
@@ -305,7 +305,7 @@ class WholeGenomeSNPsVCF(PipelineTask):
                      ] + vcf_files)
 
         # index the vcf
-        run_cmd(['bcftools', 'index', self.output().path])
+        run_cmd(['bcftools', 'index', '--tbi', self.output().path])
 
 
 class BCFtoolsCallSNPs(luigi.WrapperTask):

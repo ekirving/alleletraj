@@ -60,7 +60,7 @@ for (( i=$start_num; i<=end_num; i++ )); do
             echo ${cmd} | tee ${log}
 
             # now run selection, and gzip the time and trajectory files when we're done (as these are big)
-            ( eval ${cmd} >> ${log}; gzip ${output}.time; gzip ${output}.traj; ) &
+            ( eval ${cmd} >> ${log}; gzip --best ${output}.time; gzip --best ${output}.traj; ) &
         done
     fi
 done

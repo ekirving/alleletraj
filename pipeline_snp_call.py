@@ -164,8 +164,8 @@ class FilterVCF(PipelineTask):
                 'out':   vcf_out,
             }
 
-            cmd = 'bcftools filter --exclude QUAL<{qual} | DP<{qlow} | DP>{qhigh} --output-type u {vcf} | ' \
-                  'bcftools norm --fasta-ref {ref} --multiallelics +any --output-type z --output {out}'.format(**params)
+            cmd = "bcftools filter --exclude 'QUAL<{qual} | DP<{qlow} | DP>{qhigh}' --output-type u {vcf} | " \
+                  "bcftools norm --fasta-ref {ref} --multiallelics +any --output-type z --output {out}".format(**params)
 
             run_cmd([cmd], shell=True)
 

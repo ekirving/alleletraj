@@ -31,8 +31,10 @@ MCMC_PRINT = 1000
 # fraction of the allele frequency to update during a trajectory update move
 MCMC_FRACTION = 20
 
-# derived allele is: 1=dominant, 0=recessive, 0.5=additive
-MCMC_DOMINANCE = 0.5
+# derived allele is
+MCMC_RECESSIVE = 0
+MCMC_ADDITIVE = 0.5
+MCMC_DOMINANT = 1
 
 # random number seed
 MCMC_RANDOM_SEED = 234395
@@ -154,7 +156,8 @@ class SelectionRunMCMC(PipelineTask):
                          '-P', pop_hist,          # path to population size history file
                          '-o', output_prefix,     # output file prefix
                          '-a',                    # flag to infer allele age
-                         # '-h', MCMC_DOMINANCE,    # derived allele is: 1=dominant, 0=recessive, 0.5=additive
+                         '-A',                    # ascertainment flag
+                         '-h', MCMC_ADDITIVE,     # assume derived allele is additive
                          '-n', self.mcmc_cycles,  # number of MCMC cycles to run
                          '-s', self.mcmc_freq,    # frequency of sampling from the posterior
                          '-f', MCMC_PRINT,        # frequency of printing output to the screen

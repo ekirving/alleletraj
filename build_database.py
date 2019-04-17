@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from populate_coverage import *
+from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants
 from pipeline_modern_snps import DiscoverModernSNPs, links_modern_snps
 from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
@@ -23,19 +24,22 @@ from graph_derived import graph_derived
 class BuildDatabase(luigi.WrapperTask):
     """
     Build the species database
+
+    :type species: str
     """
+    species = luigi.Parameter()
 
     def requires(self):
 
         # load all the Ensembl data for this species
-        load_ensembl_genes()
-        load_ensembl_variants()
+        yield LoadEnsemblGenes(self.species)
+        yield LoadEnsemblVariants(self.species)
 
         # load the SNP Chip data
         load_snpchip_variants()
 
         # ascertain SNPs in modern whole genome data
-        yield DiscoverModernSNPs()
+        yield DiscoverModernSNPs(self.species)
 
         # load the QTLs from the AnimalQTL database
         populate_qtls()

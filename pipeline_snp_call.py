@@ -134,7 +134,7 @@ class FilterVCF(PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     chrom = luigi.Parameter()
-    qual = luigi.IntParameter(default=MIN_GENO_QUAL)
+    qual = luigi.IntParameter()
 
     def requires(self):
         yield BCFToolsCall(self.species, self.population, self.chrom)
@@ -160,41 +160,6 @@ class FilterVCF(PipelineTask):
                      vcf_input.path])
 
 
-class ConcatFilteredVCFs(PipelineTask):
-    """
-    Concatenate the chromosome VCFs into a single file, normalise indels and merge multiallelic sites.
-
-    :type species: str
-    :type population: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-
-    def requires(self):
-        for chrom in CHROM_SIZE[self.species]:
-            yield FilterVCF(self.species, self.population, 'chr{}'.format(chrom))
-
-    def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-filtered.vcf.gz'.format(self.basename))
-
-    def run(self):
-
-        # unpack the input params
-        vcf_files = [vcf.path for vcf in self.input()]
-
-        with self.output().temporary_path() as tmp_out:
-            params = {
-                'vcfs': ' '.join(vcf_files),
-                'ref': REF_FILE[self.species],
-                'out': tmp_out,
-            }
-
-            cmd = 'bcftools concat {vcfs} --output-type u | bcftools norm --fasta-ref {ref} --multiallelics +any ' \
-                  ' --output-type z --output {out}'.format(**params)
-
-            run_cmd([cmd], shell=True)
-
-
 class PolarizeVCF(PipelineTask):
     """
     Switch the REF allele for the ancestral allele, based on an outgroup present in the VCF.
@@ -203,18 +168,22 @@ class PolarizeVCF(PipelineTask):
 
     :type species: str
     :type population: str
+    :type chrom: str
+    :type qual: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
+    chrom = luigi.Parameter()
+    qual = luigi.IntParameter(default=MIN_GENO_QUAL)
 
     def requires(self):
-        # TODO no reason not to polarize before concat
-        return ConcatFilteredVCFs(self.species, self.population)
+        return FilterVCF(self.species, self.population, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-DoC-polar.vcf.gz'.format(self.basename))
 
     def run(self):
+
         with self.output().temporary_path() as tmp_out:
             # open both VCF files
             vcf_in = VariantFile(self.input().path)
@@ -255,9 +224,9 @@ class PolarizeVCF(PipelineTask):
                 vcf_out.write(rec)
 
 
-class ExtractSNPsVCF(PipelineTask):
+class WholeGenomeVCF(PipelineTask):
     """
-    Extract all the biallelic SNPs from the VCF.
+    Concatenate the all chromosome VCFs into a single file, normalise indels and merge multiallelic sites.
 
     :type species: str
     :type population: str
@@ -266,9 +235,47 @@ class ExtractSNPsVCF(PipelineTask):
     population = luigi.Parameter()
 
     def requires(self):
-        return PolarizeVCF(self.species, self.population)
+        for chrom in CHROM_SIZE[self.species]:
+            yield PolarizeVCF(self.species, self.population, 'chr{}'.format(chrom))  # TODO handle chr prefixes better
 
     def output(self):
+        # TODO add index task
+        return luigi.LocalTarget('vcf/{}-chrAll-filtered.vcf.gz'.format(self.basename))
+
+    def run(self):
+
+        # unpack the input params
+        vcf_files = [vcf.path for vcf in self.input()]
+
+        with self.output().temporary_path() as tmp_out:
+            params = {
+                'vcfs': ' '.join(vcf_files),
+                'ref': REF_FILE[self.species],
+                'out': tmp_out,
+            }
+
+            # TODO move norm to earlier task
+            cmd = 'bcftools concat {vcfs} --output-type u | bcftools norm --fasta-ref {ref} --multiallelics +any ' \
+                  ' --output-type z --output {out}'.format(**params)
+
+            run_cmd([cmd], shell=True)
+
+
+class BiallelicSNPsVCF(PipelineTask):
+    """
+    Extract all the biallelic SNPs from the whole-genome VCF.
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def requires(self):
+        return WholeGenomeVCF(self.species, self.population)
+
+    def output(self):
+        # TODO add index task
         return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.basename))
 
     def run(self):
@@ -294,8 +301,8 @@ class BCFtoolsCallSNPs(luigi.WrapperTask):
     """
 
     def requires(self):
-        yield ExtractSNPsVCF('horse', 'DOM')
-        yield ExtractSNPsVCF('horse', 'DOM2')
+        yield BiallelicSNPsVCF('horse', 'DOM')
+        yield BiallelicSNPsVCF('horse', 'DOM2')
 
 
 if __name__ == '__main__':

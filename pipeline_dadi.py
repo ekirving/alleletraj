@@ -11,7 +11,7 @@ import random
 
 # import my custom modules
 from pipeline_consts import *
-from pipeline_snp_call import PolarizeVCF, ExtractSNPsVCF
+from pipeline_snp_call import WholeGenomeVCF, BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, run_cmd
 
 
@@ -72,7 +72,7 @@ class EasySFS(PipelineTask):
     folded = luigi.BoolParameter()
 
     def requires(self):
-        return ExtractSNPsVCF(self.species, self.population)
+        return BiallelicSNPsVCF(self.species, self.population)
 
     def output(self):
         return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
@@ -286,7 +286,7 @@ class CountCallableSites(PipelineTask):
     population = luigi.Parameter()
 
     def requires(self):
-        return PolarizeVCF(self.species, self.population)
+        return WholeGenomeVCF(self.species, self.population)
 
     def output(self):
         return luigi.LocalTarget('dadi/{}.L'.format(self.basename))

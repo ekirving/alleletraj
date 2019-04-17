@@ -218,7 +218,7 @@ class PolarizeVCF(PipelineTask):
         with self.output().temporary_path() as tmp_out:
             # open both VCF files
             vcf_in = VariantFile(self.input().path)
-            vcf_out = VariantFile(tmp_out, 'w', header=vcf_in.header)
+            vcf_out = VariantFile(tmp_out, 'wz', header=vcf_in.header)  # `z` tells pysam to bgzip output
 
             # iterate over the VCF and determine the ancestral allele
             for rec in vcf_in.fetch():

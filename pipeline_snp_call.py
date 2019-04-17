@@ -144,7 +144,7 @@ class FilterVCF(PipelineTask):
         yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-filtered.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-quant.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -190,7 +190,7 @@ class PolarizeVCF(PipelineTask):
         return FilterVCF(self.species, self.population, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-filtered-polar.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-quant-polar.vcf.gz'.format(self.basename))
 
     def run(self):
 

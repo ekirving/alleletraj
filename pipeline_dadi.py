@@ -41,8 +41,8 @@ def dadi_n_epoch(params, ns, pts):
     epochs = len(params) / 2
 
     # nu: Ratio of contemporary to ancient population size
-    # T:  Time in the past at which size change happened (in units of 2*Na generations)
-    nu, T = params[:epochs], params[epochs:]
+    # t:  Time in the past at which size change happened (in units of 2*Na generations)
+    nu, t = params[:epochs], params[epochs:]
 
     # make the grid
     grid = dadi.Numerics.default_grid(pts)
@@ -52,7 +52,7 @@ def dadi_n_epoch(params, ns, pts):
 
     for i in range(epochs):
         # integrate a 1-dimensional phi forward
-        phi = dadi.Integration.one_pop(phi, grid, T[i], nu[i])
+        phi = dadi.Integration.one_pop(phi, grid, t[i], nu[i])
 
     # compute sample Spectrum from population frequency distribution phi
     fs = dadi.Spectrum.from_phi(phi, ns, [grid])
@@ -335,11 +335,11 @@ class DadiDemography(PipelineTask):
         mu = MUTATION_RATE[self.species]
 
         # get the count of all callable sites
-        L = int(size_file.open().read())
+        length = int(size_file.open().read())
 
         # dadi scales population size by 2*Nref, where Nref is the size of the most ancient population
         # in dadi, θ = 4*Nref*µ, so to solve to Nref
-        nref = theta / (4 * mu * L)
+        nref = theta / (4 * mu * length)
 
         # save the Nref, so we can interpret the modelling results
         with nfef_file.open('w') as fout:

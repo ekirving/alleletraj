@@ -45,7 +45,7 @@ class BCFToolsCall(PipelineTask):
         """
         Include the outgroup in the sample list, as we need it for polarization
         """
-        return [OUTGROUP] + SAMPLES[self.species][self.population]
+        return [OUT_GROUP[self.species]] + SAMPLES[self.species][self.population]
 
     def requires(self):
         for sample in self.samples:
@@ -224,7 +224,7 @@ class PolarizeVCF(PipelineTask):
             for rec in vcf_in.fetch():
 
                 # get the outgroup alleles
-                out_alleles = rec.samples[OUTGROUP].alleles
+                out_alleles = rec.samples[OUT_GROUP[self.species]].alleles
 
                 # skip sites in the outgroup that are heterozygous or missing
                 if len(set(out_alleles)) != 1 or out_alleles[0] is None:
@@ -272,6 +272,7 @@ class ExtractSNPsVCF(PipelineTask):
         return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.basename))
 
     def run(self):
+        outgroup = OUT_GROUP[self.species]
 
         with self.output().temporary_path() as vcf_out:
             run_cmd(['bcftools',
@@ -280,7 +281,7 @@ class ExtractSNPsVCF(PipelineTask):
                      '--min-alleles', 2,           # which are biallelic
                      '--max-alleles', 2,
                      '--exclude', 'INFO/INDEL=1',  # exclude sites marked as INDELs in INFO tag
-                     '--samples', '^' + OUTGROUP,  # exclude the outgroup
+                     '--samples', '^' + outgroup,  # exclude the outgroup
                      '--min-ac', '1:nref',         # exclude sites exclusively hom-ALT, as these are likely mispolarised
                      '--output-type', 'z',
                      '--output-file', vcf_out,

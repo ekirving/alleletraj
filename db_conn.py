@@ -23,7 +23,7 @@ class db_conn:
       'host':     '127.0.0.1'
     }
 
-    def __init__(self, species=SPECIES):
+    def __init__(self, species):
         # set the database name
         self.db_config['database'] = 'alleletraj_{}_{}'.format(species, QTLDB_RELEASE)
 

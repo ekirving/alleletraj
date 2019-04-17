@@ -7,14 +7,11 @@ from socket import gethostname
 
 # TODO move module specific constants into those modules
 
-# TODO this needs refactoring to work with multiple species
-# SPECIES = 'pig'
-# POPULATION = 'EUD'
-# OUTGROUP = 'SVSV01U01_Sverrucosus_rh'  # Sus verrucosus / Javan warty pig
-
-SPECIES = 'horse'
-POPULATION = 'DOM2'
-OUTGROUP = 'Esom_0226A'  # Equus africanus somaliensis / Somali wild ass
+# TODO rename once we've fixed all the broken references
+OUT_GROUP = {
+    'pig':   'SVSV01U01_Sverrucosus_rh',  # Sus verrucosus / Javan warty pig
+    'horse': 'Esom_0226A',                # Equus africanus somaliensis / Somali wild ass
+}
 
 # location of reference genome
 REF_FILE = {

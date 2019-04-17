@@ -11,7 +11,7 @@ import random
 
 # import my custom modules
 from pipeline_consts import *
-from pipeline_snp_call import WholeGenomeVCF, BiallelicSNPsVCF
+from pipeline_snp_call import PolarizeVCF, WholeGenomeSNPsVCF
 from pipeline_utils import PipelineTask, run_cmd
 
 
@@ -72,7 +72,7 @@ class EasySFS(PipelineTask):
     folded = luigi.BoolParameter()
 
     def requires(self):
-        return BiallelicSNPsVCF(self.species, self.population)
+        return WholeGenomeSNPsVCF(self.species, self.population)
 
     def output(self):
         return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
@@ -286,18 +286,22 @@ class CountCallableSites(PipelineTask):
     population = luigi.Parameter()
 
     def requires(self):
-        return WholeGenomeVCF(self.species, self.population)
+        for chrom in CHROM_SIZE[self.species]:
+            yield PolarizeVCF(self.species, self.population, 'chr{}'.format(chrom))  # TODO handle chr prefixes better
 
     def output(self):
         return luigi.LocalTarget('dadi/{}.L'.format(self.basename))
 
     def run(self):
+        total = 0
 
         # count all unique sites
-        size = run_cmd(["bcftools query -f '%CHROM %POS\\n' {} | uniq | wc -l".format(self.input().path)], shell=True)
+        for vcf_file in self.input():
+            size = run_cmd(["bcftools query -f '%CHROM %POS\\n' {} | uniq | wc -l".format(vcf_file.path)], shell=True)
+            total += int(size)
 
         with self.output().open('w') as fout:
-            fout.write(size)
+            fout.write(total)
 
 
 class DadiDemography(PipelineTask):

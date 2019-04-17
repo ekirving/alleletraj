@@ -184,7 +184,7 @@ class PolarizeVCF(PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     chrom = luigi.Parameter()
-    qual = luigi.IntParameter(default=MIN_GENO_QUAL)
+    qual = luigi.IntParameter()
 
     def requires(self):
         return FilterVCF(self.species, self.population, self.chrom, self.qual)
@@ -234,54 +234,25 @@ class PolarizeVCF(PipelineTask):
                 vcf_out.write(rec)
 
 
-class WholeGenomeVCF(PipelineTask):
-    """
-    Concatenate the all chromosome VCFs into a single file.
-
-    :type species: str
-    :type population: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-
-    def requires(self):
-        for chrom in CHROM_SIZE[self.species]:
-            yield PolarizeVCF(self.species, self.population, 'chr{}'.format(chrom))  # TODO handle chr prefixes better
-
-    def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar.vcf.gz'.format(self.basename))
-
-    def run(self):
-
-        # get all the vcf files to concatenate
-        vcf_files = [vcf.path for vcf in self.input()]
-
-        with self.output().temporary_path() as tmp_out:
-            run_cmd(['bcftools',
-                     'concat',
-                     '--output-type', 'z',
-                     '--output', tmp_out
-                     ] + vcf_files)
-
-        # index the vcf
-        run_cmd(['bcftools', 'index', self.output().path])
-
-
 class BiallelicSNPsVCF(PipelineTask):
     """
     Extract all the biallelic SNPs from the whole-genome VCF.
 
     :type species: str
     :type population: str
+    :type chrom: str
+    :type qual: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
+    chrom = luigi.Parameter()
+    qual = luigi.IntParameter(default=MIN_GENO_QUAL)
 
     def requires(self):
-        return WholeGenomeVCF(self.species, self.population)
+        return PolarizeVCF(self.species, self.population, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-quant-polar-SNPs.vcf.gz'.format(self.basename))
 
     def run(self):
         outgroup = OUT_GROUP[self.species]
@@ -303,14 +274,47 @@ class BiallelicSNPsVCF(PipelineTask):
         run_cmd(['bcftools', 'index', self.output().path])
 
 
-class BCFtoolsCallSNPs(luigi.WrapperTask):
+class WholeGenomeSNPsVCF(PipelineTask):
     """
-    Call SNPs using the bcftools mpileup | call workflow.
+    Concatenate the all chromosome VCFs into a single file.
+
+    :type species: str
+    :type population: str
     """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
 
     def requires(self):
-        yield BiallelicSNPsVCF('horse', 'DOM')
-        yield BiallelicSNPsVCF('horse', 'DOM2')
+        for chrom in CHROM_SIZE[self.species]:
+            # TODO handle chr prefixes better
+            yield BiallelicSNPsVCF(self.species, self.population, 'chr{}'.format(chrom))
+
+    def output(self):
+        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.basename))
+
+    def run(self):
+
+        # get all the vcf files to concatenate
+        vcf_files = [vcf.path for vcf in self.input()]
+
+        with self.output().temporary_path() as tmp_out:
+            run_cmd(['bcftools',
+                     'concat',
+                     '--output-type', 'z',
+                     '--output', tmp_out
+                     ] + vcf_files)
+
+        # index the vcf
+        run_cmd(['bcftools', 'index', self.output().path])
+
+
+class BCFtoolsCallSNPs(luigi.WrapperTask):
+    """
+    Call SNPs using the bcftools `mpileup | call` workflow.
+    """
+    def requires(self):
+        yield WholeGenomeSNPsVCF('horse', 'DOM')
+        yield WholeGenomeSNPsVCF('horse', 'DOM2')
 
 
 if __name__ == '__main__':

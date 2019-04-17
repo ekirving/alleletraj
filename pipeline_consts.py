@@ -116,10 +116,6 @@ SFS_EXCLUSIONS = {
               'Yaku_0163A', 'Yaku_0170A', 'Yaku_0171A', 'Mong_0153A', 'Mong_0215A', 'Jeju_0275A', 'Frie_0296A']
 }
 
-MUTATION_RATE = {
-    'horse': 7.242e-9  # https://www.pnas.org/content/111/52/E5661.full#sec-17
-}
-
 BAM_FILES = {
     'horse': {
         'A_Ch40_CGG_1_016168': '/home/ludo/inbox/BAMs/ancient/A_Ch40_CGG_1_016168.Horse_nuc_wY.realigned.r.t.bam',
@@ -458,6 +454,10 @@ CHROM_SIZE = {
 
 }
 
+# the per-site mutation rate
+MUTATION_RATE = {
+    'horse': 7.242e-9  # https://www.pnas.org/content/111/52/E5661.full#sec-17
+}
 
 # the average generation time in years
 GENERATION_TIME = {

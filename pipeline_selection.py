@@ -262,7 +262,7 @@ class SelectionHorseGWAS(luigi.WrapperTask):
 
 class SelectionHorseGWASFlankingSNPs(luigi.WrapperTask):
     """
-    Run `selection` on all the direct GWAS hits for horses.
+    Run `selection` on all the QTL SNPs for hoses
     """
 
     def requires(self):

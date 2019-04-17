@@ -245,7 +245,8 @@ class PolarizeVCF(PipelineTask):
                     indices = dict(zip(alleles, range(0, len(alleles))))
 
                     for sample in rec.samples:
-                        rec.samples[sample].allele_indices = [indices.get(gt, None) for gt in rec.samples[sample].alleles]
+                        rec.samples[sample].allele_indices = [indices.get(gt, None)
+                                                              for gt in rec.samples[sample].alleles]
 
                     # polarize the REF/ALT alleles
                     rec.ref = anc

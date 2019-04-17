@@ -4,17 +4,19 @@
 from __future__ import print_function
 
 import itertools
+import luigi
 import multiprocessing as mp
+import pysam
 import sys
 import traceback
+
+# import my custom modules
+from pipeline_consts import *
+from pipeline_utils import PipelineTask, db_conn
+
 from collections import Counter
-import pysam as ps
-
-from pipeline_utils import *
-
-# TODO convert to luigi pipeline
-# TODO update to use pipeline_snp_call
-# NB. polarized  should we drop sites that are hom-REF in outgroup and hom-ALT in ingroup?
+from datetime import timedelta
+from time import time
 
 
 def decode_fasta(pileup):
@@ -33,7 +35,7 @@ def stream_fasta(fin):
             yield character
 
 
-def process_fasta_files(args):
+def ProcessFASTAs(args):
     """
     Extract all the SNPs from a given chromosome and estimate the allele frequency
     """
@@ -150,7 +152,7 @@ def process_fasta_files(args):
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
 
-def process_vcf_files(args):
+def ProcessVCFs(args):
     """
     Extract all the SNPs from a given chromosome and estimate the allele frequency
     """
@@ -169,7 +171,7 @@ def process_vcf_files(args):
         print("STARTED: Parsing {} chr{} in {}.".format(population, chrom, vcf_file))
 
         # parse the VCF with pysam
-        for rec in ps.VariantFile(vcf_file).fetch():
+        for rec in pysam.VariantFile(vcf_file).fetch():
 
             # skip low quality sites
             if int(rec.qual) < MIN_GENO_QUAL:
@@ -213,7 +215,7 @@ def process_vcf_files(args):
                 continue
 
             # is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
-            type = 'ts' if set(rec.alleles) == {'A', 'G'} or set(rec.alleles) == {'C', 'T'} else 'tv'
+            snp_type = 'ts' if set(rec.alleles) == {'A', 'G'} or set(rec.alleles) == {'C', 'T'} else 'tv'
 
             # calculate the derived allele frequency (daf)
             daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
@@ -226,7 +228,7 @@ def process_vcf_files(args):
             record['ancestral_count'] = observations[ancestral]
             record['derived'] = derived
             record['derived_count'] = observations[derived]
-            record['type'] = type
+            record['type'] = snp_type
             record['daf'] = daf
 
             dbc.save_record('modern_snps', record)
@@ -240,7 +242,7 @@ def process_vcf_files(args):
         raise Exception("".join(traceback.format_exception(*sys.exc_info())))
 
 
-def link_ensembl_genes():
+def LinkEnsemblGenes():
     """
     Link modern SNPs to their Ensembl genes
     """
@@ -265,7 +267,7 @@ def link_ensembl_genes():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def link_ensembl_variants():
+def LinkEnsemblVariants():
     """
     Link modern SNPs to their Ensembl dbsnp variants
     """
@@ -294,7 +296,7 @@ def link_ensembl_variants():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def link_snpchip():
+def LinkSNPChip():
     """
     Link modern SNPs to their snpchip variants
     """
@@ -319,18 +321,18 @@ def link_snpchip():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def discover_modern_snps():
+def DiscoverModernSNPs():
     """
     Ascertain SNPs in modern whole genome data.
     """
 
     if SPECIES == 'pig':
         # ascertain modern pig SNPs from whole genome FASTA files
-        func = process_fasta_files
+        func = ProcessFASTAs
 
     elif SPECIES == 'horse':
         # ascertain modern horse SNPs from VCF files
-        func = process_vcf_files
+        func = ProcessVCFs
 
     else:
         raise Exception('Not implemented yet for {}'.format(SPECIES))
@@ -352,10 +354,7 @@ def discover_modern_snps():
                 func((chrom, pop))
 
 
-def links_modern_snps():
-    """
-    Link modern SNPs to their dbsnp, gene and snpchip records
-    """
-    link_ensembl_genes()
-    link_ensembl_variants()
-    link_snpchip()
+    # link modern SNPs to their dbsnp, gene and snpchip records
+    LinkEnsemblGenes()
+    LinkEnsemblVariants()
+    LinkSNPChip()

@@ -208,13 +208,13 @@ class PolarizeVCF(PipelineTask):
     population = luigi.Parameter()
 
     def requires(self):
+        # TODO no reason not to polarize before concat
         return ConcatFilteredVCFs(self.species, self.population)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar.vcf.gz'.format(self.basename))
 
     def run(self):
-
         with self.output().temporary_path() as tmp_out:
             # open both VCF files
             vcf_in = VariantFile(self.input().path)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from populate_coverage import *
-from discover_modern_snps import discover_modern_snps, links_modern_snps
+from pipeline_modern_snps import DiscoverModernSNPs, links_modern_snps
 from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 from populate_samples import populate_pig_samples, populate_horse_samples
@@ -27,10 +27,7 @@ load_ensembl_variants()
 load_snpchip_variants()
 
 # ascertain SNPs in modern whole genome data
-discover_modern_snps()
-
-# link modern SNPs to their dbsnp, gene and snpchip records
-links_modern_snps()
+DiscoverModernSNPs()
 
 # load the QTLs from the AnimalQTL database
 populate_qtls()

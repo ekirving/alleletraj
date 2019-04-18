@@ -10,7 +10,7 @@ import pickle
 import random
 
 # import my custom modules
-from pipeline_consts import SAMPLES, CHROM_SIZE, MUTATION_RATE
+from pipeline_consts import SAMPLES, CHROM_SIZE, MUTATION_RATE, CPU_CORES_ONE
 from pipeline_snp_call import PolarizeVCF, WholeGenomeSNPsVCF
 from pipeline_utils import PipelineTask, run_cmd
 
@@ -79,8 +79,7 @@ class EasySFS(PipelineTask):
     population = luigi.Parameter()
     folded = luigi.BoolParameter()
 
-    # TODO uses lots of memory
-    # resources = {'cpu-cores': 1}
+    resources = {'cpu-cores': CPU_CORES_ONE, 'ram-gb': 96}
 
     def requires(self):
         return WholeGenomeSNPsVCF(self.species, self.population)

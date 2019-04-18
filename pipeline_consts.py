@@ -464,13 +464,6 @@ SWEEP_DATA = {
             'snps': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed'}
 }
 
-SNP_CHIP_DATA = {
-
-    # see http://bioinformatics.tecnoparco.org/SNPchimp
-    'pig':   'data/SNPchimp/SNPchimp_pig.tsv.gz',
-    'horse': 'data/SNPchimp/SNPchimp_horse.tsv.gz',
-    'goat':  'data/SNPchimp/SNPchimp_goat.tsv.gz'
-}
 
 # the Ensembl gene ID
 MC1R_GENE_ID = {

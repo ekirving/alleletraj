@@ -69,7 +69,7 @@ class LoadEnsemblGenes(PipelineTask):
         return DownloadEnsemblData(self.species, 'gtf')
 
     def output(self):
-        return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.basename))
+        return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))
 
     def run(self):
         # open a db connection
@@ -132,7 +132,7 @@ class LoadEnsemblVariants(PipelineTask):
         return DownloadEnsemblData(self.species, 'gvf')
 
     def output(self):
-        return luigi.LocalTarget('ensembl/{}-variants.log'.format(self.basename))
+        return luigi.LocalTarget('ensembl/{}-variants.log'.format(self.species))
 
     def run(self):
         dbc = db_conn(self.species)

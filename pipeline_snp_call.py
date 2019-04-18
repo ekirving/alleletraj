@@ -312,7 +312,7 @@ class WholeGenomeSNPsVCF(PipelineTask):
         run_cmd(['bcftools', 'index', '--tbi', self.output().path])
 
 
-class BCFtoolsCallSNPs(luigi.WrapperTask):
+class SNPCallPipeline(luigi.WrapperTask):
     """
     Call SNPs using the bcftools `mpileup | call` workflow.
     """

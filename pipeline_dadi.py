@@ -387,7 +387,7 @@ class DadiDemography(PipelineTask):
             fout.write("1.0\t0\t-Inf\n")
 
 
-class DadiModelDemography(luigi.WrapperTask):
+class DadiPipeline(luigi.WrapperTask):
     """
     Find the best fitting of 5 sequential epoch ∂a∂i models (i.e. 1 epoch, 2 epoch, etc.).
     """

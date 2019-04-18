@@ -274,40 +274,6 @@ class ProcessSNPs(luigi.WrapperTask):
             yield AlleleFrequencyFromVCF(self.species, self.population, self.chrom)
 
 
-class LinkSNPChip(PipelineTask):
-    """
-    Link modern SNPs to their SNPChip variants
-
-    :type species: str
-    :type population: str
-    :type chrom: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    chrom = luigi.Parameter()
-
-    def requires(self):
-        return ProcessSNPs(self.species, self.population, self.chrom)
-
-    def output(self):
-        return luigi.LocalTarget('db/{}-snpchip.log'.format(self.basename))
-
-    def run(self):
-        dbc = db_conn(self.species)
-
-        exec_time = dbc.execute_sql("""
-            UPDATE modern_snps ms
-              JOIN snpchip sc
-                ON sc.chrom = ms.chrom
-               AND sc.site = ms.site
-               SET ms.snpchip_id = sc.id
-             WHERE ms.population = '{pop}'
-               AND ms.chrom = '{chrom}'""".format(pop=self.population, chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
-
-
 class ModernSNPsPipeline(luigi.WrapperTask):
     """
     Populate the modern_snps table.

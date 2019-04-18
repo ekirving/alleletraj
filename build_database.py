@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from populate_coverage import *
-from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants
 from pipeline_modern_snps import ModernSNPsPipeline
+from pipeline_ensembl import EnsemblPipeline
+from pipeline_snpchip import SNPChipPipeline
+
+from populate_coverage import *
 from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 from populate_samples import populate_pig_samples, populate_horse_samples
@@ -31,15 +33,14 @@ class BuildDatabase(luigi.WrapperTask):
 
     def requires(self):
 
-        # load all the Ensembl data for this species
-        yield LoadEnsemblGenes(self.species)
-        yield LoadEnsemblVariants(self.species)
-
-        # load the SNP Chip data
-        load_snpchip_variants()
-
         # ascertain SNPs in modern whole genome data
         yield ModernSNPsPipeline(self.species)
+
+        # link all the Ensembl data
+        yield EnsemblPipeline(self.species)
+
+        # link the SNPChip data
+        yield SNPChipPipeline(self.species)
 
         # load the QTLs from the AnimalQTL database
         populate_qtls()

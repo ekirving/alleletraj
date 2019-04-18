@@ -79,13 +79,19 @@ class EasySFS(PipelineTask):
     population = luigi.Parameter()
     folded = luigi.BoolParameter()
 
+    # TODO uses lots of memory
+    # resources = {'cpu-cores': 1}
+
     def requires(self):
         return WholeGenomeSNPsVCF(self.species, self.population)
 
     def output(self):
-        return luigi.LocalTarget('sfs/{}/dadi/{}.sfs'.format(self.basename, self.population))
+        return [luigi.LocalTarget('sfs/{}/dadi/{}.{}'.format(self.basename, self.population, ext))
+                for ext in ['sfs', 'log']]
 
     def run(self):
+        # unpack the outputs
+        sfs_file, log_file = self.output()
 
         # get all the samples to use
         samples = [s for s in SAMPLES[self.species][self.population] if s not in SFS_EXCLUSIONS[self.species]]
@@ -105,9 +111,14 @@ class EasySFS(PipelineTask):
         }
 
         # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
-        cmd = "yes yes | ../easySFS/easySFS.py -a -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
+        cmd = "echo 'yes' | " \
+              "../easySFS/easySFS.py -a -f -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
 
-        run_cmd([cmd], shell=True)
+        log = run_cmd([cmd], shell=True)
+
+        # save the output
+        with log_file.open('w') as fout:
+            fout.write(log)
 
 
 class DadiEpochOptimizeParams(PipelineTask):
@@ -135,9 +146,8 @@ class DadiEpochOptimizeParams(PipelineTask):
         return [luigi.LocalTarget("dadi/{}/{}.{}".format(folder, self.basename, ext)) for ext in ['pkl', 'log']]
 
     def run(self):
-
         # unpack the inputs/outputs
-        sfs_file = self.input()
+        sfs_file, _ = self.input()
         pkl_file, log_file = self.output()
 
         # load the frequency spectrum
@@ -235,7 +245,7 @@ class DadiEpochBestModel(PipelineTask):
 
     def run(self):
         # unpack the inputs/outputs
-        sfs_file, epoch_pkls = self.input()[0], self.input()[1:]
+        (sfs_file, _), epoch_pkls = self.input()[0], self.input()[1:]
         pkl_out, pdf_out = self.output()
 
         epochs = []

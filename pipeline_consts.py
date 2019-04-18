@@ -390,9 +390,6 @@ BAM_FILES = {
 # enforce max interval size of 1 Gb
 MAX_INTERVAL_SIZE = int(1e6)
 
-# offset to use for the QTL window (+/- 50 Kb)
-QTL_WINDOW = 50000
-
 # sizes of each chrom in the given assemblies
 CHROM_SIZE = {
 
@@ -456,22 +453,6 @@ POPULATION_SIZE = {
         'DOM2WLD': 16000
     }
 }
-
-SWEEP_DATA = {
-
-    # see https://www.nature.com/articles/ng.3394
-    'pig': {'loci': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff_MERGED10kb.bed',
-            'snps': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed'}
-}
-
-
-# the Ensembl gene ID
-MC1R_GENE_ID = {
-    'pig':   'ENSSSCG00000020924',
-    'horse': 'ENSECAG00000000900'
-}
-
-VERBOSE = False
 
 # the arbitrary +/- age uncertainty for median age dates
 MEDIAN_AGE_UNCERT = 100
@@ -585,9 +566,6 @@ SWEEP_NUM_SNPS = 5
 # the distance between sweep peaks
 SWEEP_PEAK_WIDTH = 1000
 
-# offset all genes by 100 Kb to preclude linkage with our 'neutral' SNPs
-GENE_OFFSET = 100000
-
 # the number of "neutral" SNPs to include in the ascertainment
 NUM_NEUTRAL_SNPS = 60000
 
@@ -641,17 +619,3 @@ PRIORITY_LOW  = 0
 PRIORITY_MED  = 1
 PRIORITY_HIGH = 2
 PRIORITY_MAX  = 3
-
-# QTLdb settings
-QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'
-QTLDB_CHUNK_SIZE = 10
-QTLDB_RELEASE = 'rel35'  # TODO fix me
-
-QTL_FILES = {
-    'pig':    "data/AnimalQTLdb/{}/cM/pig.txt".format(QTLDB_RELEASE),
-    'cattle': "data/AnimalQTLdb/{}/cM/cattle.txt".format(QTLDB_RELEASE),
-    'horse':  "data/AnimalQTLdb/{}/cM/horse.txt".format(QTLDB_RELEASE),
-}
-
-# wait 10 seconds before retrying a failed request
-QTLDB_WAIT_TIME = 10

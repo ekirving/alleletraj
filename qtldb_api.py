@@ -7,13 +7,19 @@ import urllib2
 import xmltodict
 from time import sleep
 
-from collections import OrderedDict
 from xml.sax.saxutils import escape
 
 from pipeline_consts import *
 
+# QTLdb settings
+QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'
+QTLDB_CHUNK_SIZE = 10
 
-class qtldb_api:
+# wait 10 seconds before retrying a failed request
+QTLDB_WAIT_TIME = 10
+
+
+class QTLdbAPI:
 
     def __init__(self):
         pass
@@ -74,12 +80,12 @@ class qtldb_api:
 
         return self.__execute(request)
 
-    def __iquery(self, species, query, type):
+    def __iquery(self, species, query, query_type):
         """
         Fetch records by free-text query.
         """
         request = "{url}/iquery?s={s}&q={q}&h={h}".format(url=QTLDB_API_URL, s=species,
-                                                          q=urllib.quote_plus(query), h=type)
+                                                          q=urllib.quote_plus(query), h=query_type)
 
         return self.__execute(request)
 

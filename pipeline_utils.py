@@ -91,32 +91,6 @@ def merge_intervals(ranges, capped=True):
         yield (saved[0], saved[1])
 
 
-def extract_qtl_fields(dbfile, fields):
-    data = defaultdict(list)
-
-    # get all the QTL IDs for this scope
-    with open(dbfile, 'rU') as fin:
-
-        # get the column headers
-        header = fin.readline().split('\t')
-
-        # get the index of the target fields
-        columns = [(idx, field) for idx, field in enumerate(header) if field in fields]
-
-        for line in fin:
-            try:
-                line = line.split('\t')
-                for idx, field in columns:
-                    datum = line[idx].strip()
-                    if datum:
-                        data[field].append(datum)
-            except IndexError:
-                # ignore badly formatted lines
-                pass
-
-    return data
-
-
 def run_in_parallel(*fns):
     """
     Simple wrapper for running functions in parallel.

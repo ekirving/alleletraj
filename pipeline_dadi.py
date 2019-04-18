@@ -309,7 +309,7 @@ class CountCallableSites(PipelineTask):
             total += int(size)
 
         with self.output().open('w') as fout:
-            fout.write(total)
+            fout.write(str(total))
 
 
 class DadiDemography(PipelineTask):

@@ -7,7 +7,7 @@ from db_conn import db_conn
 from time import time
 from datetime import timedelta
 
-from populate_qtls import *
+from pipeline_qtls import *
 from populate_coverage import *
 
 # the number of SNPs to model per QTL

@@ -42,24 +42,8 @@ class BuildDatabase(luigi.WrapperTask):
         # link the SNPChip data
         yield SNPChipPipeline(self.species)
 
-        # load the QTLs from the AnimalQTL database
-        populate_qtls()
-
-        # load pseudo-QTLs from other sources
-        populate_sweeps()
-        populate_mc1r_locus()
-
-        if SPECIES == 'pig':
-            populate_pig_mummies_loci()
-
-        populate_neutral_loci()
-
-        # TODO make this work with DOM and DOM2
-        # link each QTL to the ascertained modern SNPs
-        populate_qtl_snps(POPULATION)
-
-        # flag the modern SNPs which fall into "neutral" regions
-        mark_neutral_snps()
+        # load the QTLs from the AnimalQTL database, and other regions of interest
+        yield QTLPipeline(self.species)
 
         # calculate the unique set of non-overlapping genomic loci from the QTLs
         populate_intervals()

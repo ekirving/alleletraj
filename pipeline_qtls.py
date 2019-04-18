@@ -10,7 +10,7 @@ from qtldb_api import *
 from pipeline_utils import *
 
 
-def populate_qtls():
+class PopulateQTLs(PipelineTask):
     """
     Fetch all the QTLs from the QTLdb API and populate the local database.
     """
@@ -124,12 +124,12 @@ def populate_qtls():
             print("INFO: Added {:5d} new QTLs".format(added))
 
     # calculate the QTL windows
-    compute_qtl_windows()
+    ComputeQTLWindows()
 
     print("INFO: Finished adding {} new QTLs".format(len(new_ids)))
 
 
-def populate_sweeps():
+class PopulateSweeps(PipelineTask):
     """
     Populate the db with any selective sweep regions.
     """
@@ -200,7 +200,7 @@ def populate_sweeps():
     print("INFO: Loaded {} selective sweep loci (inc. {} SNPs)".format(num_loci, num_snps))
 
 
-def populate_mc1r_locus():
+class PopulateMC1RLocus(PipelineTask):
     """
     Populate a dummy QTLs for the MC1R gene.
     """
@@ -228,7 +228,7 @@ def populate_mc1r_locus():
         print("INFO: Added the MC1R gene locus")
 
 
-def populate_neutral_loci():
+class PopulateNeutralLoci(PipelineTask):
     """
     Populate dummy QTLs for all the "neutral" loci (i.e. regions outside of all QTLs and gene regions +/- a buffer)
     """
@@ -319,7 +319,7 @@ def populate_neutral_loci():
     print("INFO: Added {:,} neutral loci".format(num_loci))
 
 
-def populate_pig_mummies_loci():
+class PopulatePigMummyLoci(PipelineTask):
     """
     Balancing selection on a recessive lethal deletion with pleiotropic effects on two neighboring genes in the porcine
     genome.
@@ -369,7 +369,7 @@ def populate_pig_mummies_loci():
     print("INFO: Added {:,} pig mummy loci".format(num_loci))
 
 
-def populate_qtl_snps(population):
+class PopulateQTLSNPs(population):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
     """
@@ -400,7 +400,7 @@ def populate_qtl_snps(population):
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-def mark_neutral_snps():
+class MarkNeutralSNPs(PipelineTask):
     """
     Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
     """
@@ -429,10 +429,7 @@ def mark_neutral_snps():
     print("({}).".format(timedelta(seconds=time() - start)))
 
 
-
-
-
-def compute_qtl_windows():
+class ComputeQTLWindows(PipelineTask):
 
     # open a db connection
     dbc = db_conn()
@@ -477,3 +474,32 @@ def compute_qtl_windows():
 
         dbc.save_record('qtls', qtl)
 
+
+class QTLPipeline(luigi.WrapperTask):
+    """
+    Call SNPs using the bcftools `mpileup | call` workflow.
+    """
+    def requires(self):
+
+        # load the QTLs from the AnimalQTL database
+        PopulateQTLs()
+
+        # load pseudo-QTLs from other sources
+        PopulateSweeps()
+        PopulateMC1RLocus()
+
+        if SPECIES == 'pig':
+            PopulatePigMummyLoci()
+
+        PopulateNeutralLoci()
+
+        # TODO make this work with DOM and DOM2
+        # link each QTL to the ascertained modern SNPs
+        PopulateQTLSNPs(POPULATION)
+
+        # flag the modern SNPs which fall into "neutral" regions
+        MarkNeutralSNPs()
+
+
+if __name__ == '__main__':
+    luigi.run()

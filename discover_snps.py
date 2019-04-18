@@ -7,7 +7,7 @@ from time import time
 from datetime import timedelta
 
 from populate_coverage import *
-from populate_qtls import *
+from pipeline_qtls import *
 
 from pipeline_utils import *
 

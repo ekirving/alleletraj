@@ -188,7 +188,7 @@ class PolarizeVCF(PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     chrom = luigi.Parameter()
-    qual = luigi.IntParameter()
+    qual = luigi.IntParameter(default=MIN_GENO_QUAL)
 
     def requires(self):
         return FilterVCF(self.species, self.population, self.chrom, self.qual)

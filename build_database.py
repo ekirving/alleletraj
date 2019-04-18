@@ -3,7 +3,7 @@
 
 from populate_coverage import *
 from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants
-from pipeline_modern_snps import DiscoverModernSNPs, links_modern_snps
+from pipeline_modern_snps import ModernSNPsPipeline
 from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 from populate_samples import populate_pig_samples, populate_horse_samples
@@ -39,7 +39,7 @@ class BuildDatabase(luigi.WrapperTask):
         load_snpchip_variants()
 
         # ascertain SNPs in modern whole genome data
-        yield DiscoverModernSNPs(self.species)
+        yield ModernSNPsPipeline(self.species)
 
         # load the QTLs from the AnimalQTL database
         populate_qtls()

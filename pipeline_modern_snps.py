@@ -274,78 +274,6 @@ class ProcessSNPs(luigi.WrapperTask):
             yield AlleleFrequencyFromVCF(self.species, self.population, self.chrom)
 
 
-class LinkEnsemblGenes(PipelineTask):
-    """
-    Link modern SNPs to their Ensembl genes
-
-    :type species: str
-    :type population: str
-    :type chrom: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    chrom = luigi.Parameter()
-
-    def requires(self):
-        return ProcessSNPs(self.species, self.population, self.chrom)
-
-    def output(self):
-        return luigi.LocalTarget('db/{}-ensembl_genes.log'.format(self.basename))
-
-    def run(self):
-        dbc = db_conn(self.species)
-
-        exec_time = dbc.execute_sql("""
-            UPDATE modern_snps ms
-              JOIN ensembl_genes eg
-                ON eg.chrom = ms.chrom
-               AND ms.site BETWEEN eg.start AND eg.end
-               SET ms.gene_id = eg.id
-             WHERE ms.population = '{pop}'
-               AND ms.chrom = '{chrom}'""".format(pop=self.population, chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
-
-
-class LinkEnsemblVariants(PipelineTask):
-    """
-    Link modern SNPs to their Ensembl dbsnp variants
-
-    :type species: str
-    :type population: str
-    :type chrom: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    chrom = luigi.Parameter()
-
-    def requires(self):
-        return ProcessSNPs(self.species, self.population, self.chrom)
-
-    def output(self):
-        return luigi.LocalTarget('db/{}-ensembl_vars.log'.format(self.basename))
-
-    def run(self):
-        dbc = db_conn(self.species)
-
-        exec_time = dbc.execute_sql("""
-            UPDATE modern_snps ms
-              JOIN ensembl_variants v
-                ON ms.chrom = v.chrom
-               AND ms.site = v.start
-               SET ms.variant_id = v.id
-             WHERE ms.population = '{pop}'
-               AND ms.chrom = '{chrom}'
-               AND v.type = 'SNV'        
-               AND CHAR_LENGTH(alt) = 1   
-               AND v.ref IN (ms.derived, ms.ancestral)
-               AND v.alt IN (ms.derived, ms.ancestral)""".format(pop=self.population, chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
-
-
 class LinkSNPChip(PipelineTask):
     """
     Link modern SNPs to their SNPChip variants
@@ -380,9 +308,9 @@ class LinkSNPChip(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class DiscoverModernSNPs(luigi.WrapperTask):
+class ModernSNPsPipeline(luigi.WrapperTask):
     """
-    Populate the modern_snps table and link records to genes, dbsnp and snpchip records.
+    Populate the modern_snps table.
 
     :type species: str
     """
@@ -390,9 +318,11 @@ class DiscoverModernSNPs(luigi.WrapperTask):
 
     def requires(self):
 
-        # process all the populations in chromosome chunks
+        # process SNPs for all populations and all chromosomes
         for pop in SAMPLES[self.species]:
             for chrom in CHROM_SIZE[self.species]:
-                yield LinkEnsemblGenes(self.species, pop, chrom)
-                yield LinkEnsemblVariants(self.species, pop, chrom)
-                yield LinkSNPChip(self.species, pop, chrom)
+                yield ProcessSNPs(self.species, pop, chrom)
+
+
+if __name__ == '__main__':
+    luigi.run()

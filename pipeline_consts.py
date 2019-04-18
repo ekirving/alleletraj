@@ -457,25 +457,6 @@ POPULATION_SIZE = {
     }
 }
 
-# TODO add method to download this data automatically
-ENSEMBL_DATA = {
-
-    # see ftp://ftp.ensembl.org/pub/release-89/gtf/sus_scrofa/
-    #     ftp://ftp.ensembl.org/pub/release-89/variation/gvf/sus_scrofa/
-    'pig': {'gtf': 'data/ensembl/release-89/gtf/sus_scrofa/Sus_scrofa.Sscrofa10.2.89.gtf.gz',
-            'gvf': 'data/ensembl/release-89/gvf/sus_scrofa/Sus_scrofa.gvf.gz'},
-
-    # see ftp://ftp.ensembl.org/pub/release-92/gtf/equus_caballus/
-    #     ftp://ftp.ensembl.org/pub/release-92/variation/gvf/equus_caballus/
-    'horse': {'gtf': 'data/ensembl/release-92/gtf/equus_caballus/Equus_caballus.EquCab2.92.gtf.gz',
-              'gvf': 'data/ensembl/release-92/gvf/equus_caballus/equus_caballus.gvf.gz'},
-
-    # see ftp://ftp.ensembl.org/pub/release-92/gtf/capra_hircus/
-    #     ftp://ftp.ensembl.org/pub/release-92/variation/gvf/capra_hircus/
-    'goat':  {'gtf': 'data/ensembl/release-92/gtf/capra_hircus/Capra_hircus.ARS1.92.gtf.gz',
-              'gvf': 'data/ensembl/release-92/gvf/capra_hircus/capra_hircus.gvf.gz'},
-}
-
 SWEEP_DATA = {
 
     # see https://www.nature.com/articles/ng.3394

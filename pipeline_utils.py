@@ -157,6 +157,13 @@ def dump(obj):
             print("obj.%s = %s" % (attr, getattr(obj, attr)))
 
 
+def curl_download(url, filename):
+    """
+    Downloads a remote url to a local file path using cURL
+    """
+    run_cmd(['curl', '-s', '--output', filename, url])
+
+
 class PipelineTask(luigi.Task):
     """
     PrioritisedTask that implements a dynamic priority method

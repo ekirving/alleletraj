@@ -40,4 +40,5 @@ seedms
 
 # other junk
 *.gz
+*.zip
 *.tsv

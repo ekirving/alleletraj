@@ -160,7 +160,9 @@ class PipelineTask(luigi.Task):
         params = []
 
         for name, value in self.all_params():
-            if isinstance(value, str):
+            if name == 'chrom':
+                params.append('chr{}'.format(value))
+            elif isinstance(value, str):
                 params.append(value)
             elif isinstance(value, bool):
                 if value:

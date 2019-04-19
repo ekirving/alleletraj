@@ -12,7 +12,7 @@ from pipeline_database import CreateDatabase
 from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
 
-# path to the folder containing the modern fasta files
+# TODO replace with symlinks on the server
 FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
 
 # extended FASTA codes for biallelic sites
@@ -63,9 +63,13 @@ class ExternalFASTA(PipelineExternalTask):
         return luigi.LocalTarget("{}/{}/{}.fa".format(FASTA_PATH, self.sample, self.chrom))
 
 
-class AlleleFrequencyFromFASTA(PipelineTask):
+class ModernSNPsFromFASTA(PipelineTask):
     """
-    Extract all the SNPs from a given chromosome and estimate the allele frequency
+    Ascertain moderns SNPS, and estimate their allele frequency, from the given chromosome FASTA files.
+
+    :type species: str
+    :type population: str
+    :type chrom: str
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -176,9 +180,9 @@ class AlleleFrequencyFromFASTA(PipelineTask):
             fout.write("FINISHED: Added {:,} SNPs".format(num_snps))
 
 
-class AlleleFrequencyFromVCF(PipelineTask):
+class ModernSNPsFromVCF(PipelineTask):
     """
-    Estimate the allele frequency of all the SNPs in a given chromosome VCF.
+    Ascertain moderns SNPS, and estimate their allele frequency, from the given chromosome VCF file.
 
     :type species: str
     :type population: str
@@ -268,10 +272,10 @@ class LoadModernSNPs(PipelineWrapperTask):
     def requires(self):
         if self.species == 'pig':
             # special case of FASTA data for pig ascertainment
-            yield AlleleFrequencyFromFASTA(self.species, self.population, self.chrom)
+            yield ModernSNPsFromFASTA(self.species, self.population, self.chrom)
         else:
             # parse the VCF files for all other species
-            yield AlleleFrequencyFromVCF(self.species, self.population, self.chrom)
+            yield ModernSNPsFromVCF(self.species, self.population, self.chrom)
 
 
 class ModernSNPsPipeline(PipelineWrapperTask):

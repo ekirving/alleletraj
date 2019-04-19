@@ -83,7 +83,7 @@ class BCFToolsCall(PipelineTask):
         with self.output().temporary_path() as vcf_out:
             params = {
                 'ref': ref_file.path,
-                'chr': self.chrom,
+                'chr': 'chr{}'.format(self.chrom) if self.species == 'horse' else self.chrom,
                 'bam': ' '.join([bam.path for bam in bam_files]),
                 'pld': 'data/{}.ploidy'.format(self.species),
                 'sex': sex_file,
@@ -301,8 +301,7 @@ class WholeGenomeSNPsVCF(PipelineTask):
 
     def requires(self):
         for chrom in self.chromosomes:
-            # TODO handle chr prefixes better
-            yield BiallelicSNPsVCF(self.species, self.population, 'chr{}'.format(chrom))
+            yield BiallelicSNPsVCF(self.species, self.population, chrom)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.basename))

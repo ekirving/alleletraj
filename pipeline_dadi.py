@@ -162,6 +162,9 @@ class DadiEpochOptimizeParams(PipelineTask):
         # make the extrapolating version of our demographic model function.
         dadi_n_epoch_extrap = dadi.Numerics.make_extrap_log_func(dadi_n_epoch)
 
+        # make sure the output folder exists
+        log_file.makedirs()
+
         # optimize log(params) to fit model to data using Nelder-Mead algorithm
         p_opt = dadi.Inference.optimize_log_fmin(start, fs, dadi_n_epoch_extrap, lower_bound=lower, upper_bound=upper,
                                                  pts=DADI_GRID_PTS, verbose=50, output_file=log_file.path,

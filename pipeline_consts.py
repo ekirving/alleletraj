@@ -7,18 +7,30 @@ from socket import gethostname
 
 # TODO move module specific constants into those modules
 
-# TODO rename once we've fixed all the broken references
-OUT_GROUP = {
-    'pig':   'SVSV01U01_Sverrucosus_rh',  # Sus verrucosus / Javan warty pig
-    'horse': 'Esom_0226A',                # Equus africanus somaliensis / Somali wild ass
+# which reference assembly should we use for each species
+REF_ASSEMBLY = {
+    'cattle': 'UMD3.1',
+    'goat':   'ARS1',
+    'horse':  'EquCab2',
+    'pig':    'Sscrofa10.2',
 }
 
+# TODO update all references
+# TODO should we make this an external task
 # location of reference genome
 REF_FILE = {
-    'pig':   "fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa",
-    'horse': "fasta/Equus_caballus.EquCab2.dna.toplevel.fa",
+    'Sscrofa10.2': "fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa",
+    'EquCab2':     "fasta/Equus_caballus.EquCab2.dna.toplevel.fa",
+    # TODO other species
 }
 
+# TODO rename once we've fixed all the broken references
+OUT_GROUP = {
+    # 'cattle': '',  # TODO add me
+    # 'goat':   '',  # TODO add me
+    'horse':  'Esom_0226A',                # Equus africanus somaliensis / Somali wild ass
+    'pig':    'SVSV01U01_Sverrucosus_rh',  # Sus verrucosus / Javan warty pig
+}
 
 SAMPLES = {
 
@@ -390,6 +402,7 @@ BAM_FILES = {
 # enforce max interval size of 1 Gb
 MAX_INTERVAL_SIZE = int(1e6)
 
+# TODO extract these from the fasta file index
 # sizes of each chrom in the given assemblies
 CHROM_SIZE = {
 
@@ -547,11 +560,13 @@ RADIOCARBON_SHEET = {
 
 
 # list of permissible countries in Europe
-EUROPE = ['Austria', 'Belgium', 'Bosnia-Herzegovina', 'Bulgaria', 'Crimea, Ukraine', 'Croatia', 'Czech Rep.', 'Denmark',
-          'England', 'Estonia', 'Europe', 'Faroe Islands', 'Faroes', 'Finland', 'France', 'Germany', 'Greece', 'Hungary',
-          'Iberia', 'Iceland', 'Ireland', 'Italy', 'Macedonia', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Norway',
-          'Poland', 'Portugal', 'Portugal/France', 'Romania', 'Russia', 'Sardinia', 'Scotland', 'Serbia', 'Slovakia',
-          'Spain', 'Sweden', 'Switzerland', 'UK', 'Ukraine', 'West Caucasus, north slope']
+EUROPE = [
+    'Austria', 'Belgium', 'Bosnia-Herzegovina', 'Bulgaria', 'Crimea, Ukraine', 'Croatia', 'Czech Rep.', 'Denmark',
+    'England', 'Estonia', 'Europe', 'Faroe Islands', 'Faroes', 'Finland', 'France', 'Germany', 'Greece', 'Hungary',
+    'Iberia', 'Iceland', 'Ireland', 'Italy', 'Macedonia', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Norway',
+    'Poland', 'Portugal', 'Portugal/France', 'Romania', 'Russia', 'Sardinia', 'Scotland', 'Serbia', 'Slovakia',
+    'Spain', 'Sweden', 'Switzerland', 'UK', 'Ukraine', 'West Caucasus, north slope'
+]
 
 # list of non-permissible countries outside of Europe
 NON_EUROPE = ['Africa', 'Armenia', 'Azerbaijan', 'Cyprus', 'Egypt', 'Egyptian', 'EuroAm', 'Georgia', 'Iran', 'Iraq',
@@ -578,7 +593,7 @@ INDEL_BUFFER = 10
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10
 
-# minumum mapping quality (hard filtered)
+# minimum mapping quality (hard filtered)
 HARD_MAPQ_CUTOFF = 20
 
 # minimum base quality (hard filtered)
@@ -591,11 +606,11 @@ MULTI_THREADED = True if gethostname() != 'macbookpro.local' else False
 TOTAL_CORES = cpu_count()
 
 # set how many cores a single working can use
-CPU_CORES_ONE  = 1
-CPU_CORES_LOW  = int(TOTAL_CORES * 0.1)  # 10%
-CPU_CORES_MED  = int(TOTAL_CORES * 0.25) # 25%
+CPU_CORES_ONE = 1
+CPU_CORES_LOW = int(TOTAL_CORES * 0.1)   # 10%
+CPU_CORES_MED = int(TOTAL_CORES * 0.25)  # 25%
 CPU_CORES_HIGH = int(TOTAL_CORES * 0.5)  # 50%
-CPU_CORES_MAX  = int(TOTAL_CORES * 0.9)  # 90%
+CPU_CORES_MAX = int(TOTAL_CORES * 0.9)   # 90%
 
 # the minimum derived allele frequency of modern SNPs to include
 MIN_DAF = 0.05
@@ -614,8 +629,3 @@ MAX_INSERT_SIZE = 50000
 # the maximum number of conditions in a single query
 MAX_QUERY_SIZE = 5000
 
-# luigi priority flags
-PRIORITY_LOW  = 0
-PRIORITY_MED  = 1
-PRIORITY_HIGH = 2
-PRIORITY_MAX  = 3

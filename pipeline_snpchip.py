@@ -6,7 +6,7 @@ import os
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import SAMPLES, CHROM_SIZE
+from pipeline_consts import SAMPLES, CHROM_SIZE, REF_ASSEMBLY
 from pipeline_modern_snps import ProcessSNPs
 from pipeline_utils import PipelineTask, db_conn, run_cmd, curl_download
 

@@ -7,27 +7,56 @@ import gzip
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import SAMPLES, CHROM_SIZE, MAX_INSERT_SIZE
+from pipeline_consts import SAMPLES, CHROM_SIZE, MAX_INSERT_SIZE, REF_ASSEMBLY
 from pipeline_modern_snps import ProcessSNPs
-from pipeline_utils import PipelineTask, db_conn, curl_download
+from pipeline_utils import PipelineTask, curl_download
+from db_conn import db_conn
 
-# NOTE these must be paired with the reference genome used for each species
+# FTP URLs for the most recent Ensembl releases for a given genome assembly
 ENSEMBL_URLS = {
 
-    'pig': {
+    # pig - https://www.ensembl.org/Sus_scrofa/Info/Index
+    'Sscrofa10.2': {
+        # Ensembl release 89 - May 2017
         'gtf': 'ftp://ftp.ensembl.org/pub/release-89/gtf/sus_scrofa/Sus_scrofa.Sscrofa10.2.89.gtf.gz',
         'gvf': 'ftp://ftp.ensembl.org/pub/release-89/variation/gvf/sus_scrofa/Sus_scrofa.gvf.gz'
     },
-
-    'horse': {
-        'gtf': 'ftp://ftp.ensembl.org/pub/release-92/gtf/equus_caballus//Equus_caballus.EquCab2.92.gtf.gz',
-        'gvf': 'ftp://ftp.ensembl.org/pub/release-92/variation/gvf/equus_caballus/equus_caballus.gvf.gz'
+    'Sscrofa11.1': {
+        # Ensembl release 96 - April 2019
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/sus_scrofa/Sus_scrofa.Sscrofa11.1.96.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/sus_scrofa/sus_scrofa.gvf.gz'
     },
 
-    'goat':  {
-        'gtf': 'ftp://ftp.ensembl.org/pub/release-92/gtf/capra_hircus/Capra_hircus.ARS1.92.gtf.gz',
-        'gvf': 'ftp://ftp.ensembl.org/pub/release-92/variation/gvf/capra_hircus/capra_hircus.gvf.gz'
+    # horse - https://www.ensembl.org/Equus_caballus/Info/Index
+    'EquCab2': {
+        # Ensembl release 94 - October 2018
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-94/gtf/equus_caballus//Equus_caballus.EquCab2.94.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-94/variation/gvf/equus_caballus/equus_caballus.gvf.gz'
     },
+    'EquCab3.0': {
+        # Ensembl release 96 - April 2019
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/equus_caballus/Equus_caballus.EquCab3.0.96.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/equus_caballus/equus_caballus.gvf.gz'
+    },
+
+    # goat -  https://www.ensembl.org/Capra_hircus/Info/Index
+    'ARS1': {
+        # Ensembl release 96 - April 2019
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/capra_hircus/Capra_hircus.ARS1.96.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/capra_hircus/capra_hircus.gvf.gz'
+    },
+
+    # cattle -  https://www.ensembl.org/Bos_taurus/Info/Index
+    'UMD3.1': {
+        # Ensembl release 94 - October 2018
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-94/gtf/bos_taurus/Bos_taurus.UMD3.1.94.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-94/variation/gvf/bos_taurus/bos_taurus.gvf.gz'
+    },
+    'ARS-UCD1.2': {
+        # Ensembl release 96 - April 2019
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/bos_taurus/Bos_taurus.ARS-UCD1.2.96.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/bos_taurus/bos_taurus.gvf.gz',
+    }
 }
 
 
@@ -43,7 +72,7 @@ class DownloadEnsemblData(PipelineTask):
 
     @property
     def url(self):
-        return ENSEMBL_URLS[self.species][self.type]
+        return ENSEMBL_URLS[self.assembly][self.type]
 
     def output(self):
         return luigi.LocalTarget('ensembl/{}'.format(os.path.basename(self.url)))

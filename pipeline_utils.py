@@ -6,12 +6,11 @@ import luigi
 import os
 
 # import common libraries
-from collections import OrderedDict, defaultdict, Iterable
+from collections import Iterable
 from multiprocessing import Process
 
 # import my libraries
-from db_conn import db_conn
-from pipeline_consts import *
+from pipeline_consts import MAX_INTERVAL_SIZE, CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUT_GROUP
 
 
 def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
@@ -23,7 +22,6 @@ def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
     :param background: Flag to tun the process in the background
     :param stdout: File handle to redirect stdout
     :param stderr: File handle to redirect stderr
-    :param pwd: Handle commands than run natively from other locations
     :return: The stdout stream
     """
     # subprocess only accepts strings
@@ -142,8 +140,15 @@ class PipelineTask(luigi.Task):
     """
     PrioritisedTask that implements a dynamic priority method
     """
-    priority = PRIORITY_LOW
-    resources = {'cpu-cores': 1}
+    resources = {'cpu-cores': CPU_CORES_ONE}
+
+    @property
+    def assembly(self):
+        return REF_ASSEMBLY[self.species]
+
+    @property
+    def outgroup(self):
+        return OUT_GROUP[self.species]
 
     @property
     def priority(self):

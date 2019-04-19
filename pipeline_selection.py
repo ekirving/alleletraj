@@ -129,8 +129,6 @@ class SelectionRunMCMC(PipelineTask):
     mcmc_cycles = luigi.IntParameter()
     mcmc_freq = luigi.IntParameter()
 
-    priority = PRIORITY_HIGH
-
     def requires(self):
         return SelectionInputFile(self.species, self.population, self.modsnp_id)
 
@@ -191,7 +189,6 @@ class SelectionPlot(PipelineTask):
     mcmc_cycles = luigi.IntParameter(default=MCMC_CYCLES)
     mcmc_freq = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
 
-    priority = PRIORITY_MAX
     resources = {'cpu-cores': CPU_CORES_ONE, 'ram-gb': 64}
 
     def requires(self):

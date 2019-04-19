@@ -12,6 +12,7 @@ from pipeline_modern_snps import ProcessSNPs
 from pipeline_utils import PipelineTask, PipelineWrapperTask, curl_download
 from db_conn import db_conn
 
+# TODO we can predict the url from the binomial, assembly and release number
 # FTP URLs for the most recent Ensembl releases for a given genome assembly
 ENSEMBL_URLS = {
 

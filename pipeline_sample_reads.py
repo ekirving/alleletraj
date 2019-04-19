@@ -17,152 +17,194 @@ from pipeline_consts import MULTI_THREADED, CPU_CORES_MAX, MIN_GENO_DEPTH,  HARD
 from db_conn import db_conn
 
 
-def populate_intervals(species):
+class PopulateIntervals(PipelineTask):
+    """
 
-    # open a db connection
-    dbc = db_conn(species)
+    :type species: str
+    """
+    species = luigi.Parameter()
 
-    # get all the unique QTL windows
-    results = dbc.get_records_sql("""
-        SELECT DISTINCT q.chrom, q.start, q.end
-          FROM qtls q
-         WHERE q.valid = 1
-      ORDER BY q.chrom, q.start, q.end""", key=None)
+    def requires(self):
+        pass # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
 
-    intervals = defaultdict(list)
+    def output(self):
+        pass # return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))  # TODO fix me
 
-    for result in results:
-        # group the intervals by chrom
-        intervals[result['chrom']].append((result['start'], result['end']))
+    def run(self):
+        # open a db connection
+        dbc = db_conn(species)
 
-    num_sites = 0
-    add_intvals = 0
-    del_intvals = 0
+        # get all the unique QTL windows
+        results = dbc.get_records_sql("""
+            SELECT DISTINCT q.chrom, q.start, q.end
+              FROM qtls q
+             WHERE q.valid = 1
+          ORDER BY q.chrom, q.start, q.end""", key=None)
 
-    for chrom in intervals.keys():
-        # merge overlapping intervals (up to a maximum size)
-        intervals[chrom] = list(merge_intervals(intervals[chrom]))
+        intervals = defaultdict(list)
 
-        for start, end in intervals[chrom]:
+        for result in results:
+            # group the intervals by chrom
+            intervals[result['chrom']].append((result['start'], result['end']))
 
-            # compose the interval record
-            record = {'chrom': chrom, 'start': start, 'end': end}
+        num_sites = 0
+        add_intvals = 0
+        del_intvals = 0
 
-            # check if this interval already exists
-            if dbc.get_record('intervals', record):
-                continue
+        for chrom in intervals.keys():
+            # merge overlapping intervals (up to a maximum size)
+            intervals[chrom] = list(merge_intervals(intervals[chrom]))
 
-            # get any overlapping intervals
-            overlap = dbc.get_records_sql("""
-                SELECT *
-                  FROM intervals
-                 WHERE chrom = '{chrom}'
-                   AND end > {start}
-                   AND start < {end}
-                   """.format(chrom=chrom, start=start, end=end))
+            for start, end in intervals[chrom]:
 
-            for interval_id in overlap:
-                # delete the old intervals
-                dbc.delete_records('sample_reads', {'interval_id': interval_id})
-                dbc.delete_records('intervals_snps', {'interval_id': interval_id})
-                dbc.delete_records('intervals', {'id': interval_id})
+                # compose the interval record
+                record = {'chrom': chrom, 'start': start, 'end': end}
 
-                del_intvals += len(overlap)
+                # check if this interval already exists
+                if dbc.get_record('intervals', record):
+                    continue
 
-            # keep track of what we've done
-            add_intvals += 1
-            num_sites += end - start
+                # get any overlapping intervals
+                overlap = dbc.get_records_sql("""
+                    SELECT *
+                      FROM intervals
+                     WHERE chrom = '{chrom}'
+                       AND end > {start}
+                       AND start < {end}
+                       """.format(chrom=chrom, start=start, end=end))
 
-            # save the new interval
-            dbc.save_record('intervals', record)
+                for interval_id in overlap:
+                    # delete the old intervals
+                    dbc.delete_records('sample_reads', {'interval_id': interval_id})
+                    dbc.delete_records('intervals_snps', {'interval_id': interval_id})
+                    dbc.delete_records('intervals', {'id': interval_id})
 
-    print("INFO: Added {:,} intervals ({:,} bp), deleted {:,} old intervals"
-          .format(add_intvals, num_sites, del_intvals))
+                    del_intvals += len(overlap)
+
+                # keep track of what we've done
+                add_intvals += 1
+                num_sites += end - start
+
+                # save the new interval
+                dbc.save_record('intervals', record)
+
+        print("INFO: Added {:,} intervals ({:,} bp), deleted {:,} old intervals"
+              .format(add_intvals, num_sites, del_intvals))
 
 
-def populate_interval_snps(species, population):
+class PopulateIntervalSNPs(PipelineTask):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the unique intervals.
+
+    :type species: str
     """
-    dbc = db_conn(species)
+    species = luigi.Parameter()
 
-    print("INFO: Populating all the interval SNPs")
+    def requires(self):
+        pass # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
 
-    # tidy up any unfinished interval SNPs
-    dbc.execute_sql("""
-        DELETE s 
-          FROM intervals_snps s
-          JOIN intervals i
-            ON i.id = s.interval_id
-         WHERE i.finished = 0""")
+    def output(self):
+        pass # return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))  # TODO fix me
 
-    # insert linking records to make future queries much quicker
-    for chrom in self.chromosomes:
+    def run(self):
+        dbc = db_conn(species)
+
+        print("INFO: Populating all the interval SNPs")
+
+        # tidy up any unfinished interval SNPs
         dbc.execute_sql("""
-            INSERT INTO intervals_snps (interval_id, modsnp_id)
-                 SELECT i.id, ms.id
-                   FROM intervals i
-                   JOIN modern_snps ms 
-                     ON ms.population = '{population}'
-                    AND ms.chrom = i.chrom
-                    AND ms.site BETWEEN i.start AND i.end
-                  WHERE i.finished = 0
-                    AND i.chrom = '{chrom}'
-                    AND ms.daf >= {mindaf}""".format(population=population, chrom=chrom, mindaf=MIN_DAF))
+            DELETE s 
+              FROM intervals_snps s
+              JOIN intervals i
+                ON i.id = s.interval_id
+             WHERE i.finished = 0""")
 
-    print("INFO: Finished populating the interval SNPs")
+        # insert linking records to make future queries much quicker
+        for chrom in self.chromosomes:
+            dbc.execute_sql("""
+                INSERT INTO intervals_snps (interval_id, modsnp_id)
+                     SELECT i.id, ms.id
+                       FROM intervals i
+                       JOIN modern_snps ms 
+                         ON ms.population = '{population}'
+                        AND ms.chrom = i.chrom
+                        AND ms.site BETWEEN i.start AND i.end
+                      WHERE i.finished = 0
+                        AND i.chrom = '{chrom}'
+                        AND ms.daf >= {mindaf}""".format(population=population, chrom=chrom, mindaf=MIN_DAF))
+
+        print("INFO: Finished populating the interval SNPs")
 
 
-def populate_sample_reads(species):
+class PopulateSampleReads(PipelineTask):
     """
     Scan all the samples for coverage of the QTLs and save the results to the database.
+
+    :type species: str
     """
+    species = luigi.Parameter()
 
-    # open a db connection
-    dbc = db_conn(species)
+    def requires(self):
+        pass # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
 
-    # get all the intervals we've not finished processing yet
-    intervals = dbc.get_records('intervals', {'finished': 0}, sort='end-start DESC')
+    def output(self):
+        pass # return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))  # TODO fix me
 
-    # get all the valid samples
-    samples = dbc.get_records_sql(
-        """SELECT s.*, GROUP_CONCAT(sf.path) paths
-             FROM samples s
-             JOIN sample_files sf
-               ON sf.sample_id = s.id
-            WHERE s.valid = 1
-         GROUP BY s.id""")
+    def run(self):
 
-    print("INFO: Processing {:,} intervals in {:,} samples".format(len(intervals), len(samples)))
+        # open a db connection
+        dbc = db_conn(species)
 
-    # before we start, tidy up any records from intervals that were not finished
-    dbc.execute_sql("""
-        DELETE sample_reads
-          FROM sample_reads
-          JOIN intervals 
-            ON intervals.id = sample_reads.interval_id
-         WHERE intervals.finished = 0""")
+        # get all the intervals we've not finished processing yet
+        intervals = dbc.get_records('intervals', {'finished': 0}, sort='end-start DESC')
 
-    if MULTI_THREADED:
-        # process the chromosomes with multi-threading to make this faster
-        pool = mp.Pool(CPU_CORES_MAX)
-        pool.map(process_interval, itertools.izip(intervals.values(), itertools.repeat(samples)))
-    else:
-        # process the chromosomes without multi-threading
-        for interval in intervals.values():
-            process_interval((interval, samples))
+        # get all the valid samples
+        samples = dbc.get_records_sql(
+            """SELECT s.*, GROUP_CONCAT(sf.path) paths
+                 FROM samples s
+                 JOIN sample_files sf
+                   ON sf.sample_id = s.id
+                WHERE s.valid = 1
+             GROUP BY s.id""")
 
-    print("FINISHED: Fully populated all the samples for {:,} intervals".format(len(intervals)))
+        print("INFO: Processing {:,} intervals in {:,} samples".format(len(intervals), len(samples)))
+
+        # before we start, tidy up any records from intervals that were not finished
+        dbc.execute_sql("""
+            DELETE sample_reads
+              FROM sample_reads
+              JOIN intervals 
+                ON intervals.id = sample_reads.interval_id
+             WHERE intervals.finished = 0""")
+
+        if MULTI_THREADED:
+            # process the chromosomes with multi-threading to make this faster
+            pool = mp.Pool(CPU_CORES_MAX)
+            pool.map(ProcessInterval, itertools.izip(intervals.values(), itertools.repeat(samples)))
+        else:
+            # process the chromosomes without multi-threading
+            for interval in intervals.values():
+                ProcessInterval((interval, samples))
+
+        print("FINISHED: Fully populated all the samples for {:,} intervals".format(len(intervals)))
 
 
-def process_interval(args):
+class ProcessInterval(PipelineTask):
     """
     Scan all the intervals across this chromosome and add the covered bases to the DB, as long as they are variable in
     the modern data.
+
+    :type species: str
     """
+    species = luigi.Parameter()
 
-    try:
+    def requires(self):
+        pass # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
 
+    def output(self):
+        pass # return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))  # TODO fix me
+
+    def run(self):
         # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
         (species, interval, samples) = args
 
@@ -375,7 +417,3 @@ def process_interval(args):
         dbc.save_record('intervals', interval)
 
         print("INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end))
-
-    except Exception:
-        # Put all exception text into an exception and raise that
-        raise Exception("".join(traceback.format_exception(*sys.exc_info())))

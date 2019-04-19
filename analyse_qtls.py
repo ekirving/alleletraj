@@ -8,7 +8,7 @@ from time import time
 from datetime import timedelta
 
 from pipeline_qtls import *
-from populate_coverage import *
+from pipeline_sample_reads import *
 
 # the number of SNPs to model per QTL
 SNPS_PER_QTL = 3

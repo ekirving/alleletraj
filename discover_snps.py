@@ -6,7 +6,7 @@ from __future__ import print_function
 from time import time
 from datetime import timedelta
 
-from populate_coverage import *
+from pipeline_sample_reads import *
 from pipeline_qtls import *
 
 from pipeline_utils import *

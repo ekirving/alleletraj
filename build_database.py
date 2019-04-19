@@ -5,7 +5,7 @@ from pipeline_modern_snps import ModernSNPsPipeline
 from pipeline_ensembl import EnsemblPipeline
 from pipeline_snpchip import SNPChipPipeline
 
-from populate_coverage import *
+from pipeline_sample_reads import *
 from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 from populate_samples import populate_pig_samples, populate_horse_samples
@@ -46,8 +46,8 @@ class BuildDatabase(PipelineWrapperTask):
         yield QTLPipeline(self.species)
 
         # calculate the unique set of non-overlapping genomic loci from the QTLs
-        populate_intervals()
-        populate_interval_snps(POPULATION)
+        PopulateIntervals()
+        PopulateIntervalSNPs(POPULATION)
 
         # load the sample metadata
         if SPECIES == 'pig':
@@ -58,7 +58,7 @@ class BuildDatabase(PipelineWrapperTask):
 
         # TODO make samples file w/ gender call for ploidy
         # load the sample reads for each ascertained SNP
-        populate_sample_reads()
+        PopulateSampleReads()
 
         # apply quality filters to the sample reads
         discover_snps(POPULATION)

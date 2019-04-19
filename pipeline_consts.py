@@ -15,7 +15,6 @@ BINOMIAL_NAME = {
     'pig':    'Sus_scrofa',
 }
 
-
 # which reference assembly should we use for each species
 REF_ASSEMBLY = {
     'cattle': 'UMD3.1',
@@ -618,10 +617,3 @@ MIN_GENO_QUAL = 30
 
 # number of bases to soft clip
 SOFT_CLIP_DIST = 3
-
-# the maximum number of rows to insert in a single operation
-MAX_INSERT_SIZE = 50000
-
-# the maximum number of conditions in a single query
-MAX_QUERY_SIZE = 5000
-

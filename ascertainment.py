@@ -39,10 +39,10 @@ def flag_snps_near_indels():
         print("INFO: Processing {:,} unique INDELs in chr{}".format(len(loci), chrom))
 
         # process the INDELs in chunks
-        for i in xrange(0, len(loci), MAX_QUERY_SIZE):
+        for i in xrange(0, len(loci), dbc.max_query_size):
 
             # convert each locus into sql conditions
-            conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + MAX_QUERY_SIZE]]
+            conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + dbc.max_query_size]]
 
             dbc.execute_sql("""
                 UPDATE ensembl_variants

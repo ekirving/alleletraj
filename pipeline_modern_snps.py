@@ -10,7 +10,7 @@ from collections import Counter
 # import my custom modules
 from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
-from db_conn import db_conn
+from dbconn import DBConn
 
 # path to the folder containing the modern fasta files
 FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
@@ -84,7 +84,7 @@ class AlleleFrequencyFromFASTA(PipelineTask):
         fasta_files = [fasta_file.path for fasta_file in self.input()]
 
         # open a private connection to the database
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         with self.output().open('w') as fout:
             fout.write("STARTED: Parsing {} fasta files.".format(len(fasta_files)))
@@ -194,7 +194,7 @@ class AlleleFrequencyFromVCF(PipelineTask):
 
     def run(self):
         # open a private connection to the database
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # count the number of SNPs added
         num_snps = 0

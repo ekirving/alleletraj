@@ -8,7 +8,7 @@ import os
 # TODO make these into PipelineTask properties
 from pipeline_modern_snps import ProcessSNPs
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download
-from db_conn import db_conn
+from dbconn import DBConn
 
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \
             'Axiom_MNEc670_Annotation.r2.csv.zip'
@@ -66,7 +66,7 @@ class LoadSNPChipVariants(PipelineTask):
         gzip_file = self.input()
 
         # open a db connection
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # unzip the archive into a named pipe
         pipe = "tmp/SNPchimp_{}".format(self.species)
@@ -114,7 +114,7 @@ class LoadAxiomEquineHD(PipelineTask):
         axiom_file = self.input()
 
         # open a db connection
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # just get the relevant columns
         awk = "awk -F ',' 'NR>1 {print $1 \"\\t\" $4 \"\\t\" $5}'"
@@ -182,7 +182,7 @@ class LinkSNPChipVariants(PipelineTask):
         return luigi.LocalTarget('db/{}-snpchip.log'.format(self.basename))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms

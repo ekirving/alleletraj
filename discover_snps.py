@@ -16,7 +16,7 @@ def reset_flags(chrom):
     """
     Reset all the analysis flags to NULL
     """
-    dbc = db_conn()
+    dbc = DBConn()
 
     dbc.execute_sql("""
          UPDATE sample_reads
@@ -30,7 +30,7 @@ def apply_quality_filters(chrom):
     """
     Apply MIN_BASE_QUAL, MIN_MAPPING_QUAL and SOFT_CLIP_DIST quality filters.
     """
-    dbc = db_conn()
+    dbc = DBConn()
 
     dbc.execute_sql("""
         UPDATE sample_reads sr
@@ -46,7 +46,7 @@ def choose_random_read(chrom, population):
     """
     Choose a random read from those that pass quality filters
     """
-    dbc = db_conn()
+    dbc = DBConn()
 
     dbc.execute_sql("""
         UPDATE sample_reads
@@ -71,7 +71,7 @@ def apply_genotype_filters(chrom):
     """
     Apply MIN_GENO_QUAL quality filter.
     """
-    dbc = db_conn()
+    dbc = DBConn()
 
     dbc.execute_sql("""
         UPDATE sample_reads sr

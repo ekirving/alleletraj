@@ -12,12 +12,12 @@ from collections import defaultdict, OrderedDict
 from pipeline_consts import CHROM_SIZE, MIN_DAF
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals
-from db_conn import db_conn
+from dbconn import DBConn
 
 from qtldb_api import QTLdbAPI
 
 # QTLdb settings
-QTLDB_RELEASE = 'rel37'  # TODO need a better way of importing this into the db
+QTLDB_RELEASE = 'rel37'
 
 # offset to use for the QTL window (+/- 50 Kb)
 QTL_WINDOW = 50000
@@ -25,9 +25,9 @@ QTL_WINDOW = 50000
 # offset all genes by 100 Kb to preclude linkage with our 'neutral' SNPs
 GENE_OFFSET = 100000
 
-# TODO add other species
+# genomic regions of selective sweeps ascertained in other papers
 SWEEP_DATA = {
-    # 'cattle': {},
+    # 'cattle': {}, # TODO add other species
     # 'goat': {},
     # 'pig': {},
 
@@ -108,7 +108,7 @@ class PopulateQTLs(PipelineTask):
         # get the file containing all the QTL IDs
         qtl_file = self.input()
 
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
         api = QTLdbAPI()
 
         # get a list of all the QTLDb IDs from the tsv dump
@@ -234,7 +234,7 @@ class SetQTLWindows(PipelineTask):
 
     def run(self):
         # open a db connection
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # get all the valid QTL windows
         results = dbc.get_records_sql("""
@@ -290,7 +290,7 @@ class PopulateSweepLoci(PipelineTask):
         return luigi.LocalTarget('db/{}-sweep_loci.log'.format(self.species))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # get the files containing the sweep data
         loci_file = SWEEP_DATA[self.species]['loci']  # TODO make SWEEP_DATA into external dependencies
@@ -363,7 +363,7 @@ class PopulateMC1RLocus(PipelineTask):
         return luigi.LocalTarget('db/{}-mc1r_locus.log'.format(self.species))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # get the MC1R gene details
         mc1r = dbc.get_record('ensembl_genes', {'gene_id': MC1R_GENE_ID[self.species]})
@@ -403,7 +403,7 @@ class PopulatePigMummyLoci(PipelineTask):
         return luigi.LocalTarget('db/{}-mummy_loci.log'.format(self.species))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         sizes = CHROM_SIZE[self.assembly]
 
@@ -478,7 +478,7 @@ class PopulateNeutralLoci(PipelineTask):
         return luigi.LocalTarget('db/{}-neutral_loci.log'.format(self.species))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         sizes = CHROM_SIZE[self.assembly]
 
@@ -600,7 +600,7 @@ class PopulateQTLSNPs(PipelineTask):
         return luigi.LocalTarget('db/{}-qtl_snps.log'.format(self.basename))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # TODO make sure this work with DOM and DOM2
         # insert linking records to make future queries much quicker
@@ -640,7 +640,7 @@ class MarkNeutralSNPs(PipelineTask):
         return luigi.LocalTarget('db/{}-neutral_snps.log'.format(self.basename))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms

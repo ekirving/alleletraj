@@ -12,10 +12,11 @@ from pprint import pprint
 from time import time
 
 # import my custom modules
-from pipeline_consts import *
+from pipeline_consts import REF_ASSEMBLY
+from pipeline_qtls import QTLDB_RELEASE
 
 
-class db_conn:
+class DBConn:
     """
     Class for handling all the db connectivity.
     """
@@ -26,9 +27,15 @@ class db_conn:
       'host':     '127.0.0.1'
     }
 
+    # the maximum number of rows to insert in a single operation
+    max_insert_size = 50000
+
+    # the maximum number of conditions in a single query
+    max_query_size = 5000
+
     def __init__(self, species):
         # set the database name
-        self.db_config['database'] = 'alleletraj_{}_{}'.format(species, QTLDB_RELEASE)
+        self.db_config['database'] = DBConn.__get_name(species)
 
         # connect to the db
         self.cnx = mysql.connector.connect(**self.db_config)
@@ -39,21 +46,29 @@ class db_conn:
         self.cursor.close()
         self.cnx.close()
 
+    @staticmethod
+    def __get_name(species):
+        """
+        Embed the reference assembly and the QTLdb release number into the database name.
+        """
+        return 'alleletraj_{}_{}_{}'.format(species, REF_ASSEMBLY[species], QTLDB_RELEASE).lower()
+
     def __format_data(self, params):
 
         data = {}
 
-        for key, value in params.iteritems():
+        for key in params:
             new_key = u"`{}`".format(key)
-            new_val = u"'{}'".format(self.cnx.converter.escape(value)) if value is not None and value != '' else 'NULL'
+            new_val = u"'{}'".format(self.cnx.converter.escape(params[key])) \
+                if params[key] is not None and params[key] != '' else 'NULL'
 
             data[new_key] = new_val
 
         return data
 
     def __format_conditions(self, conds):
-
-        sub = [u"{}={}".format(key, value) for key, value in self.__format_data(conds).iteritems()]
+        conds = self.__format_data(conds)
+        sub = [u"{}={}".format(key, conds[key]) for key in conds]
 
         return u"WHERE {conds}".format(conds=u" AND ".join(sub))
 
@@ -75,7 +90,7 @@ class db_conn:
         """
         Helper function for deleting records
         """
-        sql = "DELETE FROM {table} ".format(table=table)
+        sql = u"DELETE FROM {table} ".format(table=table)
 
         if conds:
             sql += self.__format_conditions(conds)
@@ -86,12 +101,36 @@ class db_conn:
         """
         Helper function for counting records
         """
-        sql = "SELECT COUNT(*) FROM {table} ".format(table=table)
+        sql = u"SELECT COUNT(*) FROM {table} ".format(table=table)
 
         if conds:
             sql += self.__format_conditions(conds)
 
         self.cursor.execute(sql)
+
+    @staticmethod
+    def create_database(species):
+        """
+        Create an empty database
+        """
+        cnx = mysql.connector.connect(**DBConn.db_config)
+        cursor = cnx.cursor()
+        name = DBConn.__get_name(species)
+
+        cursor.execute(u"CREATE DATABASE `{}`".format(name))
+
+        return name
+
+    def execute_file(self, sql_file):
+        """
+        Execute multiple SQL queries from a file.
+        """
+        with open(sql_file, 'r') as fin:
+            self.cursor.execute(fin.read().decode('utf-8'))
+            while True:
+                # keep executing until all queries are done
+                if not self.cursor.nextset():
+                    break
 
     def get_records(self, table, conds=None, sort=None, key='id'):
         """
@@ -159,7 +198,7 @@ class db_conn:
             'table': u"`{}`".format(table),
             'fields': u", ".join(formatted.keys()),
             'values': u", ".join(formatted.values()),
-            'update': u", ".join([u"{}={}".format(key, value) for key, value in formatted.iteritems()
+            'update': u", ".join([u"{}={}".format(key, formatted[key]) for key in formatted
                                   if key != u'`id`'])
         }
 
@@ -206,7 +245,7 @@ class db_conn:
                     'fields': u", ".join("`{}`".format(field) for field in fields),
                     'values': u", ".join(
                         "('" + "','".join(map(str, record)) + "')" for record in
-                        itertools.islice(itertools.chain([first], records), MAX_INSERT_SIZE))
+                        itertools.islice(itertools.chain([first], records), self.max_insert_size))
                 }
 
                 sql = u"INSERT INTO {table} ({fields}) " \
@@ -235,4 +274,3 @@ class db_conn:
         self.cnx.commit()
 
         return timedelta(seconds=time() - start)
-

@@ -10,7 +10,7 @@ import unicodecsv as csv
 # import my custom modules
 from pipeline_consts import *
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
-from db_conn import db_conn
+from dbconn import DBConn
 
 
 # the population history is either: constant, or a fully specified complex demography
@@ -68,7 +68,7 @@ class SelectionInputFile(PipelineTask):
 
     def run(self):
 
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         gen_time = GENERATION_TIME[self.species]
         pop_size = POPULATION_SIZE[self.species][self.population]
@@ -232,7 +232,7 @@ class SelectionHorseGWAS(PipelineWrapperTask):
 
     def requires(self):
 
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # TODO WTF? why is the qtl_snps join dropping 417 rows? - because of multiple populations!!!
         # get the modsnp_id for every GWAS hit
@@ -265,7 +265,7 @@ class SelectionHorseGWASFlankingSNPs(PipelineWrapperTask):
 
     def requires(self):
 
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""

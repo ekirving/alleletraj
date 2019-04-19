@@ -7,10 +7,9 @@ import gzip
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import MAX_INSERT_SIZE
 from pipeline_modern_snps import ProcessSNPs
 from pipeline_utils import PipelineTask, PipelineWrapperTask, curl_download
-from db_conn import db_conn
+from dbconn import DBConn
 
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {
@@ -81,7 +80,7 @@ class LoadEnsemblGenes(PipelineTask):
 
     def run(self):
         # open a db connection
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # the column headers for batch inserting into the db
         fields = ('source', 'gene_id', 'version', 'biotype', 'chrom', 'start', 'end')
@@ -143,7 +142,7 @@ class LoadEnsemblVariants(PipelineTask):
         return luigi.LocalTarget('ensembl/{}-variants.log'.format(self.species))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         # the column headers for batch inserting into the db
         fields = ('dbxref', 'rsnumber', 'type', 'chrom', 'start', 'end', 'ref', 'alt')
@@ -180,7 +179,7 @@ class LoadEnsemblVariants(PipelineTask):
                     records.append(variant)
 
                     # bulk insert in chunks
-                    if num_recs % MAX_INSERT_SIZE == 0:
+                    if num_recs % dbc.max_insert_size == 0:
                         dbc.save_records('ensembl_variants', fields, records)
                         records = []
 
@@ -212,7 +211,7 @@ class LinkEnsemblGenes(PipelineTask):
         return luigi.LocalTarget('db/{}-ensembl_genes.log'.format(self.basename))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms
@@ -247,7 +246,7 @@ class LinkEnsemblVariants(PipelineTask):
         return luigi.LocalTarget('db/{}-ensembl_vars.log'.format(self.basename))
 
     def run(self):
-        dbc = db_conn(self.species)
+        dbc = DBConn(self.species)
 
         exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms

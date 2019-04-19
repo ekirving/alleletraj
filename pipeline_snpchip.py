@@ -8,12 +8,13 @@ import os
 # TODO make these into PipelineTask properties
 from pipeline_modern_snps import ProcessSNPs
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download
-from dbconn import DBConn
+from database import Database
 
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \
             'Axiom_MNEc670_Annotation.r2.csv.zip'
 
 # TODO goat data is technically using the wrong assembly, but that might not matter because it has not chrom-pos entries
+
 
 class ExternalSNPchimp(PipelineExternalTask):
     """

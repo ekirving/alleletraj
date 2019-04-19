@@ -13,7 +13,7 @@ from multiprocessing import Process
 from pipeline_consts import MAX_INTERVAL_SIZE, CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, \
     SAMPLES
 
-from dbconn import DBConn
+from database import Database
 
 
 def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
@@ -244,7 +244,7 @@ class PipelineTask(luigi.Task):
         """
         Create a private connection to the database
         """
-        return DBConn(self.species)
+        return Database(self.species)
 
 
 class PipelineExternalTask(luigi.ExternalTask, PipelineTask):

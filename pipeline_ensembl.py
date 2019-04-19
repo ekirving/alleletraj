@@ -9,7 +9,7 @@ import gzip
 # TODO make these into PipelineTask properties
 from pipeline_modern_snps import ProcessSNPs
 from pipeline_utils import PipelineTask, PipelineWrapperTask, curl_download
-from dbconn import DBConn
+from database import Database
 
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {

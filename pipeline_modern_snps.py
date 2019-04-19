@@ -10,7 +10,7 @@ from collections import Counter
 # import my custom modules
 from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
-from dbconn import DBConn
+from database import Database
 
 # path to the folder containing the modern fasta files
 FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'

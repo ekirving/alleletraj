@@ -9,15 +9,12 @@ from collections import defaultdict, OrderedDict
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import CHROM_SIZE, MIN_DAF
+from pipeline_consts import CHROM_SIZE, MIN_DAF, QTLDB_RELEASE
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals
-from dbconn import DBConn
+from database import Database
 
 from qtldb_api import QTLdbAPI
-
-# QTLdb settings
-QTLDB_RELEASE = 'rel37'
 
 # offset to use for the QTL window (+/- 50 Kb)
 QTL_WINDOW = 50000

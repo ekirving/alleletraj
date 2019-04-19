@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from dbconn import DBConn
+from database import Database
 
 import unicodecsv as csv
 
@@ -16,7 +16,7 @@ BIN_WIDTH = 500
 BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
 
 # open a db connection
-dbc = DBConn()
+dbc = Database()
 
 with open("tsv/all-bins.tsv", "wb") as tsv_file:
     fields = ['bin', 'accession', 'map_prcnt', 'status', 'age', 'confident', 'lower', 'upper', 'width', 'overlap',

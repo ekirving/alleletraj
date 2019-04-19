@@ -17,7 +17,7 @@ from pipeline_modern_snps import ProcessSNPs
 from pipeline_snp_call import ExternalFASTA
 from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd
 
-from dbconn import DBConn
+from database import Database
 
 
 class PopulateIntervals(PipelineTask):

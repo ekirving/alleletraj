@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 
-from dbconn import DBConn
+from database import Database
 from time import time
 from datetime import timedelta
 
@@ -18,7 +18,7 @@ def calculate_summary_stats():
     """
     Calculate summary stats for each QTL
     """
-    dbc = DBConn()
+    dbc = Database()
 
     # remove any existing stats for this chromosome
     dbc.execute_sql("TRUNCATE qtl_stats")
@@ -69,7 +69,7 @@ def count_snp_coverage():
     """
     Count the read coverage for each SNP
     """
-    dbc = DBConn()
+    dbc = Database()
 
     start = time()
 
@@ -109,7 +109,7 @@ def find_best_snps():
     """
     Choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
     """
-    dbc = DBConn()
+    dbc = Database()
 
     start = time()
 

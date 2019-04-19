@@ -12,11 +12,10 @@ from pprint import pprint
 from time import time
 
 # import my custom modules
-from pipeline_consts import REF_ASSEMBLY
-from pipeline_qtls import QTLDB_RELEASE
+from pipeline_consts import REF_ASSEMBLY, QTLDB_RELEASE
 
 
-class DBConn:
+class Database:
     """
     Class for handling all the db connectivity.
     """
@@ -35,7 +34,7 @@ class DBConn:
 
     def __init__(self, species):
         # set the database name
-        self.db_config['database'] = DBConn.__get_name(species)
+        self.db_config['database'] = Database.__get_name(species)
 
         # connect to the db
         self.cnx = mysql.connector.connect(**self.db_config)
@@ -113,24 +112,13 @@ class DBConn:
         """
         Create an empty database
         """
-        cnx = mysql.connector.connect(**DBConn.db_config)
+        cnx = mysql.connector.connect(**Database.db_config)
         cursor = cnx.cursor()
-        name = DBConn.__get_name(species)
+        name = Database.__get_name(species)
 
         cursor.execute(u"CREATE DATABASE `{}`".format(name))
 
         return name
-
-    def execute_file(self, sql_file):
-        """
-        Execute multiple SQL queries from a file.
-        """
-        with open(sql_file, 'r') as fin:
-            self.cursor.execute(fin.read().decode('utf-8'))
-            while True:
-                # keep executing until all queries are done
-                if not self.cursor.nextset():
-                    break
 
     def get_records(self, table, conds=None, sort=None, key='id'):
         """
@@ -271,6 +259,20 @@ class DBConn:
         start = time()
 
         self.cursor.execute(sql)
+        self.cnx.commit()
+
+        return timedelta(seconds=time() - start)
+
+    def execute_file(self, sql_file):
+        """
+        Execute multiple SQL queries from a file.
+        """
+        start = time()
+
+        with open(sql_file, 'r') as fin:
+            for _ in self.cursor.execute(fin.read().decode('utf-8'), multi=True):
+                pass
+
         self.cnx.commit()
 
         return timedelta(seconds=time() - start)

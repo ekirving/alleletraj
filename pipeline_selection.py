@@ -10,7 +10,7 @@ import unicodecsv as csv
 # import my custom modules
 from pipeline_consts import *
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
-from dbconn import DBConn
+from database import Database
 
 
 # the population history is either: constant, or a fully specified complex demography

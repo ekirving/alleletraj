@@ -23,6 +23,9 @@ REF_ASSEMBLY = {
     'pig':    'Sscrofa10.2',
 }
 
+# QTLdb settings
+QTLDB_RELEASE = 'rel37'
+
 # TODO rename once we've fixed all the broken references
 OUTGROUP = {
     # 'cattle': '',  # TODO add me

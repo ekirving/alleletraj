@@ -13,6 +13,8 @@ from multiprocessing import Process
 from pipeline_consts import MAX_INTERVAL_SIZE, CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, \
     SAMPLES
 
+from dbconn import DBConn
+
 
 def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
     """
@@ -151,59 +153,6 @@ class PipelineTask(luigi.Task):
         return REF_ASSEMBLY[self.species]
 
     @property
-    def binomial(self):
-        """
-        Scientific binomial name of the species
-        """
-        return BINOMIAL_NAME[self.species]
-
-    @property
-    def chromosomes(self):
-        """
-        List of chromosomes identifiers (e.g. 1, 2, ..., X, Y)
-        """
-        return CHROM_SIZE[self.assembly]
-
-    @property
-    def outgroup(self):
-        """
-        Identifier of the outgroup sample
-        """
-        return OUTGROUP[self.species]
-
-    @property
-    def populations(self):
-        """
-        List of the populations for the species
-        """
-        return SAMPLES[self.species]
-
-    @property
-    def samples(self):
-        """
-        List of the modern samples for the species
-        """
-        return SAMPLES[self.species][self.population]
-
-    @property
-    def priority(self):
-        """
-        Set a dynamic priority for tasks.
-        """
-        # TODO do CPU intensive tasks first
-
-        # deprioritise large values of K or m
-        offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
-
-        # prioritise chromosomes by size, as running the largest chroms first is more efficient for multithreading
-        if hasattr(self, 'chrom') and hasattr(self, 'species'):
-            chrom = self.chrom.replace('chr', '')
-            sizes = CHROM_SIZE[self.assembly]
-            offset = sorted(sizes.values(), reverse=True).index(sizes[chrom]) + 1
-
-        return 100-offset if offset else 0
-
-    @property
     def basename(self):
         """
         Collapse all the param values into a hyphen delimited list
@@ -224,6 +173,66 @@ class PipelineTask(luigi.Task):
 
         return '-'.join(params)
 
+    @property
+    def binomial(self):
+        """
+        Scientific binomial name of the species
+        """
+        return BINOMIAL_NAME[self.species]
+
+    @property
+    def chromosomes(self):
+        """
+        List of chromosomes identifiers (e.g. 1, 2, ..., X, Y)
+        """
+        return CHROM_SIZE[self.assembly]
+
+    @property
+    def java_mem(self):
+        """
+        Memory to allocate to java processes
+        """
+        return "-Xmx{}G".format(self.resources['ram-gb'])
+
+    @property
+    def outgroup(self):
+        """
+        Identifier of the outgroup sample
+        """
+        return OUTGROUP[self.species]
+
+    @property
+    def populations(self):
+        """
+        List of the populations for the species
+        """
+        return SAMPLES[self.species]
+
+    @property
+    def priority(self):
+        """
+        Set a dynamic priority for tasks.
+        """
+        # TODO do CPU intensive tasks first
+
+        # deprioritise large values of K or m
+        offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
+
+        # prioritise chromosomes by size, as running the largest chroms first is more efficient for multithreading
+        if hasattr(self, 'chrom') and hasattr(self, 'species'):
+            chrom = self.chrom.replace('chr', '')
+            sizes = CHROM_SIZE[self.assembly]
+            offset = sorted(sizes.values(), reverse=True).index(sizes[chrom]) + 1
+
+        return 100-offset if offset else 0
+
+    @property
+    def samples(self):
+        """
+        List of the modern samples for the species
+        """
+        return SAMPLES[self.species][self.population]
+
     def all_params(self):
         """
         Get all the params as a (name, value) tuple
@@ -231,10 +240,11 @@ class PipelineTask(luigi.Task):
         """
         return [(name, getattr(self, name)) for name in self.get_param_names()]
 
-    @property
-    def java_mem(self):
-        # memory to allocate to java
-        return "-Xmx{}G".format(self.resources['ram-gb'])
+    def db_conn(self):
+        """
+        Create a private connection to the database
+        """
+        return DBConn(self.species)
 
 
 class PipelineExternalTask(luigi.ExternalTask, PipelineTask):

@@ -108,7 +108,7 @@ class PopulateQTLs(PipelineTask):
         # get the file containing all the QTL IDs
         qtl_file = self.input()
 
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
         api = QTLdbAPI()
 
         # get a list of all the QTLDb IDs from the tsv dump
@@ -234,7 +234,7 @@ class SetQTLWindows(PipelineTask):
 
     def run(self):
         # open a db connection
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # get all the valid QTL windows
         results = dbc.get_records_sql("""
@@ -290,7 +290,7 @@ class PopulateSweepLoci(PipelineTask):
         return luigi.LocalTarget('db/{}-sweep_loci.log'.format(self.species))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # get the files containing the sweep data
         loci_file = SWEEP_DATA[self.species]['loci']  # TODO make SWEEP_DATA into external dependencies
@@ -363,7 +363,7 @@ class PopulateMC1RLocus(PipelineTask):
         return luigi.LocalTarget('db/{}-mc1r_locus.log'.format(self.species))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # get the MC1R gene details
         mc1r = dbc.get_record('ensembl_genes', {'gene_id': MC1R_GENE_ID[self.species]})
@@ -403,7 +403,7 @@ class PopulatePigMummyLoci(PipelineTask):
         return luigi.LocalTarget('db/{}-mummy_loci.log'.format(self.species))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         sizes = CHROM_SIZE[self.assembly]
 
@@ -478,7 +478,7 @@ class PopulateNeutralLoci(PipelineTask):
         return luigi.LocalTarget('db/{}-neutral_loci.log'.format(self.species))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         sizes = CHROM_SIZE[self.assembly]
 
@@ -600,7 +600,7 @@ class PopulateQTLSNPs(PipelineTask):
         return luigi.LocalTarget('db/{}-qtl_snps.log'.format(self.basename))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # TODO make sure this work with DOM and DOM2
         # insert linking records to make future queries much quicker
@@ -640,7 +640,7 @@ class MarkNeutralSNPs(PipelineTask):
         return luigi.LocalTarget('db/{}-neutral_snps.log'.format(self.basename))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms

@@ -68,7 +68,7 @@ class SelectionInputFile(PipelineTask):
 
     def run(self):
 
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         gen_time = GENERATION_TIME[self.species]
         pop_size = POPULATION_SIZE[self.species][self.population]
@@ -232,7 +232,7 @@ class SelectionHorseGWAS(PipelineWrapperTask):
 
     def requires(self):
 
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # TODO WTF? why is the qtl_snps join dropping 417 rows? - because of multiple populations!!!
         # get the modsnp_id for every GWAS hit
@@ -265,7 +265,7 @@ class SelectionHorseGWASFlankingSNPs(PipelineWrapperTask):
 
     def requires(self):
 
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""

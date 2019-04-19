@@ -24,7 +24,7 @@ class CreateDatabase(PipelineTask):
         name = DBConn.create_database(self.species)
 
         # open a connection to the new db
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # load the CREATE TABLE sql file
         dbc.execute_file('alleletraj_database.sql')

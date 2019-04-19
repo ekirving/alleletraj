@@ -66,7 +66,7 @@ class LoadSNPChipVariants(PipelineTask):
         gzip_file = self.input()
 
         # open a db connection
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # unzip the archive into a named pipe
         pipe = "tmp/SNPchimp_{}".format(self.species)
@@ -114,7 +114,7 @@ class LoadAxiomEquineHD(PipelineTask):
         axiom_file = self.input()
 
         # open a db connection
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # just get the relevant columns
         awk = "awk -F ',' 'NR>1 {print $1 \"\\t\" $4 \"\\t\" $5}'"
@@ -182,7 +182,7 @@ class LinkSNPChipVariants(PipelineTask):
         return luigi.LocalTarget('db/{}-snpchip.log'.format(self.basename))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms

@@ -84,7 +84,7 @@ class AlleleFrequencyFromFASTA(PipelineTask):
         fasta_files = [fasta_file.path for fasta_file in self.input()]
 
         # open a private connection to the database
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         with self.output().open('w') as fout:
             fout.write("STARTED: Parsing {} fasta files.".format(len(fasta_files)))
@@ -194,7 +194,7 @@ class AlleleFrequencyFromVCF(PipelineTask):
 
     def run(self):
         # open a private connection to the database
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # count the number of SNPs added
         num_snps = 0

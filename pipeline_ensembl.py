@@ -80,7 +80,7 @@ class LoadEnsemblGenes(PipelineTask):
 
     def run(self):
         # open a db connection
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # the column headers for batch inserting into the db
         fields = ('source', 'gene_id', 'version', 'biotype', 'chrom', 'start', 'end')
@@ -142,7 +142,7 @@ class LoadEnsemblVariants(PipelineTask):
         return luigi.LocalTarget('ensembl/{}-variants.log'.format(self.species))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # the column headers for batch inserting into the db
         fields = ('dbxref', 'rsnumber', 'type', 'chrom', 'start', 'end', 'ref', 'alt')
@@ -211,7 +211,7 @@ class LinkEnsemblGenes(PipelineTask):
         return luigi.LocalTarget('db/{}-ensembl_genes.log'.format(self.basename))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms
@@ -246,7 +246,7 @@ class LinkEnsemblVariants(PipelineTask):
         return luigi.LocalTarget('db/{}-ensembl_vars.log'.format(self.basename))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms

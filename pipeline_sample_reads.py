@@ -39,7 +39,7 @@ class PopulateIntervals(PipelineTask):
 
     def run(self):
         # open a db connection
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # get all the unique QTL windows
         results = dbc.get_records_sql("""
@@ -119,7 +119,7 @@ class PopulateIntervalSNPs(PipelineTask):
         return luigi.LocalTarget('db/{}-interval_snps.log'.format(self.basename))
 
     def run(self):
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # tidy up any unfinished interval SNPs
         dbc.execute_sql("""
@@ -165,7 +165,7 @@ class ProcessInterval(PipelineTask):
 
     def run(self):
         # open a db connection
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # TODO update
         ref_file = self.input()
@@ -401,7 +401,7 @@ class SampleReadsPipeline(PipelineWrapperTask):
     def requires(self):
 
         # open a db connection
-        dbc = DBConn(self.species)
+        dbc = self.db_conn()
 
         # get all the intervals we've not finished processing yet
         intervals = dbc.get_records('intervals', {'finished': 0})

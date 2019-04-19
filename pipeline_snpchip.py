@@ -25,7 +25,7 @@ class ExternalSNPchimp(luigi.ExternalTask):
     species = luigi.Parameter()
 
     def output(self):
-        return luigi.LocalTarget('snpchip/SNPchimp_{}.tsv.gz'.format(self.species))
+        return luigi.LocalTarget('snpchip/SNPchimp_{}.tsv.gz'.format(REF_ASSEMBLY[self.species]))
 
 
 class DownloadAxiomEquineHD(PipelineTask):

@@ -15,16 +15,23 @@ from db_conn import db_conn
 # FTP URLs for the most recent Ensembl releases for a given genome assembly
 ENSEMBL_URLS = {
 
-    # pig - https://www.ensembl.org/Sus_scrofa/Info/Index
-    'Sscrofa10.2': {
-        # Ensembl release 89 - May 2017
-        'gtf': 'ftp://ftp.ensembl.org/pub/release-89/gtf/sus_scrofa/Sus_scrofa.Sscrofa10.2.89.gtf.gz',
-        'gvf': 'ftp://ftp.ensembl.org/pub/release-89/variation/gvf/sus_scrofa/Sus_scrofa.gvf.gz'
+    # cattle -  https://www.ensembl.org/Bos_taurus/Info/Index
+    'UMD3.1': {
+        # Ensembl release 94 - October 2018
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-94/gtf/bos_taurus/Bos_taurus.UMD3.1.94.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-94/variation/gvf/bos_taurus/bos_taurus.gvf.gz'
     },
-    'Sscrofa11.1': {
+    'ARS-UCD1.2': {
         # Ensembl release 96 - April 2019
-        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/sus_scrofa/Sus_scrofa.Sscrofa11.1.96.gtf.gz',
-        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/sus_scrofa/sus_scrofa.gvf.gz'
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/bos_taurus/Bos_taurus.ARS-UCD1.2.96.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/bos_taurus/bos_taurus.gvf.gz',
+    },
+
+    # goat -  https://www.ensembl.org/Capra_hircus/Info/Index
+    'ARS1': {
+        # Ensembl release 96 - April 2019
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/capra_hircus/Capra_hircus.ARS1.96.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/capra_hircus/capra_hircus.gvf.gz'
     },
 
     # horse - https://www.ensembl.org/Equus_caballus/Info/Index
@@ -39,23 +46,16 @@ ENSEMBL_URLS = {
         'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/equus_caballus/equus_caballus.gvf.gz'
     },
 
-    # goat -  https://www.ensembl.org/Capra_hircus/Info/Index
-    'ARS1': {
-        # Ensembl release 96 - April 2019
-        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/capra_hircus/Capra_hircus.ARS1.96.gtf.gz',
-        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/capra_hircus/capra_hircus.gvf.gz'
+    # pig - https://www.ensembl.org/Sus_scrofa/Info/Index
+    'Sscrofa10.2': {
+        # Ensembl release 89 - May 2017
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-89/gtf/sus_scrofa/Sus_scrofa.Sscrofa10.2.89.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-89/variation/gvf/sus_scrofa/Sus_scrofa.gvf.gz'
     },
-
-    # cattle -  https://www.ensembl.org/Bos_taurus/Info/Index
-    'UMD3.1': {
-        # Ensembl release 94 - October 2018
-        'gtf': 'ftp://ftp.ensembl.org/pub/release-94/gtf/bos_taurus/Bos_taurus.UMD3.1.94.gtf.gz',
-        'gvf': 'ftp://ftp.ensembl.org/pub/release-94/variation/gvf/bos_taurus/bos_taurus.gvf.gz'
-    },
-    'ARS-UCD1.2': {
+    'Sscrofa11.1': {
         # Ensembl release 96 - April 2019
-        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/bos_taurus/Bos_taurus.ARS-UCD1.2.96.gtf.gz',
-        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/bos_taurus/bos_taurus.gvf.gz',
+        'gtf': 'ftp://ftp.ensembl.org/pub/release-96/gtf/sus_scrofa/Sus_scrofa.Sscrofa11.1.96.gtf.gz',
+        'gvf': 'ftp://ftp.ensembl.org/pub/release-96/variation/gvf/sus_scrofa/sus_scrofa.gvf.gz'
     }
 }
 

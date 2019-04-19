@@ -225,16 +225,16 @@ class SelectionPlot(PipelineTask):
 class SelectionHorseGWAS(PipelineWrapperTask):
     """
     Run `selection` on all the direct GWAS hits for horses.
+
+    :type species: str
     """
+    species = luigi.Parameter()
 
     def requires(self):
 
-        dbc = db_conn('horse')
+        dbc = db_conn(self.species)
 
-        # run for DOM2 and DOM2 + WLD
-        pops = ['DOM2', 'DOM2WLD']
-
-        # TODO WTF? why is the qtl_snps join dropping 417 rows?
+        # TODO WTF? why is the qtl_snps join dropping 417 rows? - because of multiple populations!!!
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""
             SELECT DISTINCT ms.id
@@ -249,23 +249,23 @@ class SelectionHorseGWAS(PipelineWrapperTask):
              WHERE q.associationType = 'Association'
                AND q.valid = 1""")
 
-        # TODO why do these 5 fail?
-        bad = [5860440, 4993470, 7833738, 14185088, 9410404]
-
-        for pop in pops:
+        for pop in self.populations:
             for modsnp_id in modsnps:
                 if modsnp_id not in bad:
-                    yield SelectionPlot('horse', pop, modsnp_id, MCMC_POP_CONST)
+                    yield SelectionPlot(self.species, pop, modsnp_id, MCMC_POP_CONST)
 
 
 class SelectionHorseGWASFlankingSNPs(PipelineWrapperTask):
     """
     Run `selection` on all the QTL SNPs for hoses
+
+    :type species: str
     """
+    species = luigi.Parameter()
 
     def requires(self):
 
-        dbc = db_conn('horse')
+        dbc = db_conn(self.species)
 
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""
@@ -278,7 +278,7 @@ class SelectionHorseGWASFlankingSNPs(PipelineWrapperTask):
                AND q.valid = 1""")
 
         for modsnp_id in modsnps:
-            yield SelectionPlot('horse', 'DOM2WLD', modsnp_id, MCMC_POP_CONST)
+            yield SelectionPlot(self.species, 'DOM2WLD', modsnp_id, MCMC_POP_CONST)
 
 
 class SelectionHorseTest(PipelineWrapperTask):

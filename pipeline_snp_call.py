@@ -326,10 +326,14 @@ class WholeGenomeSNPsVCF(PipelineTask):
 class SNPCallPipeline(PipelineWrapperTask):
     """
     Call SNPs using the bcftools `mpileup | call` workflow.
+
+    :type species: str
     """
+    species = luigi.Parameter()
+
     def requires(self):
-        yield WholeGenomeSNPsVCF('horse', 'DOM')
-        yield WholeGenomeSNPsVCF('horse', 'DOM2')
+        for pop in self.populations:
+            yield WholeGenomeSNPsVCF(self.species, pop)
 
 
 if __name__ == '__main__':

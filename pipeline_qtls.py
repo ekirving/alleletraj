@@ -27,18 +27,23 @@ GENE_OFFSET = 100000
 
 # TODO add other species
 SWEEP_DATA = {
+    # 'cattle': {},
+    # 'goat': {},
+    # 'pig': {},
 
     # see https://www.nature.com/articles/ng.3394
-    'pig': {'loci': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff_MERGED10kb.bed',
-            'snps': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed'}
+    'pig': {
+        'loci': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff_MERGED10kb.bed',
+        'snps': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed'
+    }
 }
 
 # the Ensembl gene ID
 MC1R_GENE_ID = {
-    'pig':    'ENSSSCG00000020924',  # see https://www.ensembl.org/Sus_scrofa/Gene/Summary?g=ENSSSCG00000020924
-    'horse':  'ENSECAG00000000900',  # see http://www.ensembl.org/Equus_caballus/Gene/Summary?g=ENSECAG00000000900
     'cattle': 'ENSBTAG00000023731',  # see http://www.ensembl.org/Bos_taurus/Gene/Summary?g=ENSBTAG00000023731
-    'goat':   'ENSCHIG00000010476',  # see https://www.ensembl.org/Capra_hircus/Gene/Summary?db=core;g=ENSCHIG00000010476
+    'goat':   'ENSCHIG00000010476',  # see http://www.ensembl.org/Capra_hircus/Gene/Summary?db=core;g=ENSCHIG00000010476
+    'pig':    'ENSSSCG00000020924',  # see http://www.ensembl.org/Sus_scrofa/Gene/Summary?g=ENSSSCG00000020924
+    'horse':  'ENSECAG00000000900',  # see http://www.ensembl.org/Equus_caballus/Gene/Summary?g=ENSECAG00000000900
 }
 
 

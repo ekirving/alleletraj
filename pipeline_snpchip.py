@@ -13,6 +13,7 @@ from db_conn import db_conn
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \
             'Axiom_MNEc670_Annotation.r2.csv.zip'
 
+# TODO goat data is technically using the wrong assembly, but that might not matter because it has not chrom-pos entries
 
 class ExternalSNPchimp(PipelineExternalTask):
     """

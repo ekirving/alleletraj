@@ -10,7 +10,9 @@ from collections import defaultdict, OrderedDict
 # import my custom modules
 # TODO make these into PipelineTask properties
 from pipeline_consts import CHROM_SIZE, MIN_DAF, SAMPLES
+from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes
 from pipeline_utils import PipelineTask, db_conn, run_cmd, merge_intervals
+
 from qtldb_api import QTLdbAPI
 
 # QTLdb settings
@@ -30,11 +32,12 @@ SWEEP_DATA = {
             'snps': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed'}
 }
 
-# TODO add other species
 # the Ensembl gene ID
 MC1R_GENE_ID = {
-    'pig':   'ENSSSCG00000020924',
-    'horse': 'ENSECAG00000000900'
+    'pig':    'ENSSSCG00000020924',  # see https://www.ensembl.org/Sus_scrofa/Gene/Summary?g=ENSSSCG00000020924
+    'horse':  'ENSECAG00000000900',  # see http://www.ensembl.org/Equus_caballus/Gene/Summary?g=ENSECAG00000000900
+    'cattle': 'ENSBTAG00000023731',  # see http://www.ensembl.org/Bos_taurus/Gene/Summary?g=ENSBTAG00000023731
+    'goat':   'ENSCHIG00000010476',  # see https://www.ensembl.org/Capra_hircus/Gene/Summary?db=core;g=ENSCHIG00000010476
 }
 
 
@@ -108,132 +111,124 @@ class PopulateQTLs(PipelineTask):
         # convert all the IDs to int
         qtl_ids = [int(qtl_id) for qtl_id in data['QTL_ID'] if qtl_id.isdigit()]
 
-        print("INFO: Processing {:,} QTLs from '{}'".format(len(qtl_ids), qtl_file.path))
+        with self.output().open('w') as fout:
+            fout.write("INFO: Processing {:,} QTLs from '{}'".format(len(qtl_ids), qtl_file.path))
 
-        # get all the QTLs already in the DB
-        qtls = dbc.get_records('qtls')
+            # get all the QTLs already in the DB
+            qtls = dbc.get_records('qtls')
 
-        # find the new IDs in the list
-        new_ids = list(set(qtl_ids) - set(qtls.keys()))
+            # find the new IDs in the list
+            new_ids = list(set(qtl_ids) - set(qtls.keys()))
 
-        print('INFO: Found {:,} new QTLs to add'.format(len(new_ids)))
+            fout.write('INFO: Found {:,} new QTLs to add'.format(len(new_ids)))
 
-        # rename these fields
-        key_map = {
-            'pubmedID':   'pubmed_id',
-            'geneId':     'gene_id',
-            'chromosome': 'chrom'
-        }
+            # rename these fields
+            key_map = {
+                'pubmedID':   'pubmed_id',
+                'geneId':     'gene_id',
+                'chromosome': 'chrom'
+            }
 
-        added = 0
+            added = 0
 
-        # get all the new records
-        for record in api.get_qtls(self.species, new_ids):
+            # get all the new records
+            for record in api.get_qtls(self.species, new_ids):
 
-            # TODO when resultset is len() = 1 then this throws an error
-            # extract the nested trait record
-            trait = record.pop('trait')
-            trait['name'] = record.pop('name')
+                # TODO when resultset is len() = 1 then this throws an error
+                # extract the nested trait record
+                trait = record.pop('trait')
+                trait['name'] = record.pop('name')
 
-            # set the tait foreign key on the main record
-            record['trait_id'] = trait['traitID']
+                # set the tait foreign key on the main record
+                record['trait_id'] = trait['traitID']
 
-            # does the trait exist
-            if not dbc.exists_record('traits', {'id': record['trait_id']}):
+                # does the trait exist
+                if not dbc.exists_record('traits', {'id': record['trait_id']}):
 
-                # setup the trait record
-                trait = dict((field.replace('trait', '').lower(), value) for field, value in trait.iteritems())
-                trait['type'] = ''  # api.get_trait_type(self.species, trait['id'], trait['name'])  # TODO this is broken!!
+                    # setup the trait record
+                    trait = dict((field.replace('trait', '').lower(), trait[field]) for field in trait)
+                    trait['type'] = ''  # api.get_trait_type(self.species, trait['id'], trait['name'])  # TODO this is broken!!
 
-                dbc.save_record('traits', trait, insert=True)
+                    dbc.save_record('traits', trait, insert=True)
 
-            # does the publication exist
-            if not dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
+                # does the publication exist
+                if not dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
 
-                # setup the pubmed record
-                pubmed = False # api.get_publication(self.species, record['pubmedID'])  # TODO this is broken!!
+                    # setup the pubmed record
+                    pubmed = False  # api.get_publication(self.species, record['pubmedID'])  # TODO this is broken!!
 
-                if pubmed:
-                    pubmed['id'] = pubmed.pop('pubmed_ID')
-                    pubmed['year'] = re.search('\(([0-9]{4})\)', pubmed['authors']).group(1)
-                    pubmed['journal'] = pubmed['journal']['#text'][:-5]
+                    if pubmed:
+                        pubmed['id'] = pubmed.pop('pubmed_ID')
+                        pubmed['year'] = re.search('\(([0-9]{4})\)', pubmed['authors']).group(1)
+                        pubmed['journal'] = pubmed['journal']['#text'][:-5]
 
-                    dbc.save_record('pubmeds', pubmed, insert=True)
-                else:
-                    # TODO some records have a bogus pubmed ID, but these appear to work on the website
-                    record['pubmedID'] = None
+                        dbc.save_record('pubmeds', pubmed, insert=True)
+                    else:
+                        # TODO some records have a bogus pubmed ID, but these appear to work on the website
+                        record['pubmedID'] = None
 
-            # flatten the other nested records
-            for field, value in record.iteritems():
+                # flatten the other nested records
+                for field, value in record.iteritems():
 
-                if type(value) is OrderedDict:
-                    nested = record.pop(field)
+                    if type(value) is OrderedDict:
+                        nested = record.pop(field)
 
-                    for nested_name, nested_value in nested.iteritems():
-                        # for doubly nested fields, use the parent name as a prefix
-                        if type(nested_value) is OrderedDict:
-                            for key in nested_value:
-                                record[nested_name + '_' + key] = nested_value[key]
-                        elif field in ['gene']:
-                            record[field + nested_name.title()] = nested_value
-                        else:
-                            record[nested_name] = nested_value
+                        for nested_name, nested_value in nested.iteritems():
+                            # for doubly nested fields, use the parent name as a prefix
+                            if type(nested_value) is OrderedDict:
+                                for key in nested_value:
+                                    record[nested_name + '_' + key] = nested_value[key]
+                            elif field in ['gene']:
+                                record[field + nested_name.title()] = nested_value
+                            else:
+                                record[nested_name] = nested_value
 
-            # drop any lingering malformed fields
-            record.pop('source', None)
-            record.pop('breeds', None)
-            record.pop('effects', None)
-            record.pop('statTests', None)
+                # drop any lingering malformed fields
+                record.pop('source', None)
+                record.pop('breeds', None)
+                record.pop('effects', None)  # TODO check this out
+                record.pop('statTests', None)
 
-            # handle malformed data
-            for field in ['linkageLoc_end', 'linkageLoc_peak', 'linkageLoc_start']:
-                if field in record and record[field] is not None:
-                    record[field] = re.sub('[^0-9.]', '', record[field])
+                # handle malformed data
+                for field in ['linkageLoc_end', 'linkageLoc_peak', 'linkageLoc_start']:
+                    if field in record and record[field] is not None:
+                        record[field] = re.sub('[^0-9.]', '', record[field])
 
-            # rename some fields
-            for key in record:
-                if key in key_map:
-                    record[key_map[key]] = record.pop(key)
+                # rename some fields
+                for key in record:
+                    if key in key_map:
+                        record[key_map[key]] = record.pop(key)
 
-            # filter out any empty values
-            qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')
+                # filter out any empty values
+                qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')
 
-            dbc.save_record('qtls', qtl, insert=True)
+                dbc.save_record('qtls', qtl, insert=True)
 
-            added += 1
+                added += 1
 
-            print('INFO: Added {:5d} new QTLs'.format(added))
+                fout.write('INFO: Added {:5d} new QTLs'.format(added))
 
-        # calculate the QTL windows
-        ComputeQTLWindows()
-
-        print('INFO: Finished adding {} new QTLs'.format(len(new_ids)))
+            fout.write('INFO: Finished adding {} new QTLs'.format(len(new_ids)))
 
 
-class ComputeQTLWindows(PipelineTask):
+class SetQTLWindows(PipelineTask):
     """
+    Calculate the QTL window sizes.
 
     :type species: str
     """
     species = luigi.Parameter()
 
     def requires(self):
-        pass  # return BlahBlah(self.species) # TODO fix me
+        yield PopulateQTLs(self.species)
+        yield LoadEnsemblVariants(self.species)
 
     def output(self):
-        pass  # return luigi.LocalTarget('db/{}-qtls.log'.format(self.species))  # TODO fix me
+        return luigi.LocalTarget('db/{}-qtl_windows.log'.format(self.species))
 
     def run(self):
         # open a db connection
         dbc = db_conn(self.species)
-
-        # reset the existing QTL flags
-        dbc.execute_sql("""
-          UPDATE qtls
-             SET valid = NULL,
-                  site = NULL,
-                 start = NULL,
-                   end = NULL""")
 
         # get all the valid QTL windows
         results = dbc.get_records_sql("""
@@ -247,10 +242,7 @@ class ComputeQTLWindows(PipelineTask):
                AND q.significance = 'Significant'     # only significant hits
                """, key=None)
 
-        print('INFO: Computing window sizes for {:,} QTLs'.format(len(results)))
-
         for result in results:
-
             # get the size of the current chrom
             chom_size = CHROM_SIZE[self.species][result['chrom']]
 
@@ -262,13 +254,22 @@ class ComputeQTLWindows(PipelineTask):
                 raise Exception('ERROR: Window size for QTL #{} is negative ({:,} bp)'.format(result['id'], end-start))
 
             # update the QTL record
-            qtl = {'id': result['id'], 'chrom': result['chrom'], 'valid': 1, 'site': result['site'], 'start': start,
-                   'end': end}
+            qtl = {
+                'id': result['id'],
+                'chrom': result['chrom'],
+                'valid': 1,
+                'site': result['site'],
+                'start': start,
+                'end': end
+            }
 
             dbc.save_record('qtls', qtl)
 
+        with self.output().open('w') as fout:
+            fout.write('INFO: Set window sizes for {:,} QTLs'.format(len(results)))
 
-class PopulateSweeps(PipelineTask):
+
+class PopulateSweepLoci(PipelineTask):
     """
     Populate the db with any selective sweep regions.
 
@@ -280,22 +281,14 @@ class PopulateSweeps(PipelineTask):
         pass  # return BlahBlah(self.species) # TODO fix me
 
     def output(self):
-        pass  # return luigi.LocalTarget('db/{}-qtls.log'.format(self.species))  # TODO fix me
+        return luigi.LocalTarget('db/{}-sweep_loci.log'.format(self.species))
 
     def run(self):
-
-        # open a db connection
         dbc = db_conn(self.species)
 
-        try:
-            # get the files containing the sweep data
-            loci_file = SWEEP_DATA[self.species]['loci']
-            snps_file = SWEEP_DATA[self.species]['snps']
-
-        except KeyError:
-
-            print('WARNING: No selective sweep loci for {}'.format(self.species))
-            return
+        # get the files containing the sweep data
+        loci_file = SWEEP_DATA[self.species]['loci']  # TODO make SWEEP_DATA into external dependencies
+        snps_file = SWEEP_DATA[self.species]['snps']
 
         num_loci = 0
         num_snps = 0
@@ -316,17 +309,13 @@ class PopulateSweeps(PipelineTask):
                     'end':             end,
                 }
 
-                # check if this QTL already exists
-                if dbc.get_record('qtls', qtl):
-                    continue
-
                 qtl_id = dbc.save_record('qtls', qtl)
 
                 num_loci += 1
 
                 # get the all the SNPs from this locus
-                snps = run_cmd(["printf '{locus}' | bedtools intersect -a {snps_file} -b stdin"
-                               .format(locus=locus.strip(), snps_file=snps_file)], shell=True)
+                snps = run_cmd(["printf '{}' | bedtools intersect -a {} -b stdin".format(locus.strip(), snps_file)],
+                               shell=True)
 
                 if not snps:
                     raise Exception('ERROR: Found no SNPs for sweep region {}:{}-{}'.format(chrom, start, end))
@@ -347,27 +336,27 @@ class PopulateSweeps(PipelineTask):
 
                     num_snps += 1
 
-        print('INFO: Loaded {} selective sweep loci (inc. {} SNPs)'.format(num_loci, num_snps))
+        with self.output().open('w') as fout:
+            fout.write('INFO: Loaded {} selective sweep loci (inc. {} SNPs)'.format(num_loci, num_snps))
 
 
 class PopulateMC1RLocus(PipelineTask):
     """
-    Populate a dummy QTLs for the MC1R gene.
+    Populate a dummy QTL for the MC1R gene.
+
+    # TODO we want to model ALL 18 dbsnp variants, not just the 8 which are variable in EUD
 
     :type species: str
     """
     species = luigi.Parameter()
 
     def requires(self):
-        pass  # return BlahBlah(self.species) # TODO fix me
+        return LoadEnsemblGenes(self.species)
 
     def output(self):
-        pass  # return luigi.LocalTarget('db/{}-qtls.log'.format(self.species))  # TODO fix me
+        return luigi.LocalTarget('db/{}-mc1r_locus.log'.format(self.species))
 
     def run(self):
-
-        # TODO we want to model ALL 18 dbsnp variants, not just the 8 which are variable in EUD
-
         dbc = db_conn(self.species)
 
         # get the MC1R gene details
@@ -382,11 +371,10 @@ class PopulateMC1RLocus(PipelineTask):
             'end': mc1r['end'],
         }
 
-        # check if this QTL already exists
-        if not dbc.get_record('qtls', qtl):
-            dbc.save_record('qtls', qtl)
+        dbc.save_record('qtls', qtl)
 
-            print('INFO: Added the MC1R gene locus')
+        with self.output().open('w') as fout:
+            fout.write('INFO: Added the MC1R gene locus')
 
 
 class PopulatePigMummyLoci(PipelineTask):
@@ -403,34 +391,34 @@ class PopulatePigMummyLoci(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        pass  # return BlahBlah(self.species) # TODO fix me
+        return LoadEnsemblVariants(self.species)
 
     def output(self):
-        pass  # return luigi.LocalTarget('db/{}-qtls.log'.format(self.species))  # TODO fix me
+        return luigi.LocalTarget('db/{}-mummy_loci.log'.format(self.species))
 
     def run(self):
-
         dbc = db_conn(self.species)
 
+        sizes = CHROM_SIZE[self.species]
+
         # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
-        max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, size) for chrom, size in CHROM_SIZE[self.species].iteritems()])
+        max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
 
         # get all pig mummy SNPs and turn them into pseudo-loci
         results = dbc.get_records_sql("""
-            SELECT ev.rsnumber, ev.chrom, 
+            SELECT ev.rsnumber, 
+                   ev.chrom, 
                    GREATEST(ev.start - {offset}, 1) AS `start`,
                    LEAST(ev.end + {offset}, CASE ev.chrom {max_chrom} END) AS `end`
               FROM ensembl_variants ev
              WHERE rsnumber IN ('rs321688936','rs324480289','rs331589427','rs333966168','rs334806226','rs337374395',
                                 'rs340056046','rs340481593','rs341362223','rs342358904','rs81238716','rs81255938',
-                                'rs81270496','rs81317835','rs81469247','rs81469256','rs81469273','rs81469281','rs81469291',
-                                'rs81469298','rs81469311','rs81469316','rs81469337','rs81469339','rs81469341','rs81469348')
-               """.format(offset=GENE_OFFSET, max_chrom=max_chrom), key=None)
-
-        num_loci = 0
+                                'rs81270496','rs81317835','rs81469247','rs81469256','rs81469273','rs81469281',
+                                'rs81469291', 'rs81469298','rs81469311','rs81469316','rs81469337','rs81469339',
+                                'rs81469341','rs81469348')
+                                """.format(offset=GENE_OFFSET, max_chrom=max_chrom), key=None)
 
         for result in results:
-
             # setup a dummy QTL record
             qtl = {
                 'associationType': 'Mummy',
@@ -441,15 +429,10 @@ class PopulatePigMummyLoci(PipelineTask):
                 'end':   result['end'],
             }
 
-            # check if this QTL already exists
-            if dbc.get_record('qtls', qtl):
-                continue
-
             dbc.save_record('qtls', qtl)
 
-            num_loci += 1
-
-        print('INFO: Added {:,} pig mummy loci'.format(num_loci))
+        with self.output().open('w') as fout:
+            fout.write('INFO: Added {:,} pig mummy loci'.format(len(results)))
 
 
 class PopulateTraitLoci(luigi.WrapperTask):
@@ -464,9 +447,10 @@ class PopulateTraitLoci(luigi.WrapperTask):
 
         # load the QTLs from the AnimalQTL database
         yield PopulateQTLs(self.species)
+        yield SetQTLWindows(self.species)
 
         # load pseudo-QTLs from other sources
-        yield PopulateSweeps(self.species)
+        yield PopulateSweepLoci(self.species)
         yield PopulateMC1RLocus(self.species)
 
         if self.species == 'pig':
@@ -485,43 +469,45 @@ class PopulateNeutralLoci(PipelineTask):
         return PopulateTraitLoci(self.species)
 
     def output(self):
-        pass  # return luigi.LocalTarget('db/{}-qtls.log'.format(self.species))  # TODO fix me
+        return luigi.LocalTarget('db/{}-neutral_loci.log'.format(self.species))
 
     def run(self):
         dbc = db_conn(self.species)
 
+        sizes = CHROM_SIZE[self.species]
+
         # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
-        max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, size) for chrom, size in CHROM_SIZE[self.species].iteritems()])
+        max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
 
         # get all the non-neutral regions (defined here as all valid QTLs and gene regions +/- offset)
         results = dbc.get_records_sql("""
-            
+
             # get all the QTLs with a valid rsnumber
-            SELECT ev.chrom, 
+            SELECT ev.chrom,
                    GREATEST(ev.start - {offset}, 1) AS `start`,
                    LEAST(ev.end + {offset}, CASE ev.chrom {max_chrom} END) AS `end`
               FROM qtls q
               JOIN ensembl_variants ev
                 ON ev.rsnumber = q.peak
              WHERE q.associationType NOT IN ('Neutral', 'Sweep', 'MC1R')  # TODO improve clarity
-               
+
             UNION
-             
+
             # and all the sweep regions
             SELECT q.chrom, 
                    GREATEST(q.start - {offset}, 1) AS `start`, 
                    LEAST(q.end + {offset}, CASE q.chrom {max_chrom} END) AS `end`
               FROM qtls q
              WHERE q.associationType = 'Sweep'
-       
-            UNION        
-             
+
+            UNION
+
             # and all the genes
-            SELECT eg.chrom, 
+            SELECT eg.chrom,
                    GREATEST(eg.start - {offset}, 1) AS `start`,
                    LEAST(eg.end + {offset}, CASE eg.chrom {max_chrom} END) AS `end`
               FROM ensembl_genes eg
-            
+
           ORDER BY chrom, start, end
                """.format(offset=GENE_OFFSET, max_chrom=max_chrom), key=None)
 
@@ -571,7 +557,8 @@ class PopulateNeutralLoci(PipelineTask):
 
             num_loci += 1
 
-        print('INFO: Added {:,} neutral loci'.format(num_loci))
+        with self.output().open('w') as fout:
+            fout.write('INFO: Added {:,} neutral loci'.format(num_loci))
 
 
 class PopulateQTLSNPs(PipelineTask):
@@ -587,15 +574,16 @@ class PopulateQTLSNPs(PipelineTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        pass  # return BlahBlah(self.species) # TODO fix me
+        yield PopulateTraitLoci(self.species)
+        yield PopulateNeutralLoci(self.species)
 
     def output(self):
-        pass  # return luigi.LocalTarget('db/{}-qtls.log'.format(self.species))  # TODO fix me
+        return luigi.LocalTarget('db/{}-qtl_snps.log'.format(self.basename))
 
     def run(self):
         dbc = db_conn(self.species)
 
-        # TODO make this work with DOM and DOM2
+        # TODO make sure this work with DOM and DOM2
         # insert linking records to make future queries much quicker
         exec_time = dbc.execute_sql("""
             INSERT INTO qtl_snps (qtl_id, modsnp_id)
@@ -611,7 +599,7 @@ class PopulateQTLSNPs(PipelineTask):
                     """.format(population=self.population, chrom=self.chrom, daf=MIN_DAF))
 
         with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
+            fout.write('INFO: Execution took {}'.format(exec_time))
 
 
 class MarkNeutralSNPs(PipelineTask):
@@ -648,7 +636,7 @@ class MarkNeutralSNPs(PipelineTask):
                """.format(chrom=self.chrom))  # TODO add self.population
 
         with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
+            fout.write('INFO: Execution took {}'.format(exec_time))
 
 
 class QTLPipeline(luigi.WrapperTask):
@@ -667,10 +655,6 @@ class QTLPipeline(luigi.WrapperTask):
         # process all the populations in chromosome chunks
         for pop in SAMPLES[self.species]:
             for chrom in CHROM_SIZE[self.species]:
-
-                # link each QTL to the ascertained modern SNPs
-                yield PopulateQTLSNPs(self.species, pop, chrom)
-
                 # flag the modern SNPs which fall into 'neutral' regions
                 yield MarkNeutralSNPs(self.species, pop, chrom)
 

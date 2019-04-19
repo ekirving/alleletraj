@@ -3,36 +3,43 @@
 
 from __future__ import print_function
 
-from discover_snps import *
-
-import pysam as ps
-import multiprocessing as mp
+import luigi
+import pysam
 import os
-import traceback
-import sys
-import itertools
 from random import shuffle
 
-from pipeline_consts import MULTI_THREADED, CPU_CORES_MAX, MIN_GENO_DEPTH,  HARD_BASEQ_CUTOFF, MIN_GENO_QUAL, HARD_MAPQ_CUTOFF
+from collections import defaultdict
+
+from pipeline_consts import MIN_GENO_DEPTH,  HARD_BASEQ_CUTOFF, MIN_GENO_QUAL, HARD_MAPQ_CUTOFF, MIN_DAF
+
+from pipeline_qtls import PopulateAllLoci
+from pipeline_modern_snps import ProcessSNPs
+from pipeline_snp_call import ExternalFASTA
+from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd
+
 from db_conn import db_conn
 
 
 class PopulateIntervals(PipelineTask):
     """
+    Merge all the overlapping QTL and pseudo-QTL windows, to determine the unique list of intervals for which we need to
+    load sample reads.
 
     :type species: str
+    :type chrom: str
     """
     species = luigi.Parameter()
+    chrom = luigi.Parameter()
 
     def requires(self):
-        pass # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
+        yield PopulateAllLoci(self.species)
 
     def output(self):
-        pass # return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))  # TODO fix me
+        return luigi.LocalTarget('db/{}-intervals.log'.format(self.basename))
 
     def run(self):
         # open a db connection
-        dbc = db_conn(species)
+        dbc = db_conn(self.species)
 
         # get all the unique QTL windows
         results = dbc.get_records_sql("""
@@ -48,8 +55,8 @@ class PopulateIntervals(PipelineTask):
             intervals[result['chrom']].append((result['start'], result['end']))
 
         num_sites = 0
-        add_intvals = 0
-        del_intvals = 0
+        added = 0
+        removed = 0
 
         for chrom in intervals.keys():
             # merge overlapping intervals (up to a maximum size)
@@ -79,17 +86,17 @@ class PopulateIntervals(PipelineTask):
                     dbc.delete_records('intervals_snps', {'interval_id': interval_id})
                     dbc.delete_records('intervals', {'id': interval_id})
 
-                    del_intvals += len(overlap)
+                    removed += len(overlap)
 
                 # keep track of what we've done
-                add_intvals += 1
+                added += 1
                 num_sites += end - start
 
                 # save the new interval
                 dbc.save_record('intervals', record)
 
-        print("INFO: Added {:,} intervals ({:,} bp), deleted {:,} old intervals"
-              .format(add_intvals, num_sites, del_intvals))
+        with self.output().open('w') as fout:
+            fout.write("INFO: Added {:,} intervals ({:,} bp), removed {:,} intervals".format(added, num_sites, removed))
 
 
 class PopulateIntervalSNPs(PipelineTask):
@@ -97,19 +104,22 @@ class PopulateIntervalSNPs(PipelineTask):
     Now we have ascertained all the modern SNPs, let's find those that intersect with the unique intervals.
 
     :type species: str
+    :type population: str
+    :type chrom: str
     """
     species = luigi.Parameter()
+    population = luigi.Parameter()
+    chrom = luigi.Parameter()
 
     def requires(self):
-        pass # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
+        yield PopulateIntervals(self.species, self.chrom)
+        yield ProcessSNPs(self.species, self.population, self.chrom)
 
     def output(self):
-        pass # return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))  # TODO fix me
+        return luigi.LocalTarget('db/{}-interval_snps.log'.format(self.basename))
 
     def run(self):
-        dbc = db_conn(species)
-
-        print("INFO: Populating all the interval SNPs")
+        dbc = db_conn(self.species)
 
         # tidy up any unfinished interval SNPs
         dbc.execute_sql("""
@@ -120,73 +130,20 @@ class PopulateIntervalSNPs(PipelineTask):
              WHERE i.finished = 0""")
 
         # insert linking records to make future queries much quicker
-        for chrom in self.chromosomes:
-            dbc.execute_sql("""
-                INSERT INTO intervals_snps (interval_id, modsnp_id)
-                     SELECT i.id, ms.id
-                       FROM intervals i
-                       JOIN modern_snps ms 
-                         ON ms.population = '{population}'
-                        AND ms.chrom = i.chrom
-                        AND ms.site BETWEEN i.start AND i.end
-                      WHERE i.finished = 0
-                        AND i.chrom = '{chrom}'
-                        AND ms.daf >= {mindaf}""".format(population=population, chrom=chrom, mindaf=MIN_DAF))
+        exec_time = dbc.execute_sql("""
+            INSERT INTO intervals_snps (interval_id, modsnp_id)
+                 SELECT i.id, ms.id
+                   FROM intervals i
+                   JOIN modern_snps ms 
+                     ON ms.population = '{population}'
+                    AND ms.chrom = i.chrom
+                    AND ms.site BETWEEN i.start AND i.end
+                  WHERE i.finished = 0
+                    AND i.chrom = '{chrom}'
+                    AND ms.daf >= {mindaf}""".format(population=self.population, chrom=self.chrom, mindaf=MIN_DAF))
 
-        print("INFO: Finished populating the interval SNPs")
-
-
-class PopulateSampleReads(PipelineTask):
-    """
-    Scan all the samples for coverage of the QTLs and save the results to the database.
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    def requires(self):
-        pass # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
-
-    def output(self):
-        pass # return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))  # TODO fix me
-
-    def run(self):
-
-        # open a db connection
-        dbc = db_conn(species)
-
-        # get all the intervals we've not finished processing yet
-        intervals = dbc.get_records('intervals', {'finished': 0}, sort='end-start DESC')
-
-        # get all the valid samples
-        samples = dbc.get_records_sql(
-            """SELECT s.*, GROUP_CONCAT(sf.path) paths
-                 FROM samples s
-                 JOIN sample_files sf
-                   ON sf.sample_id = s.id
-                WHERE s.valid = 1
-             GROUP BY s.id""")
-
-        print("INFO: Processing {:,} intervals in {:,} samples".format(len(intervals), len(samples)))
-
-        # before we start, tidy up any records from intervals that were not finished
-        dbc.execute_sql("""
-            DELETE sample_reads
-              FROM sample_reads
-              JOIN intervals 
-                ON intervals.id = sample_reads.interval_id
-             WHERE intervals.finished = 0""")
-
-        if MULTI_THREADED:
-            # process the chromosomes with multi-threading to make this faster
-            pool = mp.Pool(CPU_CORES_MAX)
-            pool.map(ProcessInterval, itertools.izip(intervals.values(), itertools.repeat(samples)))
-        else:
-            # process the chromosomes without multi-threading
-            for interval in intervals.values():
-                ProcessInterval((interval, samples))
-
-        print("FINISHED: Fully populated all the samples for {:,} intervals".format(len(intervals)))
+        with self.output().open('w') as fout:
+            fout.write('INFO: Execution took {}'.format(exec_time))
 
 
 class ProcessInterval(PipelineTask):
@@ -197,22 +154,35 @@ class ProcessInterval(PipelineTask):
     :type species: str
     """
     species = luigi.Parameter()
+    interval = luigi.IntParameter()
 
     def requires(self):
-        pass # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
+        yield ExternalFASTA(self.species)
+        pass  # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
 
     def output(self):
-        pass # return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))  # TODO fix me
+        pass  # return luigi.LocalTarget('db/{}-genes.log'.format(self.species))  # TODO fix me
 
     def run(self):
-        # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
-        (species, interval, samples) = args
-
         # open a db connection
-        dbc = db_conn(species)
+        dbc = db_conn(self.species)
+
+        # TODO update
+        ref_file = self.input()
+
+        interval = dbc.get_record('interval', {'id': self.interval})
 
         # unpack the interval
         interval_id, chrom, start, end = interval['id'], interval['chrom'], interval['start'], interval['end']
+
+        # get all the valid samples
+        samples = dbc.get_records_sql(
+            """SELECT s.*, GROUP_CONCAT(sf.path) paths
+                 FROM samples s
+                 JOIN sample_files sf
+                   ON sf.sample_id = s.id
+                WHERE s.valid = 1
+             GROUP BY s.id""")
 
         # get all the modern SNPs in this interval
         snps = dbc.get_records_sql("""
@@ -229,11 +199,11 @@ class ProcessInterval(PipelineTask):
         print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
         # handle chr1 vs. 1 chromosome names
-        contig = 'chr' + chrom if species == 'horse' else chrom
+        contig = 'chr' + chrom if self.species == 'horse' else chrom
 
         # not all SNPs have a dbsnp entry, so we need to scan the reference to find which alleles are REF/ALT
         # because bcftools needs this info to constrain the diploid genotype calls
-        with ps.FastaFile(REF_FILE[species]) as fasta_file:
+        with pysam.FastaFile(ref_file.path) as fasta_file:
 
             for site in snps.keys():
                 if not snps[site]['ref']:
@@ -280,7 +250,7 @@ class ProcessInterval(PipelineTask):
             for path in sample['paths'].split(','):
 
                 # open the BAM file for reading
-                with ps.AlignmentFile(path, 'rb') as bamfile:
+                with pysam.AlignmentFile(path, 'rb') as bamfile:
 
                     # get the full interval
                     for pileupcolumn in bamfile.pileup(contig, start, end + 1):
@@ -331,6 +301,7 @@ class ProcessInterval(PipelineTask):
 
                 print("INFO: Calling diploid bases in {:,} sites for sample {}".format(len(diploid), sample_id))
 
+                # TODO make these temp files
                 pos_file = 'vcf/diploid-int{}-sample{}.tsv'.format(interval_id, sample_id)
                 vcf_file = 'vcf/diploid-int{}-sample{}.vcf'.format(interval_id, sample_id)
 
@@ -354,7 +325,7 @@ class ProcessInterval(PipelineTask):
                 # use all the BAM files
                 bam_files = " ".join(sample['paths'].split(','))
 
-                params = {'region': region, 'targets': targets, 'ref': REF_FILE[species], 'bams': bam_files,
+                params = {'region': region, 'targets': targets, 'ref': ref_file.path, 'bams': bam_files,
                           'vcf': vcf_file}
 
                 # call bases with bcftools (and drop indels and other junk)
@@ -370,7 +341,7 @@ class ProcessInterval(PipelineTask):
                 run_cmd([cmd], shell=True)
 
                 # parse the results with pysam
-                for rec in ps.VariantFile(vcf_file).fetch():
+                for rec in pysam.VariantFile(vcf_file).fetch():
 
                     # get the genotype call for this site (without having to know the @SM code used in the BAM file)
                     geno = rec.samples.values().pop()['GT']
@@ -417,3 +388,27 @@ class ProcessInterval(PipelineTask):
         dbc.save_record('intervals', interval)
 
         print("INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end))
+
+
+class SampleReadsPipeline(PipelineWrapperTask):
+    """
+    Load all the samples reads.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+
+        # open a db connection
+        dbc = db_conn(self.species)
+
+        # get all the intervals we've not finished processing yet
+        intervals = dbc.get_records('intervals', {'finished': 0})
+
+        for interval in intervals:
+            yield ProcessInterval(self.species, interval['id'])
+
+
+if __name__ == '__main__':
+    luigi.run()

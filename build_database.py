@@ -1,11 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import luigi
+
+from pipeline_utils import PipelineWrapperTask
+
 from pipeline_modern_snps import ModernSNPsPipeline
 from pipeline_ensembl import EnsemblPipeline
 from pipeline_snpchip import SNPChipPipeline
+from pipeline_qtls import QTLPipeline
+from pipeline_sample_reads import PopulateIntervals, PopulateIntervalSNPs
 
-from pipeline_sample_reads import *
+# from pipeline_sample_reads import *
 from discover_snps import discover_snps
 from analyse_qtls import analyse_qtls
 from populate_samples import populate_pig_samples, populate_horse_samples
@@ -46,27 +52,28 @@ class BuildDatabase(PipelineWrapperTask):
         yield QTLPipeline(self.species)
 
         # calculate the unique set of non-overlapping genomic loci from the QTLs
-        PopulateIntervals()
-        PopulateIntervalSNPs(POPULATION)
+        yield PopulateIntervals(self.species)
+        yield PopulateIntervalSNPs(POPULATION)
 
         # load the sample metadata
-        if SPECIES == 'pig':
+        if self.species == 'pig':
             populate_pig_samples()
 
-        elif SPECIES == 'horse':
+        elif self.species == 'horse':
             populate_horse_samples()
 
         # TODO make samples file w/ gender call for ploidy
         # load the sample reads for each ascertained SNP
-        PopulateSampleReads()
+        yield PopulateSampleReads()
 
         # apply quality filters to the sample reads
-        discover_snps(POPULATION)
+        for pop in self.populations:
+            yield discover_snps(self.species, pop)
 
         # analyse the coverage and quality for SNPs in each QTLs
         analyse_qtls()
 
-        if SPECIES == 'pig':
+        if self.species == 'pig':
             # pick the best SNPs to target for a capture array
             perform_ascertainment()
 

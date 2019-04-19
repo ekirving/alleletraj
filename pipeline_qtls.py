@@ -567,6 +567,20 @@ class PopulateNeutralLoci(PipelineTask):
             fout.write('INFO: Added {:,} neutral loci'.format(num_loci))
 
 
+class PopulateAllLoci(PipelineWrapperTask):
+    """
+    Wrapper task to populate all the QTL and pseudo-QTL windows.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        # load all the QTLs and
+        yield PopulateTraitLoci(self.species)
+        yield PopulateNeutralLoci(self.species)
+
+
 class PopulateQTLSNPs(PipelineTask):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
@@ -580,8 +594,7 @@ class PopulateQTLSNPs(PipelineTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        yield PopulateTraitLoci(self.species)
-        yield PopulateNeutralLoci(self.species)
+        yield PopulateAllLoci(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-qtl_snps.log'.format(self.basename))
@@ -654,9 +667,6 @@ class QTLPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-
-        # load the QTLs and other loci of interest
-        yield PopulateTraitLoci(self.species)
 
         # process all the populations in chromosome chunks
         for pop in self.populations:

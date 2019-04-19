@@ -367,7 +367,7 @@ class DadiDemography(PipelineTask):
 
         # save the Nref, so we can interpret the modelling results
         with nfef_file.open('w') as fout:
-            fout.write(int(nref))
+            fout.write(str(int(nref)))
 
         # unpack the dadi model params
         sizes, times = params[:best['epoch']], params[epoch:]

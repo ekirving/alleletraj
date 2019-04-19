@@ -6,7 +6,7 @@ import numpy
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import BAM_FILES, SAMPLE_SEX, CHROM_SIZE, MIN_GENO_QUAL
+from pipeline_consts import BAM_FILES, SAMPLE_SEX, MIN_GENO_QUAL
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
 
 # VCF parser
@@ -300,7 +300,7 @@ class WholeGenomeSNPsVCF(PipelineTask):
     population = luigi.Parameter()
 
     def requires(self):
-        for chrom in CHROM_SIZE[self.species]:
+        for chrom in self.chromosomes:
             # TODO handle chr prefixes better
             yield BiallelicSNPsVCF(self.species, self.population, 'chr{}'.format(chrom))
 

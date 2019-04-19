@@ -28,9 +28,7 @@ def calculate_summary_stats():
     print("INFO: Calculating QTL summary stats... ", end='')
 
     # chunk the queries by chrom (to avoid temp tables)
-    chroms = CHROM_SIZE[SPECIES].keys()
-
-    for chrom in chroms:
+    for chrom in self.chromosomes:
         dbc.execute_sql("""
             INSERT INTO qtl_stats (qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, 
                                    avg_samples, max_reads, avg_reads)
@@ -78,9 +76,7 @@ def count_snp_coverage():
     print("INFO: Counting the read coverage for each SNP... ", end='')
 
     # chunk the queries by chrom (to avoid temp tables)
-    chroms = CHROM_SIZE[SPECIES].keys()
-
-    for chrom in chroms:
+    for chrom in self.chromosomes:
         dbc.execute_sql("""
             UPDATE qtl_snps
               JOIN (
@@ -120,9 +116,7 @@ def find_best_snps():
     print("INFO: Finding the {} best SNPs for each QTL... ".format(SNPS_PER_QTL), end='')
 
     # chunk the queries by chrom (to avoid temp tables)
-    chroms = CHROM_SIZE[SPECIES].keys()
-
-    for chrom in chroms:
+    for chrom in self.chromosomes:
         dbc.execute_sql("""
             UPDATE qtl_snps
               JOIN (

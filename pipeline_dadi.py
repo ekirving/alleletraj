@@ -10,7 +10,7 @@ import pickle
 import random
 
 # import my custom modules
-from pipeline_consts import CHROM_SIZE, MUTATION_RATE, CPU_CORES_ONE
+from pipeline_consts import MUTATION_RATE, CPU_CORES_ONE
 from pipeline_snp_call import PolarizeVCF, WholeGenomeSNPsVCF
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
 
@@ -306,7 +306,7 @@ class CountCallableSites(PipelineTask):
     population = luigi.Parameter()
 
     def requires(self):
-        for chrom in CHROM_SIZE[self.species]:
+        for chrom in self.chromosomes:
             yield PolarizeVCF(self.species, self.population, 'chr{}'.format(chrom))  # TODO handle chr prefixes better
 
     def output(self):

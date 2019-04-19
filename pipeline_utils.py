@@ -152,6 +152,10 @@ class PipelineTask(luigi.Task):
         return BINOMIAL_NAME[self.species]
 
     @property
+    def chromosomes(self):
+        return CHROM_SIZE[self.assembly]
+
+    @property
     def outgroup(self):
         return OUTGROUP[self.species]
 
@@ -176,7 +180,7 @@ class PipelineTask(luigi.Task):
         # prioritise chromosomes by size, as running the largest chroms first is more efficient for multithreading
         if hasattr(self, 'chrom') and hasattr(self, 'species'):
             chrom = self.chrom.replace('chr', '')
-            sizes = CHROM_SIZE[self.species]
+            sizes = CHROM_SIZE[self.assembly]
             offset = sorted(sizes.values(), reverse=True).index(sizes[chrom]) + 1
 
         return 100-offset if offset else 0

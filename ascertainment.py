@@ -19,9 +19,7 @@ def flag_snps_near_indels():
 
     print("INFO: Flagging dbsnp SNPs which are within +/- {} bp of an INDEL... ".format(INDEL_BUFFER))
 
-    chroms = CHROM_SIZE[SPECIES].keys()
-
-    for chrom in chroms:
+    for chrom in self.chromosomes:
 
         indels = dbc.get_records_sql("""
             SELECT ev.start, ev.end
@@ -280,10 +278,10 @@ def fetch_neutral_snps():
     print("INFO: Fetching {:,} neutral SNPs... ".format(NUM_NEUTRAL_SNPS), end='')
 
     # get the total size of the autosomes
-    total = sum(size for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
+    total = sum(size for chrom, size in CHROM_SIZE[self.assembly].iteritems() if chrom not in ['X', 'Y'])
 
     # calculate the proportional size of each autosome
-    autosomes = OrderedDict((chrom, float(size) / total) for chrom, size in CHROM_SIZE[SPECIES].iteritems()
+    autosomes = OrderedDict((chrom, float(size) / total) for chrom, size in CHROM_SIZE[self.assembly].iteritems()
                             if chrom not in ['X', 'Y'])
 
     for chrom, perct in autosomes.iteritems():
@@ -332,10 +330,10 @@ def fetch_ancestral_snps():
     print("INFO: Fetching {:,} ancestral SNPs... ".format(NUM_ANCESTRAL_SNPS), end='')
 
     # get the total size of the autosomes
-    total = sum(size for chrom, size in CHROM_SIZE[SPECIES].iteritems() if chrom not in ['X', 'Y'])
+    total = sum(size for chrom, size in CHROM_SIZE[self.assembly].iteritems() if chrom not in ['X', 'Y'])
 
     # calculate the proportional size of each autosome
-    autosomes = OrderedDict((chrom, float(size) / total) for chrom, size in CHROM_SIZE[SPECIES].iteritems()
+    autosomes = OrderedDict((chrom, float(size) / total) for chrom, size in CHROM_SIZE[self.assembly].iteritems()
                             if chrom not in ['X', 'Y'])
 
     for chrom, perct in autosomes.iteritems():

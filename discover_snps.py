@@ -93,13 +93,11 @@ def discover_snps(population):
     start = began = time()
 
     # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    chroms = CHROM_SIZE[SPECIES].keys()
-
     print("INFO: Starting SNP discovery")
 
     print("INFO: Resetting analysis flags... ", end='')
 
-    for chrom in chroms:
+    for chrom in self.chromosomes:
         reset_flags(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))
@@ -107,7 +105,7 @@ def discover_snps(population):
 
     print("INFO: Applying quality filters... ", end='')
 
-    for chrom in chroms:
+    for chrom in self.chromosomes:
         apply_quality_filters(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))
@@ -115,7 +113,7 @@ def discover_snps(population):
 
     print("INFO: Choosing a random read from those that pass quality filters... ", end='')
 
-    for chrom in chroms:
+    for chrom in self.chromosomes:
         choose_random_read(chrom, population)
 
     print("({}).".format(timedelta(seconds=time() - start)))
@@ -123,7 +121,7 @@ def discover_snps(population):
 
     print("INFO: Applying genotype quality filters to diploid calls... ", end='')
 
-    for chrom in chroms:
+    for chrom in self.chromosomes:
         apply_genotype_filters(chrom)
 
     print("({}).".format(timedelta(seconds=time() - start)))

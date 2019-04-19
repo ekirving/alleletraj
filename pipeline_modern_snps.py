@@ -8,7 +8,6 @@ import pysam
 from collections import Counter
 
 # import my custom modules
-from pipeline_consts import CHROM_SIZE  # TODO make these into PipelineTask properties
 from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
 from db_conn import db_conn
@@ -281,7 +280,7 @@ class ModernSNPsPipeline(PipelineWrapperTask):
 
         # process SNPs for all populations and all chromosomes
         for pop in self.populations:
-            for chrom in CHROM_SIZE[self.species]:
+            for chrom in self.chromosomes:
                 yield ProcessSNPs(self.species, pop, chrom)
 
 

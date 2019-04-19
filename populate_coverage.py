@@ -96,11 +96,8 @@ def populate_interval_snps(species, population):
             ON i.id = s.interval_id
          WHERE i.finished = 0""")
 
-    # process the query by chromosome to avoid buffering
-    chroms = CHROM_SIZE[species].keys()
-
     # insert linking records to make future queries much quicker
-    for chrom in chroms:
+    for chrom in self.chromosomes:
         dbc.execute_sql("""
             INSERT INTO intervals_snps (interval_id, modsnp_id)
                  SELECT i.id, ms.id

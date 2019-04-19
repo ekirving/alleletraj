@@ -245,7 +245,7 @@ class SetQTLWindows(PipelineTask):
 
         for result in results:
             # get the size of the current chrom
-            chom_size = CHROM_SIZE[self.species][result['chrom']]
+            chom_size = CHROM_SIZE[self.assembly][result['chrom']]
 
             # calculate the bounded window size
             start = result['site'] - QTL_WINDOW if result['site'] > QTL_WINDOW else 1
@@ -400,7 +400,7 @@ class PopulatePigMummyLoci(PipelineTask):
     def run(self):
         dbc = db_conn(self.species)
 
-        sizes = CHROM_SIZE[self.species]
+        sizes = CHROM_SIZE[self.assembly]
 
         # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
         max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
@@ -475,7 +475,7 @@ class PopulateNeutralLoci(PipelineTask):
     def run(self):
         dbc = db_conn(self.species)
 
-        sizes = CHROM_SIZE[self.species]
+        sizes = CHROM_SIZE[self.assembly]
 
         # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
         max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
@@ -523,8 +523,8 @@ class PopulateNeutralLoci(PipelineTask):
 
         # write a BED file for the whole genome
         with open(allregions, 'w') as fout:
-            for chrom in CHROM_SIZE[self.species].keys():
-                fout.write('{}\t{}\t{}\n'.format(chrom, 1, CHROM_SIZE[self.species][chrom]))
+            for chrom in self.chromosomes:
+                fout.write('{}\t{}\t{}\n'.format(chrom, 1, CHROM_SIZE[self.assembly][chrom]))
 
         # write all the non-neutral regions to a BED file
         with open(nonneutral, 'w') as fout:
@@ -655,7 +655,7 @@ class QTLPipeline(PipelineWrapperTask):
 
         # process all the populations in chromosome chunks
         for pop in self.populations:
-            for chrom in CHROM_SIZE[self.species]:
+            for chrom in self.chromosomes:
                 # flag the modern SNPs which fall into 'neutral' regions
                 yield MarkNeutralSNPs(self.species, pop, chrom)
 

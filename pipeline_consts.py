@@ -7,21 +7,21 @@ from socket import gethostname
 
 # TODO move module specific constants into those modules
 
+# the scientific name of each species
+BINOMIAL_NAME = {
+    'cattle': 'Bos_taurus',
+    'goat':   'Capra_hircus',
+    'horse':  'Equus_caballus',
+    'pig':    'Sus_scrofa',
+}
+
+
 # which reference assembly should we use for each species
 REF_ASSEMBLY = {
     'cattle': 'UMD3.1',
     'goat':   'ARS1',
     'horse':  'EquCab2',
     'pig':    'Sscrofa10.2',
-}
-
-# TODO update all references
-# TODO should we make this an external task
-# location of reference genome
-REF_FILE = {
-    'Sscrofa10.2': "fasta/Sus_scrofa.Sscrofa10.2.dna.toplevel.fa",
-    'EquCab2':     "fasta/Equus_caballus.EquCab2.dna.toplevel.fa",
-    # TODO other species
 }
 
 # TODO rename once we've fixed all the broken references

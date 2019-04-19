@@ -10,7 +10,8 @@ from collections import Counter
 # import my custom modules
 from pipeline_consts import SAMPLES, OUT_GROUP, CHROM_SIZE  # TODO make these into PipelineTask properties
 from pipeline_snp_call import BiallelicSNPsVCF
-from pipeline_utils import PipelineTask, db_conn
+from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
+from db_conn import db_conn
 
 # path to the folder containing the modern fasta files
 FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
@@ -49,7 +50,7 @@ def mutation_type(alleles):
     return 'ts' if set(alleles) == {'A', 'G'} or set(alleles) == {'C', 'T'} else 'tv'
 
 
-class ExternalFASTA(luigi.ExternalTask):
+class ExternalFASTA(PipelineExternalTask):
     """
     External task dependency for a whole-genome FASTA file.
 
@@ -253,7 +254,7 @@ class AlleleFrequencyFromVCF(PipelineTask):
             fout.write("Added {:,} SNPs".format(num_snps))
 
 
-class ProcessSNPs(luigi.WrapperTask):
+class ProcessSNPs(PipelineWrapperTask):
     """
     Ascertain modern SNPs in whole-genome data.
 
@@ -274,7 +275,7 @@ class ProcessSNPs(luigi.WrapperTask):
             yield AlleleFrequencyFromVCF(self.species, self.population, self.chrom)
 
 
-class ModernSNPsPipeline(luigi.WrapperTask):
+class ModernSNPsPipeline(PipelineWrapperTask):
     """
     Populate the modern_snps table.
 

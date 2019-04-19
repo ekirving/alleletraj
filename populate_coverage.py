@@ -13,13 +13,14 @@ import sys
 import itertools
 from random import shuffle
 
-from pipeline_utils import *
+from pipeline_consts import MULTI_THREADED, CPU_CORES_MAX, MIN_GENO_DEPTH,  HARD_BASEQ_CUTOFF, MIN_GENO_QUAL, HARD_MAPQ_CUTOFF
+from db_conn import db_conn
 
 
-def populate_intervals():
+def populate_intervals(species):
 
     # open a db connection
-    dbc = db_conn()
+    dbc = db_conn(species)
 
     # get all the unique QTL windows
     results = dbc.get_records_sql("""
@@ -79,11 +80,11 @@ def populate_intervals():
           .format(add_intvals, num_sites, del_intvals))
 
 
-def populate_interval_snps(population):
+def populate_interval_snps(species, population):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the unique intervals.
     """
-    dbc = db_conn()
+    dbc = db_conn(species)
 
     print("INFO: Populating all the interval SNPs")
 
@@ -96,7 +97,7 @@ def populate_interval_snps(population):
          WHERE i.finished = 0""")
 
     # process the query by chromosome to avoid buffering
-    chroms = CHROM_SIZE[SPECIES].keys()
+    chroms = CHROM_SIZE[species].keys()
 
     # insert linking records to make future queries much quicker
     for chrom in chroms:
@@ -115,13 +116,13 @@ def populate_interval_snps(population):
     print("INFO: Finished populating the interval SNPs")
 
 
-def populate_sample_reads():
+def populate_sample_reads(species):
     """
     Scan all the samples for coverage of the QTLs and save the results to the database.
     """
 
     # open a db connection
-    dbc = db_conn()
+    dbc = db_conn(species)
 
     # get all the intervals we've not finished processing yet
     intervals = dbc.get_records('intervals', {'finished': 0}, sort='end-start DESC')
@@ -166,10 +167,10 @@ def process_interval(args):
     try:
 
         # extract the nested tuple of arguments (an artifact of using izip to pass args to mp.Pool)
-        (interval, samples) = args
+        (species, interval, samples) = args
 
         # open a db connection
-        dbc = db_conn()
+        dbc = db_conn(species)
 
         # unpack the interval
         interval_id, chrom, start, end = interval['id'], interval['chrom'], interval['start'], interval['end']
@@ -186,15 +187,14 @@ def process_interval(args):
                 ON ev.id = ms.variant_id
              WHERE i.id = {id}""".format(id=interval_id), key='site')
 
-        if VERBOSE:
-            print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
+        print("INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
         # handle chr1 vs. 1 chromosome names
-        contig = 'chr' + chrom if SPECIES == 'horse' else chrom
+        contig = 'chr' + chrom if species == 'horse' else chrom
 
         # not all SNPs have a dbsnp entry, so we need to scan the reference to find which alleles are REF/ALT
         # because bcftools needs this info to constrain the diploid genotype calls
-        with ps.FastaFile(REF_FILE[SPECIES]) as fasta_file:
+        with ps.FastaFile(REF_FILE[species]) as fasta_file:
 
             for site in snps.keys():
                 if not snps[site]['ref']:
@@ -232,8 +232,7 @@ def process_interval(args):
             # get the sample
             sample = samples[sample_id]
 
-            if VERBOSE:
-                print("INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession']))
+            print("INFO: Scanning interval chr{}:{}-{} in sample {}".format(chrom, start, end, sample['accession']))
 
             # buffer the reads so we can bulk insert them into the db
             reads = defaultdict(list)
@@ -291,8 +290,7 @@ def process_interval(args):
 
             if diploid:
 
-                if VERBOSE:
-                    print("INFO: Calling diploid bases in {:,} sites for sample {}".format(len(diploid), sample_id))
+                print("INFO: Calling diploid bases in {:,} sites for sample {}".format(len(diploid), sample_id))
 
                 pos_file = 'vcf/diploid-int{}-sample{}.tsv'.format(interval_id, sample_id)
                 vcf_file = 'vcf/diploid-int{}-sample{}.vcf'.format(interval_id, sample_id)
@@ -317,7 +315,7 @@ def process_interval(args):
                 # use all the BAM files
                 bam_files = " ".join(sample['paths'].split(','))
 
-                params = {'region': region, 'targets': targets, 'ref': REF_FILE[SPECIES], 'bams': bam_files,
+                params = {'region': region, 'targets': targets, 'ref': REF_FILE[species], 'bams': bam_files,
                           'vcf': vcf_file}
 
                 # call bases with bcftools (and drop indels and other junk)
@@ -365,9 +363,8 @@ def process_interval(args):
                 os.remove(vcf_file)
 
             # apply hard filters before inserting (otherwise we swamp the DB with too many low quality reads)
-            reads = [read for (chrom, site) in reads for read in reads[(chrom, site)]
-                     if read[fields.index('mapq')] >= HARD_MAPQ_CUTOFF and
-                        read[fields.index('baseq')] >= HARD_BASEQ_CUTOFF]
+            reads = [read for (chrom, site) in reads for read in reads[(chrom, site)] if read[fields.index('mapq')] >=
+                     HARD_MAPQ_CUTOFF and read[fields.index('baseq')] >= HARD_BASEQ_CUTOFF]
 
             # count the total number of reads
             num_reads += len(reads)

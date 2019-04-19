@@ -9,7 +9,8 @@ import unicodecsv as csv
 
 # import my custom modules
 from pipeline_consts import *
-from pipeline_utils import PipelineTask, db_conn, run_cmd, trim_ext
+from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
+from db_conn import db_conn
 
 
 # the population history is either: constant, or a fully specified complex demography
@@ -221,7 +222,7 @@ class SelectionPlot(PipelineTask):
             raise RuntimeError(e)
 
 
-class SelectionHorseGWAS(luigi.WrapperTask):
+class SelectionHorseGWAS(PipelineWrapperTask):
     """
     Run `selection` on all the direct GWAS hits for horses.
     """
@@ -257,7 +258,7 @@ class SelectionHorseGWAS(luigi.WrapperTask):
                     yield SelectionPlot('horse', pop, modsnp_id, MCMC_POP_CONST)
 
 
-class SelectionHorseGWASFlankingSNPs(luigi.WrapperTask):
+class SelectionHorseGWASFlankingSNPs(PipelineWrapperTask):
     """
     Run `selection` on all the QTL SNPs for hoses
     """
@@ -280,7 +281,7 @@ class SelectionHorseGWASFlankingSNPs(luigi.WrapperTask):
             yield SelectionPlot('horse', 'DOM2WLD', modsnp_id, MCMC_POP_CONST)
 
 
-class SelectionHorseTest(luigi.WrapperTask):
+class SelectionHorseTest(PipelineWrapperTask):
     """
     Run `selection` on all a sub-set of SNPs to test MCMC params.
     """

@@ -7,9 +7,9 @@ import gzip
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import SAMPLES, CHROM_SIZE, MAX_INSERT_SIZE, REF_ASSEMBLY
+from pipeline_consts import SAMPLES, CHROM_SIZE, MAX_INSERT_SIZE
 from pipeline_modern_snps import ProcessSNPs
-from pipeline_utils import PipelineTask, curl_download
+from pipeline_utils import PipelineTask, PipelineWrapperTask, curl_download
 from db_conn import db_conn
 
 # FTP URLs for the most recent Ensembl releases for a given genome assembly
@@ -287,7 +287,7 @@ class LinkEnsemblVariants(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class EnsemblPipeline(luigi.WrapperTask):
+class EnsemblPipeline(PipelineWrapperTask):
     """
     Populate the ensembl_* tables and link modern_snps records to genes, dbsnp variants.
 

@@ -6,8 +6,8 @@ import numpy
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import BAM_FILES, OUT_GROUP, SAMPLES, SAMPLE_SEX, REF_FILE, CHROM_SIZE, MIN_GENO_QUAL
-from pipeline_utils import PipelineTask, run_cmd
+from pipeline_consts import BAM_FILES, OUT_GROUP, SAMPLES, SAMPLE_SEX, CHROM_SIZE, MIN_GENO_QUAL
+from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
 
 # VCF parser
 from pysam import VariantFile
@@ -17,7 +17,21 @@ QUANTILE_LOW = 0.05
 QUANTILE_HIGH = 0.95
 
 
-class ExternalBAM(luigi.ExternalTask):
+class ExternalFASTA(PipelineExternalTask):
+    """
+    External task dependency for a reference assembly FASTA file.
+
+    N.B. These have been downloaded outside the workflow of this pipeline.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def output(self):
+        return luigi.LocalTarget('fasta/{}.{}.dna.toplevel.fa'.format(self.binomial, self.assembly))
+
+
+class ExternalBAM(PipelineExternalTask):
     """
     External task dependency for an aligned BAM file.
 
@@ -53,6 +67,8 @@ class BCFToolsCall(PipelineTask):
         return [OUT_GROUP[self.species]] + SAMPLES[self.species][self.population]
 
     def requires(self):
+        yield ExternalFASTA(self.species)
+
         for sample in self.samples:
             yield ExternalBAM(self.species, sample)
 
@@ -60,6 +76,8 @@ class BCFToolsCall(PipelineTask):
         return luigi.LocalTarget('vcf/{}.vcf.gz'.format(self.basename))
 
     def run(self):
+        # unpack the input params
+        ref_file, bam_files = self.input()[0], self.input()[1:]
 
         # bcftools needs the sex specified in a separate file
         sex_file = 'vcf/{}_{}.sex'.format(self.species, self.population)
@@ -70,9 +88,9 @@ class BCFToolsCall(PipelineTask):
 
         with self.output().temporary_path() as vcf_out:
             params = {
-                'ref': REF_FILE[self.species],
+                'ref': ref_file.path,
                 'chr': self.chrom,
-                'bam': ' '.join([bam.path for bam in self.input()]),
+                'bam': ' '.join([bam.path for bam in bam_files]),
                 'pld': 'data/{}.ploidy'.format(self.species),
                 'sex': sex_file,
                 'vcf': vcf_out
@@ -144,6 +162,7 @@ class FilterVCF(PipelineTask):
     qual = luigi.IntParameter()
 
     def requires(self):
+        yield ExternalFASTA(self.species)
         yield BCFToolsCall(self.species, self.population, self.chrom)
         yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom, self.qual)
 
@@ -153,7 +172,7 @@ class FilterVCF(PipelineTask):
     def run(self):
 
         # unpack the input params
-        vcf_input, quant_file = self.input()
+        ref_file, vcf_input, quant_file = self.input()
 
         # get the quantiles
         qlow, qhigh = numpy.loadtxt(quant_file.path)
@@ -163,8 +182,8 @@ class FilterVCF(PipelineTask):
                 'qual':  MIN_GENO_QUAL,
                 'qlow':  int(qlow),
                 'qhigh': int(qhigh),
-                'vcf': vcf_input.path,
-                'ref':   REF_FILE[self.species],
+                'vcf':   vcf_input.path,
+                'ref':   ref_file.path,
                 'out':   vcf_out,
             }
 
@@ -312,7 +331,7 @@ class WholeGenomeSNPsVCF(PipelineTask):
         run_cmd(['bcftools', 'index', '--tbi', self.output().path])
 
 
-class SNPCallPipeline(luigi.WrapperTask):
+class SNPCallPipeline(PipelineWrapperTask):
     """
     Call SNPs using the bcftools `mpileup | call` workflow.
     """

@@ -11,7 +11,8 @@ from collections import defaultdict, OrderedDict
 # TODO make these into PipelineTask properties
 from pipeline_consts import CHROM_SIZE, MIN_DAF, SAMPLES
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes
-from pipeline_utils import PipelineTask, db_conn, run_cmd, merge_intervals
+from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals
+from db_conn import db_conn
 
 from qtldb_api import QTLdbAPI
 
@@ -70,7 +71,7 @@ def extract_qtl_fields(dbfile, fields):
     return data
 
 
-class ExternalAnimalQTLdb(luigi.ExternalTask):
+class ExternalAnimalQTLdb(PipelineExternalTask):
     """
     External task dependency for AnimalQTLdb data.
 
@@ -435,7 +436,7 @@ class PopulatePigMummyLoci(PipelineTask):
             fout.write('INFO: Added {:,} pig mummy loci'.format(len(results)))
 
 
-class PopulateTraitLoci(luigi.WrapperTask):
+class PopulateTraitLoci(PipelineWrapperTask):
     """
     Wrapper task to populate all the QTLs and other trait loci of interest
 
@@ -639,7 +640,7 @@ class MarkNeutralSNPs(PipelineTask):
             fout.write('INFO: Execution took {}'.format(exec_time))
 
 
-class QTLPipeline(luigi.WrapperTask):
+class QTLPipeline(PipelineWrapperTask):
     """
     Call SNPs using the bcftools `mpileup | call` workflow.
 

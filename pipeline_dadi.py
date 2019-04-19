@@ -12,7 +12,7 @@ import random
 # import my custom modules
 from pipeline_consts import SAMPLES, CHROM_SIZE, MUTATION_RATE, CPU_CORES_ONE
 from pipeline_snp_call import PolarizeVCF, WholeGenomeSNPsVCF
-from pipeline_utils import PipelineTask, run_cmd
+from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
 
 # TODO handle this better
 # modern samples to leave out of the SFS calculation
@@ -390,7 +390,7 @@ class DadiDemography(PipelineTask):
             fout.write("1.0\t0\t-Inf\n")
 
 
-class DadiPipeline(luigi.WrapperTask):
+class DadiPipeline(PipelineWrapperTask):
     """
     Find the best fitting of 5 sequential epoch ∂a∂i models (i.e. 1 epoch, 2 epoch, etc.).
     """

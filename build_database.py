@@ -23,7 +23,7 @@ from graph_derived import graph_derived
 # TODO have a look at the "pulse" model in Loog paper
 
 
-class BuildDatabase(luigi.WrapperTask):
+class BuildDatabase(PipelineWrapperTask):
     """
     Build the species database
 

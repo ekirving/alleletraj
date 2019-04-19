@@ -10,7 +10,7 @@ from collections import Iterable
 from multiprocessing import Process
 
 # import my libraries
-from pipeline_consts import MAX_INTERVAL_SIZE, CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUT_GROUP
+from pipeline_consts import MAX_INTERVAL_SIZE, CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUT_GROUP, BINOMIAL_NAME
 
 
 def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
@@ -147,6 +147,10 @@ class PipelineTask(luigi.Task):
         return REF_ASSEMBLY[self.species]
 
     @property
+    def binomial(self):
+        return BINOMIAL_NAME[self.species]
+
+    @property
     def outgroup(self):
         return OUT_GROUP[self.species]
 
@@ -200,3 +204,17 @@ class PipelineTask(luigi.Task):
     def java_mem(self):
         # memory to allocate to java
         return "-Xmx{}G".format(self.resources['ram-gb'])
+
+
+class PipelineExternalTask(luigi.ExternalTask, PipelineTask):
+    """
+    Let ExternalTasks access dynamic properties of the PipelineTask
+    """
+    pass
+
+
+class PipelineWrapperTask(luigi.WrapperTask, PipelineTask):
+    """
+    Let WrapperTasks access dynamic properties of the PipelineTask
+    """
+    pass

@@ -6,15 +6,16 @@ import os
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import SAMPLES, CHROM_SIZE, REF_ASSEMBLY
+from pipeline_consts import SAMPLES, CHROM_SIZE
 from pipeline_modern_snps import ProcessSNPs
-from pipeline_utils import PipelineTask, db_conn, run_cmd, curl_download
+from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download
+from db_conn import db_conn
 
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \
             'Axiom_MNEc670_Annotation.r2.csv.zip'
 
 
-class ExternalSNPchimp(luigi.ExternalTask):
+class ExternalSNPchimp(PipelineExternalTask):
     """
     External task dependency for SNPchimp data.
 
@@ -25,7 +26,7 @@ class ExternalSNPchimp(luigi.ExternalTask):
     species = luigi.Parameter()
 
     def output(self):
-        return luigi.LocalTarget('snpchip/SNPchimp_{}.tsv.gz'.format(REF_ASSEMBLY[self.species]))
+        return luigi.LocalTarget('snpchip/SNPchimp_{}.tsv.gz'.format(self.assembly))
 
 
 class DownloadAxiomEquineHD(PipelineTask):
@@ -196,7 +197,7 @@ class LinkSNPChipVariants(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class SNPChipPipeline(luigi.WrapperTask):
+class SNPChipPipeline(PipelineWrapperTask):
     """
     Populate the snpchip_* tables and link modern_snps records to their snpchip variants.
 

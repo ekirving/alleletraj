@@ -10,7 +10,7 @@ import pickle
 import random
 
 # import my custom modules
-from pipeline_consts import SAMPLES, CHROM_SIZE, MUTATION_RATE, CPU_CORES_ONE
+from pipeline_consts import CHROM_SIZE, MUTATION_RATE, CPU_CORES_ONE
 from pipeline_snp_call import PolarizeVCF, WholeGenomeSNPsVCF
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
 
@@ -93,7 +93,7 @@ class EasySFS(PipelineTask):
         sfs_file, log_file = self.output()
 
         # get all the samples to use
-        samples = [s for s in SAMPLES[self.species][self.population] if s not in SFS_EXCLUSIONS[self.species]]
+        samples = [s for s in self.samples if s not in SFS_EXCLUSIONS[self.species]]
 
         # make a sample/population file
         pop_file = 'sfs/{}.pops'.format(self.basename)

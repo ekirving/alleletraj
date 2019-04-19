@@ -25,7 +25,7 @@ REF_ASSEMBLY = {
 }
 
 # TODO rename once we've fixed all the broken references
-OUT_GROUP = {
+OUTGROUP = {
     # 'cattle': '',  # TODO add me
     # 'goat':   '',  # TODO add me
     'horse':  'Esom_0226A',                # Equus africanus somaliensis / Somali wild ass

@@ -6,7 +6,7 @@ import os
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import SAMPLES, CHROM_SIZE
+from pipeline_consts import CHROM_SIZE
 from pipeline_modern_snps import ProcessSNPs
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download
 from db_conn import db_conn
@@ -208,7 +208,7 @@ class SNPChipPipeline(PipelineWrapperTask):
     def requires(self):
 
         # process all the populations in chromosome chunks
-        for pop in SAMPLES[self.species]:
+        for pop in self.populations:
             for chrom in CHROM_SIZE[self.species]:
                 yield LinkSNPChipVariants(self.species, pop, chrom)
 

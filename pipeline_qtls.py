@@ -9,7 +9,7 @@ from collections import defaultdict, OrderedDict
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import CHROM_SIZE, MIN_DAF, SAMPLES
+from pipeline_consts import CHROM_SIZE, MIN_DAF
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals
 from db_conn import db_conn
@@ -654,7 +654,7 @@ class QTLPipeline(PipelineWrapperTask):
         yield PopulateTraitLoci(self.species)
 
         # process all the populations in chromosome chunks
-        for pop in SAMPLES[self.species]:
+        for pop in self.populations:
             for chrom in CHROM_SIZE[self.species]:
                 # flag the modern SNPs which fall into 'neutral' regions
                 yield MarkNeutralSNPs(self.species, pop, chrom)

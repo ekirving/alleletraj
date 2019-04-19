@@ -6,7 +6,7 @@ import numpy
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_consts import BAM_FILES, OUT_GROUP, SAMPLES, SAMPLE_SEX, CHROM_SIZE, MIN_GENO_QUAL
+from pipeline_consts import BAM_FILES, SAMPLE_SEX, CHROM_SIZE, MIN_GENO_QUAL
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
 
 # VCF parser
@@ -59,17 +59,11 @@ class BCFToolsCall(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    @property
-    def samples(self):
-        """
-        Include the outgroup in the sample list, as we need it for polarization
-        """
-        return [OUT_GROUP[self.species]] + SAMPLES[self.species][self.population]
-
     def requires(self):
         yield ExternalFASTA(self.species)
 
-        for sample in self.samples:
+        # include the outgroup in the sample list, as we need it for polarization
+        for sample in [self.outgroup] + self.samples:
             yield ExternalBAM(self.species, sample)
 
     def output(self):
@@ -83,7 +77,7 @@ class BCFToolsCall(PipelineTask):
         sex_file = 'vcf/{}_{}.sex'.format(self.species, self.population)
 
         with open(sex_file, 'w') as fout:
-            for sample in self.samples:
+            for sample in [self.outgroup] + self.samples:
                 fout.write('{}\t{}\n'.format(sample, SAMPLE_SEX[self.species][sample]))
 
         with self.output().temporary_path() as vcf_out:
@@ -226,7 +220,7 @@ class PolarizeVCF(PipelineTask):
             for rec in vcf_in.fetch():
 
                 # get the outgroup alleles
-                out_alleles = rec.samples[OUT_GROUP[self.species]].alleles
+                out_alleles = rec.samples[self.outgroup].alleles
 
                 # skip sites in the outgroup that are heterozygous or missing
                 if len(set(out_alleles)) != 1 or out_alleles[0] is None:
@@ -278,8 +272,6 @@ class BiallelicSNPsVCF(PipelineTask):
         return luigi.LocalTarget('vcf/{}-quant-polar-SNPs.vcf.gz'.format(self.basename))
 
     def run(self):
-        outgroup = OUT_GROUP[self.species]
-
         with self.output().temporary_path() as vcf_out:
             run_cmd(['bcftools',
                      'view',
@@ -287,7 +279,7 @@ class BiallelicSNPsVCF(PipelineTask):
                      '--min-alleles', 2,           # which are biallelic
                      '--max-alleles', 2,
                      '--exclude', 'INFO/INDEL=1',  # exclude sites marked as INDELs in INFO tag
-                     '--samples', '^' + outgroup,  # exclude the outgroup
+                     '--samples', '^' + self.outgroup,  # drop the outgroup
                      '--min-ac', '1:nref',         # exclude sites exclusively hom-ALT, as these are likely mispolarised
                      '--output-type', 'z',
                      '--output-file', vcf_out,

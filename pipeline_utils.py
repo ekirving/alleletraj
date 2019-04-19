@@ -10,7 +10,8 @@ from collections import Iterable
 from multiprocessing import Process
 
 # import my libraries
-from pipeline_consts import MAX_INTERVAL_SIZE, CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUT_GROUP, BINOMIAL_NAME
+from pipeline_consts import MAX_INTERVAL_SIZE, CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, \
+    SAMPLES
 
 
 def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
@@ -152,7 +153,15 @@ class PipelineTask(luigi.Task):
 
     @property
     def outgroup(self):
-        return OUT_GROUP[self.species]
+        return OUTGROUP[self.species]
+
+    @property
+    def populations(self):
+        return SAMPLES[self.species]
+
+    @property
+    def samples(self):
+        return SAMPLES[self.species][self.population]
 
     @property
     def priority(self):

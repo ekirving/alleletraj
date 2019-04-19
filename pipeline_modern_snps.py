@@ -8,7 +8,7 @@ import pysam
 from collections import Counter
 
 # import my custom modules
-from pipeline_consts import SAMPLES, OUT_GROUP, CHROM_SIZE  # TODO make these into PipelineTask properties
+from pipeline_consts import CHROM_SIZE  # TODO make these into PipelineTask properties
 from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
 from db_conn import db_conn
@@ -72,15 +72,9 @@ class AlleleFrequencyFromFASTA(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    @property
-    def samples(self):
-        """
-        Include the outgroup in the sample list, as we need it for polarization
-        """
-        return [OUT_GROUP[self.species]] + SAMPLES[self.species][self.population]
-
     def requires(self):
-        for sample in self.samples:
+        # include the outgroup in the sample list, as we need it for polarization
+        for sample in [self.outgroup] + self.samples:
             return ExternalFASTA(sample)
 
     def output(self):
@@ -217,7 +211,7 @@ class AlleleFrequencyFromVCF(PipelineTask):
             haploids = []
 
             # resolve the genotypes of all the samples
-            for sample in SAMPLES[self.species][self.population]:
+            for sample in self.samples:
                 # get the alleles, but skip any missing genotypes
                 haploids += [alleles for alleles in rec.samples[sample].alleles if alleles is not None]
 
@@ -286,7 +280,7 @@ class ModernSNPsPipeline(PipelineWrapperTask):
     def requires(self):
 
         # process SNPs for all populations and all chromosomes
-        for pop in SAMPLES[self.species]:
+        for pop in self.populations:
             for chrom in CHROM_SIZE[self.species]:
                 yield ProcessSNPs(self.species, pop, chrom)
 

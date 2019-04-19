@@ -139,32 +139,50 @@ def curl_download(url, filename):
 
 class PipelineTask(luigi.Task):
     """
-    PrioritisedTask that implements a dynamic priority method
+    PrioritisedTask that implements a several dynamic attributes
     """
     resources = {'cpu-cores': CPU_CORES_ONE}
 
     @property
     def assembly(self):
+        """
+        Identifier of the reference assembly for the species
+        """
         return REF_ASSEMBLY[self.species]
 
     @property
     def binomial(self):
+        """
+        Scientific binomial name of the species
+        """
         return BINOMIAL_NAME[self.species]
 
     @property
     def chromosomes(self):
+        """
+        List of chromosomes identifiers (e.g. 1, 2, ..., X, Y)
+        """
         return CHROM_SIZE[self.assembly]
 
     @property
     def outgroup(self):
+        """
+        Identifier of the outgroup sample
+        """
         return OUTGROUP[self.species]
 
     @property
     def populations(self):
+        """
+        List of the populations for the species
+        """
         return SAMPLES[self.species]
 
     @property
     def samples(self):
+        """
+        List of the modern samples for the species
+        """
         return SAMPLES[self.species][self.population]
 
     @property

@@ -52,8 +52,11 @@ class BuildDatabase(PipelineWrapperTask):
         yield QTLPipeline(self.species)
 
         # calculate the unique set of non-overlapping genomic loci from the QTLs
-        yield PopulateIntervals(self.species)
-        yield PopulateIntervalSNPs(POPULATION)
+        for chrom in self.chromosomes:
+            yield PopulateIntervals(self.species, chrom)
+
+            for pop in self.populations:
+                yield PopulateIntervalSNPs(self.species, pop, chrom)
 
         # load the sample metadata
         if self.species == 'pig':

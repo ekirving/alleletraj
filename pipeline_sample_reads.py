@@ -13,7 +13,7 @@ from collections import defaultdict
 from pipeline_consts import MIN_GENO_DEPTH,  HARD_BASEQ_CUTOFF, MIN_GENO_QUAL, HARD_MAPQ_CUTOFF, MIN_DAF
 
 from pipeline_qtls import PopulateAllLoci
-from pipeline_modern_snps import ProcessSNPs
+from pipeline_modern_snps import LoadModernSNPs
 from pipeline_snp_call import ExternalFASTA
 from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd
 
@@ -113,7 +113,7 @@ class PopulateIntervalSNPs(PipelineTask):
 
     def requires(self):
         yield PopulateIntervals(self.species, self.chrom)
-        yield ProcessSNPs(self.species, self.population, self.chrom)
+        yield LoadModernSNPs(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-interval_snps.log'.format(self.basename))

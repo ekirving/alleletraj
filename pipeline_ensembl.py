@@ -6,10 +6,10 @@ import os
 import gzip
 
 # import my custom modules
-# TODO make these into PipelineTask properties
-from pipeline_modern_snps import ProcessSNPs
+from pipeline_database import CreateDatabase
+from pipeline_modern_snps import LoadModernSNPs
 from pipeline_utils import PipelineTask, PipelineWrapperTask, curl_download
-from database import Database
+
 
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {
@@ -44,11 +44,12 @@ class DownloadEnsemblData(PipelineTask):
     def url(self):
         params = {
             'rel': ENSEMBL_RELEASES[self.assembly],
-            'bin': self.binomial,
+            'Bin': self.binomial,
+            'bin': self.binomial.lower(),
             'ref': self.assembly
         }
         if self.type == 'gtf':
-            return 'ftp://ftp.ensembl.org/pub/release-{rel}/gtf/{bin}/{bin}.{ref}.{rel}.gtf.gz'.format(**params)
+            return 'ftp://ftp.ensembl.org/pub/release-{rel}/gtf/{bin}/{Bin}.{ref}.{rel}.gtf.gz'.format(**params)
         elif self.type == 'gvf':
             return 'ftp://ftp.ensembl.org/pub/release-{rel}/variation/gvf/{bin}/{bin}.gvf.gz'.format(**params)
 
@@ -73,12 +74,16 @@ class LoadEnsemblGenes(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return DownloadEnsemblData(self.species, 'gtf')
+        yield CreateDatabase(self.species)
+        yield DownloadEnsemblData(self.species, 'gtf')
 
     def output(self):
         return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))
 
     def run(self):
+        # unpack the inputs
+        _, gtf_file = self.input()
+
         # open a db connection
         dbc = self.db_conn()
 
@@ -86,7 +91,7 @@ class LoadEnsemblGenes(PipelineTask):
         fields = ('source', 'gene_id', 'version', 'biotype', 'chrom', 'start', 'end')
 
         # open the GTF file
-        with gzip.open(self.input().path, 'r') as fin:
+        with gzip.open(gtf_file.path, 'r') as fin:
 
             # buffer the records for bulk insert
             records = []
@@ -120,7 +125,7 @@ class LoadEnsemblGenes(PipelineTask):
             dbc.save_records('ensembl_genes', fields, records)
 
         with self.output().open('w') as fout:
-            fout.write('Inserted {} Ensembl gene records'.format(len(records)))
+            fout.write('Inserted {:,} Ensembl gene records'.format(len(records)))
 
 
 class LoadEnsemblVariants(PipelineTask):
@@ -136,19 +141,24 @@ class LoadEnsemblVariants(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return DownloadEnsemblData(self.species, 'gvf')
+        yield CreateDatabase(self.species)
+        yield DownloadEnsemblData(self.species, 'gvf')
 
     def output(self):
         return luigi.LocalTarget('ensembl/{}-variants.log'.format(self.species))
 
     def run(self):
+        # unpack the inputs
+        _, gvf_file = self.input()
+
+        # open a db connection
         dbc = self.db_conn()
 
         # the column headers for batch inserting into the db
         fields = ('dbxref', 'rsnumber', 'type', 'chrom', 'start', 'end', 'ref', 'alt')
 
         # open the GVF file
-        with gzip.open(self.input().path, 'r') as fin:
+        with gzip.open(gvf_file.path, 'r') as fin:
 
             num_recs = 0
 
@@ -188,7 +198,7 @@ class LoadEnsemblVariants(PipelineTask):
                 dbc.save_records('ensembl_variants', fields, records)
 
         with self.output().open('w') as fout:
-            fout.write('Inserted {} Ensembl variant records'.format(num_recs))
+            fout.write('Inserted {:,} Ensembl variant records'.format(num_recs))
 
 
 class LinkEnsemblGenes(PipelineTask):
@@ -205,7 +215,7 @@ class LinkEnsemblGenes(PipelineTask):
 
     def requires(self):
         yield LoadEnsemblGenes(self.species)
-        yield ProcessSNPs(self.species, self.population, self.chrom)
+        yield LoadModernSNPs(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-ensembl_genes.log'.format(self.basename))
@@ -240,7 +250,7 @@ class LinkEnsemblVariants(PipelineTask):
 
     def requires(self):
         yield LoadEnsemblVariants(self.species)
-        yield ProcessSNPs(self.species, self.population, self.chrom)
+        yield LoadModernSNPs(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-ensembl_vars.log'.format(self.basename))

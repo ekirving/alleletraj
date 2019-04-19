@@ -8,9 +8,9 @@ import pysam
 from collections import Counter
 
 # import my custom modules
+from pipeline_database import CreateDatabase
 from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
-from database import Database
 
 # path to the folder containing the modern fasta files
 FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
@@ -72,16 +72,18 @@ class AlleleFrequencyFromFASTA(PipelineTask):
     chrom = luigi.Parameter()
 
     def requires(self):
+        yield CreateDatabase(self.species)
+
         # include the outgroup in the sample list, as we need it for polarization
         for sample in [self.outgroup] + self.samples:
-            return ExternalFASTA(sample)
+            yield ExternalFASTA(sample)
 
     def output(self):
         return luigi.LocalTarget('db/{}-modern_snps.log'.format(self.basename))
 
     def run(self):
         # get all the input fasta files
-        fasta_files = [fasta_file.path for fasta_file in self.input()]
+        fasta_files = [fasta_file.path for fasta_file in self.input()[1:]]
 
         # open a private connection to the database
         dbc = self.db_conn()
@@ -187,12 +189,16 @@ class AlleleFrequencyFromVCF(PipelineTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        return BiallelicSNPsVCF(self.species, self.population)
+        yield CreateDatabase(self.species)
+        yield BiallelicSNPsVCF(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-modern_snps.log'.format(self.basename))
 
     def run(self):
+        # unpack the inputs
+        _, vcf_file = self.input()
+
         # open a private connection to the database
         dbc = self.db_conn()
 
@@ -200,7 +206,7 @@ class AlleleFrequencyFromVCF(PipelineTask):
         num_snps = 0
 
         # parse the VCF with pysam
-        for rec in pysam.VariantFile(self.input().path).fetch():
+        for rec in pysam.VariantFile(vcf_file.path).fetch():
 
             # the VCF has already been polarised, so the REF/ALT are the ancestral/derived
             ancestral = rec.ref
@@ -247,7 +253,7 @@ class AlleleFrequencyFromVCF(PipelineTask):
             fout.write("Added {:,} SNPs".format(num_snps))
 
 
-class ProcessSNPs(PipelineWrapperTask):
+class LoadModernSNPs(PipelineWrapperTask):
     """
     Ascertain modern SNPs in whole-genome data.
 
@@ -281,7 +287,7 @@ class ModernSNPsPipeline(PipelineWrapperTask):
         # process SNPs for all populations and all chromosomes
         for pop in self.populations:
             for chrom in self.chromosomes:
-                yield ProcessSNPs(self.species, pop, chrom)
+                yield LoadModernSNPs(self.species, pop, chrom)
 
 
 if __name__ == '__main__':

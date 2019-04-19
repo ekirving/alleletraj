@@ -6,7 +6,7 @@ import os
 
 # import my custom modules
 # TODO make these into PipelineTask properties
-from pipeline_modern_snps import ProcessSNPs
+from pipeline_modern_snps import LoadModernSNPs
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download
 from database import Database
 
@@ -177,7 +177,7 @@ class LinkSNPChipVariants(PipelineTask):
             # handle special case for horse data
             yield LoadAxiomEquineHD(self.species)
 
-        yield ProcessSNPs(self.species, self.population, self.chrom)
+        yield LoadModernSNPs(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-snpchip.log'.format(self.basename))

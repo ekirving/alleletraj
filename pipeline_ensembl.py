@@ -78,7 +78,7 @@ class LoadEnsemblGenes(PipelineTask):
         yield DownloadEnsemblData(self.species, 'gtf')
 
     def output(self):
-        return luigi.LocalTarget('ensembl/{}-genes.log'.format(self.species))
+        return luigi.LocalTarget('db/{}-ensembl_genes.log'.format(self.species))
 
     def run(self):
         # unpack the inputs
@@ -145,7 +145,7 @@ class LoadEnsemblVariants(PipelineTask):
         yield DownloadEnsemblData(self.species, 'gvf')
 
     def output(self):
-        return luigi.LocalTarget('ensembl/{}-variants.log'.format(self.species))
+        return luigi.LocalTarget('db/{}-ensembl_variants.log'.format(self.species))
 
     def run(self):
         # unpack the inputs
@@ -218,7 +218,7 @@ class LinkEnsemblGenes(PipelineTask):
         yield LoadModernSNPs(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-ensembl_genes.log'.format(self.basename))
+        return luigi.LocalTarget('db/{}-ensembl_genes_link.log'.format(self.basename))
 
     def run(self):
         dbc = self.db_conn()
@@ -253,7 +253,7 @@ class LinkEnsemblVariants(PipelineTask):
         yield LoadModernSNPs(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-ensembl_vars.log'.format(self.basename))
+        return luigi.LocalTarget('db/{}-ensembl_variants_link.log'.format(self.basename))
 
     def run(self):
         dbc = self.db_conn()
@@ -284,7 +284,6 @@ class EnsemblPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-
         # process all the populations in chromosome chunks
         for pop in self.populations:
             for chrom in self.chromosomes:

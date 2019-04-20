@@ -69,6 +69,8 @@ def count_snp_coverage():
     """
     Count the read coverage for each SNP
     """
+    db_lock_tables = ['qtl_snps']
+
     dbc = Database()
 
     start = time()
@@ -109,6 +111,8 @@ def find_best_snps():
     """
     Choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
     """
+    db_lock_tables = ['qtl_snps']
+
     dbc = Database()
 
     start = time()

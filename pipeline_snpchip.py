@@ -56,6 +56,8 @@ class LoadSNPChipVariants(PipelineTask):
     """
     species = luigi.Parameter()
 
+    db_lock_tables = ['snpchip']
+
     def requires(self):
         return ExternalSNPchimp(self.species)
 
@@ -102,6 +104,8 @@ class LoadAxiomEquineHD(PipelineTask):
     :type species: str
     """
     species = luigi.Parameter()
+
+    db_lock_tables = ['snpchip']
 
     def requires(self):
         yield DownloadAxiomEquineHD()
@@ -169,6 +173,8 @@ class LinkSNPChipVariants(PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     chrom = luigi.Parameter()
+
+    db_lock_tables = ['modern_snps']
 
     def requires(self):
         yield LoadSNPChipVariants(self.species)

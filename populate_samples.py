@@ -45,7 +45,7 @@ def sync_radiocarbon_dates():
     Fetch all the radiocarbon dates
     """
 
-    dbc = db_conn()
+    dbc = Database()
 
     print("INFO: Synchronising radiocarbon dates")
 
@@ -73,7 +73,7 @@ def confirm_age_mapping():
     Make sure that all the free-text dates have proper numeric mappings
     """
 
-    dbc = db_conn()
+    dbc = Database()
 
     print("INFO: Confirming age mappings")
 
@@ -118,7 +118,7 @@ def confirm_country_mapping():
     Make sure that all the free-text countries have been properly mapped to Europe.
     """
 
-    dbc = db_conn()
+    dbc = Database()
 
     print("INFO: Confirming country mappings")
 
@@ -144,8 +144,9 @@ def mark_valid_pigs():
     """
     Pig samples are valid if they are from Europe and have a BAM file or MC1R genotype.
     """
+    db_lock_tables = ['samples']
 
-    dbc = db_conn()
+    dbc = Database()
 
     print("INFO: Marking valid samples")
 
@@ -167,7 +168,7 @@ def bin_samples():
     Assign samples to temporal bins
     """
 
-    dbc = db_conn()
+    dbc = Database()
 
     print("INFO: Binning samples")
 
@@ -220,7 +221,7 @@ def bin_samples():
 def populate_pig_samples():
 
     # open a db connection
-    dbc = db_conn()
+    dbc = Database()
 
     # get the google sheet details
     sheet = GOOGLE_SHEET[SPECIES]
@@ -288,7 +289,7 @@ def populate_pig_samples():
 def populate_horse_samples():
 
     # open a db connection
-    dbc = db_conn()
+    dbc = Database()
 
     # get the google sheet details
     sheet = GOOGLE_SHEET[SPECIES]

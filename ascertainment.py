@@ -12,6 +12,7 @@ def flag_snps_near_indels():
     """
     Check our ascertainment against the dbsnp indel set to enforce a minimum distance.
     """
+    db_lock_tables = ['ensembl_variants']
 
     dbc = db_conn()
 

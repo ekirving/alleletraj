@@ -143,14 +143,36 @@ class PipelineTask(luigi.Task):
     """
     PrioritisedTask that implements a several dynamic attributes
     """
-    resources = {'cpu-cores': CPU_CORES_ONE}
+    @property
+    def resources(self):
+        """
+        Dynamically set task resource usage.
+        """
+        resources = {'cpu-cores': CPU_CORES_ONE}
+
+        if hasattr(self, 'db_lock_tables'):
+            for table in self.db_lock_tables:
+                resources[table] = 1
+
+        return resources
 
     @property
-    def assembly(self):
+    def priority(self):
         """
-        Identifier of the reference assembly for the species
+        Dynamically set task priority.
         """
-        return REF_ASSEMBLY[self.species]
+        # TODO do CPU intensive tasks first
+
+        # deprioritise large values of K or m
+        offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
+
+        # prioritise chromosomes by size, as running the largest chroms first is more efficient for multithreading
+        if hasattr(self, 'chrom') and hasattr(self, 'species'):
+            chrom = self.chrom.replace('chr', '')
+            sizes = CHROM_SIZE[self.assembly]
+            offset = sorted(sizes.values(), reverse=True).index(sizes[chrom]) + 1
+
+        return 100 - offset if offset else 0
 
     @property
     def basename(self):
@@ -174,6 +196,13 @@ class PipelineTask(luigi.Task):
                     params.append('{}{}'.format(name, value))
 
         return '-'.join(params)
+
+    @property
+    def assembly(self):
+        """
+        Identifier of the reference assembly for the species
+        """
+        return REF_ASSEMBLY[self.species]
 
     @property
     def binomial(self):
@@ -209,24 +238,6 @@ class PipelineTask(luigi.Task):
         List of the populations for the species
         """
         return SAMPLES[self.species]
-
-    @property
-    def priority(self):
-        """
-        Set a dynamic priority for tasks.
-        """
-        # TODO do CPU intensive tasks first
-
-        # deprioritise large values of K or m
-        offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
-
-        # prioritise chromosomes by size, as running the largest chroms first is more efficient for multithreading
-        if hasattr(self, 'chrom') and hasattr(self, 'species'):
-            chrom = self.chrom.replace('chr', '')
-            sizes = CHROM_SIZE[self.assembly]
-            offset = sorted(sizes.values(), reverse=True).index(sizes[chrom]) + 1
-
-        return 100-offset if offset else 0
 
     @property
     def samples(self):

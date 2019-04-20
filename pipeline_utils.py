@@ -10,10 +10,12 @@ from collections import Iterable
 from multiprocessing import Process
 
 # import my libraries
-from pipeline_consts import MAX_INTERVAL_SIZE, CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, \
-    SAMPLES
+from pipeline_consts import CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, SAMPLES
 
 from database import Database
+
+# enforce max interval size of 1 Gb
+MAX_INTERVAL_SIZE = int(1e6)
 
 
 def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
@@ -121,11 +123,6 @@ def insert_suffix(full_path, suffix):
     return '.'.join(splitpath)
 
 
-def unicode_truncate(s, length, encoding='utf-8'):
-    encoded = s.encode(encoding)[:length]
-    return encoded.decode(encoding, 'ignore')
-
-
 def dump(obj):
     for attr in dir(obj):
         if hasattr(obj, attr):
@@ -219,6 +216,13 @@ class PipelineTask(luigi.Task):
         return CHROM_SIZE[self.assembly]
 
     @property
+    def classname(self):
+        """
+        The name of the current class
+        """
+        return type(self).__name__
+
+    @property
     def java_mem(self):
         """
         Memory to allocate to java processes
@@ -249,7 +253,6 @@ class PipelineTask(luigi.Task):
     def all_params(self):
         """
         Get all the params as a (name, value) tuple
-        :return:
         """
         return [(name, getattr(self, name)) for name in self.get_param_names()]
 

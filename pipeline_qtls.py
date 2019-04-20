@@ -13,7 +13,7 @@ from pipeline_consts import CHROM_SIZE, MIN_DAF, QTLDB_RELEASE
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals
 
-from qtldb_api import QTLdbAPI
+from qtldbapi import QTLdbAPI
 
 # offset to use for the QTL window (+/- 50 Kb)
 QTL_WINDOW = 50000
@@ -149,19 +149,19 @@ class PopulateQTLs(PipelineTask):
 
                     # setup the trait record
                     trait = dict((field.replace('trait', '').lower(), trait[field]) for field in trait)
-                    trait['type'] = ''  # api.get_trait_type(self.species, trait['id'], trait['name'])  # TODO this is broken!!
+                    # TODO this is broken!!
+                    trait['type'] = ''  # api.get_trait_type(self.species, trait['id'], trait['name'])
 
                     dbc.save_record('traits', trait, insert=True)
 
                 # does the publication exist
                 if not dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
-
                     # setup the pubmed record
-                    pubmed = False  # api.get_publication(self.species, record['pubmedID'])  # TODO this is broken!!
+                    pubmed = api.get_publication(self.species, record['pubmedID'])  # TODO this is broken!!
 
                     if pubmed:
                         pubmed['id'] = pubmed.pop('pubmed_ID')
-                        pubmed['year'] = re.search('\(([0-9]{4})\)', pubmed['authors']).group(1)
+                        pubmed['year'] = re.search(r'\(([0-9]{4})\)', pubmed['authors']).group(1)
                         pubmed['journal'] = pubmed['journal']['#text'][:-5]
 
                         dbc.save_record('pubmeds', pubmed, insert=True)
@@ -170,20 +170,20 @@ class PopulateQTLs(PipelineTask):
                         record['pubmedID'] = None
 
                 # flatten the other nested records
-                for field, value in record.iteritems():
+                for field in record:
 
-                    if type(value) is OrderedDict:
+                    if type(record[field]) is OrderedDict:
                         nested = record.pop(field)
 
-                        for nested_name, nested_value in nested.iteritems():
+                        for name in nested:
                             # for doubly nested fields, use the parent name as a prefix
-                            if type(nested_value) is OrderedDict:
-                                for key in nested_value:
-                                    record[nested_name + '_' + key] = nested_value[key]
+                            if type(nested[name]) is OrderedDict:
+                                for key in nested[name]:
+                                    record[name + '_' + key] = nested[name][key]
                             elif field in ['gene']:
-                                record[field + nested_name.title()] = nested_value
+                                record[field + name.title()] = nested[name]
                             else:
-                                record[nested_name] = nested_value
+                                record[name] = nested[name]
 
                 # drop any lingering malformed fields
                 record.pop('source', None)
@@ -202,7 +202,7 @@ class PopulateQTLs(PipelineTask):
                         record[key_map[key]] = record.pop(key)
 
                 # filter out any empty values
-                qtl = OrderedDict((key, value) for key, value in record.iteritems() if value != '-')
+                qtl = OrderedDict((key, record[key]) for key in record if record[key] != '-')
 
                 dbc.save_record('qtls', qtl, insert=True)
 

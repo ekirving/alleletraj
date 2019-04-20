@@ -5,14 +5,15 @@ from __future__ import print_function
 
 import unicodecsv as csv
 
-from pipeline_utils import *
+from database import Database
 
-def generate_mc1r_snp_input(population):
+
+def generate_mc1r_snp_input(species, population):
     """
     Custom code for handling the PCR data for modsnp #71891
     """
 
-    dbc = Database()
+    dbc = Database(species)
 
     print("INFO: Generating sample input file for SNP #71891")
 
@@ -44,7 +45,7 @@ def generate_mc1r_snp_input(population):
         ORDER BY bin_high""", key=None)
 
     # write the sample input file
-    with open("selection/{}-{}-modsnp_71891.input".format(SPECIES, population), "wb") as tsv_file:
+    with open("selection/{}-{}-modsnp_71891.input".format(species, population), "wb") as tsv_file:
 
         fields = ['derived_count', 'sample_size', 'bin_high', 'bin_low']
         writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')

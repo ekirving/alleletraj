@@ -3,11 +3,124 @@
 
 from __future__ import print_function
 
-import os
 import httplib2
+import os
 import google_sheets as gs
+from collections import defaultdict, OrderedDict
+from database import Database
 
-from pipeline_utils import *
+# from pipeline_utils import *
+
+GOOGLE_SHEET = {
+
+    # Pig_Table_Final_05_03_18
+    # 'pig': {
+    #     'id':   '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI',
+    #     'tabs': ['Everything for the paper - updated'],
+    #     'cols': OrderedDict([
+    #                 ('Extract No.',       'accession'),
+    #                 ('Total Reads',       'map_reads'),
+    #                 ('% Mapped',          'map_prcnt'),
+    #                 ('Age',               'age'),
+    #                 ('Period',            'period'),
+    #                 ('Location',          'location'),
+    #                 ('Country',           'country'),
+    #                 ('Wild/Dom Status',   'status'),
+    #                 ('GMM Status',        'gmm_status'),
+    #                 ('Group',             'group'),
+    #                 ('Haplogroup',        'haplogroup'),
+    #                 ('DNA',               'dna')
+    #             ])
+    # },
+
+    'pig': {
+        'id': '1GBxNiRWAqPdz4MdSpi0ec_K8x4TRns31VgUcICq68qo',
+        'tabs': ['final combined'],
+        'cols': OrderedDict([
+                    ('Extract No. / Lab code', 'accession'),
+                    ('Total Reads', 'map_reads'),
+                    ('% Mapped', 'map_prcnt'),
+                    ('Age', 'age'),
+                    ('Age (Mean years BP)', 'age_int'),
+                    ('Period', 'period'),
+                    ('Location', 'location'),
+                    ('Country', 'country'),
+                    ('Final status (MC1R+Morpho+Context)', 'status'),
+                    ('Genotype MC1R', 'mc1r_snp')
+                ])
+    },
+
+    # HorseSelection_LO4EIP-TRANSFERED
+    'horse': {
+        'id':   '1BMvIwYj-d8t3mpf67rzabrEvDoB8hBZbyS6XfGwcwUU',
+        'tabs': ['Ancient'],
+        'cols': OrderedDict([
+                    ('Name',     'accession'),
+                    ('Status',   'status'),
+                    ('path',     'path'),
+                    ('Age BP',   'age'),
+                    ('Age',      'period'),
+                    ('Site',     'location'),
+                ])
+    }
+}
+
+# list of junk input to mask with NULL
+SHEET_NA = ['n/a', 'NA', 'N', '-', '?', 'NULL', 'None', '...', '']
+
+AGE_MAP = {
+
+    'pig': {
+        'id': '1bH5u_qDaFXJdTyybeahqgF7je17td0FdyOMs_tlECdA',
+        'tabs': ['Age Map'],
+        'cols': OrderedDict([
+            ('Age',         'age'),
+            ('Confident',   'confident'),
+            ('Lower (BP)',  'lower'),
+            ('Upper (BP)',  'upper'),
+            ('Median (BP)', 'median'),
+        ])
+    }
+}
+
+RADIOCARBON_SHEET = {
+
+    'pig': {
+        'id': '1odoL9hQh87bLLe3yipbo-CKKXLvIgb5n_kfoqSALHi8',
+        'tabs': ['All Dates'],
+        'cols': OrderedDict([
+            ('Extract_No',              'accession'),
+            ('From Cal BP (Int Cal13)', 'lower'),
+            ('To Cal BP',               'upper'),
+        ])
+    }
+}
+
+
+# list of permissible countries in Europe
+EUROPE = [
+    'Austria', 'Belgium', 'Bosnia-Herzegovina', 'Bulgaria', 'Crimea, Ukraine', 'Croatia', 'Czech Rep.', 'Denmark',
+    'England', 'Estonia', 'Europe', 'Faroe Islands', 'Faroes', 'Finland', 'France', 'Germany', 'Greece', 'Hungary',
+    'Iberia', 'Iceland', 'Ireland', 'Italy', 'Macedonia', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Norway',
+    'Poland', 'Portugal', 'Portugal/France', 'Romania', 'Russia', 'Sardinia', 'Scotland', 'Serbia', 'Slovakia',
+    'Spain', 'Sweden', 'Switzerland', 'UK', 'Ukraine', 'West Caucasus, north slope'
+]
+
+# list of non-permissible countries outside of Europe
+NON_EUROPE = ['Africa', 'Armenia', 'Azerbaijan', 'Cyprus', 'Egypt', 'Egyptian', 'EuroAm', 'Georgia', 'Iran', 'Iraq',
+              'Israel', 'Morocco', 'Sudan', 'Syria', 'Tunisia', 'Turkey', 'Turkmenistan', 'United Arab Emirates']
+
+
+# the arbitrary +/- age uncertainty for median age dates
+MEDIAN_AGE_UNCERT = 100
+
+BIN_WIDTH = 500
+BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
+
+
+def unicode_truncate(s, length, encoding='utf-8'):
+    encoded = s.encode(encoding)[:length]
+    return encoded.decode(encoding, 'ignore')
 
 
 def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
@@ -24,7 +137,8 @@ def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
     records = []
 
     # convert junk values into None
-    mask_null = lambda x: x if x not in SHEET_NA else None
+    def mask_null(val):
+        return val if val not in SHEET_NA else None
 
     for tab in sheet_tabs:
         # get the tab of data from the GoogleSheet
@@ -40,22 +154,22 @@ def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
     return records
 
 
-def sync_radiocarbon_dates():
+def sync_radiocarbon_dates(species):
     """
     Fetch all the radiocarbon dates
     """
 
-    dbc = Database()
+    dbc = Database(species)
 
     print("INFO: Synchronising radiocarbon dates")
 
     try:
         # get the google sheet details
-        sheet = RADIOCARBON_SHEET[SPECIES]
+        sheet = RADIOCARBON_SHEET[species]
 
     except KeyError:
 
-        print("WARNING: No radiocarbon spreadsheet for {}".format(SPECIES))
+        print("WARNING: No radiocarbon spreadsheet for {}".format(species))
         return
 
     # fetch all the manual age mappings
@@ -68,22 +182,22 @@ def sync_radiocarbon_dates():
             dbc.save_record('sample_dates_c14', record)
 
 
-def confirm_age_mapping():
+def confirm_age_mapping(species):
     """
     Make sure that all the free-text dates have proper numeric mappings
     """
 
-    dbc = Database()
+    dbc = Database(species)
 
     print("INFO: Confirming age mappings")
 
     try:
         # get the google sheet details
-        sheet = AGE_MAP[SPECIES]
+        sheet = AGE_MAP[species]
 
     except KeyError:
 
-        print("WARNING: No age mapping for {}".format(SPECIES))
+        print("WARNING: No age mapping for {}".format(species))
         return
 
     # fetch all the manual age mappings
@@ -113,12 +227,12 @@ def confirm_age_mapping():
         quit()
 
 
-def confirm_country_mapping():
+def confirm_country_mapping(species):
     """
     Make sure that all the free-text countries have been properly mapped to Europe.
     """
 
-    dbc = Database()
+    dbc = Database(species)
 
     print("INFO: Confirming country mappings")
 
@@ -140,13 +254,13 @@ def confirm_country_mapping():
         quit()
 
 
-def mark_valid_pigs():
+def mark_valid_pigs(species):
     """
     Pig samples are valid if they are from Europe and have a BAM file or MC1R genotype.
     """
     db_lock_tables = ['samples']
 
-    dbc = Database()
+    dbc = Database(species)
 
     print("INFO: Marking valid samples")
 
@@ -163,12 +277,12 @@ def mark_valid_pigs():
             OR  s.mc1r_snp IS NOT NULL) """.format(europe=europe))
 
 
-def bin_samples():
+def bin_samples(species):
     """
     Assign samples to temporal bins
     """
 
-    dbc = Database()
+    dbc = Database(species)
 
     print("INFO: Binning samples")
 
@@ -218,13 +332,13 @@ def bin_samples():
                 """.format(age=sql_age, binpercent=BIN_PERCENT, binlower=bin_lower, binupper=bin_upper))
 
 
-def populate_pig_samples():
+def populate_pig_samples(species):
 
     # open a db connection
-    dbc = Database()
+    dbc = Database(species)
 
     # get the google sheet details
-    sheet = GOOGLE_SHEET[SPECIES]
+    sheet = GOOGLE_SHEET[species]
 
     # fetch all the samples from the GoogleDoc spreadsheet
     samples = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
@@ -234,7 +348,7 @@ def populate_pig_samples():
     bam_files = defaultdict(list)
 
     # load the BAM file paths
-    with open('./data/bam_files_{}.txt'.format(SPECIES), 'r') as fin:
+    with open('./data/bam_files_{}.txt'.format(species), 'r') as fin:
         for line in fin:
             # extract the accession code
             accession = os.path.basename(line).replace('_rmdup.bam', '').strip()
@@ -269,30 +383,30 @@ def populate_pig_samples():
                 dbc.save_record('sample_files', bam_file)
 
     # fetch all the C14 dates
-    sync_radiocarbon_dates()
+    sync_radiocarbon_dates(species)
 
     # make sure that all the free-text dates have proper numeric mappings
-    confirm_age_mapping()
+    confirm_age_mapping(species)
 
     # make sure that all the free-text countries have been properly mapped to Europe
-    confirm_country_mapping()
+    confirm_country_mapping(species)
 
     # samples are valid if they are from Europe and have a BAM file
-    mark_valid_pigs()
+    mark_valid_pigs(species)
 
     # assign samples to temporal bins
-    bin_samples()
+    bin_samples(species)
 
     print("INFO: Finished updating {} samples".format(len(samples)))
 
 
-def populate_horse_samples():
+def populate_horse_samples(species):
 
     # open a db connection
-    dbc = Database()
+    dbc = Database(species)
 
     # get the google sheet details
-    sheet = GOOGLE_SHEET[SPECIES]
+    sheet = GOOGLE_SHEET[species]
 
     # fetch all the samples from the GoogleDoc spreadsheet
     samples = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])

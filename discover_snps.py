@@ -53,7 +53,7 @@ def apply_quality_filters(chrom):
            """.format(chrom=chrom, baseq=MIN_BASE_QUAL, mapq=MIN_MAP_QUAL, clip=SOFT_CLIP_DIST))
 
 
-def choose_random_read(chrom, population):
+def choose_random_read(population, chrom):
     """
     Choose a random read from those that pass quality filters
     """
@@ -97,48 +97,56 @@ def apply_genotype_filters(chrom):
            """.format(chrom=chrom, genoq=MIN_GENO_QUAL))
 
 
-def discover_snps(population):
+class DiscoverSNPs(PipelineWrapperTask):
     """
     Run queries to mark callable SNPs in the ancient populations.
 
     Uses mysql table partitioning (w/ MyISAM engine) at the chromosome level to prevent disk swapping caused by massive
     RAM usage for tables with billions of records.
+
+    :type species: str
+    :type population: str
+    :type chrom: str
     """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    chrom = luigi.Parameter()
 
-    start = began = time()
+    def requires(self):
+        start = began = time()
 
-    # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
-    print("INFO: Starting SNP discovery")
+        # chunk all the queries by chrom (otherwise we get massive temp tables as the results can't be held in memory)
+        print("INFO: Starting SNP discovery")
 
-    print("INFO: Resetting analysis flags... ", end='')
+        print("INFO: Resetting analysis flags... ", end='')
 
-    for chrom in self.chromosomes:
-        reset_flags(chrom)
+        for chrom in self.chromosomes:
+            reset_flags(chrom)
 
-    print("({}).".format(timedelta(seconds=time() - start)))
-    start = time()
+        print("({}).".format(timedelta(seconds=time() - start)))
+        start = time()
 
-    print("INFO: Applying quality filters... ", end='')
+        print("INFO: Applying quality filters... ", end='')
 
-    for chrom in self.chromosomes:
-        apply_quality_filters(chrom)
+        for chrom in self.chromosomes:
+            apply_quality_filters(chrom)
 
-    print("({}).".format(timedelta(seconds=time() - start)))
-    start = time()
+        print("({}).".format(timedelta(seconds=time() - start)))
+        start = time()
 
-    print("INFO: Choosing a random read from those that pass quality filters... ", end='')
+        print("INFO: Choosing a random read from those that pass quality filters... ", end='')
 
-    for chrom in self.chromosomes:
-        choose_random_read(chrom, population)
+        for chrom in self.chromosomes:
+            choose_random_read(population, chrom)
 
-    print("({}).".format(timedelta(seconds=time() - start)))
-    start = time()
+        print("({}).".format(timedelta(seconds=time() - start)))
+        start = time()
 
-    print("INFO: Applying genotype quality filters to diploid calls... ", end='')
+        print("INFO: Applying genotype quality filters to diploid calls... ", end='')
 
-    for chrom in self.chromosomes:
-        apply_genotype_filters(chrom)
+        for chrom in self.chromosomes:
+            apply_genotype_filters(chrom)
 
-    print("({}).".format(timedelta(seconds=time() - start)))
+        print("({}).".format(timedelta(seconds=time() - start)))
 
-    print("SUCCESS: Finished the SNP discovery ({})".format(timedelta(seconds=time() - began)))
+        print("SUCCESS: Finished the SNP discovery ({})".format(timedelta(seconds=time() - began)))

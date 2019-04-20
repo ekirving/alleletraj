@@ -10,7 +10,7 @@ from random import shuffle
 
 from collections import defaultdict
 
-from pipeline_consts import  MIN_GENO_QUAL, MIN_DAF
+from pipeline_consts import MIN_GENO_QUAL, MIN_DAF
 
 from pipeline_qtls import PopulateAllLoci
 from pipeline_modern_snps import LoadModernSNPs

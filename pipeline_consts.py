@@ -66,8 +66,6 @@ CHROM_SIZE = {
 
 }
 
-
-# TODO rename once we've fixed all the broken references
 OUTGROUP = {
     # 'cattle': '',  # TODO add me
     # 'goat':   '',  # TODO add me
@@ -75,6 +73,7 @@ OUTGROUP = {
     'pig':    'SVSV01U01_Sverrucosus_rh',  # Sus verrucosus / Javan warty pig
 }
 
+# TODO move into spreadsheet
 SAMPLES = {
 
     'pig': {
@@ -123,6 +122,7 @@ SAMPLES = {
     }
 }
 
+# TODO move into spreadsheet
 SAMPLE_SEX = {
 
     'horse': {
@@ -160,7 +160,7 @@ SAMPLE_SEX = {
     }
 }
 
-
+# TODO move into spreadsheet
 BAM_FILES = {
     'horse': {
         'A_Ch40_CGG_1_016168': '/home/ludo/inbox/BAMs/ancient/A_Ch40_CGG_1_016168.Horse_nuc_wY.realigned.r.t.bam',
@@ -442,8 +442,6 @@ BAM_FILES = {
     }
 }
 
-# enforce max interval size of 1 Gb
-MAX_INTERVAL_SIZE = int(1e6)
 
 # the per-site mutation rate
 MUTATION_RATE = {
@@ -467,111 +465,6 @@ POPULATION_SIZE = {
         'DOM2WLD': 16000
     }
 }
-
-# the arbitrary +/- age uncertainty for median age dates
-MEDIAN_AGE_UNCERT = 100
-
-BIN_WIDTH = 500
-BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
-
-GOOGLE_SHEET = {
-
-    # Pig_Table_Final_05_03_18
-    # 'pig': {
-    #     'id':   '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI',
-    #     'tabs': ['Everything for the paper - updated'],
-    #     'cols': OrderedDict([
-    #                 ('Extract No.',       'accession'),
-    #                 ('Total Reads',       'map_reads'),
-    #                 ('% Mapped',          'map_prcnt'),
-    #                 ('Age',               'age'),
-    #                 ('Period',            'period'),
-    #                 ('Location',          'location'),
-    #                 ('Country',           'country'),
-    #                 ('Wild/Dom Status',   'status'),
-    #                 ('GMM Status',        'gmm_status'),
-    #                 ('Group',             'group'),
-    #                 ('Haplogroup',        'haplogroup'),
-    #                 ('DNA',               'dna')
-    #             ])
-    # },
-
-    'pig': {
-        'id': '1GBxNiRWAqPdz4MdSpi0ec_K8x4TRns31VgUcICq68qo',
-        'tabs': ['final combined'],
-        'cols': OrderedDict([
-                    ('Extract No. / Lab code', 'accession'),
-                    ('Total Reads', 'map_reads'),
-                    ('% Mapped', 'map_prcnt'),
-                    ('Age', 'age'),
-                    ('Age (Mean years BP)', 'age_int'),
-                    ('Period', 'period'),
-                    ('Location', 'location'),
-                    ('Country', 'country'),
-                    ('Final status (MC1R+Morpho+Context)', 'status'),
-                    ('Genotype MC1R', 'mc1r_snp')
-                ])
-    },
-
-    # HorseSelection_LO4EIP-TRANSFERED
-    'horse': {
-        'id':   '1BMvIwYj-d8t3mpf67rzabrEvDoB8hBZbyS6XfGwcwUU',
-        'tabs': ['Ancient'],
-        'cols': OrderedDict([
-                    ('Name',     'accession'),
-                    ('Status',   'status'),
-                    ('path',     'path'),
-                    ('Age BP',   'age'),
-                    ('Age',      'period'),
-                    ('Site',     'location'),
-                ])
-    }
-}
-
-# list of junk input to mask with NULL
-SHEET_NA = ['n/a', 'NA', 'N', '-', '?', 'NULL', 'None', '...', '']
-
-AGE_MAP = {
-
-    'pig': {
-        'id': '1bH5u_qDaFXJdTyybeahqgF7je17td0FdyOMs_tlECdA',
-        'tabs': ['Age Map'],
-        'cols': OrderedDict([
-            ('Age',         'age'),
-            ('Confident',   'confident'),
-            ('Lower (BP)',  'lower'),
-            ('Upper (BP)',  'upper'),
-            ('Median (BP)', 'median'),
-        ])
-    }
-}
-
-RADIOCARBON_SHEET = {
-
-    'pig': {
-        'id': '1odoL9hQh87bLLe3yipbo-CKKXLvIgb5n_kfoqSALHi8',
-        'tabs': ['All Dates'],
-        'cols': OrderedDict([
-            ('Extract_No',              'accession'),
-            ('From Cal BP (Int Cal13)', 'lower'),
-            ('To Cal BP',               'upper'),
-        ])
-    }
-}
-
-
-# list of permissible countries in Europe
-EUROPE = [
-    'Austria', 'Belgium', 'Bosnia-Herzegovina', 'Bulgaria', 'Crimea, Ukraine', 'Croatia', 'Czech Rep.', 'Denmark',
-    'England', 'Estonia', 'Europe', 'Faroe Islands', 'Faroes', 'Finland', 'France', 'Germany', 'Greece', 'Hungary',
-    'Iberia', 'Iceland', 'Ireland', 'Italy', 'Macedonia', 'Macedonia (FYROM)', 'Moldova', 'Netherlands', 'Norway',
-    'Poland', 'Portugal', 'Portugal/France', 'Romania', 'Russia', 'Sardinia', 'Scotland', 'Serbia', 'Slovakia',
-    'Spain', 'Sweden', 'Switzerland', 'UK', 'Ukraine', 'West Caucasus, north slope'
-]
-
-# list of non-permissible countries outside of Europe
-NON_EUROPE = ['Africa', 'Armenia', 'Azerbaijan', 'Cyprus', 'Egypt', 'Egyptian', 'EuroAm', 'Georgia', 'Iran', 'Iraq',
-              'Israel', 'Morocco', 'Sudan', 'Syria', 'Tunisia', 'Turkey', 'Turkmenistan', 'United Arab Emirates']
 
 
 # how many CPU cores does this machine have

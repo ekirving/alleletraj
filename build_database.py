@@ -9,11 +9,11 @@ from pipeline_modern_snps import ModernSNPsPipeline
 from pipeline_ensembl import EnsemblPipeline
 from pipeline_snpchip import SNPChipPipeline
 from pipeline_qtls import QTLPipeline
-from pipeline_sample_reads import PopulateIntervals, PopulateIntervalSNPs
+from pipeline_sample_reads import SampleReadsPipeline
 
 # from pipeline_sample_reads import *
-from discover_snps import discover_snps
-from analyse_qtls import analyse_qtls
+from discover_snps import DiscoverSNPs
+from pipeline_analyse_qtls import AnalyseQTLs
 from populate_samples import populate_pig_samples, populate_horse_samples
 from ascertainment import perform_ascertainment
 from graph_derived import graph_derived
@@ -51,13 +51,6 @@ class BuildDatabase(PipelineWrapperTask):
         # load the QTLs from the AnimalQTL database, and other regions of interest
         yield QTLPipeline(self.species)
 
-        # calculate the unique set of non-overlapping genomic loci from the QTLs
-        for chrom in self.chromosomes:
-            yield PopulateIntervals(self.species, chrom)
-
-            for pop in self.populations:
-                yield PopulateIntervalSNPs(self.species, pop, chrom)
-
         # load the sample metadata
         if self.species == 'pig':
             populate_pig_samples()
@@ -65,16 +58,15 @@ class BuildDatabase(PipelineWrapperTask):
         elif self.species == 'horse':
             populate_horse_samples()
 
-        # TODO make samples file w/ gender call for ploidy
         # load the sample reads for each ascertained SNP
-        yield PopulateSampleReads()
+        yield SampleReadsPipeline()
 
         # apply quality filters to the sample reads
         for pop in self.populations:
-            yield discover_snps(self.species, pop)
+            DiscoverSNPs(self.species, pop)
 
         # analyse the coverage and quality for SNPs in each QTLs
-        analyse_qtls()
+        yield AnalyseQTLs(self.species)
 
         if self.species == 'pig':
             # pick the best SNPs to target for a capture array

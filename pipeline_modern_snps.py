@@ -83,7 +83,7 @@ class ModernSNPsFromFASTA(PipelineTask):
             yield ExternalFASTA(sample)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-modern_snps.log'.format(self.basename))
+        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # get all the input fasta files
@@ -197,7 +197,7 @@ class ModernSNPsFromVCF(PipelineTask):
         yield BiallelicSNPsVCF(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-modern_snps.log'.format(self.basename))
+        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # unpack the inputs

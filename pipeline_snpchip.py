@@ -185,7 +185,7 @@ class LinkSNPChipVariants(PipelineTask):
         yield LoadModernSNPs(self.species, self.population, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-snpchip.log'.format(self.basename))
+        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()

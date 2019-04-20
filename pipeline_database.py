@@ -28,7 +28,7 @@ class CreateDatabase(PipelineTask):
         return ExternalDatabaseSQL()
 
     def output(self):
-        return luigi.LocalTarget('db/{}-database.log'.format(self.species))
+        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         sql_file = self.input()

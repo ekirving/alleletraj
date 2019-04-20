@@ -573,35 +573,6 @@ EUROPE = [
 NON_EUROPE = ['Africa', 'Armenia', 'Azerbaijan', 'Cyprus', 'Egypt', 'Egyptian', 'EuroAm', 'Georgia', 'Iran', 'Iraq',
               'Israel', 'Morocco', 'Sudan', 'Syria', 'Tunisia', 'Turkey', 'Turkmenistan', 'United Arab Emirates']
 
-# the number of flanking SNPs (on either side) to include
-QTL_FLANK_NUM_SNPS = 3
-
-# the number of selective sweep SNPs to include
-SWEEP_NUM_SNPS = 5
-
-# the distance between sweep peaks
-SWEEP_PEAK_WIDTH = 1000
-
-# the number of "neutral" SNPs to include in the ascertainment
-NUM_NEUTRAL_SNPS = 60000
-
-# the number of "ancestral" SNPs to include in the ascertainment
-NUM_ANCESTRAL_SNPS = 30000
-
-# minimum distance from an INDEL
-INDEL_BUFFER = 10
-
-# minimum depth of coverage to call diploid genotypes
-MIN_GENO_DEPTH = 10
-
-# minimum mapping quality (hard filtered)
-HARD_MAPQ_CUTOFF = 20
-
-# minimum base quality (hard filtered)
-HARD_BASEQ_CUTOFF = 20
-
-# should we use multi-threading to speed up record insertion
-MULTI_THREADED = True if gethostname() != 'macbookpro.local' else False
 
 # how many CPU cores does this machine have
 TOTAL_CORES = cpu_count()
@@ -617,9 +588,4 @@ CPU_CORES_MAX = int(TOTAL_CORES * 0.9)   # 90%
 MIN_DAF = 0.05
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
-MIN_BASE_QUAL = 30
-MIN_MAP_QUAL = 30
 MIN_GENO_QUAL = 30
-
-# number of bases to soft clip
-SOFT_CLIP_DIST = 3

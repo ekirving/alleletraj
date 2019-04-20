@@ -10,7 +10,6 @@ from pipeline_database import CreateDatabase
 from pipeline_modern_snps import LoadModernSNPs
 from pipeline_utils import PipelineTask, PipelineWrapperTask, curl_download
 
-
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {
     # cattle -  https://www.ensembl.org/Bos_taurus/Info/Index

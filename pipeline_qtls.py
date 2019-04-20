@@ -12,7 +12,6 @@ from collections import defaultdict, OrderedDict
 from pipeline_consts import CHROM_SIZE, MIN_DAF, QTLDB_RELEASE
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals
-from database import Database
 
 from qtldb_api import QTLdbAPI
 

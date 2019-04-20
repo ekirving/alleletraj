@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
 import luigi
 import os
 import unicodecsv as csv
@@ -10,8 +8,6 @@ import unicodecsv as csv
 # import my custom modules
 from pipeline_consts import *
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
-from database import Database
-
 
 # the population history is either: constant, or a fully specified complex demography
 MCMC_POP_CONST = 'const'
@@ -193,7 +189,8 @@ class SelectionPlot(PipelineTask):
     resources = {'cpu-cores': CPU_CORES_ONE, 'ram-gb': 64}
 
     def requires(self):
-        return SelectionRunMCMC(self.species, self.population, self.modsnp_id, self.pop_hist, self.mcmc_cycles, self.mcmc_freq)
+        return SelectionRunMCMC(self.species, self.population, self.modsnp_id, self.pop_hist, self.mcmc_cycles,
+                                self.mcmc_freq)
 
     def output(self):
         return luigi.LocalTarget("pdf/{}.pdf".format(self.basename))
@@ -251,8 +248,7 @@ class SelectionHorseGWAS(PipelineWrapperTask):
 
         for pop in self.populations:
             for modsnp_id in modsnps:
-                if modsnp_id not in bad:
-                    yield SelectionPlot(self.species, pop, modsnp_id, MCMC_POP_CONST)
+                yield SelectionPlot(self.species, pop, modsnp_id, MCMC_POP_CONST)
 
 
 class SelectionHorseGWASFlankingSNPs(PipelineWrapperTask):

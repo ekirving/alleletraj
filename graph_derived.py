@@ -12,7 +12,7 @@ def graph_derived():
     """
 
     # open a db connection
-    dbc = db_conn()
+    dbc = Database()
 
     # sql fragment to calculate the median age of each sample
     median = "COALESCE(sd.median, (COALESCE(c14.lower, sd.lower)+COALESCE(c14.upper, sd.upper))/2)"

@@ -7,6 +7,24 @@ import unicodecsv as csv
 
 from pipeline_utils import *
 
+# the number of flanking SNPs (on either side) to include
+QTL_FLANK_NUM_SNPS = 3
+
+# the number of selective sweep SNPs to include
+SWEEP_NUM_SNPS = 5
+
+# the distance between sweep peaks
+SWEEP_PEAK_WIDTH = 1000
+
+# the number of "neutral" SNPs to include in the ascertainment
+NUM_NEUTRAL_SNPS = 60000
+
+# the number of "ancestral" SNPs to include in the ascertainment
+NUM_ANCESTRAL_SNPS = 30000
+
+# minimum distance from an INDEL
+INDEL_BUFFER = 10
+
 
 def flag_snps_near_indels():
     """
@@ -14,7 +32,7 @@ def flag_snps_near_indels():
     """
     db_lock_tables = ['ensembl_variants']
 
-    dbc = db_conn()
+    dbc = Database()
 
     begin = time()
 
@@ -60,7 +78,7 @@ def fetch_gwas_peaks():
     """
     Fetch all the GWAS peaks from the QTL database.
     """
-    dbc = db_conn()
+    dbc = Database()
 
     start = time()
 
@@ -94,7 +112,7 @@ def fetch_gwas_flanking_snps():
     """
     Fetch the best flanking SNPs for each GWAS peak.
     """
-    dbc = db_conn()
+    dbc = Database()
 
     start = time()
 
@@ -166,7 +184,7 @@ def fetch_selective_sweep_snps():
     """
     Fetch the best SNPs from the selective sweep loci.
     """
-    dbc = db_conn()
+    dbc = Database()
 
     start = time()
 
@@ -237,7 +255,7 @@ def fetch_mc1r_snps():
          http://journals.plos.org/plosgenetics/article/file?id=10.1371/journal.pgen.1000341.s002&type=supplementary
     """
 
-    dbc = db_conn()
+    dbc = Database()
 
     start = time()
 
@@ -272,7 +290,7 @@ def fetch_neutral_snps():
     Get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
     """
 
-    dbc = db_conn()
+    dbc = Database()
 
     start = time()
 
@@ -324,7 +342,7 @@ def fetch_ancestral_snps():
     Prefer SNPs which are on the SNPchip and those already chosen in a different category.
     """
 
-    dbc = db_conn()
+    dbc = Database()
 
     start = time()
 
@@ -376,7 +394,7 @@ def fetch_remaining_snpchip_snps():
     """
     Include any SNPchip SNPs which were not already included in a previous ascertainment category.
     """
-    dbc = db_conn()
+    dbc = Database()
 
     start = time()
 
@@ -408,7 +426,7 @@ def export_ascertained_snps():
     """
 
     # open a db connection
-    dbc = db_conn()
+    dbc = Database()
 
     # get all the unique SNPs in the ascertainment
     reads = dbc.get_records_sql("""
@@ -440,7 +458,7 @@ def perform_ascertainment():
     print("INFO: Starting ascertainment process")
 
     # clear any existing SNPs
-    dbc = db_conn()
+    dbc = Database()
     dbc.execute_sql("TRUNCATE TABLE ascertainment")
 
     # make sure none of our SNPs are too close to INDELs

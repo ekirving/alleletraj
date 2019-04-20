@@ -12,6 +12,13 @@ from pipeline_qtls import *
 from pipeline_utils import *
 
 
+MIN_BASE_QUAL = 30
+MIN_MAP_QUAL = 30
+
+# number of bases to soft clip
+SOFT_CLIP_DIST = 3
+
+
 def reset_flags(chrom):
     """
     Reset all the analysis flags to NULL

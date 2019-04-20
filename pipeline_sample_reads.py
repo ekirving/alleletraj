@@ -10,14 +10,21 @@ from random import shuffle
 
 from collections import defaultdict
 
-from pipeline_consts import MIN_GENO_DEPTH,  HARD_BASEQ_CUTOFF, MIN_GENO_QUAL, HARD_MAPQ_CUTOFF, MIN_DAF
+from pipeline_consts import  MIN_GENO_QUAL, MIN_DAF
 
 from pipeline_qtls import PopulateAllLoci
 from pipeline_modern_snps import LoadModernSNPs
 from pipeline_snp_call import ExternalFASTA
 from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd
 
-from database import Database
+# minimum depth of coverage to call diploid genotypes
+MIN_GENO_DEPTH = 10
+
+# minimum mapping quality (hard filtered)
+HARD_MAPQ_CUTOFF = 20
+
+# minimum base quality (hard filtered)
+HARD_BASEQ_CUTOFF = 20
 
 
 class PopulateIntervals(PipelineTask):

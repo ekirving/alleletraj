@@ -12,7 +12,7 @@ def generate_mc1r_snp_input(population):
     Custom code for handling the PCR data for modsnp #71891
     """
 
-    dbc = db_conn()
+    dbc = Database()
 
     print("INFO: Generating sample input file for SNP #71891")
 

@@ -8,7 +8,6 @@ import os
 # TODO make these into PipelineTask properties
 from pipeline_modern_snps import LoadModernSNPs
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download
-from database import Database
 
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \
             'Axiom_MNEc670_Annotation.r2.csv.zip'

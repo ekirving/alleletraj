@@ -9,6 +9,9 @@ from time import time
 from collections import OrderedDict
 
 from pipeline_consts import CHROM_SIZE
+from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants
+from pipeline_snpchip import LoadSNPChipVariants
+from pipeline_discover_snps import ApplyGenotypeFilters
 from pipeline_qtls import MC1R_GENE_ID  # TODO add gene_name to ensemble table
 from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals
 
@@ -46,7 +49,7 @@ class FlagSNPsNearIndels(PipelineTask):
     db_lock_tables = ['ensembl_variants']
 
     def requires(self):
-        # yield Something(self.species, self.population, self.chrom)
+        return ApplyGenotypeFilters(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -99,7 +102,7 @@ class FetchGWASPeaks(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # yield Something(self.species, self.population, self.chrom)
+        return ApplyGenotypeFilters(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -141,7 +144,7 @@ class FetchGWASFlankingSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # yield Something(self.species, self.population, self.chrom)
+        return FlagSNPsNearIndels(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -218,7 +221,7 @@ class FetchSelectiveSweepSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # yield Something(self.species, self.population, self.chrom)
+        return FlagSNPsNearIndels(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -293,7 +296,9 @@ class FetchMC1RSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # yield Something(self.species, self.population, self.chrom)
+        yield LoadEnsemblGenes(self.species)
+        yield LoadEnsemblVariants(self.species)
+        yield ApplyGenotypeFilters(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -335,7 +340,8 @@ class FetchNeutralSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # yield Something(self.species, self.population, self.chrom)
+        yield LoadEnsemblVariants(self.species)
+        yield ApplyGenotypeFilters(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -397,7 +403,7 @@ class FetchAncestralSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # yield Something(self.species, self.population, self.chrom)
+        return ApplyGenotypeFilters(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -460,7 +466,8 @@ class FetchRemainingSNPChipSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # yield Something(self.species, self.population, self.chrom)
+        yield LoadEnsemblVariants(self.species)
+        yield LoadSNPChipVariants(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -489,6 +496,37 @@ class FetchRemainingSNPChipSNPs(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
+class PerformAscertainment(PipelineWrapperTask):
+    """
+    Ascertain the best SNPs for our capture array.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        # fetch all the GWAS peaks from the QTL database
+        yield FetchGWASPeaks(self.species)
+
+        # fetch the best flanking SNPs for each GWAS peak
+        yield FetchGWASFlankingSNPs(self.species)
+
+        # fetch the best SNPs from the selective sweep loci
+        yield FetchSelectiveSweepSNPs(self.species)
+
+        # get all MC1R snps
+        yield FetchMC1RSNPs(self.species)
+
+        # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
+        yield FetchNeutralSNPs(self.species)
+
+        # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
+        yield FetchAncestralSNPs(self.species)
+
+        # include any snpchip SNPs which are not already included
+        yield FetchRemainingSNPChipSNPs(self.species)
+
+
 class ExportAscertainedSNPs(PipelineTask):
     """
     Export all the ascertained SNPs to a TSV.
@@ -498,7 +536,7 @@ class ExportAscertainedSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # yield Something(self.species, self.population, self.chrom)
+        return PerformAscertainment(self.species)
 
     def output(self):
         return luigi.LocalTarget('"tsv/{}.candidate-snps.tsv'.format(self.species))
@@ -525,40 +563,3 @@ class ExportAscertainedSNPs(PipelineTask):
             # write the data to disk
             for read in reads:
                 writer.writerow(read)
-
-
-class PerformAscertainment(PipelineWrapperTask):
-    """
-    Ascertain the best SNPs for our capture array.
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    def requires(self):
-        # make sure none of our SNPs are too close to INDELs
-        yield FlagSNPsNearIndels(self.species)
-
-        # fetch all the GWAS peaks from the QTL database
-        yield FetchGWASPeaks(self.species)
-
-        # fetch the best flanking SNPs for each GWAS peak
-        yield FetchGWASFlankingSNPs(self.species)
-
-        # fetch the best SNPs from the selective sweep loci
-        yield FetchSelectiveSweepSNPs(self.species)
-
-        # get all MC1R snps
-        yield FetchMC1RSNPs(self.species)
-
-        # get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
-        yield FetchNeutralSNPs(self.species)
-
-        # get ancestral SNPs which are in variable in ASD and Sumatran scrofa
-        yield FetchAncestralSNPs(self.species)
-
-        # include any snpchip SNPs which are not already included
-        yield FetchRemainingSNPChipSNPs(self.species)
-
-        # export candidate SNPs to tsv
-        yield ExportAscertainedSNPs(self.species)

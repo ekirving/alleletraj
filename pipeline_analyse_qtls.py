@@ -3,7 +3,7 @@
 
 import luigi
 
-from discover_snps import DiscoverSNPs
+from pipeline_discover_snps import DiscoverSNPs
 from pipeline_utils import PipelineTask, PipelineWrapperTask
 
 # the number of SNPs to model per QTL

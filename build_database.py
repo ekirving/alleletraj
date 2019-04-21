@@ -15,7 +15,7 @@ from pipeline_sample_reads import SampleReadsPipeline
 from discover_snps import DiscoverSNPs
 from pipeline_analyse_qtls import AnalyseQTLs
 from populate_samples import populate_pig_samples, populate_horse_samples
-from ascertainment import perform_ascertainment
+from pipeline_ascertainment import PerformAscertainment
 from graph_derived import graph_derived
 
 # TODO confirm InnoDB tweaks / https://dev.mysql.com/doc/refman/8.0/en/converting-tables-to-innodb.html
@@ -70,7 +70,7 @@ class BuildDatabase(PipelineWrapperTask):
 
         if self.species == 'pig':
             # pick the best SNPs to target for a capture array
-            perform_ascertainment()
+            yield PerformAscertainment(self.species)
 
         # graph the age of derived alleles
         graph_derived()

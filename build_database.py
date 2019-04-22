@@ -14,7 +14,7 @@ from pipeline_sample_reads import SampleReadsPipeline
 # from pipeline_sample_reads import *
 from pipeline_discover_snps import DiscoverSNPs
 from pipeline_analyse_qtls import AnalyseQTLs
-from populate_samples import populate_pig_samples, populate_horse_samples
+from pipeline_samples import populate_pig_samples, populate_horse_samples
 from pipeline_ascertainment import PerformAscertainment
 from graph_derived import graph_derived
 

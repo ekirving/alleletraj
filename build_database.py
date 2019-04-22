@@ -5,6 +5,7 @@ import luigi
 
 from pipeline_utils import PipelineWrapperTask
 
+from pipeline_database import CreateDatabase
 from pipeline_modern_snps import ModernSNPsPipeline
 from pipeline_ensembl import EnsemblPipeline
 from pipeline_snpchip import SNPChipPipeline
@@ -15,8 +16,6 @@ from pipeline_discover_snps import DiscoverSNPsPipeline
 from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_ascertainment import AscertainmentPipeline
 from pipeline_selection import SelectionBestQTLSNPs
-
-from graph_derived import graph_derived
 
 # TODO confirm InnoDB tweaks / https://dev.mysql.com/doc/refman/8.0/en/converting-tables-to-innodb.html
 # TODO refactor to use snakemake / parallelise the SNP calling part
@@ -38,6 +37,9 @@ class BuildDatabase(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
+
+        # create and new database and add all the empty tables
+        yield CreateDatabase(self.species)
 
         # ascertain SNPs in modern whole genome data
         yield ModernSNPsPipeline(self.species)
@@ -71,3 +73,8 @@ class BuildDatabase(PipelineWrapperTask):
         yield SelectionBestQTLSNPs(self.species)
 
         # TODO make a plotting pipeline
+
+
+if __name__ == '__main__':
+    luigi.run()
+

@@ -17,7 +17,7 @@ ENSEMBL_RELEASES = {
     'ARS-UCD1.2': 96,   # Ensembl release 96 - April 2019
 
     # goat -  https://www.ensembl.org/Capra_hircus/Info/Index
-    'ARS1':  96,        # Ensembl release 96 - April 2019
+    'ARS1': 96,         # Ensembl release 96 - April 2019
 
     # horse - https://www.ensembl.org/Equus_caballus/Info/Index
     'EquCab2': 94,      # Ensembl release 94 - October 2018
@@ -87,7 +87,7 @@ class LoadEnsemblGenes(PipelineTask):
         dbc = self.db_conn()
 
         # the column headers for batch inserting into the db
-        fields = ('source', 'gene_id', 'version', 'biotype', 'chrom', 'start', 'end')
+        fields = ('source', 'gene_id', 'gene_name', 'version', 'biotype', 'chrom', 'start', 'end')
 
         # open the GTF file
         with gzip.open(gtf_file.path, 'r') as fin:
@@ -114,8 +114,8 @@ class LoadEnsemblGenes(PipelineTask):
                         atts.update({k: v.strip('"') for k, v in atts.items()})
 
                         # setup the record to insert, in this order
-                        gene = (atts['gene_source'], atts['gene_id'], atts['gene_version'], atts['gene_biotype'], chrom,
-                                start, end)
+                        gene = (atts['gene_source'], atts['gene_id'], atts.get('gene_name', ''), atts['gene_version'],
+                                atts['gene_biotype'], chrom, start, end)
 
                         # add to the buffer
                         records.append(gene)

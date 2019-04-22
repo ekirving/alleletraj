@@ -1,3 +1,16 @@
+# ************************************************************
+# Sequel Pro SQL dump
+# Version 4541
+#
+# http://www.sequelpro.com/
+# https://github.com/sequelpro/sequelpro
+#
+# Host: 127.0.0.1 (MySQL 5.6.19)
+# Database: alleletraj_horse_equcab2_rel37
+# Generation Time: 2019-04-22 08:26:39 +0000
+# ************************************************************
+
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
@@ -7,6 +20,7 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 
+# Dump of table ascertainment
 # ------------------------------------------------------------
 
 CREATE TABLE `ascertainment` (
@@ -28,6 +42,7 @@ CREATE TABLE `ascertainment` (
 
 
 
+# Dump of table ascertainment_coverage
 # ------------------------------------------------------------
 
 CREATE TABLE `ascertainment_coverage` (
@@ -37,6 +52,7 @@ CREATE TABLE `ascertainment_coverage` (
 
 
 
+# Dump of table ascertainment_jake
 # ------------------------------------------------------------
 
 CREATE TABLE `ascertainment_jake` (
@@ -49,6 +65,7 @@ CREATE TABLE `ascertainment_jake` (
 
 
 
+# Dump of table ascertainment_old
 # ------------------------------------------------------------
 
 CREATE TABLE `ascertainment_old` (
@@ -70,12 +87,14 @@ CREATE TABLE `ascertainment_old` (
 
 
 
+# Dump of table ensembl_genes
 # ------------------------------------------------------------
 
 CREATE TABLE `ensembl_genes` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `source` varchar(255) NOT NULL DEFAULT '',
   `gene_id` varchar(255) NOT NULL DEFAULT '',
+  `gene_name` varchar(255) DEFAULT '',
   `version` int(11) NOT NULL,
   `biotype` varchar(255) NOT NULL DEFAULT '',
   `chrom` varchar(10) NOT NULL DEFAULT '',
@@ -88,6 +107,7 @@ CREATE TABLE `ensembl_genes` (
 
 
 
+# Dump of table ensembl_variants
 # ------------------------------------------------------------
 
 CREATE TABLE `ensembl_variants` (
@@ -146,6 +166,7 @@ CREATE TABLE `ensembl_variants` (
 
 
 
+# Dump of table intervals
 # ------------------------------------------------------------
 
 CREATE TABLE `intervals` (
@@ -159,6 +180,7 @@ CREATE TABLE `intervals` (
 
 
 
+# Dump of table intervals_snps
 # ------------------------------------------------------------
 
 CREATE TABLE `intervals_snps` (
@@ -171,6 +193,7 @@ CREATE TABLE `intervals_snps` (
 
 
 
+# Dump of table modern_snps
 # ------------------------------------------------------------
 
 CREATE TABLE `modern_snps` (
@@ -234,6 +257,7 @@ CREATE TABLE `modern_snps` (
 
 
 
+# Dump of table pubmeds
 # ------------------------------------------------------------
 
 CREATE TABLE `pubmeds` (
@@ -247,6 +271,7 @@ CREATE TABLE `pubmeds` (
 
 
 
+# Dump of table qtl_snps
 # ------------------------------------------------------------
 
 CREATE TABLE `qtl_snps` (
@@ -263,6 +288,7 @@ CREATE TABLE `qtl_snps` (
 
 
 
+# Dump of table qtl_stats
 # ------------------------------------------------------------
 
 CREATE TABLE `qtl_stats` (
@@ -285,6 +311,7 @@ CREATE TABLE `qtl_stats` (
 
 
 
+# Dump of table qtls
 # ------------------------------------------------------------
 
 CREATE TABLE `qtls` (
@@ -334,6 +361,7 @@ CREATE TABLE `qtls` (
 
 
 
+# Dump of table sample_bins
 # ------------------------------------------------------------
 
 CREATE TABLE `sample_bins` (
@@ -348,6 +376,7 @@ CREATE TABLE `sample_bins` (
 
 
 
+# Dump of table sample_dates
 # ------------------------------------------------------------
 
 CREATE TABLE `sample_dates` (
@@ -363,6 +392,7 @@ CREATE TABLE `sample_dates` (
 
 
 
+# Dump of table sample_dates_c14
 # ------------------------------------------------------------
 
 CREATE TABLE `sample_dates_c14` (
@@ -378,6 +408,7 @@ CREATE TABLE `sample_dates_c14` (
 
 
 
+# Dump of table sample_files
 # ------------------------------------------------------------
 
 CREATE TABLE `sample_files` (
@@ -390,6 +421,7 @@ CREATE TABLE `sample_files` (
 
 
 
+# Dump of table sample_quality
 # ------------------------------------------------------------
 
 CREATE TABLE `sample_quality` (
@@ -415,6 +447,7 @@ CREATE TABLE `sample_quality` (
 
 
 
+# Dump of table sample_reads
 # ------------------------------------------------------------
 
 CREATE TABLE `sample_reads` (
@@ -474,6 +507,7 @@ CREATE TABLE `sample_reads` (
 
 
 
+# Dump of table samples
 # ------------------------------------------------------------
 
 CREATE TABLE `samples` (
@@ -498,6 +532,7 @@ CREATE TABLE `samples` (
 
 
 
+# Dump of table snpchip
 # ------------------------------------------------------------
 
 CREATE TABLE `snpchip` (
@@ -517,6 +552,7 @@ CREATE TABLE `snpchip` (
 
 
 
+# Dump of table snpchip_axiom
 # ------------------------------------------------------------
 
 CREATE TABLE `snpchip_axiom` (
@@ -529,6 +565,7 @@ CREATE TABLE `snpchip_axiom` (
 
 
 
+# Dump of table sweep_snps
 # ------------------------------------------------------------
 
 CREATE TABLE `sweep_snps` (
@@ -544,6 +581,7 @@ CREATE TABLE `sweep_snps` (
 
 
 
+# Dump of table traits
 # ------------------------------------------------------------
 
 CREATE TABLE `traits` (

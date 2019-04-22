@@ -7,7 +7,7 @@ import gzip
 
 # import my custom modules
 from pipeline_database import CreateDatabase
-from pipeline_modern_snps import LoadModernSNPs
+from pipeline_modern_snps import ModernSNPsPipeline
 from pipeline_utils import PipelineTask, PipelineWrapperTask, curl_download
 
 # the most recent Ensembl releases for a given genome assembly
@@ -216,7 +216,7 @@ class LinkEnsemblGenes(PipelineTask):
 
     def requires(self):
         yield LoadEnsemblGenes(self.species)
-        yield LoadModernSNPs(self.species, self.population, self.chrom)
+        yield ModernSNPsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -253,7 +253,7 @@ class LinkEnsemblVariants(PipelineTask):
 
     def requires(self):
         yield LoadEnsemblVariants(self.species)
-        yield LoadModernSNPs(self.species, self.population, self.chrom)
+        yield ModernSNPsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

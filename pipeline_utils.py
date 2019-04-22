@@ -151,7 +151,8 @@ class PipelineTask(luigi.Task):
         if hasattr(self, 'db_lock_tables'):
             for table in self.db_lock_tables:
                 # resolve table names that contain task parameters
-                table = table.format(**dict(inspect.getmembers(self)))
+                if hasattr(self, 'chrom'):
+                    table = table.format(chrom=self.chrom)
                 resources[table] = 1
 
         return resources

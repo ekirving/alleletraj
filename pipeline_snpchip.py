@@ -7,6 +7,7 @@ import random
 
 # import my custom modules
 from pipeline_database import CreateDatabase
+from pipeline_ensembl import LoadEnsemblVariants
 from pipeline_modern_snps import LoadModernSNPs
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download, trim_ext
 
@@ -58,15 +59,15 @@ class LoadSNPChipVariants(PipelineTask):
     db_lock_tables = ['snpchip']
 
     def requires(self):
-        yield CreateDatabase(self.species)
         yield ExternalSNPchimp(self.species)
+        yield CreateDatabase(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # get the input file
-        gzip_file = self.input()[1]
+        gzip_file = self.input()[0]
 
         # open a db connection
         dbc = self.db_conn()
@@ -108,8 +109,9 @@ class LoadAxiomEquineHD(PipelineTask):
     db_lock_tables = ['snpchip']
 
     def requires(self):
-        yield LoadSNPChipVariants(self.species)
         yield DownloadAxiomEquineHD()
+        yield LoadSNPChipVariants(self.species)
+        yield LoadEnsemblVariants(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -117,7 +119,7 @@ class LoadAxiomEquineHD(PipelineTask):
     # noinspection SqlWithoutWhere
     def run(self):
         # get the input file
-        axiom_file = self.input()[1]
+        axiom_file = self.input()[0]
 
         # open a db connection
         dbc = self.db_conn()

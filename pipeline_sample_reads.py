@@ -9,14 +9,16 @@ import os
 from random import shuffle
 
 from collections import defaultdict
+from natsort import natsorted
 
 from pipeline_consts import MIN_GENO_QUAL, MIN_DAF
 
 from pipeline_qtls import PopulateAllLoci
-from pipeline_modern_snps import LoadModernSNPs
+from pipeline_modern_snps import ModernSNPsPipeline
+from pipeline_ensembl import EnsemblPipeline
 from pipeline_snp_call import ExternalFASTA
-from pipeline_samples import SamplesPipeline
-from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd
+from pipeline_samples import LoadSamples
+from pipeline_utils import PipelineTask, merge_intervals, run_cmd
 
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10
@@ -34,10 +36,8 @@ class PopulateIntervals(PipelineTask):
     load sample reads.
 
     :type species: str
-    :type chrom: str
     """
     species = luigi.Parameter()
-    chrom = luigi.Parameter()
 
     def requires(self):
         yield PopulateAllLoci(self.species)
@@ -66,7 +66,7 @@ class PopulateIntervals(PipelineTask):
         added = 0
         removed = 0
 
-        for chrom in intervals.keys():
+        for chrom in natsorted(intervals.keys()):
             # merge overlapping intervals (up to a maximum size)
             intervals[chrom] = list(merge_intervals(intervals[chrom]))
 
@@ -113,29 +113,21 @@ class PopulateIntervalSNPs(PipelineTask):
 
     :type species: str
     :type population: str
-    :type chrom: str
+    :type interval: str
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
-    chrom = luigi.Parameter()
+    interval = luigi.IntParameter()
 
     def requires(self):
-        yield PopulateIntervals(self.species, self.chrom)
-        yield LoadModernSNPs(self.species, self.population, self.chrom)
+        yield PopulateIntervals(self.species)
+        yield ModernSNPsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
-
-        # tidy up any unfinished interval SNPs
-        dbc.execute_sql("""
-            DELETE s 
-              FROM intervals_snps s
-              JOIN intervals i
-                ON i.id = s.interval_id
-             WHERE i.finished = 0""")
 
         # insert linking records to make future queries much quicker
         exec_time = dbc.execute_sql("""
@@ -146,9 +138,8 @@ class PopulateIntervalSNPs(PipelineTask):
                      ON ms.population = '{population}'
                     AND ms.chrom = i.chrom
                     AND ms.site BETWEEN i.start AND i.end
-                  WHERE i.finished = 0
-                    AND i.chrom = '{chrom}'
-                    AND ms.daf >= {mindaf}""".format(population=self.population, chrom=self.chrom, mindaf=MIN_DAF))
+                  WHERE i.id = {id}
+                    AND ms.daf >= {daf}""".format(population=self.population, id=self.interval, daf=MIN_DAF))
 
         with self.output().open('w') as fout:
             fout.write('INFO: Execution took {}'.format(exec_time))
@@ -159,15 +150,20 @@ class ProcessInterval(PipelineTask):
     Scan all the intervals across this chromosome and add the covered bases to the DB, as long as they are variable in
     the modern data.
 
+    # TODO in table `sample_reads` replace (interval_id ?, chrom, site) with modsnp_id
+    # TODO increase hard threshold to >= 30 / or / delete where called = 0
+
     :type species: str
     """
     species = luigi.Parameter()
-    interval_id = luigi.IntParameter()
+    population = luigi.Parameter()
+    interval = luigi.IntParameter()
 
     def requires(self):
         yield ExternalFASTA(self.species)
-        yield PopulateIntervalSNPs(self.species)
-        yield SamplesPipeline(self.species)
+        yield PopulateIntervalSNPs(self.species, self.population, self.interval)
+        yield LoadSamples(self.species)
+        yield EnsemblPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -179,19 +175,19 @@ class ProcessInterval(PipelineTask):
         # get the reference genome
         ref_file = self.input()[0]
 
-        interval = dbc.get_record('interval', {'id': self.interval_id})
+        interval = dbc.get_record('intervals', {'id': self.interval})
 
         # unpack the interval
         interval_id, chrom, start, end = interval['id'], interval['chrom'], interval['start'], interval['end']
 
         # get all the valid samples
-        samples = dbc.get_records_sql(
-            """SELECT s.*, GROUP_CONCAT(sf.path) paths
-                 FROM samples s
-                 JOIN sample_files sf
-                   ON sf.sample_id = s.id
-                WHERE s.valid = 1
-             GROUP BY s.id""")
+        samples = dbc.get_records_sql("""
+            SELECT s.*, GROUP_CONCAT(sf.path) paths
+             FROM samples s
+             JOIN sample_files sf
+               ON sf.sample_id = s.id
+            WHERE s.valid = 1
+         GROUP BY s.id""")
 
         # get all the modern SNPs in this interval
         snps = dbc.get_records_sql("""
@@ -395,14 +391,10 @@ class ProcessInterval(PipelineTask):
                 if reads:
                     dbc.save_records('sample_reads', fields, reads)
 
-            # update the interval to show we're done
-            interval['finished'] = 1
-            dbc.save_record('intervals', interval)
-
             log.write("INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end))
 
 
-class SampleReadsPipeline(PipelineWrapperTask):
+class SampleReadsPipeline(PipelineTask):
     """
     Load all the samples reads.
 
@@ -411,17 +403,24 @@ class SampleReadsPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
+        yield PopulateIntervals(self.species)
 
-        # open a db connection
+    def output(self):
+        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+
+    def run(self):
         dbc = self.db_conn()
 
-        # get all the intervals we've not finished processing yet
-        intervals = dbc.get_records('intervals', {'finished': 0})
+        # get all the intervals
+        intervals = dbc.get_records('intervals')
 
-        for interval in intervals:
-            # TODO in table `sample_reads` replace (interval_id ?, chrom, site) with modsnp_id
-            # TODO increase hard threshold to >= 30 / or / delete where called = 0
-            yield ProcessInterval(self.species, interval['id'])
+        for population in self.populations:
+            for interval in intervals:
+                # process all the intervals
+                yield ProcessInterval(self.species, population, interval)
+
+        with self.output().open('w') as fout:
+            fout.write('INFO: Processed {} intervals'.format(len(intervals)))
 
 
 if __name__ == '__main__':

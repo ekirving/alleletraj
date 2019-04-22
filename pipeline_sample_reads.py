@@ -15,6 +15,7 @@ from pipeline_consts import MIN_GENO_QUAL, MIN_DAF
 from pipeline_qtls import PopulateAllLoci
 from pipeline_modern_snps import LoadModernSNPs
 from pipeline_snp_call import ExternalFASTA
+from pipeline_samples import SamplesPipeline
 from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd
 
 # minimum depth of coverage to call diploid genotypes
@@ -161,11 +162,12 @@ class ProcessInterval(PipelineTask):
     :type species: str
     """
     species = luigi.Parameter()
-    interval = luigi.IntParameter()
+    interval_id = luigi.IntParameter()
 
     def requires(self):
         yield ExternalFASTA(self.species)
-        pass  # return DownloadEnsemblData(self.species, 'gtf')  # TODO fix me
+        yield PopulateIntervalSNPs(self.species)
+        yield SamplesPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -174,10 +176,10 @@ class ProcessInterval(PipelineTask):
         # open a db connection
         dbc = self.db_conn()
 
-        # TODO update
-        ref_file = self.input()
+        # get the reference genome
+        ref_file = self.input()[0]
 
-        interval = dbc.get_record('interval', {'id': self.interval})
+        interval = dbc.get_record('interval', {'id': self.interval_id})
 
         # unpack the interval
         interval_id, chrom, start, end = interval['id'], interval['chrom'], interval['start'], interval['end']

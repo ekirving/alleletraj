@@ -9,13 +9,13 @@ from pipeline_modern_snps import ModernSNPsPipeline
 from pipeline_ensembl import EnsemblPipeline
 from pipeline_snpchip import SNPChipPipeline
 from pipeline_qtls import QTLPipeline
+from pipeline_samples import SamplesPipeline
 from pipeline_sample_reads import SampleReadsPipeline
+from pipeline_discover_snps import DiscoverSNPsPipeline
+from pipeline_analyse_qtls import AnalyseQTLsPipeline
+from pipeline_ascertainment import AscertainmentPipeline
+from pipeline_selection import SelectionBestQTLSNPs
 
-# from pipeline_sample_reads import *
-from pipeline_discover_snps import DiscoverSNPs
-from pipeline_analyse_qtls import AnalyseQTLs
-from pipeline_samples import populate_pig_samples, populate_horse_samples
-from pipeline_ascertainment import PerformAscertainment
 from graph_derived import graph_derived
 
 # TODO confirm InnoDB tweaks / https://dev.mysql.com/doc/refman/8.0/en/converting-tables-to-innodb.html
@@ -42,35 +42,32 @@ class BuildDatabase(PipelineWrapperTask):
         # ascertain SNPs in modern whole genome data
         yield ModernSNPsPipeline(self.species)
 
-        # link all the Ensembl data
+        # link all the Ensembl data to the modern SNPs
         yield EnsemblPipeline(self.species)
 
-        # link the SNPChip data
+        # link the SNPChip data to the modern SNPs
         yield SNPChipPipeline(self.species)
 
         # load the QTLs from the AnimalQTL database, and other regions of interest
         yield QTLPipeline(self.species)
 
         # load the sample metadata
-        if self.species == 'pig':
-            populate_pig_samples()
-
-        elif self.species == 'horse':
-            populate_horse_samples()
+        yield SamplesPipeline(self.species)
 
         # load the sample reads for each ascertained SNP
         yield SampleReadsPipeline()
 
         # apply quality filters to the sample reads
-        for pop in self.populations:
-            DiscoverSNPs(self.species, pop)
+        yield DiscoverSNPsPipeline(self.species)
 
         # analyse the coverage and quality for SNPs in each QTLs
-        yield AnalyseQTLs(self.species)
+        yield AnalyseQTLsPipeline(self.species)
 
         if self.species == 'pig':
             # pick the best SNPs to target for a capture array
-            yield PerformAscertainment(self.species)
+            yield AscertainmentPipeline(self.species)
 
-        # graph the age of derived alleles
-        graph_derived()
+        # run `selection` on all the 'best' QTL SNPs
+        yield SelectionBestQTLSNPs(self.species)
+
+        # TODO make a plotting pipeline

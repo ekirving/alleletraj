@@ -173,7 +173,7 @@ class ApplyGenotypeFilters(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class DiscoverSNPs(PipelineWrapperTask):
+class DiscoverSNPsPipeline(PipelineWrapperTask):
     """
     Run queries to mark callable SNPs in the ancient populations.
 

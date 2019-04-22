@@ -3,7 +3,7 @@
 
 import luigi
 
-from pipeline_discover_snps import DiscoverSNPs
+from pipeline_discover_snps import DiscoverSNPsPipeline
 from pipeline_utils import PipelineTask, PipelineWrapperTask
 
 # the number of SNPs to model per QTL
@@ -25,7 +25,7 @@ class CountSNPCoverage(PipelineTask):
     db_lock_tables = ['qtl_snps']
 
     def requires(self):
-        return DiscoverSNPs(self.species, self.population, self.chrom)
+        return DiscoverSNPsPipeline(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -179,7 +179,7 @@ class CalculateSummaryStats(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class AnalyseQTLs(PipelineWrapperTask):
+class AnalyseQTLsPipeline(PipelineWrapperTask):
     """
     Run queries to pick the best QTLs and SNPs to run the selection scan on.
 

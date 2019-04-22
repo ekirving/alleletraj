@@ -6,7 +6,9 @@ import os
 import unicodecsv as csv
 
 # import my custom modules
-from pipeline_consts import *
+from pipeline_consts import GENERATION_TIME, POPULATION_SIZE, CPU_CORES_ONE
+from pipeline_discover_snps import DiscoverSNPsPipeline
+from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
 
 # the population history is either: constant, or a fully specified complex demography
@@ -58,6 +60,9 @@ class SelectionInputFile(PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp_id = luigi.IntParameter()
+
+    def requires(self):
+        return DiscoverSNPsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget("selection/{}.input".format(self.basename))
@@ -219,9 +224,9 @@ class SelectionPlot(PipelineTask):
             raise RuntimeError(e)
 
 
-class SelectionHorseGWAS(PipelineWrapperTask):
+class SelectionGWASSNPs(PipelineWrapperTask):
     """
-    Run `selection` on all the direct GWAS hits for horses.
+    Run `selection` on all the direct GWAS hits.
 
     :type species: str
     """
@@ -231,7 +236,7 @@ class SelectionHorseGWAS(PipelineWrapperTask):
 
         dbc = self.db_conn()
 
-        # TODO WTF? why is the qtl_snps join dropping 417 rows? - because of multiple populations!!!
+        # TODO population
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""
             SELECT DISTINCT ms.id
@@ -251,9 +256,9 @@ class SelectionHorseGWAS(PipelineWrapperTask):
                 yield SelectionPlot(self.species, pop, modsnp_id, MCMC_POP_CONST)
 
 
-class SelectionHorseGWASFlankingSNPs(PipelineWrapperTask):
+class SelectionBestQTLSNPs(PipelineWrapperTask):
     """
-    Run `selection` on all the QTL SNPs for hoses
+    Run `selection` on all the 'best' QTL SNPs
 
     :type species: str
     """
@@ -261,8 +266,12 @@ class SelectionHorseGWASFlankingSNPs(PipelineWrapperTask):
 
     def requires(self):
 
+        # mark the best SNPs
+        yield AnalyseQTLsPipeline(self.species)
+
         dbc = self.db_conn()
 
+        # TODO population
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""
             SELECT DISTINCT qs.modsnp_id AS id
@@ -277,35 +286,17 @@ class SelectionHorseGWASFlankingSNPs(PipelineWrapperTask):
             yield SelectionPlot(self.species, 'DOM2WLD', modsnp_id, MCMC_POP_CONST)
 
 
-class SelectionHorseTest(PipelineWrapperTask):
+class SelectionExportSLURM(PipelineWrapperTask):
     """
-    Run `selection` on all a sub-set of SNPs to test MCMC params.
+    Export a script for batch running `selection` on the HPC, using SLURM.
+
+    :type species: str
     """
+    species = luigi.Parameter()
 
     def requires(self):
-
-        # run for DOM2 and DOM2 + WLD
-        pops = ['DOM2', 'DOM2WLD']
-
-        # hand-picked set of SNPs
-        modsnps = [5049478, 5102390]
-
-        # run for both constant pop and full demography
-        histories = [MCMC_POP_CONST,
-                     MCMC_POP_DEMOG]
-
-        # try a few different options
-        params = [(1e6, 1e2),
-                  (1e6, 1e3),
-                  (1e7, 1e3),
-                  (1e7, 1e4),
-                  (1e8, 1e4)]
-
-        for pop in pops:
-            for modsnp_id in modsnps:
-                for pop_hist in histories:
-                    for cycles, freq in params:
-                        yield SelectionPlot('horse', pop, modsnp_id, pop_hist, int(cycles), int(freq))
+        # TODO implement this
+        pass
 
 
 if __name__ == '__main__':

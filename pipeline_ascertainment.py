@@ -563,3 +563,19 @@ class ExportAscertainedSNPs(PipelineTask):
             # write the data to disk
             for read in reads:
                 writer.writerow(read)
+
+
+class AscertainmentPipeline(PipelineWrapperTask):
+    """
+    Perform the ascertainment for the pig SNP capture
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        return ExportAscertainedSNPs(self.species)
+
+
+if __name__ == '__main__':
+    luigi.run()

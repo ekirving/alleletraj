@@ -93,7 +93,7 @@ class LoadSNPChipVariants(PipelineTask):
         # remove the named pipe
         run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
 
-        with self.output().temporary_path() as fout:
+        with self.output().open('w') as fout:
             fout.write('Loaded SNPchimp records')
 
 

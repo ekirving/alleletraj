@@ -419,6 +419,8 @@ class SampleReadsPipeline(PipelineWrapperTask):
         intervals = dbc.get_records('intervals', {'finished': 0})
 
         for interval in intervals:
+            # TODO in table `sample_reads` replace (interval_id ?, chrom, site) with modsnp_id
+            # TODO increase hard threshold to >= 30 / or / delete where called = 0
             yield ProcessInterval(self.species, interval['id'])
 
 

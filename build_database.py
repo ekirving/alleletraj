@@ -17,16 +17,6 @@ from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_ascertainment import AscertainmentPipeline
 from pipeline_selection import SelectionBestQTLSNPs
 
-# TODO confirm InnoDB tweaks / https://dev.mysql.com/doc/refman/8.0/en/converting-tables-to-innodb.html
-# TODO refactor to use snakemake / parallelise the SNP calling part
-# TODO chrom is top level param / use for threading pipeline
-
-# TODO in table `sample_reads` replace (interval_id ?, chrom, site) with modsnp_id
-# TODO increase hard threshold to >= 30 / or / delete where called = 0
-
-# TODO map samples / indicate time / don't want to confuse geography for time
-# TODO have a look at the "pulse" model in Loog paper
-
 
 class BuildDatabase(PipelineWrapperTask):
     """

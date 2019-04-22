@@ -442,6 +442,7 @@ class PopulateHorseSamples(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
+# noinspection SqlResolve
 class BinSamples(PipelineTask):
     """
     Assign samples to temporal bins

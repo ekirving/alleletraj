@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-04-22 08:26:39 +0000
+# Generation Time: 2019-04-22 14:50:34 +0000
 # ************************************************************
 
 
@@ -174,7 +174,6 @@ CREATE TABLE `intervals` (
   `chrom` char(2) NOT NULL DEFAULT '',
   `start` int(11) NOT NULL,
   `end` int(11) NOT NULL,
-  `finished` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -366,12 +365,11 @@ CREATE TABLE `qtls` (
 
 CREATE TABLE `sample_bins` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `sample_id` int(11) unsigned DEFAULT NULL,
-  `bin` varchar(100) DEFAULT NULL,
-  `overlap` int(11) DEFAULT NULL,
-  `perct_overlap` float DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `sample_id` (`sample_id`)
+  `name` varchar(255) NOT NULL DEFAULT '',
+  `lower` int(11) NOT NULL,
+  `upper` int(11) NOT NULL,
+  `num_samples` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -517,6 +515,7 @@ CREATE TABLE `samples` (
   `map_prcnt` float DEFAULT NULL,
   `age` varchar(255) DEFAULT NULL,
   `age_int` int(11) DEFAULT NULL,
+  `bin_id` int(11) DEFAULT NULL,
   `period` varchar(255) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
   `country` varchar(255) DEFAULT NULL,

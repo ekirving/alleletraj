@@ -3,16 +3,15 @@
 
 import luigi
 import os
+import random
 
 # import my custom modules
-# TODO make these into PipelineTask properties
+from pipeline_database import CreateDatabase
 from pipeline_modern_snps import LoadModernSNPs
-from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download
+from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download, trim_ext
 
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \
             'Axiom_MNEc670_Annotation.r2.csv.zip'
-
-# TODO goat data is technically using the wrong assembly, but that might not matter because it has not chrom-pos entries
 
 
 class ExternalSNPchimp(PipelineExternalTask):
@@ -26,6 +25,7 @@ class ExternalSNPchimp(PipelineExternalTask):
     species = luigi.Parameter()
 
     def output(self):
+        # TODO goat is using the wrong assembly, but that might not matter because it has no chrom-pos entries
         return luigi.LocalTarget('snpchip/SNPchimp_{}.tsv.gz'.format(self.assembly))
 
 
@@ -58,22 +58,23 @@ class LoadSNPChipVariants(PipelineTask):
     db_lock_tables = ['snpchip']
 
     def requires(self):
-        return ExternalSNPchimp(self.species)
+        yield CreateDatabase(self.species)
+        yield ExternalSNPchimp(self.species)
 
     def output(self):
-        return luigi.LocalTarget('snpchip/{}-snpchimp.log'.format(self.species))
+        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # get the input file
-        gzip_file = self.input()
+        gzip_file = self.input()[1]
 
         # open a db connection
         dbc = self.db_conn()
 
         # unzip the archive into a named pipe
-        pipe = "tmp/SNPchimp_{}".format(self.species)
-        run_cmd(["mkfifo -m0666 {pipe}".format(pipe=pipe)], shell=True)
-        run_cmd(["gzip --stdout -d  {gz} > {pipe}".format(gz=gzip_file.path, pipe=pipe)], shell=True, background=True)
+        pipe = '{}-luigi-tmp-{:010}'.format(trim_ext(gzip_file.path), random.randrange(0, 1e10))
+        run_cmd(['mkfifo -m0666 {pipe}'.format(pipe=pipe)], shell=True)
+        run_cmd(['gzip --stdout -d  {gz} > {pipe}'.format(gz=gzip_file.path, pipe=pipe)], shell=True, background=True)
 
         # load the data into the db
         dbc.execute_sql("""
@@ -90,12 +91,13 @@ class LoadSNPChipVariants(PipelineTask):
              WHERE rsnumber = 'NULL'""")
 
         # remove the named pipe
-        run_cmd(["rm -f {pipe}".format(pipe=pipe)], shell=True)
+        run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
 
-        with self.output().open('w') as fout:
+        with self.output().temporary_path() as fout:
             fout.write('Loaded SNPchimp records')
 
 
+# noinspection SqlWithoutWhere
 class LoadAxiomEquineHD(PipelineTask):
     """
     SNPchimp doesn't have the details for the Affymetrix Axiom EquineHD array, so we have to load the data separately.
@@ -107,15 +109,15 @@ class LoadAxiomEquineHD(PipelineTask):
     db_lock_tables = ['snpchip']
 
     def requires(self):
-        yield DownloadAxiomEquineHD()
         yield LoadSNPChipVariants(self.species)
+        yield DownloadAxiomEquineHD()
 
     def output(self):
-        return luigi.LocalTarget('snpchip/{}-axiom.log'.format(self.species))
+        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # get the input file
-        axiom_file = self.input()
+        axiom_file = self.input()[1]
 
         # open a db connection
         dbc = self.db_conn()
@@ -124,8 +126,8 @@ class LoadAxiomEquineHD(PipelineTask):
         awk = "awk -F ',' 'NR>1 {print $1 \"\\t\" $4 \"\\t\" $5}'"
 
         # unzip the dump into a named pipe
-        pipe = "/tmp/axiom_mnec670".format(self.species)
-        run_cmd(["mkfifo -m0666 {pipe}".format(pipe=pipe)], shell=True)
+        pipe = '{}-luigi-tmp-{:010}'.format(trim_ext(axiom_file.path), random.randrange(0, 1e10))
+        run_cmd(['mkfifo -m0666 {pipe}'.format(pipe=pipe)], shell=True)
         run_cmd(["unzip -p {axiom} | grep -vP '^#' | {awk} > {pipe}".format(axiom=axiom_file.path, awk=awk, pipe=pipe)],
                 shell=True, background=True)
 
@@ -138,7 +140,7 @@ class LoadAxiomEquineHD(PipelineTask):
               ENCLOSED BY '"' (snp_name, chrom, site)""".format(pipe=pipe))
 
         # remove the named pipe
-        run_cmd(["rm -f {pipe}".format(pipe=pipe)], shell=True)
+        run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
 
         # fix the missing chrom/site data
         dbc.execute_sql("""

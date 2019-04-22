@@ -48,22 +48,22 @@ class BuildDatabase(PipelineWrapperTask):
         yield SamplesPipeline(self.species)
 
         # load the sample reads for each ascertained SNP
-        yield SampleReadsPipeline()
+        yield SampleReadsPipeline(self.species)
 
-        # apply quality filters to the sample reads
-        yield DiscoverSNPsPipeline(self.species)
-
-        # analyse the coverage and quality for SNPs in each QTLs
-        yield AnalyseQTLsPipeline(self.species)
-
-        if self.species == 'pig':
-            # pick the best SNPs to target for a capture array
-            yield AscertainmentPipeline(self.species)
-
-        # run `selection` on all the 'best' QTL SNPs
-        yield SelectionBestQTLSNPs(self.species)
-
-        # TODO make a plotting pipeline
+        # # apply quality filters to the sample reads
+        # yield DiscoverSNPsPipeline(self.species)
+        #
+        # # analyse the coverage and quality for SNPs in each QTLs
+        # yield AnalyseQTLsPipeline(self.species)
+        #
+        # if self.species == 'pig':
+        #     # pick the best SNPs to target for a capture array
+        #     yield AscertainmentPipeline(self.species)
+        #
+        # # run `selection` on all the 'best' QTL SNPs
+        # yield SelectionBestQTLSNPs(self.species)
+        #
+        # # TODO make a plotting pipeline
 
 
 if __name__ == '__main__':

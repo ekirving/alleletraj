@@ -7,12 +7,6 @@ from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage
 
-try:
-    import argparse
-    flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
-except ImportError:
-    flags = None
-
 # If modifying these scopes, delete your previously saved credentials
 # at ~/.credentials/sheets.googleapis.com-python-quickstart.json
 SCOPES = 'https://www.googleapis.com/auth/spreadsheets.readonly'
@@ -39,6 +33,12 @@ def get_credentials():
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
+        try:
+            import argparse
+            flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
+        except ImportError:
+            flags = None
+
         flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
         flow.user_agent = APPLICATION_NAME
         if flags:

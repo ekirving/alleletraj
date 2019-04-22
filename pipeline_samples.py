@@ -3,6 +3,7 @@
 
 import luigi
 import httplib2
+import math
 import os
 
 from collections import defaultdict, OrderedDict
@@ -62,7 +63,7 @@ GOOGLE_SHEET = {
                     ('Name',     'accession'),
                     ('Status',   'status'),
                     ('path',     'path'),
-                    ('Age BP',   'age'),
+                    ('Age BP',   'age_int'),
                     ('Age',      'period'),
                     ('Site',     'location'),
                 ])
@@ -433,7 +434,7 @@ class PopulateHorseSamples(PipelineTask):
 
             bam_file = dict()
             bam_file['sample_id'] = sample['id']
-            bam_file['path'] = '/home/ludo/inbox/BAMs/ancient/' + os.path.basename(path)
+            bam_file['path'] = '/home/ludo/inbox/BAMs/ancient/' + os.path.basename(path)  # TODO fix this
 
             if not dbc.exists_record('sample_files', bam_file):
                 dbc.save_record('sample_files', bam_file)
@@ -442,23 +443,32 @@ class PopulateHorseSamples(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-# noinspection SqlResolve
-class BinSamples(PipelineTask):
+class LoadSamples(PipelineWrapperTask):
     """
-    Assign samples to temporal bins
+    Load all the ancient samples
 
     :type species: str
     """
     species = luigi.Parameter()
-
-    db_lock_tables = ['samples']
 
     def requires(self):
         if self.species == 'pig':
             yield MarkValidPigs()
         elif self.species == 'horse':
             # TODO can we make this generic / add other species
-            yield PopulateHorseSamples()
+            yield PopulateHorseSamples(self.species)
+
+
+class CreateSampleBins(PipelineTask):
+    """
+    Create the sample bins.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        return LoadSamples(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -471,47 +481,82 @@ class BinSamples(PipelineTask):
         # sample_bins
         dbc.execute_sql("TRUNCATE TABLE sample_bins")
 
-        # TODO update to just use the median age
-        # SQL fragment to get the most precise dates for each sample
-        sql_age = """
-            SELECT s.id sample_id,
-                   COALESCE(c14.lower, sd.lower, sd.median + {uncert}) lower,
-                   COALESCE(c14.upper, sd.upper, sd.median - {uncert}) upper
-              FROM samples s
-         LEFT JOIN sample_dates sd
-                ON s.age = sd.age
-         LEFT JOIN sample_dates_c14 c14
-                ON c14.accession = s.accession
-             WHERE s.valid = 1
-               """.format(uncert=MEDIAN_AGE_UNCERT)
-
         # get the maximum date
-        max_lower = dbc.get_records_sql("""
-            SELECT MAX(lower) max_lower
-              FROM ({age}) AS age
-               """.format(age=sql_age), key=None)[0].pop('max_lower')
+        max_age = dbc.get_records_sql("""
+                    SELECT MAX(age_int) max_age
+                      FROM samples
+                       """, key=None)[0].pop('max_age')
 
         # round to nearest multiple of BIN_WIDTH
-        bin_start = int(round(float(max_lower)/BIN_WIDTH) * BIN_WIDTH)
-        bin_end = 0
+        bin_max = int(math.ceil(float(max_age) / BIN_WIDTH) * BIN_WIDTH)
 
         # iterate over each temporal bin
-        for bin_lower in range(bin_start, bin_end, -BIN_WIDTH):
-            bin_upper = bin_lower - BIN_WIDTH
+        for bin_upper in range(0, bin_max, BIN_WIDTH):
+            bin_lower = bin_upper + BIN_WIDTH
+
+            bin = {
+                'name': '{} - {} BP'.format(bin_lower, bin_upper),
+                'lower': bin_lower,
+                'upper': bin_upper + 1
+            }
 
             # get all the samples which overlap this bin by >= BIN_OVERLAP
-            dbc.execute_sql("""
-                 INSERT IGNORE
-                   INTO sample_bins (sample_id, bin, overlap, perct_overlap)
-                 SELECT sample_id,
-                        '{binlower} - {binupper}' AS bin,
-                        LEAST(lower, {binlower}) - GREATEST(upper, {binupper}) AS overlap,
-                        (LEAST(lower, {binlower}) - GREATEST(upper, {binupper})) / (lower - upper) AS perct_overlap
-                   FROM ({age}) as age
-                  WHERE lower >= {binupper}
-                    AND upper <= {binlower}
-                 HAVING perct_overlap >= {binpercent}
-                    """.format(age=sql_age, binpercent=BIN_PERCENT, binlower=bin_lower, binupper=bin_upper))
+            dbc.save_record('sample_bins', bin)
+
+        with self.output().open('w') as fout:
+            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
+
+
+class BinSamples(PipelineTask):
+    """
+    Assign samples to temporal bins.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    db_lock_tables = ['samples']
+
+    def requires(self):
+        return CreateSampleBins(self.species)
+
+    def output(self):
+        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+
+    # noinspection SqlWithoutWhere
+    def run(self):
+        dbc = self.db_conn()
+
+        start = time()
+
+        # reset sample bins
+        dbc.execute_sql("""
+            UPDATE samples
+              SET bin_id = NULL""")
+
+        # assign sample bins
+        dbc.execute_sql("""
+            UPDATE samples s
+              JOIN sample_bins AS sb
+                ON s.age_int BETWEEN sb.upper AND sb.lower
+               SET s.bin_id = sb.id""")
+
+        # reset sample counts
+        dbc.execute_sql("""
+            UPDATE sample_bins
+              SET num_samples = NULL""")
+
+        # update the the sample count for the bins
+        dbc.execute_sql("""
+            UPDATE sample_bins sb
+              JOIN (  SELECT sb.id, COUNT(*) AS cnt
+                        FROM samples s
+                        JOIN sample_bins sb
+                          ON sb.id = s.bin_id
+                    GROUP BY sb.id
+                   ) AS num
+              ON num.id = sb.id
+            SET sb.num_samples = num.cnt""")
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
@@ -526,7 +571,6 @@ class SamplesPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # TODO not designed to work with horses
         # assign samples to temporal bins
         return BinSamples(self.species)
 

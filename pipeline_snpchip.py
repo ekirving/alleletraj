@@ -97,7 +97,6 @@ class LoadSNPChipVariants(PipelineTask):
             fout.write('Loaded SNPchimp records')
 
 
-# noinspection SqlWithoutWhere
 class LoadAxiomEquineHD(PipelineTask):
     """
     SNPchimp doesn't have the details for the Affymetrix Axiom EquineHD array, so we have to load the data separately.
@@ -115,6 +114,7 @@ class LoadAxiomEquineHD(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlWithoutWhere
     def run(self):
         # get the input file
         axiom_file = self.input()[1]

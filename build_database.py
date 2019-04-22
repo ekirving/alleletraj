@@ -38,9 +38,10 @@ class BuildDatabase(PipelineWrapperTask):
 
     def requires(self):
 
-        # create and new database and add all the empty tables
+        # create a new database and add all the empty tables
         yield CreateDatabase(self.species)
 
+        # TODO rethink the use of 'population' in modern SNPs (perhaps replace with pop column in table?)
         # ascertain SNPs in modern whole genome data
         yield ModernSNPsPipeline(self.species)
 

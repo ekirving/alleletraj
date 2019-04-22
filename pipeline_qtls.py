@@ -8,8 +8,8 @@ from natsort import natsorted
 from collections import defaultdict, OrderedDict
 
 # import my custom modules
-# TODO make these into PipelineTask properties
 from pipeline_consts import CHROM_SIZE, MIN_DAF, QTLDB_RELEASE
+from pipeline_database import CreateDatabase
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals
 
@@ -34,13 +34,8 @@ SWEEP_DATA = {
     }
 }
 
-# the Ensembl gene ID
-MC1R_GENE_ID = {
-    'cattle': 'ENSBTAG00000023731',  # see http://www.ensembl.org/Bos_taurus/Gene/Summary?g=ENSBTAG00000023731
-    'goat':   'ENSCHIG00000010476',  # see http://www.ensembl.org/Capra_hircus/Gene/Summary?db=core;g=ENSCHIG00000010476
-    'pig':    'ENSSSCG00000020924',  # see http://www.ensembl.org/Sus_scrofa/Gene/Summary?g=ENSSSCG00000020924
-    'horse':  'ENSECAG00000000900',  # see http://www.ensembl.org/Equus_caballus/Gene/Summary?g=ENSECAG00000000900
-}
+# Melanocortin 1 receptor
+MC1R_GENE = 'MC1R'
 
 
 def extract_qtl_fields(dbfile, fields):
@@ -95,14 +90,15 @@ class PopulateQTLs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return ExternalAnimalQTLdb(self.species)
+        yield CreateDatabase(self.species)
+        yield ExternalAnimalQTLdb(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # get the file containing all the QTL IDs
-        qtl_file = self.input()
+        qtl_file = self.input()[1]
 
         dbc = self.db_conn()
         api = QTLdbAPI()
@@ -119,6 +115,7 @@ class PopulateQTLs(PipelineTask):
             # get all the QTLs already in the DB
             qtls = dbc.get_records('qtls')
 
+            # TODO move AnimalQTLdb id into separate field
             # find the new IDs in the list
             new_ids = list(set(qtl_ids) - set(qtls.keys()))
 
@@ -157,7 +154,7 @@ class PopulateQTLs(PipelineTask):
                 # does the publication exist
                 if not dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
                     # setup the pubmed record
-                    pubmed = api.get_publication(self.species, record['pubmedID'])  # TODO this is broken!!
+                    pubmed = {}  # api.get_publication(self.species, record['pubmedID'])  # TODO this is broken!!
 
                     if pubmed:
                         pubmed['id'] = pubmed.pop('pubmed_ID')
@@ -280,7 +277,7 @@ class PopulateSweepLoci(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        pass  # return BlahBlah(self.species) # TODO fix me
+        yield CreateDatabase(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -361,8 +358,8 @@ class PopulateMC1RLocus(PipelineTask):
     def run(self):
         dbc = self.db_conn()
 
-        # get the MC1R gene details
-        mc1r = dbc.get_record('ensembl_genes', {'gene_id': MC1R_GENE_ID[self.species]})
+        # get the MC1R gene record
+        mc1r = dbc.get_record('ensembl_genes', {'gene_name': MC1R_GENE})
 
         # setup a dummy QTL record
         qtl = {
@@ -447,12 +444,13 @@ class PopulateTraitLoci(PipelineWrapperTask):
 
     def requires(self):
 
-        # load the QTLs from the AnimalQTL database
-        yield PopulateQTLs(self.species)
+        # load the QTLs from the AnimalQTL database, and set the window size
         yield SetQTLWindows(self.species)
 
         # load pseudo-QTLs from other sources
-        yield PopulateSweepLoci(self.species)
+        if self.species == 'pig':
+            yield PopulateSweepLoci(self.species)
+
         yield PopulateMC1RLocus(self.species)
 
         if self.species == 'pig':
@@ -519,23 +517,23 @@ class PopulateNeutralLoci(PipelineTask):
         for result in results:
             intervals[result['chrom']].append((result['start'], result['end']))
 
-        allregions = 'bed/{}_allregions.bed'.format(self.species)
-        nonneutral = 'bed/{}_nonneutral.bed'.format(self.species)
+        all_regions = 'bed/{}_allregions.bed'.format(self.species)
+        non_neutral = 'bed/{}_nonneutral.bed'.format(self.species)
 
         # write a BED file for the whole genome
-        with open(allregions, 'w') as fout:
+        with open(all_regions, 'w') as fout:
             for chrom in self.chromosomes:
                 fout.write('{}\t{}\t{}\n'.format(chrom, 1, CHROM_SIZE[self.assembly][chrom]))
 
         # write all the non-neutral regions to a BED file
-        with open(nonneutral, 'w') as fout:
+        with open(non_neutral, 'w') as fout:
             for chrom in natsorted(intervals.keys()):
                 # merge overlapping intervals
                 for start, stop in merge_intervals(intervals[chrom], capped=False):
                     fout.write('{}\t{}\t{}\n'.format(chrom, start, stop))
 
         # subtract the non-neutral regions from the whole genome
-        loci = run_cmd(['bedtools', 'subtract', '-a', allregions, '-b', nonneutral])
+        loci = run_cmd(['bedtools', 'subtract', '-a', all_regions, '-b', non_neutral])
 
         num_loci = 0
 
@@ -572,7 +570,7 @@ class PopulateAllLoci(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # load all the QTLs and
+        # load all the QTLs and neutral loci
         yield PopulateTraitLoci(self.species)
         yield PopulateNeutralLoci(self.species)
 
@@ -598,7 +596,6 @@ class PopulateQTLSNPs(PipelineTask):
     def run(self):
         dbc = self.db_conn()
 
-        # TODO make sure this work with DOM and DOM2
         # insert linking records to make future queries much quicker
         exec_time = dbc.execute_sql("""
             INSERT INTO qtl_snps (qtl_id, modsnp_id)
@@ -647,10 +644,11 @@ class MarkNeutralSNPs(PipelineTask):
               JOIN qtls q
                 ON q.id = qs.qtl_id
                SET ms.neutral = 1
-             WHERE q.chrom = '{chrom}'
+             WHERE ms.population = '{population}'
+               AND q.chrom = '{chrom}'
                AND q.associationType = 'Neutral'
                AND q.valid = 1
-               """.format(chrom=self.chrom))  # TODO add self.population
+               """.format(population=self.population, chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('INFO: Execution took {}'.format(exec_time))

@@ -213,7 +213,9 @@ class PipelineTask(luigi.Task):
         """
         List of chromosomes identifiers (e.g. 1, 2, ..., X, Y)
         """
-        return CHROM_SIZE[self.assembly]
+        from collections import OrderedDict
+        return OrderedDict([('30', 30062385), ('31', 24984650)])
+        # return CHROM_SIZE[self.assembly]  # TODO restore when done testing
 
     @property
     def classname(self):

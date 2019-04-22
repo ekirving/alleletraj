@@ -12,7 +12,7 @@ from pipeline_consts import CHROM_SIZE
 from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants
 from pipeline_snpchip import LoadSNPChipVariants
 from pipeline_discover_snps import ApplyGenotypeFilters
-from pipeline_qtls import MC1R_GENE_ID  # TODO add gene_name to ensemble table
+from pipeline_qtls import MC1R_GENE
 from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals
 
 # the number of flanking SNPs (on either side) to include
@@ -323,9 +323,9 @@ class FetchMC1RSNPs(PipelineTask):
                AND LENGTH(ev.alt) = 1
          LEFT JOIN snpchip sc
                 ON sc.rsnumber = ev.rsnumber
-             WHERE eg.gene_id = '{gene_id}'
+             WHERE eg.gene_name = '{gene_name}'
           GROUP BY ev.rsnumber
-               """.format(qtl_id=qtl['id'], gene_id=MC1R_GENE_ID[self.species]))
+               """.format(qtl_id=qtl['id'], gene_name=MC1R_GENE))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))

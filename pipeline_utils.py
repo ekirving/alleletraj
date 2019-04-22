@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import subprocess
+import inspect
 import luigi
 import os
+import subprocess
 
 # import common libraries
 from collections import Iterable
@@ -149,6 +150,8 @@ class PipelineTask(luigi.Task):
 
         if hasattr(self, 'db_lock_tables'):
             for table in self.db_lock_tables:
+                # resolve table names that contain task parameters
+                table = table.format(**dict(inspect.getmembers(self)))
                 resources[table] = 1
 
         return resources

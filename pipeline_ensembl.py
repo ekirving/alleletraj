@@ -212,7 +212,7 @@ class LinkEnsemblGenes(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    db_lock_tables = ['modern_snps']
+    db_lock_tables = ['modern_snps_{chrom}']
 
     def requires(self):
         yield LoadEnsemblGenes(self.species)
@@ -249,7 +249,7 @@ class LinkEnsemblVariants(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    db_lock_tables = ['modern_snps']
+    db_lock_tables = ['modern_snps_{chrom}']
 
     def requires(self):
         yield LoadEnsemblVariants(self.species)

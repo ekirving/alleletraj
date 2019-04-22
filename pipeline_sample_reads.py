@@ -122,6 +122,7 @@ class PopulateIntervalSNPs(PipelineTask):
     def requires(self):
         yield PopulateIntervals(self.species)
         yield ModernSNPsPipeline(self.species)
+        yield EnsemblPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -163,7 +164,6 @@ class ProcessInterval(PipelineTask):
         yield ExternalFASTA(self.species)
         yield PopulateIntervalSNPs(self.species, self.population, self.interval)
         yield LoadSamples(self.species)
-        yield EnsemblPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

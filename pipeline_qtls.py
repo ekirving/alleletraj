@@ -10,7 +10,7 @@ from collections import defaultdict, OrderedDict
 # import my custom modules
 from pipeline_consts import CHROM_SIZE, MIN_DAF, QTLDB_RELEASE
 from pipeline_database import CreateDatabase
-from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes
+from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes, EnsemblPipeline
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals
 
 from qtldbapi import QTLdbAPI
@@ -589,6 +589,7 @@ class PopulateQTLSNPs(PipelineTask):
 
     def requires(self):
         yield PopulateAllLoci(self.species)
+        yield EnsemblPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

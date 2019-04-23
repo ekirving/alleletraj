@@ -123,7 +123,7 @@ class LoadSampleReads(PipelineTask):
                    AND ms.site BETWEEN {start} AND {end}
                    AND ms.daf >= {daf}""".format(chrom=chrom, start=start, end=end, daf=MIN_DAF), key='site')
 
-            log.write(u"INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
+            log.write("INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
             # handle chr1 vs. 1 chromosome names
             contig = 'chr' + chrom if self.species == 'horse' else chrom
@@ -138,7 +138,7 @@ class LoadSampleReads(PipelineTask):
                         snp_alleles = [snps[site]['ancestral'], snps[site]['derived']]
 
                         if ref_allele not in snp_alleles:
-                            log.write(u"WARNING: chr{}:{} REF allele {} not found in SNP alleles {}"
+                            log.write("WARNING: chr{}:{} REF allele {} not found in SNP alleles {}"
                                       .format(chrom, site, ref_allele, snp_alleles))
 
                             # remove this site
@@ -169,7 +169,7 @@ class LoadSampleReads(PipelineTask):
                 # fix issue with weird chars in accession code
                 sample['accession'] = sample['accession'].encode('utf-8')
 
-                log.write(u"INFO: Scanning locus chr{}:{}-{} in sample {}"
+                log.write("INFO: Scanning locus chr{}:{}-{} in sample {}"
                           .format(chrom, start, end, sample['accession']))
 
                 # buffer the reads so we can bulk insert them into the db
@@ -229,7 +229,7 @@ class LoadSampleReads(PipelineTask):
                 diploid = [idx for idx in reads if len(reads[idx]) >= MIN_GENO_DEPTH]
 
                 if diploid:
-                    log.write(u"INFO: Calling diploid bases in {:,} sites for sample {}"
+                    log.write("INFO: Calling diploid bases in {:,} sites for sample {}"
                               .format(len(diploid), sample_id))
 
                     # make some temp files
@@ -325,7 +325,7 @@ class LoadSampleReads(PipelineTask):
                 if reads:
                     dbc.save_records('sample_reads', fields, reads)
 
-            log.write(u"INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end))
+            log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end))
             log.close()
             fin.close()
 

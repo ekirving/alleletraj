@@ -181,6 +181,9 @@ class LoadSampleReads(PipelineTask):
                     # open the BAM file for reading
                     with pysam.AlignmentFile(path, 'rb') as bam_file:
 
+                        # get the name of the sample from the readgroup header (may be different that what we're using)
+                        bam_sample = bam_file.header.get('RG').pop()['SM']
+
                         for pileup_column in bam_file.pileup(contig, int(start), int(end)):
 
                             # NOTE PileupColumn.reference_pos is 0 based
@@ -250,7 +253,7 @@ class LoadSampleReads(PipelineTask):
 
                     # bcftools needs the sex specified in a separate file
                     with open(sex_file, 'w') as fout:
-                        fout.write('{}\t{}\n'.format(sample['accession'], sample['sex']))
+                        fout.write('{}\t{}\n'.format(bam_sample, sample['sex']))
 
                     params = {
                         'ref': ref_file.path,

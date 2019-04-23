@@ -55,6 +55,7 @@ GOOGLE_SHEET = {
                 ])
     },
 
+    # TODO carry over the GPS coordinates
     # HorseSelection_LO4EIP-TRANSFERED
     'horse': {
         'id':   '1BMvIwYj-d8t3mpf67rzabrEvDoB8hBZbyS6XfGwcwUU',
@@ -63,6 +64,7 @@ GOOGLE_SHEET = {
                     ('Name',     'accession'),
                     ('Status',   'status'),
                     ('path',     'path'),
+                    ('sex',      'sex'),
                     ('Age BP',   'age_int'),
                     ('Age',      'period'),
                     ('Site',     'location'),
@@ -422,6 +424,9 @@ class PopulateHorseSamples(PipelineTask):
 
             # get the file path
             path = sample.pop('path', None)
+
+            # normalise sex naming (e.g. male -> M)
+            sample['sex'] = sample['sex'][0].upper()
 
             # all horses are valid
             sample['valid'] = 1

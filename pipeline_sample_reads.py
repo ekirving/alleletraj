@@ -120,7 +120,8 @@ class LoadSampleReads(PipelineTask):
              LEFT JOIN ensembl_variants ev
                     ON ev.id = ms.variant_id
                  WHERE ms.chrom = '{chrom}'
-                   AND ms.site BETWEEN {start} AND {end}""".format(chrom=chrom, start=start, end=end), key='site')
+                   AND ms.site BETWEEN {start} AND {end}
+                   AND ms.daf >= {daf}""".format(chrom=chrom, start=start, end=end, daf=MIN_DAF), key='site')
 
             log.write(u"INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
@@ -247,8 +248,8 @@ class LoadSampleReads(PipelineTask):
                     sex_file = 'vcf/{}-{}-ancient.sex'.format(self.species, self.population)
 
                     with open(sex_file, 'w') as fout:
-                        for sample in samples:
-                            fout.write('{}\t{}\n'.format(sample, sample['sex']))
+                        for sid in samples:
+                            fout.write('{}\t{}\n'.format(samples[sid]['accession'], samples[sid]['sex']))
 
                     params = {
                         'ref': ref_file.path,

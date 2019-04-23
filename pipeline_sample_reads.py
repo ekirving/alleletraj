@@ -178,7 +178,7 @@ class LoadSampleReads(PipelineTask):
                     # open the BAM file for reading
                     with pysam.AlignmentFile(path, 'rb') as bam_file:
 
-                        for pileup_column in bam_file.pileup(contig, int(start), int(end) + 1):
+                        for pileup_column in bam_file.pileup(contig, start, end):
 
                             # NOTE PileupColumn.reference_pos is 0 based
                             # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
@@ -249,11 +249,11 @@ class LoadSampleReads(PipelineTask):
 
                     with open(sex_file, 'w') as fout:
                         for i in samples:
-                            fout.write('{}\t{}\n'.format(samples[i]['accession'].decode('utf-8'), samples[i]['sex']))
+                            fout.write('{}\t{}\n'.format(samples[i]['accession'].encode('utf-8'), samples[i]['sex']))
 
                     params = {
                         'ref': ref_file.path,
-                        'reg': '{}:{}-{}'.format(contig, start, int(end) + 1),  # restrict the callable region
+                        'reg': '{}:{}-{}'.format(contig, int(start) + 1, end),  # restrict the callable region
                         'tgs': tgs_file,                                        # only call the specified SNPs
                         'bam': ' '.join(sample['paths'].split(',')),            # use all the BAM files
                         'pld': 'data/{}.ploidy'.format(self.species),

@@ -106,6 +106,10 @@ class LoadSampleReads(PipelineTask):
             WHERE s.valid = 1
          GROUP BY s.id""")
 
+        # fix issue with weird chars in accession code
+        for sid in samples:
+            samples[sid]['accession'] = samples[sid]['accession'].encode('utf-8')
+
         log = log_file.open('w')
         fin = bed_file.open('r')
 
@@ -165,9 +169,6 @@ class LoadSampleReads(PipelineTask):
 
                 # get the sample record
                 sample = samples[sample_id]
-
-                # fix issue with weird chars in accession code
-                sample['accession'] = sample['accession'].encode('utf-8')
 
                 log.write("INFO: Scanning locus chr{}:{}-{} in sample {}"
                           .format(chrom, start, end, sample['accession']))

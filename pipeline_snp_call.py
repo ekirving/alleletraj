@@ -59,11 +59,14 @@ class BCFToolsCall(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
+    def all_samples(self):
+        # include the outgroup in the sample list, as we need it for polarization
+        return [self.outgroup] + self.samples
+
     def requires(self):
         yield ExternalFASTA(self.species)
 
-        # include the outgroup in the sample list, as we need it for polarization
-        for sample in [self.outgroup] + self.samples:
+        for sample in self.all_samples():
             yield ExternalBAM(self.species, sample)
 
     def output(self):
@@ -75,10 +78,15 @@ class BCFToolsCall(PipelineTask):
 
         # bcftools needs the sex specified in a separate file
         sex_file = 'vcf/{}-{}-modern.sex'.format(self.species, self.population)
-
         with open(sex_file, 'w') as fout:
-            for sample in [self.outgroup] + self.samples:
+            for sample in self.all_samples():
                 fout.write('{}\t{}\n'.format(sample, SAMPLE_SEX[self.species][sample]))
+
+        # sample names in the BAM file(s) may not be consistent, so override the @SM code
+        rgs_file = 'vcf/{}-{}-modern.rgs'.format(self.species, self.population)
+        with open(rgs_file, 'w') as fout:
+            for idx, sample in enumerate(self.all_samples()):
+                fout.write('*\t{}\t{}'.format(bam_files[idx], sample))
 
         with self.output().temporary_path() as vcf_out:
             params = {
@@ -90,9 +98,9 @@ class BCFToolsCall(PipelineTask):
                 'vcf': vcf_out
             }
 
-            cmd = "bcftools mpileup --fasta-ref {ref} --regions {chr} --output-type u {bam} | " \
-                  "bcftools call  --multiallelic-caller --ploidy-file {pld} --samples-file {sex} " \
-                  " --output-type z --output {vcf}".format(**params)
+            cmd = "bcftools mpileup --fasta-ref {ref} --regions {chr} --read-groups {rgs} --output-type u {bam} | " \
+                  "bcftools call  --multiallelic-caller --ploidy-file {pld} --samples-file {sex} --output-type z " \
+                  " --output {vcf}".format(**params)
 
             run_cmd([cmd], shell=True)
 

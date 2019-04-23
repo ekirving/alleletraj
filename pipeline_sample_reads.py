@@ -268,7 +268,7 @@ class LoadSampleReads(PipelineTask):
                         'vcf': vcf_file
                     }
 
-                    # call bases with bcftools (and drop indels and other junk)
+                    # call bases with bcftools (and drop indels and other junk, but keen non-variant sites)
                     # uses both --region (random access) and --targets (streaming) for optimal speed
                     # see https://samtools.github.io/bcftools/bcftools.html#mpileup
                     cmd = "bcftools mpileup --fasta-ref {ref} --regions {reg} --targets-file {tgz} --read-groups {rgs}"\

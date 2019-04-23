@@ -122,7 +122,7 @@ class LoadSampleReads(PipelineTask):
                  WHERE ms.chrom = '{chrom}'
                    AND ms.site BETWEEN {start} AND {end}""".format(chrom=chrom, start=start, end=end), key='site')
 
-            log.write(u"INFO: Scanning interval chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
+            log.write(u"INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
             # handle chr1 vs. 1 chromosome names
             contig = 'chr' + chrom if self.species == 'horse' else chrom
@@ -159,13 +159,13 @@ class LoadSampleReads(PipelineTask):
             sample_ids = samples.keys()
             random.shuffle(sample_ids)
 
-            # check all the samples for coverage in this interval
+            # check all the samples for coverage in this locus
             for sample_id in sample_ids:
 
                 # get the sample record
                 sample = samples[sample_id]
 
-                log.write(u"INFO: Scanning interval chr{}:{}-{} in sample {}"
+                log.write(u"INFO: Scanning locus chr{}:{}-{} in sample {}"
                           .format(chrom, start, end, sample['accession']))
 
                 # buffer the reads so we can bulk insert them into the db
@@ -177,7 +177,6 @@ class LoadSampleReads(PipelineTask):
                     # open the BAM file for reading
                     with pysam.AlignmentFile(path, 'rb') as bam_file:
 
-                        # get the full interval
                         for pileup_column in bam_file.pileup(contig, int(start), int(end) + 1):
 
                             # NOTE PileupColumn.reference_pos is 0 based
@@ -321,7 +320,7 @@ class LoadSampleReads(PipelineTask):
                 if reads:
                     dbc.save_records('sample_reads', fields, reads)
 
-            log.write(u"INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end))
+            log.write(u"INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end))
             log.close()
             fin.close()
 

@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-04-23 12:41:52 +0000
+# Generation Time: 2019-04-23 12:59:11 +0000
 # ************************************************************
 
 
@@ -379,7 +379,6 @@ CREATE TABLE `sample_quality` (
 
 CREATE TABLE `sample_reads` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `interval_id` int(11) unsigned NOT NULL,
   `sample_id` int(11) unsigned NOT NULL,
   `chrom` varchar(2) NOT NULL DEFAULT '',
   `site` int(11) NOT NULL,
@@ -391,7 +390,6 @@ CREATE TABLE `sample_reads` (
   `quality` tinyint(1) DEFAULT NULL,
   `called` tinyint(1) DEFAULT NULL,
   KEY `id` (`id`),
-  KEY `intervalID` (`interval_id`),
   KEY `sampleID` (`sample_id`),
   KEY `chrom` (`chrom`,`site`),
   KEY `snp` (`called`)

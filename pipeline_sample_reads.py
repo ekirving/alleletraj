@@ -111,7 +111,7 @@ class LoadSampleReads(PipelineTask):
 
         # iterate over the loci in the BED file
         for locus in fin:
-            chrom, start, end = locus
+            chrom, start, end = locus.split()
 
             # get all the modern SNPs in this locus
             snps = dbc.get_records_sql("""

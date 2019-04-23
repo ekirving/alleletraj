@@ -6,7 +6,8 @@ from __future__ import print_function
 import luigi
 import pysam
 import os
-from random import shuffle
+import random
+import glob
 
 from collections import defaultdict
 from natsort import natsorted
@@ -239,7 +240,7 @@ class ProcessInterval(PipelineTask):
 
             # randomise the order of samples to reduce disk I/O for parallel jobs
             ids = samples.keys()
-            shuffle(ids)
+            random.shuffle(ids)
 
             # check all the samples for coverage in this interval
             for sample_id in ids:
@@ -308,9 +309,10 @@ class ProcessInterval(PipelineTask):
                     log.write(u"INFO: Calling diploid bases in {:,} sites for sample {}"
                               .format(len(diploid), sample_id))
 
-                    # TODO make these temp files
-                    pos_file = 'vcf/diploid-int{}-sample{}.tsv'.format(interval_id, sample_id)
-                    vcf_file = 'vcf/diploid-int{}-sample{}.vcf'.format(interval_id, sample_id)
+                    # make some temp files
+                    suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
+                    pos_file = 'vcf/diploid-int{}-sample{}-{}.tsv'.format(interval_id, sample_id, suffix)
+                    vcf_file = 'vcf/diploid-int{}-sample{}-{}.vcf'.format(interval_id, sample_id, suffix)
 
                     # sort the diploid positions
                     diploid.sort()
@@ -376,8 +378,9 @@ class ProcessInterval(PipelineTask):
 
                             dbc.save_record('sample_reads', read)
 
-                    # delete the used VCF file
-                    os.remove(vcf_file)
+                    # delete the temp files
+                    for tmp in glob.glob("vcf/*{}*".format(suffix)):
+                        os.remove(tmp)
 
                 # apply hard filters before inserting (otherwise we swamp the DB with too many low quality reads)
                 reads = [read for (chrom, site) in reads for read in reads[(chrom, site)]

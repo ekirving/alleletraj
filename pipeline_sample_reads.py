@@ -173,7 +173,7 @@ class ProcessInterval(PipelineTask):
         dbc = self.db_conn()
 
         # get the reference genome
-        ref_file = self.input()[0]
+        ref_file, _, _ = self.input()
 
         interval = dbc.get_record('intervals', {'id': self.interval})
 

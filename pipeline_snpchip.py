@@ -67,7 +67,7 @@ class LoadSNPChipVariants(PipelineTask):
 
     def run(self):
         # get the input file
-        gzip_file = self.input()[0]
+        gzip_file, _ = self.input()
 
         # open a db connection
         dbc = self.db_conn()
@@ -119,7 +119,7 @@ class LoadAxiomEquineHD(PipelineTask):
     # noinspection SqlWithoutWhere
     def run(self):
         # get the input file
-        axiom_file = self.input()[0]
+        axiom_file, _, _ = self.input()
 
         # open a db connection
         dbc = self.db_conn()

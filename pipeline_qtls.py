@@ -98,7 +98,7 @@ class PopulateQTLs(PipelineTask):
 
     def run(self):
         # get the file containing all the QTL IDs
-        qtl_file = self.input()[1]
+        _, qtl_file = self.input()
 
         dbc = self.db_conn()
         api = QTLdbAPI()

@@ -181,9 +181,6 @@ class LoadSampleReads(PipelineTask):
                     # open the BAM file for reading
                     with pysam.AlignmentFile(path, 'rb') as bam_file:
 
-                        # get the name of the sample from the readgroup header (may be different that what we're using)
-                        bam_sample = bam_file.header.get('RG').pop()['SM']
-
                         for pileup_column in bam_file.pileup(contig, int(start), int(end)):
 
                             # NOTE PileupColumn.reference_pos is 0 based
@@ -232,33 +229,38 @@ class LoadSampleReads(PipelineTask):
                     log.write("INFO: Calling diploid bases in {:,} sites for sample {}"
                               .format(len(diploid), sample_id))
 
-                    # make some temp files
                     suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
-                    vcf_file = 'vcf/diploid-sample{}-{}.vcf'.format(sample_id, suffix)
-                    sex_file = 'vcf/diploid-sample{}-{}.sex'.format(sample_id, suffix)
-                    pos_file = 'vcf/diploid-sample{}-{}.tsv'.format(sample_id, suffix)
-                    tgs_file = "{}.gz".format(pos_file)
+
+                    # make some temp files
+                    vcf_file, sex_file, tsv_file, tgz_file, rgs_file,  = [
+                        'vcf/diploid-sample{}-{}.{}'.format(sample_id, suffix, ext) for ext in
+                        ['vcf', 'sex', 'tsv', 'tsv.gz', 'rgs']]
 
                     # sort the diploid positions
                     diploid.sort()
 
                     # save all the callable positions to a file
-                    with open(pos_file, 'w') as fout:
+                    with open(tsv_file, 'w') as fout:
                         fout.write("\n".join("{}\t{}\t{},{}".format(contig, site, snps[site]['ref'], snps[site]['alt'])
                                              for (chrom, site) in diploid))
 
                     # bgzip and index the target file
-                    run_cmd(["bgzip -c {} > {}".format(pos_file, tgs_file)], shell=True)
-                    run_cmd(["tabix -s1 -b2 -e2 {}".format(tgs_file)], shell=True)
+                    run_cmd(["bgzip -c {} > {}".format(tsv_file, tgz_file)], shell=True)
+                    run_cmd(["tabix -s1 -b2 -e2 {}".format(tgz_file)], shell=True)
+
+                    # sample names in the BAM file(s) may not be consistent, so override the @SM code with accession
+                    with open(rgs_file, 'w') as fout:
+                        for path in sample['paths'].split(','):
+                            fout.write('*\t{}\t{}'.format(path, sample['accession']))
 
                     # bcftools needs the sex specified in a separate file
                     with open(sex_file, 'w') as fout:
-                        fout.write('{}\t{}\n'.format(bam_sample, sample['sex']))
+                        fout.write('{}\t{}\n'.format(sample['accession'], sample['sex']))
 
                     params = {
                         'ref': ref_file.path,
                         'reg': '{}:{}-{}'.format(contig, int(start) + 1, end),  # restrict the callable region
-                        'tgs': tgs_file,                                        # only call the specified SNPs
+                        'tgz': tgz_file,                                        # only call the specified SNPs
                         'bam': ' '.join(sample['paths'].split(',')),            # use all the BAM files
                         'pld': 'data/{}.ploidy'.format(self.species),
                         'sex': sex_file,
@@ -268,10 +270,11 @@ class LoadSampleReads(PipelineTask):
                     # call bases with bcftools (and drop indels and other junk)
                     # uses both --region (random access) and --targets (streaming) for optimal speed
                     # see https://samtools.github.io/bcftools/bcftools.html#mpileup
-                    cmd = "bcftools mpileup --fasta-ref {ref} --regions {reg} --targets-file {tgs} -O u {bam} | " \
+                    cmd = "bcftools mpileup --fasta-ref {ref} --regions {reg} --targets-file {tgz} --read-groups {rgs}"\
+                          " --output-type u {bam} | " \
                           "bcftools call --multiallelic-caller --ploidy-file {pld} --samples-file {sex} " \
-                          " --targets-file {tgs} --constrain alleles --output-type u | " \
-                          "bcftools view --types snps --exclude INFO/INDEL=1 --output-type v --output-file {vcf} " \
+                          " --targets-file {tgz} --constrain alleles --output-type u | " \
+                          "bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf} " \
                           .format(**params)
 
                     # run the base calling
@@ -284,8 +287,8 @@ class LoadSampleReads(PipelineTask):
                         # https://pysam.readthedocs.io/en/latest/api.html#pysam.VariantRecord.pos
                         site = rec.pos
 
-                        # get the genotype call for this site (without having to know the @SM code used in the BAM file)
-                        geno = rec.samples.values().pop()['GT']
+                        # get the genotype call for this site
+                        geno = rec.samples[sample['accession']]['GT']
 
                         # get the genotype quality
                         genoq = int(rec.qual)

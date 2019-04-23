@@ -248,8 +248,8 @@ class LoadSampleReads(PipelineTask):
                     sex_file = 'vcf/{}-{}-ancient.sex'.format(self.species, self.population)
 
                     with open(sex_file, 'w') as fout:
-                        for sid in samples:
-                            fout.write('{}\t{}\n'.format(samples[sid]['accession'], samples[sid]['sex']))
+                        for i in samples:
+                            fout.write('{}\t{}\n'.format(samples[i]['accession'].decode('utf-8'), samples[i]['sex']))
 
                     params = {
                         'ref': ref_file.path,

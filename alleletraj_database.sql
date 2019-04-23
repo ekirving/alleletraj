@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-04-22 14:50:34 +0000
+# Generation Time: 2019-04-23 12:41:52 +0000
 # ************************************************************
 
 
@@ -24,51 +24,6 @@
 # ------------------------------------------------------------
 
 CREATE TABLE `ascertainment` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `qtl_id` int(11) unsigned DEFAULT NULL,
-  `type` varchar(255) NOT NULL DEFAULT '',
-  `rsnumber` varchar(255) NOT NULL DEFAULT '',
-  `chrom` char(2) NOT NULL DEFAULT '',
-  `site` int(11) NOT NULL,
-  `ref` char(1) NOT NULL DEFAULT '',
-  `alt` char(1) NOT NULL DEFAULT '',
-  `chip_name` varchar(255) DEFAULT '',
-  `snp_name` varchar(510) DEFAULT '',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `qtl_id` (`qtl_id`,`chrom`,`site`),
-  KEY `chrom` (`chrom`,`site`),
-  KEY `rsnumber` (`rsnumber`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table ascertainment_coverage
-# ------------------------------------------------------------
-
-CREATE TABLE `ascertainment_coverage` (
-  `sample_id` int(11) unsigned NOT NULL,
-  `perc` decimal(24,4) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table ascertainment_jake
-# ------------------------------------------------------------
-
-CREATE TABLE `ascertainment_jake` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `rsnumber` varchar(255) NOT NULL DEFAULT '',
-  `cat` varchar(10) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`),
-  KEY `rsnumber` (`rsnumber`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table ascertainment_old
-# ------------------------------------------------------------
-
-CREATE TABLE `ascertainment_old` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `qtl_id` int(11) unsigned DEFAULT NULL,
   `type` varchar(255) NOT NULL DEFAULT '',
@@ -163,32 +118,6 @@ CREATE TABLE `ensembl_variants` (
  PARTITION pX VALUES IN ('X') ENGINE = InnoDB,
  PARTITION pY VALUES IN ('Y') ENGINE = InnoDB,
  PARTITION pMT VALUES IN ('MT') ENGINE = InnoDB) */;
-
-
-
-# Dump of table intervals
-# ------------------------------------------------------------
-
-CREATE TABLE `intervals` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `chrom` char(2) NOT NULL DEFAULT '',
-  `start` int(11) NOT NULL,
-  `end` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table intervals_snps
-# ------------------------------------------------------------
-
-CREATE TABLE `intervals_snps` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `interval_id` int(11) unsigned NOT NULL,
-  `modsnp_id` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `interval_id` (`interval_id`,`modsnp_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 

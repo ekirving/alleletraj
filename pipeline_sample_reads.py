@@ -326,8 +326,9 @@ class LoadSampleReads(PipelineTask):
                     dbc.save_records('sample_reads', fields, reads)
 
             log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end))
-            log.close()
-            fin.close()
+
+        log.close()
+        fin.close()
 
 
 class SampleReadsPipeline(PipelineWrapperTask):

@@ -232,6 +232,7 @@ class LoadSampleReads(PipelineTask):
                     # make some temp files
                     suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
                     vcf_file = 'vcf/diploid-sample{}-{}.vcf'.format(sample_id, suffix)
+                    sex_file = 'vcf/diploid-sample{}-{}.sex'.format(sample_id, suffix)
                     pos_file = 'vcf/diploid-sample{}-{}.tsv'.format(sample_id, suffix)
                     tgs_file = "{}.gz".format(pos_file)
 
@@ -248,7 +249,6 @@ class LoadSampleReads(PipelineTask):
                     run_cmd(["tabix -s1 -b2 -e2 {}".format(tgs_file)], shell=True)
 
                     # bcftools needs the sex specified in a separate file
-                    sex_file = 'vcf/{}-{}.sex'.format(self.species, sample['accession'])
                     with open(sex_file, 'w') as fout:
                         fout.write('{}\t{}\n'.format(sample['accession'], sample['sex']))
 

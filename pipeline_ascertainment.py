@@ -46,7 +46,7 @@ class FlagSNPsNearIndels(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    db_lock_tables = ['ensembl_variants']
+    db_lock_tables = ['ensembl_variants_{chrom}']
 
     def requires(self):
         return ApplyGenotypeFilters(self.species, self.population, self.chrom)

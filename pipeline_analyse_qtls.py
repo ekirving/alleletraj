@@ -30,11 +30,11 @@ class CountSNPCoverage(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlWithoutWhere
     def run(self):
         # open a db connection
         dbc = self.db_conn()
 
-        # TODO add population
         exec_time = dbc.execute_sql("""
             UPDATE qtl_snps
               JOIN (
@@ -51,14 +51,15 @@ class CountSNPCoverage(PipelineTask):
                          AND sr.called = 1
                         JOIN samples s
                           ON s.id = sr.sample_id
-                       WHERE q.chrom = '{chrom}'
+                       WHERE ms.population = '{population}'
+                         AND q.chrom = '{chrom}'
                          AND q.valid = 1
                     GROUP BY qs.id
     
                     ) AS num
                       ON num.id = qtl_snps.id
     
-               SET qtl_snps.num_reads = num.num_reads""".format(chrom=self.chrom))
+               SET qtl_snps.num_reads = num.num_reads""".format(population=self.population, chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -84,11 +85,11 @@ class FindBestSNPs(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlWithoutWhere
     def run(self):
         # open a db connection
         dbc = self.db_conn()
 
-        # TODO add population
         exec_time = dbc.execute_sql("""
             UPDATE qtl_snps
               JOIN (
@@ -101,7 +102,8 @@ class FindBestSNPs(PipelineTask):
                           ON qs.qtl_id = q.id
                         JOIN modern_snps ms
                           ON ms.id = qs.modsnp_id
-                       WHERE q.chrom = '{chrom}'
+                       WHERE ms.population = '{population}'
+                         AND q.chrom = '{chrom}'
                          AND q.valid = 1
                          AND qs.num_reads IS NOT NULL
                     GROUP BY qtl_id
@@ -110,7 +112,7 @@ class FindBestSNPs(PipelineTask):
                       ON qtl_snps.qtl_id = best.qtl_id
                      AND FIND_IN_SET(qtl_snps.id, best.qtl_snps)
     
-                SET qtl_snps.best = 1""".format(chrom=self.chrom, num_snps=SNPS_PER_QTL))
+                SET qtl_snps.best = 1""".format(population=self.population, chrom=self.chrom, num_snps=SNPS_PER_QTL))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -141,7 +143,6 @@ class CalculateSummaryStats(PipelineTask):
         # remove any existing stats for this chromosome
         dbc.execute_sql("TRUNCATE qtl_stats")
 
-        # TODO add population
         exec_time = dbc.execute_sql("""
             INSERT INTO qtl_stats (qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, 
                                    avg_samples, max_reads, avg_reads)
@@ -168,12 +169,13 @@ class CalculateSummaryStats(PipelineTask):
                               ON sr.chrom = ms.chrom
                              AND sr.site = ms.site
                              AND sr.called = 1
-                           WHERE q.valid = 1
+                           WHERE ms.population = '{population}'
                              AND q.chrom = '{chrom}'
+                             AND q.valid = 1
                         GROUP BY qs.id
 
                          ) as snps
-               GROUP BY snps.qtl_id""".format(chrom=self.chrom))
+               GROUP BY snps.qtl_id""".format(population=self.population, chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))

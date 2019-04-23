@@ -627,7 +627,7 @@ class MarkNeutralSNPs(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    db_lock_tables = ['modern_snps']
+    db_lock_tables = ['modern_snps_{chrom}']
 
     def requires(self):
         return PopulateQTLSNPs(self.species, self.population, self.chrom)

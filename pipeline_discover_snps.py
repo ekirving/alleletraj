@@ -3,12 +3,7 @@
 
 from __future__ import print_function
 
-from time import time
-from datetime import timedelta
-
 from pipeline_sample_reads import *
-from pipeline_qtls import *
-
 from pipeline_utils import *
 
 
@@ -31,7 +26,7 @@ class ResetFlags(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    db_lock_tables = ['sample_reads']
+    db_lock_tables = ['sample_reads_{chrom}']
 
     def requires(self):
         return SampleReadsPipeline(self.species)
@@ -66,7 +61,7 @@ class ApplyQualityFilters(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    db_lock_tables = ['sample_reads']
+    db_lock_tables = ['sample_reads_{chrom}']
 
     def requires(self):
         return ResetFlags(self.species, self.population, self.chrom)
@@ -103,7 +98,7 @@ class ChooseRandomRead(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    db_lock_tables = ['sample_reads']
+    db_lock_tables = ['sample_reads_{chrom}']
 
     def requires(self):
         return ApplyQualityFilters(self.species, self.population, self.chrom)
@@ -114,7 +109,7 @@ class ChooseRandomRead(PipelineTask):
     def run(self):
         dbc = self.db_conn()
 
-        # TODO add population
+        # noinspection SqlResolve
         exec_time = dbc.execute_sql("""
         UPDATE sample_reads
           JOIN (  
@@ -130,6 +125,7 @@ class ChooseRandomRead(PipelineTask):
                 GROUP BY sr.chrom, sr.site, sr.sample_id
                 
                ) AS rand ON rand.id = sample_reads.id
+         WHERE chrom = '{chrom}'
            SET called = 1
            """.format(population=self.population, chrom=self.chrom))
 
@@ -149,7 +145,7 @@ class ApplyGenotypeFilters(PipelineTask):
     population = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    db_lock_tables = ['sample_reads']
+    db_lock_tables = ['sample_reads_{chrom}']
 
     def requires(self):
         return ChooseRandomRead(self.species, self.population, self.chrom)

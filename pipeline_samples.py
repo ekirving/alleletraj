@@ -494,14 +494,14 @@ class CreateSampleBins(PipelineTask):
         for bin_upper in range(0, bin_max, BIN_WIDTH):
             bin_lower = bin_upper + BIN_WIDTH
 
-            bin = {
+            sample_bin = {
                 'name': '{} - {} BP'.format(bin_lower, bin_upper),
                 'lower': bin_lower,
                 'upper': bin_upper + 1
             }
 
             # get all the samples which overlap this bin by >= BIN_OVERLAP
-            dbc.save_record('sample_bins', bin)
+            dbc.save_record('sample_bins', sample_bin)
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))

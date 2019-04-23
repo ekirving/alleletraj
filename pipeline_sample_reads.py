@@ -247,7 +247,7 @@ class ProcessInterval(PipelineTask):
                 # get the sample
                 sample = samples[sample_id]
 
-                log.write("INFO: Scanning interval chr{}:{}-{} in sample {}"
+                log.write(u"INFO: Scanning interval chr{}:{}-{} in sample {}"
                           .format(chrom, start, end, sample['accession']))
 
                 # buffer the reads so we can bulk insert them into the db
@@ -305,7 +305,7 @@ class ProcessInterval(PipelineTask):
                 diploid = [idx for idx in reads if len(reads[idx]) >= MIN_GENO_DEPTH]
 
                 if diploid:
-                    log.write("INFO: Calling diploid bases in {:,} sites for sample {}"
+                    log.write(u"INFO: Calling diploid bases in {:,} sites for sample {}"
                               .format(len(diploid), sample_id))
 
                     # TODO make these temp files
@@ -391,7 +391,7 @@ class ProcessInterval(PipelineTask):
                 if reads:
                     dbc.save_records('sample_reads', fields, reads)
 
-            log.write("INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end))
+            log.write(u"INFO: Found {:,} reads for interval chr{}:{}-{}".format(num_reads, chrom, start, end))
 
 
 class SampleReadsPipeline(PipelineTask):

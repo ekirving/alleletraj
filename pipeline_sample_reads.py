@@ -166,6 +166,9 @@ class LoadSampleReads(PipelineTask):
                 # get the sample record
                 sample = samples[sample_id]
 
+                # fix issue with weird chars in accession code
+                sample['accession'] = sample['accession'].encode('utf-8')
+
                 log.write(u"INFO: Scanning locus chr{}:{}-{} in sample {}"
                           .format(chrom, start, end, sample['accession']))
 
@@ -245,11 +248,9 @@ class LoadSampleReads(PipelineTask):
                     run_cmd(["tabix -s1 -b2 -e2 {}".format(tgs_file)], shell=True)
 
                     # bcftools needs the sex specified in a separate file
-                    sex_file = 'vcf/{}-{}-ancient.sex'.format(self.species, self.population)
-
+                    sex_file = 'vcf/{}-{}.sex'.format(self.species, sample['accession'])
                     with open(sex_file, 'w') as fout:
-                        for i in samples:
-                            fout.write('{}\t{}\n'.format(samples[i]['accession'].encode('utf-8'), samples[i]['sex']))
+                        fout.write('{}\t{}\n'.format(sample['accession'], sample['sex']))
 
                     params = {
                         'ref': ref_file.path,

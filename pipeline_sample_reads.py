@@ -178,7 +178,7 @@ class LoadSampleReads(PipelineTask):
                     # open the BAM file for reading
                     with pysam.AlignmentFile(path, 'rb') as bam_file:
 
-                        for pileup_column in bam_file.pileup(contig, start, end):
+                        for pileup_column in bam_file.pileup(contig, int(start), int(end)):
 
                             # NOTE PileupColumn.reference_pos is 0 based
                             # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos

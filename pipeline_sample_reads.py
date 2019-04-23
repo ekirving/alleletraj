@@ -40,7 +40,7 @@ class MergeAllLoci(PipelineTask):
         yield PopulateAllLoci(self.species)
 
     def output(self):
-        return luigi.LocalTarget('bed/{}-merged-loci.bed'.format(self.basename))
+        return luigi.LocalTarget('bed/{}-loci.bed'.format(self.basename))
 
     def run(self):
         # open a db connection
@@ -54,17 +54,21 @@ class MergeAllLoci(PipelineTask):
                AND q.valid = 1
           ORDER BY q.start, q.end""".format(chrom=self.chrom), key=None)
 
-        all_loci = 'bed/{}-all-loci.bed'.format(self.basename)
+        tmp_loci = 'bed/{}-tmp-loci.bed'.format(self.basename)
 
         # write all the QTL regions to a BED file
-        with open(all_loci, 'w') as fout:
+        with open(tmp_loci, 'w') as fout:
             for locus in loci:
                 # NOTE that BED starts are zero-based and BED ends are one-based
                 fout.write('{}\t{}\t{}\n'.format(locus['chrom'], locus['start']-1, locus['end']))
 
         # now merge overlapping loci
-        bed = run_cmd(['bedtools', 'merge', '-i', all_loci])
+        bed = run_cmd(['bedtools', 'merge', '-i', tmp_loci])
 
+        # tidy up the tmp file
+        os.remove(tmp_loci)
+
+        # save the merged loci
         with self.output().open('w') as fout:
             fout.write(bed)
 

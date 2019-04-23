@@ -657,7 +657,7 @@ class MarkNeutralSNPs(PipelineTask):
 
 class QTLPipeline(PipelineWrapperTask):
     """
-    Call SNPs using the bcftools `mpileup | call` workflow.
+    Load all the QTLs, pseudo-QTLs and Neutral regions.
 
     :type species: str
     """

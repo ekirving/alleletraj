@@ -74,7 +74,7 @@ class BCFToolsCall(PipelineTask):
         ref_file, bam_files = self.input()[0], self.input()[1:]
 
         # bcftools needs the sex specified in a separate file
-        sex_file = 'vcf/{}_{}.sex'.format(self.species, self.population)
+        sex_file = 'vcf/{}-{}-modern.sex'.format(self.species, self.population)
 
         with open(sex_file, 'w') as fout:
             for sample in [self.outgroup] + self.samples:

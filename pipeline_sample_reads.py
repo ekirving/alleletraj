@@ -178,7 +178,7 @@ class LoadSampleReads(PipelineTask):
                     with pysam.AlignmentFile(path, 'rb') as bam_file:
 
                         # get the full interval
-                        for pileup_column in bam_file.pileup(contig, start, end + 1):
+                        for pileup_column in bam_file.pileup(contig, int(start), int(end) + 1):
 
                             # NOTE PileupColumn.reference_pos is 0 based
                             # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
@@ -253,9 +253,9 @@ class LoadSampleReads(PipelineTask):
 
                     params = {
                         'ref': ref_file.path,
-                        'reg': '{}:{}-{}'.format(contig, start, end + 1),  # restrict the callable region
-                        'tgs': tgs_file,                                   # only call the specified SNPs
-                        'bam': ' '.join(sample['paths'].split(',')),       # use all the BAM files
+                        'reg': '{}:{}-{}'.format(contig, start, int(end) + 1),  # restrict the callable region
+                        'tgs': tgs_file,                                        # only call the specified SNPs
+                        'bam': ' '.join(sample['paths'].split(',')),            # use all the BAM files
                         'pld': 'data/{}.ploidy'.format(self.species),
                         'sex': sex_file,
                         'vcf': vcf_file

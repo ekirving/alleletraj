@@ -417,10 +417,8 @@ class SampleReadsPipeline(PipelineTask):
         # get all the intervals
         intervals = dbc.get_records('intervals')
 
-        for population in self.populations:
-            for interval in intervals:
-                # process all the intervals
-                yield ProcessInterval(self.species, population, interval)
+        # process all the intervals
+        yield [ProcessInterval(self.species, pop, interval) for pop in self.populations for interval in intervals]
 
         with self.output().open('w') as fout:
             fout.write('INFO: Processed {} intervals'.format(len(intervals)))

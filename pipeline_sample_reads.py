@@ -261,6 +261,7 @@ class LoadSampleReads(PipelineTask):
                         'ref': ref_file.path,
                         'reg': '{}:{}-{}'.format(contig, int(start) + 1, end),  # restrict the callable region
                         'tgz': tgz_file,                                        # only call the specified SNPs
+                        'rgs': rgs_file,
                         'bam': ' '.join(sample['paths'].split(',')),            # use all the BAM files
                         'pld': 'data/{}.ploidy'.format(self.species),
                         'sex': sex_file,

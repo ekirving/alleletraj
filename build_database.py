@@ -50,9 +50,9 @@ class BuildDatabase(PipelineWrapperTask):
         # load the sample reads for each ascertained SNP
         yield SampleReadsPipeline(self.species)
 
-        # # apply quality filters to the sample reads
-        # yield DiscoverSNPsPipeline(self.species)
-        #
+        # apply quality filters to the sample reads
+        yield DiscoverSNPsPipeline(self.species)
+
         # # analyse the coverage and quality for SNPs in each QTLs
         # yield AnalyseQTLsPipeline(self.species)
         #

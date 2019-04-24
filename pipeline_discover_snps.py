@@ -37,13 +37,15 @@ class ResetFlags(PipelineTask):
     def run(self):
         dbc = self.db_conn()
 
-        # TODO add population
         exec_time = dbc.execute_sql("""
-             UPDATE sample_reads
-                SET quality = NULL,
-                    called = NULL
-              WHERE chrom = '{chrom}'
-              """.format(chrom=self.chrom))
+             UPDATE sample_reads sr
+               JOIN samples s
+                 ON s.id = sr.sample_id
+                SET sr.quality = NULL,
+                    sr.called = NULL
+              WHERE s.population = '{pop}'
+                AND sr.chrom = '{chrom}'
+              """.format(pop=self.population, chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -72,15 +74,18 @@ class ApplyQualityFilters(PipelineTask):
     def run(self):
         dbc = self.db_conn()
 
-        # TODO add population
         exec_time = dbc.execute_sql("""
             UPDATE sample_reads sr
+              JOIN samples s
+                ON s.id = sr.sample_id
                SET sr.quality = 1
-             WHERE sr.chrom = '{chrom}'
+             WHERE s.population = '{pop}'
+               AND sr.chrom = '{chrom}'
                AND sr.baseq >= {baseq}
                AND sr.mapq >= {mapq}
                AND sr.dist > {clip}
-               """.format(chrom=self.chrom, baseq=MIN_BASE_QUAL, mapq=MIN_MAP_QUAL, clip=SOFT_CLIP_DIST))
+               """.format(pop=self.population, chrom=self.chrom, baseq=MIN_BASE_QUAL, mapq=MIN_MAP_QUAL,
+                          clip=SOFT_CLIP_DIST))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -111,23 +116,26 @@ class ChooseRandomRead(PipelineTask):
 
         # noinspection SqlResolve
         exec_time = dbc.execute_sql("""
-        UPDATE sample_reads
+        UPDATE sample_reads sr
           JOIN (  
                   SELECT SUBSTRING_INDEX(GROUP_CONCAT(sr.id ORDER BY RAND()), ',',  1) id
                     FROM sample_reads sr
+                    JOIN samples s
+                      ON s.id = sr.sample_id
                     JOIN modern_snps ms
-                      ON ms.population = '{population}'
+                      ON ms.population = s.population
                      AND ms.chrom = sr.chrom
                      AND ms.site = sr.site
-                   WHERE sr.chrom = '{chrom}'
+                   WHERE s.population = '{pop}'
+                     AND sr.chrom = '{chrom}'
                      AND sr.quality = 1
                      AND sr.base IN (ms.ancestral, ms.derived)
                 GROUP BY sr.chrom, sr.site, sr.sample_id
                 
                ) AS rand ON rand.id = sample_reads.id
-         WHERE chrom = '{chrom}'
-           SET called = 1
-           """.format(population=self.population, chrom=self.chrom))
+         WHERE sr.chrom = '{chrom}'
+           SET sr.called = 1
+           """.format(pop=self.population, chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -156,14 +164,16 @@ class ApplyGenotypeFilters(PipelineTask):
     def run(self):
         dbc = self.db_conn()
 
-        # TODO add population
         exec_time = dbc.execute_sql("""
         UPDATE sample_reads sr
+          JOIN samples s
+            ON s.id = sr.sample_id
            SET sr.quality = 1,
                sr.called = 1 
-         WHERE sr.chrom = '{chrom}'
+         WHERE s.population = '{pop}'
+           AND sr.chrom = '{chrom}'
            AND sr.genoq >= {genoq}
-           """.format(chrom=self.chrom, genoq=MIN_GENO_QUAL))
+           """.format(pop=self.population, chrom=self.chrom, genoq=MIN_GENO_QUAL))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))

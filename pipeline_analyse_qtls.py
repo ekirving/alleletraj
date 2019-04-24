@@ -15,17 +15,15 @@ class CountSNPCoverage(PipelineTask):
     Count the read coverage for each SNP
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     db_lock_tables = ['qtl_snps']
 
     def requires(self):
-        return DiscoverSNPsPipeline(self.species, self.population, self.chrom)
+        return DiscoverSNPsPipeline(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -49,17 +47,14 @@ class CountSNPCoverage(PipelineTask):
                           ON sr.chrom = ms.chrom
                          AND sr.site = ms.site
                          AND sr.called = 1
-                        JOIN samples s
-                          ON s.id = sr.sample_id
-                       WHERE ms.population = '{population}'
-                         AND q.chrom = '{chrom}'
+                       WHERE q.chrom = '{chrom}'
                          AND q.valid = 1
                     GROUP BY qs.id
     
                     ) AS num
                       ON num.id = qtl_snps.id
     
-               SET qtl_snps.num_reads = num.num_reads""".format(population=self.population, chrom=self.chrom))
+               SET qtl_snps.num_reads = num.num_reads""".format(chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -70,17 +65,15 @@ class FindBestSNPs(PipelineTask):
     Choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     db_lock_tables = ['qtl_snps']
 
     def requires(self):
-        return CountSNPCoverage(self.species, self.population, self.chrom)
+        return CountSNPCoverage(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -102,8 +95,7 @@ class FindBestSNPs(PipelineTask):
                           ON qs.qtl_id = q.id
                         JOIN modern_snps ms
                           ON ms.id = qs.modsnp_id
-                       WHERE ms.population = '{population}'
-                         AND q.chrom = '{chrom}'
+                       WHERE q.chrom = '{chrom}'
                          AND q.valid = 1
                          AND qs.num_reads IS NOT NULL
                     GROUP BY qtl_id
@@ -112,7 +104,7 @@ class FindBestSNPs(PipelineTask):
                       ON qtl_snps.qtl_id = best.qtl_id
                      AND FIND_IN_SET(qtl_snps.id, best.qtl_snps)
     
-                SET qtl_snps.best = 1""".format(population=self.population, chrom=self.chrom, num_snps=SNPS_PER_QTL))
+                SET qtl_snps.best = 1""".format(chrom=self.chrom, num_snps=SNPS_PER_QTL))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -123,15 +115,15 @@ class CalculateSummaryStats(PipelineTask):
     Calculate summary stats for each QTL
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
+    db_lock_tables = ['qtl_stats']
+
     def requires(self):
-        return CountSNPCoverage(self.species, self.population, self.chrom)
+        return CountSNPCoverage(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -169,13 +161,12 @@ class CalculateSummaryStats(PipelineTask):
                               ON sr.chrom = ms.chrom
                              AND sr.site = ms.site
                              AND sr.called = 1
-                           WHERE ms.population = '{population}'
-                             AND q.chrom = '{chrom}'
+                           WHERE q.chrom = '{chrom}'
                              AND q.valid = 1
                         GROUP BY qs.id
 
                          ) as snps
-               GROUP BY snps.qtl_id""".format(population=self.population, chrom=self.chrom))
+               GROUP BY snps.qtl_id""".format(chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -191,12 +182,11 @@ class AnalyseQTLsPipeline(PipelineWrapperTask):
 
     def requires(self):
 
-        # process SNPs for all populations and all chromosomes
-        for pop in self.populations:
-            for chrom in self.chromosomes:
+        # process all the chromosomes
+        for chrom in self.chromosomes:
 
-                # choose the best SNPs for each QTL
-                yield FindBestSNPs(self.species, pop, chrom)
+            # choose the best SNPs for each QTL
+            yield FindBestSNPs(self.species, chrom)
 
-                # calculate summary stats for each QTL
-                yield CalculateSummaryStats(self.species, pop, chrom)
+            # calculate summary stats for each QTL
+            yield CalculateSummaryStats(self.species, chrom)

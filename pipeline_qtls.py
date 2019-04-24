@@ -112,7 +112,7 @@ class PopulateQTLs(PipelineTask):
         qtl_ids = [int(qtl_id) for qtl_id in data['QTL_ID'] if qtl_id.isdigit()]
 
         with self.output().open('w') as fout:
-            fout.write("INFO: Processing {:,} QTLs from '{}'".format(len(qtl_ids), qtl_file.path))
+            fout.write("INFO: Processing {:,} QTLs from '{}'\n".format(len(qtl_ids), qtl_file.path))
 
             # get all the QTLs already in the DB
             qtls = dbc.get_records('qtls')
@@ -121,7 +121,7 @@ class PopulateQTLs(PipelineTask):
             # find the new IDs in the list
             new_ids = list(set(qtl_ids) - set(qtls.keys()))
 
-            fout.write('INFO: Found {:,} new QTLs to add'.format(len(new_ids)))
+            fout.write('INFO: Found {:,} new QTLs to add\n'.format(len(new_ids)))
 
             # rename these fields
             key_map = {
@@ -207,9 +207,9 @@ class PopulateQTLs(PipelineTask):
 
                 added += 1
 
-                fout.write('INFO: Added {:5d} new QTLs'.format(added))
+                fout.write('INFO: Added {:5d} new QTLs\n'.format(added))
 
-            fout.write('INFO: Finished adding {} new QTLs'.format(len(new_ids)))
+            fout.write('INFO: Finished adding {} new QTLs\n'.format(len(new_ids)))
 
 
 class SetQTLWindows(PipelineTask):

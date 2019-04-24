@@ -91,7 +91,7 @@ class ModernSNPsFromFASTA(PipelineTask):
         dbc = self.db_conn()
 
         with self.output().open('w') as fout:
-            fout.write("STARTED: Parsing {} fasta files.".format(len(fasta_files)))
+            fout.write("STARTED: Parsing {} fasta files.\n".format(len(fasta_files)))
 
             site = 0
             num_snps = 0
@@ -107,7 +107,7 @@ class ModernSNPsFromFASTA(PipelineTask):
                 # wrap the file in an iterator
                 data.append(stream_fasta(fin))
 
-                fout.write("LOADED: {}".format(fasta))
+                fout.write("LOADED: {}\n".format(fasta))
 
             # zip the sequences together so we can iterate over them one site at a time
             for pileup in itertools.izip_longest(*data, fillvalue='N'):
@@ -129,7 +129,7 @@ class ModernSNPsFromFASTA(PipelineTask):
 
                 # we only want biallelic SNPs
                 if num_alleles > 2:
-                    fout.write("WARNING: Polyallelic site chr{}:{} = {}".format(self.chrom, site, set(haploids)))
+                    fout.write("WARNING: Polyallelic site chr{}:{} = {}\n".format(self.chrom, site, set(haploids)))
                     continue
 
                 # count the haploid observations
@@ -140,14 +140,14 @@ class ModernSNPsFromFASTA(PipelineTask):
 
                 # we cannot handle variable sites in the outgroup
                 if len(ancestral) != 1:
-                    fout.write("WARNING: Unknown ancestral allele chr{}:{} = {}".format(self.chrom, site, out_allele))
+                    fout.write("WARNING: Unknown ancestral allele chr{}:{} = {}\n".format(self.chrom, site, out_allele))
                     continue
 
                 ancestral = ancestral.pop()
                 alleles = observations.keys()
 
                 if ancestral not in alleles:
-                    fout.write("WARNING: Polyallelic site chr{}:{} = {}, ancestral {}".format(self.chrom, site,
+                    fout.write("WARNING: Polyallelic site chr{}:{} = {}, ancestral {}\n".format(self.chrom, site,
                                                                                               set(haploids), ancestral))
                     continue
 
@@ -174,7 +174,7 @@ class ModernSNPsFromFASTA(PipelineTask):
                 dbc.save_record('modern_snps', record)
                 num_snps += 1
 
-            fout.write("FINISHED: Added {:,} SNPs".format(num_snps))
+            fout.write("FINISHED: Added {:,} SNPs\n".format(num_snps))
 
 
 class ModernSNPsFromVCF(PipelineTask):

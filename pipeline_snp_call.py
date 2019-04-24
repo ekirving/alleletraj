@@ -141,7 +141,7 @@ class BCFToolsCall(PipelineTask):
         rgs_file = 'vcf/{}-modern.rgs'.format(self.species)
         with open(rgs_file, 'w') as fout:
             for idx, sample in enumerate(self.all_samples):
-                fout.write('*\t{}\t{}'.format(bam_files[idx].path, sample))
+                fout.write('*\t{}\t{}\n'.format(bam_files[idx].path, sample))
 
         with self.output().temporary_path() as vcf_out:
             params = {

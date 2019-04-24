@@ -291,7 +291,7 @@ class PipelineTask(luigi.Task):
         All samples, from all populations, including the outgroup (which is always the first in the list).
         :return:
         """
-        return [self.outgroup] + [sample for population in SAMPLES for sample in SAMPLES[population]]
+        return [self.outgroup] + [sample for pop in SAMPLES[self.species] for sample in SAMPLES[self.species][pop]]
 
     def all_params(self):
         """

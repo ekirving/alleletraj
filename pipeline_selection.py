@@ -92,7 +92,7 @@ class SelectionInputFile(PipelineTask):
                 ON s.id = sr.sample_id
              WHERE ms.id = {modsnp_id}
                AND s.age IS NOT NULL
-               AND s.status IN ('{population}')
+               AND s.population IN ('{population}')
           GROUP BY bin_high
 
              UNION

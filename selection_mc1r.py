@@ -31,7 +31,7 @@ def generate_mc1r_snp_input(species, population):
           JOIN sample_bins sb
             ON sb.sample_id = s.id
           WHERE s.valid = 1 
-            AND s.status IN ('Domestic')
+            AND s.population IN ('Domestic')
             AND s.mc1r_snp IS NOT NULL 
        GROUP BY sb.bin
 

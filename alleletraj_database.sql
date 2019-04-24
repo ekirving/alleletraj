@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # https://github.com/sequelpro/sequelpro
 #
-# Host: 127.0.0.1 (MySQL 5.6.19)
+# Host: 127.0.0.1 (MySQL 5.7.21)
 # Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-04-23 13:14:34 +0000
+# Generation Time: 2019-04-24 14:01:39 +0000
 # ************************************************************
 
 
@@ -438,16 +438,16 @@ CREATE TABLE `sample_reads` (
 CREATE TABLE `samples` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `accession` varchar(255) NOT NULL DEFAULT '',
+  `population` varchar(255) DEFAULT NULL,
+  `sex` char(1) DEFAULT NULL,
   `map_reads` int(11) unsigned DEFAULT NULL,
   `map_prcnt` float DEFAULT NULL,
-  `sex` char(1) DEFAULT NULL,
   `age` varchar(255) DEFAULT NULL,
   `age_int` int(11) DEFAULT NULL,
   `bin_id` int(11) DEFAULT NULL,
   `period` varchar(255) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
   `country` varchar(255) DEFAULT NULL,
-  `status` varchar(255) DEFAULT NULL,
   `gmm_status` varchar(255) DEFAULT NULL,
   `group` varchar(255) DEFAULT NULL,
   `haplogroup` varchar(255) DEFAULT NULL,

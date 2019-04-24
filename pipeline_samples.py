@@ -30,7 +30,7 @@ GOOGLE_SHEET = {
     #                 ('Period',            'period'),
     #                 ('Location',          'location'),
     #                 ('Country',           'country'),
-    #                 ('Wild/Dom Status',   'status'),
+    #                 ('Wild/Dom Status',   'population'),
     #                 ('GMM Status',        'gmm_status'),
     #                 ('Group',             'group'),
     #                 ('Haplogroup',        'haplogroup'),
@@ -50,7 +50,7 @@ GOOGLE_SHEET = {
                     ('Period', 'period'),
                     ('Location', 'location'),
                     ('Country', 'country'),
-                    ('Final status (MC1R+Morpho+Context)', 'status'),
+                    ('Final status (MC1R+Morpho+Context)', 'population'),
                     ('Genotype MC1R', 'mc1r_snp')
                 ])
     },
@@ -62,7 +62,7 @@ GOOGLE_SHEET = {
         'tabs': ['Ancient'],
         'cols': OrderedDict([
                     ('Name',     'accession'),
-                    ('Status',   'status'),
+                    ('Status',   'population'),
                     ('path',     'path'),
                     ('sex',      'sex'),
                     ('Age BP',   'age_int'),

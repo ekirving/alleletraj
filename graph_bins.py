@@ -19,7 +19,7 @@ BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
 dbc = Database()
 
 with open("tsv/all-bins.tsv", "wb") as tsv_file:
-    fields = ['bin', 'accession', 'map_prcnt', 'status', 'age', 'confident', 'lower', 'upper', 'width', 'overlap',
+    fields = ['bin', 'accession', 'map_prcnt', 'population', 'age', 'confident', 'lower', 'upper', 'width', 'overlap',
               'perct_overlap']
 
     writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
@@ -45,7 +45,7 @@ with open("tsv/all-bins.tsv", "wb") as tsv_file:
                                  WHEN SUBSTR(`group`, 3, 1) = 'D' THEN 'Domestic'
                                  WHEN haplogroup = 'Y1' THEN 'Domestic'
                                  ELSE 'NA'
-                             END AS status,
+                             END AS population,
                              s.age,
                              COALESCE(c14.confident, sd.confident) confident,
                              COALESCE(c14.lower, sd.lower, sd.median + {uncert}) lower,

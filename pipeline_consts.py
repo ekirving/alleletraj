@@ -23,19 +23,19 @@ REF_ASSEMBLY = {
 # the name of the chromosomes in each assembly
 CHROMOSOMES = {
     # cattle assemblies
-    'UMD3.1':     map(str, range(1, 30)) + ['X', 'MT'],
-    'ARS-UCD1.2': map(str, range(1, 30)) + ['X', 'MT'],
+    'UMD3.1':     map(str, range(1, 30)) + ['X'],
+    'ARS-UCD1.2': map(str, range(1, 30)) + ['X'],
 
     # goat assemblies
     'ARS1': map(str, range(1, 30)) + ['MT'],
 
     # horse assemblies
-    'EquCab2':   map(str, range(1, 32)) + ['X', 'MT'],
-    'EquCab3.0': map(str, range(1, 32)) + ['X', 'MT'],
+    'EquCab2':   map(str, range(1, 32)) + ['X'],
+    'EquCab3.0': map(str, range(1, 32)) + ['X'],
 
     # pig assemblies
-    'Sscrofa10.2': map(str, range(1, 19)) + ['X', 'Y', 'MT'],
-    'Sscrofa11.1': map(str, range(1, 19)) + ['X', 'Y', 'MT'],
+    'Sscrofa10.2': map(str, range(1, 19)) + ['X', 'Y'],
+    'Sscrofa11.1': map(str, range(1, 19)) + ['X', 'Y'],
 }
 
 # the name of the outgroup sample

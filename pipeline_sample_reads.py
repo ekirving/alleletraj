@@ -13,7 +13,7 @@ from pipeline_consts import MIN_GENO_QUAL, MIN_DAF
 from pipeline_qtls import PopulateAllLoci
 from pipeline_modern_snps import ModernSNPsPipeline
 from pipeline_ensembl import EnsemblPipeline
-from pipeline_snp_call import ExternalFASTA, ExternalPloidy
+from pipeline_snp_call import ReferenceFASTA, ReferencePloidy
 from pipeline_samples import LoadSamples
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
 
@@ -84,8 +84,8 @@ class LoadSampleReads(PipelineTask):
     chrom = luigi.IntParameter()
 
     def requires(self):
-        yield ExternalFASTA(self.species)
-        yield ExternalPloidy(self.species)
+        yield ReferenceFASTA(self.species)
+        yield ReferencePloidy(self.species)
         yield MergeAllLoci(self.species, self.chrom)
         yield LoadSamples(self.species)
         yield ModernSNPsPipeline(self.species)
@@ -96,7 +96,7 @@ class LoadSampleReads(PipelineTask):
 
     def run(self):
         # unpack the params
-        ref_file, pld_file, bed_file, _, _, _ = self.input()
+        (ref_file, _), pld_file, bed_file, _, _, _ = self.input()
         log_file = self.output()
 
         # open a db connection

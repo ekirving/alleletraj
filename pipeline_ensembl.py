@@ -59,6 +59,7 @@ class DownloadEnsemblData(PipelineTask):
             return 'ftp://ftp.ensembl.org/pub/release-{rel}/variation/gvf/{bin}/{bin}.gvf.gz'.format(**params)
 
     def output(self):
+        # TODO the gvf output filename is not unique and will cause collisions if Ensembl release or assembly changes
         return luigi.LocalTarget('ensembl/{}'.format(os.path.basename(self.url)))
 
     def run(self):

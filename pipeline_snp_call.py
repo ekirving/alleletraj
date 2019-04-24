@@ -16,24 +16,6 @@ QUANTILE_LOW = 0.05
 QUANTILE_HIGH = 0.95
 
 
-class ExternalFASTA(PipelineExternalTask):
-    """
-    External task dependency for a reference assembly FASTA file.
-
-    N.B. These have been downloaded outside the workflow of this pipeline.
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    # TODO make this into a download task from ensembl
-    # TODO use the gzip version
-    # TODO add an index method
-    # TODO add method for chrom size
-    def output(self):
-        return luigi.LocalTarget('fasta/{}.{}.dna.toplevel.fa'.format(self.binomial, self.assembly))
-
-
 class ExternalBAM(PipelineExternalTask):
     """
     External task dependency for an aligned BAM file.
@@ -50,20 +32,77 @@ class ExternalBAM(PipelineExternalTask):
         return luigi.LocalTarget(BAM_FILES[self.species][self.sample])
 
 
-class ExternalPloidy(PipelineExternalTask):
+class ReferenceFASTA(PipelineTask):
     """
-    External dependency for a bcftools file which specifies the sex based ploidy of chromosomes in an assembly.
-
-    See --ploidy-file in https://samtools.github.io/bcftools/bcftools.html#call
-
-    N.B. These have been created outside the workflow of this pipeline.
+    Get the reference genome and index it.
 
     :type species: str
     """
     species = luigi.Parameter()
 
+    def requires(self):
+        # avoid circular dependency
+        from pipeline_ensembl import DownloadEnsemblData
+        return DownloadEnsemblData(self.species, 'fasta', bgzip=True)
+
     def output(self):
-        return luigi.LocalTarget('fasta/{}.{}.ploidy'.format(self.binomial, self.assembly))
+        return [luigi.LocalTarget('ensembl/{}.{}.dna.toplevel.{}'.format(self.binomial, self.assembly, ext)) for ext in
+                ['fa.gz', 'fa.gz.fai']]
+
+    def run(self):
+        # get the downloaded reference assembly
+        ref_file = self.input()
+
+        # build an index
+        run_cmd(['samtools', 'faidx', ref_file.path])
+
+
+class ReferencePloidy(PipelineExternalTask):
+    """
+    Make a ploidy-file file for bcftools which specifies the sex based ploidy of chromosomes in an assembly.
+
+    See --ploidy-file in https://samtools.github.io/bcftools/bcftools.html#call
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        return ReferenceFASTA(self.species)
+
+    def output(self):
+        return luigi.LocalTarget('ensembl/{}.{}.dna.toplevel.ploidy'.format(self.binomial, self.assembly))
+
+    def run(self):
+        # get the reference index
+        _, fai_file = self.input()
+
+        # build the ploidy file
+        with self.output().open('w') as fout:
+
+            # by iterating over the reference index
+            with fai_file.open('r') as fin:
+
+                for line in fin:
+                    # get the chrom name and size
+                    contig, size, _, _, _ = line.split()
+
+                    # strip any annoying `chr` prefix
+                    nochr = contig.replace('chr', '')
+
+                    if nochr == 'X':
+                        for sex, ploidy in [('M', '1'), ('F', '2')]:
+                            fout.write('\t'.join([contig, '1', size, sex, ploidy]) + '\n')
+                    elif nochr == 'Y':
+                        for sex, ploidy in [('M', '1'), ('F', '0')]:
+                            fout.write('\t'.join([contig, '1', size, sex, ploidy]) + '\n')
+                    elif nochr == 'MT':
+                        for sex, ploidy in [('M', '1'), ('F', '1')]:
+                            fout.write('\t'.join([contig, '1', size, sex, ploidy]) + '\n')
+
+                # all other chroms are diploid
+                for sex in ['M', 'F']:
+                    fout.write('\t'.join(['*', '*', '*', sex, '2']) + '\n')
 
 
 class BCFToolsCall(PipelineTask):
@@ -83,8 +122,8 @@ class BCFToolsCall(PipelineTask):
         return [self.outgroup] + self.samples
 
     def requires(self):
-        yield ExternalFASTA(self.species)
-        yield ExternalPloidy(self.species)
+        yield ReferenceFASTA(self.species)
+        yield ReferencePloidy(self.species)
 
         for sample in self.all_samples():
             yield ExternalBAM(self.species, sample)
@@ -94,7 +133,7 @@ class BCFToolsCall(PipelineTask):
 
     def run(self):
         # unpack the input params
-        ref_file, pld_file, bam_files = self.input()[0], self.input()[1], self.input()[2:]
+        (ref_file, _), pld_file, bam_files = self.input()[0], self.input()[1], self.input()[2:]
 
         # bcftools needs the sex specified in a separate file
         sex_file = 'vcf/{}-{}-modern.sex'.format(self.species, self.population)
@@ -184,7 +223,7 @@ class FilterVCF(PipelineTask):
     qual = luigi.IntParameter()
 
     def requires(self):
-        yield ExternalFASTA(self.species)
+        yield ReferenceFASTA(self.species)
         yield BCFToolsCall(self.species, self.population, self.chrom)
         yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom, self.qual)
 
@@ -192,9 +231,8 @@ class FilterVCF(PipelineTask):
         return luigi.LocalTarget('vcf/{}-quant.vcf.gz'.format(self.basename))
 
     def run(self):
-
         # unpack the input params
-        ref_file, vcf_input, quant_file = self.input()
+        (ref_file, _), vcf_input, quant_file = self.input()
 
         # get the quantiles
         qlow, qhigh = numpy.loadtxt(quant_file.path)

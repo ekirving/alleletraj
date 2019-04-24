@@ -36,6 +36,8 @@ class ReferenceFASTA(PipelineTask):
     """
     Get the reference genome and index it.
 
+    # TODO horse BAMs were aligned against a ref with chr prefix
+
     :type species: str
     """
     species = luigi.Parameter()

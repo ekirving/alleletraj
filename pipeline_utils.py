@@ -10,7 +10,7 @@ from collections import Iterable
 from multiprocessing import Process
 
 # import my libraries
-from pipeline_consts import CHROM_SIZE, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, SAMPLES
+from pipeline_consts import CHROMOSOMES, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, SAMPLES
 
 from database import Database
 
@@ -136,6 +136,31 @@ def curl_download(url, filename):
     run_cmd(['curl', '-s', '--output', filename, url])
 
 
+def get_chrom_sizes(fai_file, exclude_scaffolds=True):
+    """
+    Get the names and sizes of all the chromosomes in a reference by iterating over the index
+    """
+    chroms = {}
+
+    with fai_file.open('r') as fin:
+        for line in fin:
+            # get the chrom name and size
+            contig, size, _, _, _ = line.split()
+
+            # strip any annoying `chr` prefix
+            nochr = contig.replace('chr', '')
+
+            # is this contig an actual chromosome
+            is_chrom = nochr.isdigit() or nochr in ['X', 'Y', 'Z', 'W', 'MT']
+
+            if exclude_scaffolds and not is_chrom:
+                continue
+
+            chroms[nochr] = int(size)
+
+    return chroms
+
+
 class PipelineTask(luigi.Task):
     """
     PrioritisedTask that implements a several dynamic attributes
@@ -166,11 +191,9 @@ class PipelineTask(luigi.Task):
         # deprioritise large values of K or m
         offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
 
-        # prioritise chromosomes by size, as running the largest chroms first is more efficient for multithreading
+        # prioritise chromosomes by number, as running the largest chroms first is more efficient for multithreading
         if hasattr(self, 'chrom') and hasattr(self, 'species'):
-            chrom = self.chrom.replace('chr', '')
-            sizes = CHROM_SIZE[self.assembly]
-            offset = sorted(sizes.values(), reverse=True).index(sizes[chrom]) + 1
+            offset = CHROMOSOMES[self.assembly].index(self.chrom) + 1
 
         return 100 - offset if offset else 0
 
@@ -205,6 +228,13 @@ class PipelineTask(luigi.Task):
         return REF_ASSEMBLY[self.species]
 
     @property
+    def autosomes(self):
+        """
+        List of autosomal chromosome names (e.g. 1, 2, ..., 29)
+        """
+        return [chrom for chrom in self.chromosomes if chrom.isdigit()]
+
+    @property
     def binomial(self):
         """
         Scientific binomial name of the species
@@ -214,11 +244,9 @@ class PipelineTask(luigi.Task):
     @property
     def chromosomes(self):
         """
-        List of chromosomes identifiers (e.g. 1, 2, ..., X, Y)
+        List of chromosome names (e.g. 1, 2, ..., X, Y, MT)
         """
-        # from collections import OrderedDict
-        # return OrderedDict([('30', 30062385), ('31', 24984650)])
-        return CHROM_SIZE[self.assembly]  # TODO restore when done testing
+        return CHROMOSOMES[self.assembly]
 
     @property
     def classname(self):

@@ -8,10 +8,12 @@ from natsort import natsorted
 from collections import defaultdict, OrderedDict
 
 # import my custom modules
-from pipeline_consts import CHROM_SIZE, MIN_DAF, QTLDB_RELEASE
+from pipeline_consts import MIN_DAF, QTLDB_RELEASE
 from pipeline_database import CreateDatabase
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes, EnsemblPipeline
-from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals
+from pipeline_snp_call import ReferenceFASTA
+from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals, \
+    get_chrom_sizes
 
 from qtldbapi import QTLdbAPI
 
@@ -219,6 +221,7 @@ class SetQTLWindows(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
+        yield ReferenceFASTA(self.species)
         yield PopulateQTLs(self.species)
         yield LoadEnsemblVariants(self.species)
 
@@ -226,7 +229,9 @@ class SetQTLWindows(PipelineTask):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        # open a db connection
+        # unpack the inputs
+        (_, fai_file), _, _ = self.input()
+
         dbc = self.db_conn()
 
         # get all the valid QTL windows
@@ -241,13 +246,16 @@ class SetQTLWindows(PipelineTask):
                AND q.significance = 'Significant'     # only significant hits
                """, key=None)
 
+        # get the sizes of the chromosomes, to bound the QTL windows
+        sizes = get_chrom_sizes(fai_file)
+
         for result in results:
             # get the size of the current chrom
-            chom_size = CHROM_SIZE[self.assembly][result['chrom']]
+            chrom_size = sizes[result['chrom']]
 
             # calculate the bounded window size
             start = result['site'] - QTL_WINDOW if result['site'] > QTL_WINDOW else 1
-            end = result['site'] + QTL_WINDOW if result['site'] + QTL_WINDOW < chom_size else chom_size
+            end = result['site'] + QTL_WINDOW if result['site'] + QTL_WINDOW < chrom_size else chrom_size
 
             if end <= start:
                 raise Exception('ERROR: Window size for QTL #{} is negative ({:,} bp)'.format(result['id'], end-start))
@@ -390,15 +398,20 @@ class PopulatePigMummyLoci(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return LoadEnsemblVariants(self.species)
+        yield ReferenceFASTA(self.species)
+        yield LoadEnsemblVariants(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
+        # unpack the inputs
+        (_, fai_file), _ = self.input()
+
         dbc = self.db_conn()
 
-        sizes = CHROM_SIZE[self.assembly]
+        # get the sizes of the chromosomes
+        sizes = get_chrom_sizes(fai_file)
 
         # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
         max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
@@ -466,15 +479,20 @@ class PopulateNeutralLoci(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return PopulateTraitLoci(self.species)
+        yield ReferenceFASTA(self.species)
+        yield PopulateTraitLoci(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
+        # unpack the inputs
+        (_, fai_file), _ = self.input()
+
         dbc = self.db_conn()
 
-        sizes = CHROM_SIZE[self.assembly]
+        # get the sizes of the chromosomes
+        sizes = get_chrom_sizes(fai_file)
 
         # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
         max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
@@ -517,13 +535,13 @@ class PopulateNeutralLoci(PipelineTask):
         for result in results:
             intervals[result['chrom']].append((result['start'], result['end']))
 
-        all_regions = 'bed/{}_allregions.bed'.format(self.species)
-        non_neutral = 'bed/{}_nonneutral.bed'.format(self.species)
+        all_regions = 'bed/{}-wholegenome.bed'.format(self.species)
+        non_neutral = 'bed/{}-nonneutral.bed'.format(self.species)
 
         # write a BED file for the whole genome
         with open(all_regions, 'w') as fout:
             for chrom in self.chromosomes:
-                fout.write('{}\t{}\t{}\n'.format(chrom, 1, CHROM_SIZE[self.assembly][chrom]))
+                fout.write('{}\t{}\t{}\n'.format(chrom, 1, sizes[chrom]))
 
         # write all the non-neutral regions to a BED file
         with open(non_neutral, 'w') as fout:

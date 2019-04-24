@@ -8,12 +8,12 @@ from time import time
 
 from collections import OrderedDict
 
-from pipeline_consts import CHROM_SIZE
 from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants
 from pipeline_snpchip import LoadSNPChipVariants
 from pipeline_discover_snps import ApplyGenotypeFilters
 from pipeline_qtls import MC1R_GENE
-from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals
+from pipeline_snp_call import ReferenceFASTA
+from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, get_chrom_sizes
 
 # the number of flanking SNPs (on either side) to include
 QTL_FLANK_NUM_SNPS = 3
@@ -74,9 +74,8 @@ class FlagSNPsNearIndels(PipelineTask):
         # merge overlapping loci
         loci = list(merge_intervals(loci))
 
-        # TODO make into param for task
         # process the INDELs in chunks
-        for i in xrange(0, len(loci), dbc.max_query_size):
+        for i in range(0, len(loci), dbc.max_query_size):
 
             # convert each locus into sql conditions
             conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + dbc.max_query_size]]
@@ -185,12 +184,11 @@ class FetchGWASFlankingSNPs(PipelineTask):
               JOIN ensembl_variants ev
                 ON ev.id = ms.variant_id
                AND (ev.indel IS NULL OR ms.snpchip_id IS NOT NULL)
-          GROUP BY q.id""".format(num_snps=QTL_FLANK_NUM_SNPS))
+          GROUP BY q.id""".format(num_snps=QTL_FLANK_NUM_SNPS), key=None)
 
         # TODO better transaction handling
         # we have to do this iteratively, as FIND_IN_SET() performs terribly
-        for qtl_id, qtl in qtls.iteritems():
-
+        for qtl in qtls:
             # merge the flanking SNP modsnp_ids
             modsnps = ','.join(flank for flank in [qtl['left_flank'], qtl['right_flank']] if flank)
 
@@ -257,11 +255,11 @@ class FetchSelectiveSweepSNPs(PipelineTask):
               JOIN sweep_snps ss
                 ON ss.id = near.ss_id
           GROUP BY ss.qtl_id
-               """.format(num_snps=SWEEP_NUM_SNPS, offset=SWEEP_PEAK_WIDTH/2))
+               """.format(num_snps=SWEEP_NUM_SNPS, offset=SWEEP_PEAK_WIDTH/2), key=None)
 
         # TODO better transaction handling
         # we have to do this iteratively, as FIND_IN_SET() performs terribly
-        for qtl_id, qtl in qtls.iteritems():
+        for qtl in qtls:
 
             dbc.execute_sql("""
                 INSERT 
@@ -340,6 +338,7 @@ class FetchNeutralSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
+        yield ReferenceFASTA(self.species)
         yield LoadEnsemblVariants(self.species)
         yield ApplyGenotypeFilters(self.species, self.population, self.chrom)
 
@@ -347,22 +346,25 @@ class FetchNeutralSNPs(PipelineTask):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
+        # unpack the inputs
+        (_, fai_file), _, _ = self.input()
+
         dbc = self.db_conn()
 
         start = time()
 
+        # get the sizes of the chromosomes
+        sizes = get_chrom_sizes(fai_file)
+
         # get the total size of the autosomes
-        total = sum(size for chrom, size in CHROM_SIZE[self.assembly].iteritems() if chrom not in ['X', 'Y'])
+        total = sum(sizes[chrom] for chrom in self.autosomes)
 
-        # calculate the proportional size of each autosome
-        autosomes = OrderedDict((chrom, float(size) / total) for chrom, size in CHROM_SIZE[self.assembly].iteritems()
-                                if chrom not in ['X', 'Y'])
+        # calculate the proportional size of each autosomal chrom
+        percent = OrderedDict((chrom, float(sizes[chrom]) / total) for chrom in self.autosomes)
 
-        # TODO make into param for task
-        for chrom, perct in autosomes.iteritems():
-
+        for chrom in percent:
             # get the weighted number of SNPs for this chrom
-            num_snps = int(round(NUM_NEUTRAL_SNPS * perct))
+            num_snps = int(round(NUM_NEUTRAL_SNPS * percent[chrom]))
 
             dbc.execute_sql("""
                 INSERT
@@ -403,28 +405,32 @@ class FetchAncestralSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return ApplyGenotypeFilters(self.species, self.population, self.chrom)
+        yield ReferenceFASTA(self.species)
+        yield ApplyGenotypeFilters(self.species, self.population, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
+        # unpack the inputs
+        (_, fai_file), _ = self.input()
+
         dbc = self.db_conn()
 
         start = time()
 
+        # get the sizes of the chromosomes
+        sizes = get_chrom_sizes(fai_file)
+
         # get the total size of the autosomes
-        total = sum(size for chrom, size in CHROM_SIZE[self.assembly].iteritems() if chrom not in ['X', 'Y'])
+        total = sum(sizes[chrom] for chrom in self.autosomes)
 
-        # calculate the proportional size of each autosome
-        autosomes = OrderedDict((chrom, float(size) / total) for chrom, size in CHROM_SIZE[self.assembly].iteritems()
-                                if chrom not in ['X', 'Y'])
+        # calculate the proportional size of each autosomal chrom
+        percent = OrderedDict((chrom, float(sizes[chrom]) / total) for chrom in self.autosomes)
 
-        # TODO make into param for task
-        for chrom, perct in autosomes.iteritems():
-
+        for chrom in percent:
             # get the weighted number of SNPs for this chrom
-            num_snps = int(round(NUM_ANCESTRAL_SNPS * perct))
+            num_snps = int(round(NUM_ANCESTRAL_SNPS * percent[chrom]))
 
             dbc.execute_sql("""
                 INSERT

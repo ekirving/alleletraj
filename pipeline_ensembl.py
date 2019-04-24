@@ -8,7 +8,7 @@ import gzip
 # import my custom modules
 from pipeline_database import CreateDatabase
 from pipeline_modern_snps import ModernSNPsPipeline
-from pipeline_utils import PipelineTask, PipelineWrapperTask, curl_download
+from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, curl_download
 
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {
@@ -35,9 +35,11 @@ class DownloadEnsemblData(PipelineTask):
 
     :type species: str
     :type type: str
+    :type bgzip: bool
     """
     species = luigi.Parameter()
     type = luigi.Parameter()
+    bgzip = luigi.BoolParameter(default=False)
 
     @property
     def url(self):
@@ -47,7 +49,11 @@ class DownloadEnsemblData(PipelineTask):
             'bin': self.binomial.lower(),
             'ref': self.assembly
         }
-        if self.type == 'gtf':
+
+        if self.type == 'fasta':
+            return 'ftp://ftp.ensembl.org/pub/release-{rel}/fasta/{bin}/dna/{Bin}.{ref}.dna.toplevel.fa.gz'.format(
+                **params)
+        elif self.type == 'gtf':
             return 'ftp://ftp.ensembl.org/pub/release-{rel}/gtf/{bin}/{Bin}.{ref}.{rel}.gtf.gz'.format(**params)
         elif self.type == 'gvf':
             return 'ftp://ftp.ensembl.org/pub/release-{rel}/variation/gvf/{bin}/{bin}.gvf.gz'.format(**params)
@@ -58,6 +64,11 @@ class DownloadEnsemblData(PipelineTask):
     def run(self):
         with self.output().temporary_path() as tmp_path:
             curl_download(self.url, tmp_path)
+
+            if self.bgzip:
+                # convert from gzip to bgzip (so we can index the file)
+                run_cmd(["mv {gz} {gz}-tmp; gunzip -c {gz}-tmp | bgzip > {gz}; rm {gz}-tmp".format(gz=tmp_path)],
+                        shell=True)
 
 
 class LoadEnsemblGenes(PipelineTask):

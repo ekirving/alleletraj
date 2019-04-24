@@ -10,7 +10,7 @@ from collections import Iterable
 from multiprocessing import Process
 
 # import my libraries
-from pipeline_consts import CHROM_SIZE, CPU_CORES_ONE, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, SAMPLES
+from pipeline_consts import CHROM_SIZE, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, SAMPLES
 
 from database import Database
 
@@ -145,7 +145,7 @@ class PipelineTask(luigi.Task):
         """
         Dynamically set task resource usage.
         """
-        resources = {'cpu-cores': CPU_CORES_ONE}
+        resources = {'cpu-cores': 1}
 
         if hasattr(self, 'db_lock_tables'):
             for table in self.db_lock_tables:

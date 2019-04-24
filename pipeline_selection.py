@@ -6,7 +6,7 @@ import os
 import unicodecsv as csv
 
 # import my custom modules
-from pipeline_consts import GENERATION_TIME, POPULATION_SIZE, CPU_CORES_ONE
+from pipeline_consts import GENERATION_TIME, POPULATION_SIZE
 from pipeline_discover_snps import DiscoverSNPsPipeline
 from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
@@ -191,7 +191,7 @@ class SelectionPlot(PipelineTask):
     mcmc_cycles = luigi.IntParameter(default=MCMC_CYCLES)
     mcmc_freq = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
 
-    resources = {'cpu-cores': CPU_CORES_ONE, 'ram-gb': 64}
+    resources = {'cpu-cores': 1, 'ram-gb': 64}
 
     def requires(self):
         return SelectionRunMCMC(self.species, self.population, self.modsnp_id, self.pop_hist, self.mcmc_cycles,

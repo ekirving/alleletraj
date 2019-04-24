@@ -186,7 +186,6 @@ class FetchGWASFlankingSNPs(PipelineTask):
                AND (ev.indel IS NULL OR ms.snpchip_id IS NOT NULL)
           GROUP BY q.id""".format(num_snps=QTL_FLANK_NUM_SNPS), key=None)
 
-        # TODO better transaction handling
         # we have to do this iteratively, as FIND_IN_SET() performs terribly
         for qtl in qtls:
             # merge the flanking SNP modsnp_ids
@@ -257,7 +256,6 @@ class FetchSelectiveSweepSNPs(PipelineTask):
           GROUP BY ss.qtl_id
                """.format(num_snps=SWEEP_NUM_SNPS, offset=SWEEP_PEAK_WIDTH/2), key=None)
 
-        # TODO better transaction handling
         # we have to do this iteratively, as FIND_IN_SET() performs terribly
         for qtl in qtls:
 
@@ -561,8 +559,7 @@ class ExportAscertainedSNPs(PipelineTask):
           ORDER BY chrom, site
                """.format(), key=None)
 
-        # TODO why binary flag?
-        with self.output().open('wb') as tsv_file:
+        with self.output().open('w') as tsv_file:
             writer = csv.DictWriter(tsv_file, fieldnames=reads[0].keys(), delimiter='\t')
             writer.writeheader()
 

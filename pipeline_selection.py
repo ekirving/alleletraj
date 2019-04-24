@@ -271,7 +271,6 @@ class SelectionBestQTLSNPs(PipelineWrapperTask):
 
         dbc = self.db_conn()
 
-        # TODO population
         # get the modsnp_id for every GWAS hit
         modsnps = dbc.get_records_sql("""
             SELECT DISTINCT qs.modsnp_id AS id

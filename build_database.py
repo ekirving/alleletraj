@@ -53,9 +53,9 @@ class BuildDatabase(PipelineWrapperTask):
         # apply quality filters to the sample reads
         yield DiscoverSNPsPipeline(self.species)
 
-        # analyse the coverage and quality for SNPs in each QTLs
-        yield AnalyseQTLsPipeline(self.species)
-
+        # # analyse the coverage and quality for SNPs in each QTLs
+        # yield AnalyseQTLsPipeline(self.species)
+        #
         # if self.species == 'pig':
         #     # pick the best SNPs to target for a capture array
         #     yield AscertainmentPipeline(self.species)

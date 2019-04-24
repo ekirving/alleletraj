@@ -18,7 +18,7 @@ from database import Database
 MAX_INTERVAL_SIZE = int(1e6)
 
 
-def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
+def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None, verbose=True):
     """
     Executes the given command in a system subprocess
 
@@ -27,12 +27,14 @@ def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None):
     :param background: Flag to tun the process in the background
     :param stdout: File handle to redirect stdout
     :param stderr: File handle to redirect stderr
+    :param verbose: Print the command before running it
     :return: The stdout stream
     """
     # subprocess only accepts strings
     cmd = [str(args) for args in cmd]
 
-    print(u' '.join(cmd))
+    if verbose:
+        print(u' '.join(cmd))
 
     if background:
         subprocess.Popen(cmd, shell=shell)

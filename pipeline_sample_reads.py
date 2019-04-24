@@ -251,8 +251,8 @@ class LoadSampleReads(PipelineTask):
                                              for (chrom, site) in diploid))
 
                     # bgzip and index the target file
-                    run_cmd(["bgzip -c {} > {}".format(tsv_file, tgz_file)], shell=True)
-                    run_cmd(["tabix -s1 -b2 -e2 {}".format(tgz_file)], shell=True)
+                    run_cmd(["bgzip -c {} > {}".format(tsv_file, tgz_file)], shell=True, verbose=False)
+                    run_cmd(["tabix -s1 -b2 -e2 {}".format(tgz_file)], shell=True, verbose=False)
 
                     # sample names in the BAM file(s) may not be consistent, so override the @SM code with accession
                     with open(rgs_file, 'w') as fout:
@@ -285,7 +285,7 @@ class LoadSampleReads(PipelineTask):
                           .format(**params)
 
                     # run the base calling
-                    run_cmd([cmd], shell=True)
+                    run_cmd([cmd], shell=True, verbose=False)
 
                     # parse the results with pysam
                     for rec in pysam.VariantFile(vcf_file).fetch():

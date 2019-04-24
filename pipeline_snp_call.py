@@ -147,6 +147,7 @@ class BCFToolsCall(PipelineTask):
             params = {
                 'ref': ref_file.path,
                 'chr': 'chr{}'.format(self.chrom) if self.species == 'horse' else self.chrom,
+                'rgs': rgs_file,
                 'bam': ' '.join([bam.path for bam in bam_files]),
                 'pld': pld_file.path,
                 'sex': sex_file,

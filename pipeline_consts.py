@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# QTLdb settings
+# QTLdb release number (changing this number will trigger a complete db rebuild)
 QTLDB_RELEASE = 'rel37'
 
-# the scientific name of each species
+# the scientific name of each species (necessary for resolving Ensembl URLs)
 BINOMIAL_NAME = {
     'cattle': 'Bos_taurus',
     'goat':   'Capra_hircus',
@@ -12,7 +12,7 @@ BINOMIAL_NAME = {
     'pig':    'Sus_scrofa',
 }
 
-# which reference assembly should we use for each species
+# which reference assembly should we use for each species (changing the assembly will trigger a complete db rebuild)
 REF_ASSEMBLY = {
     'cattle': 'UMD3.1',
     'goat':   'ARS1',
@@ -20,30 +20,30 @@ REF_ASSEMBLY = {
     'pig':    'Sscrofa10.2',
 }
 
-# TODO double check these
-# the chromosomes in each assembly
+# the name of the chromosomes in each assembly
 CHROMOSOMES = {
-    # cattle
-    'UMD3.1':      map(str, range(1, 30)) + ['X', 'MT'],
-    'ARS-UCD1.2':  map(str, range(1, 30)) + ['X', 'MT'],
+    # cattle assemblies
+    'UMD3.1':     map(str, range(1, 30)) + ['X', 'MT'],
+    'ARS-UCD1.2': map(str, range(1, 30)) + ['X', 'MT'],
 
-    # goat
-    'ARS1':        map(str, range(1, 30)) + ['X', 'MT'],
+    # goat assemblies
+    'ARS1': map(str, range(1, 30)) + ['MT'],
 
-    # horse
-    'EquCab2':     map(str, range(1, 32)) + ['X', 'MT'],
-    'EquCab3.0':   map(str, range(1, 32)) + ['X', 'MT'],
+    # horse assemblies
+    'EquCab2':   map(str, range(1, 32)) + ['X', 'MT'],
+    'EquCab3.0': map(str, range(1, 32)) + ['X', 'MT'],
 
-    # pig
+    # pig assemblies
     'Sscrofa10.2': map(str, range(1, 19)) + ['X', 'Y', 'MT'],
     'Sscrofa11.1': map(str, range(1, 19)) + ['X', 'Y', 'MT'],
 }
 
+# the name of the outgroup sample
 OUTGROUP = {
     # 'cattle': '',  # TODO add me
     # 'goat':   '',  # TODO add me
-    'horse':  'Esom_0226A',                # Equus africanus somaliensis / Somali wild ass
-    'pig':    'SVSV01U01_Sverrucosus_rh',  # Sus verrucosus / Javan warty pig
+    'horse': 'Esom_0226A',  # Equus africanus somaliensis / Somali wild ass
+    'pig': 'SVSV01U01_Sverrucosus_rh',  # Sus verrucosus / Javan warty pig
 }
 
 # TODO move into spreadsheet
@@ -55,28 +55,29 @@ SAMPLES = {
         'EUD': ['AS01F01_AnglerSattleschwein_rh', 'AS01F09_Angler_Sattelsw_rh', 'BB01M47_Bunte_Bentheimer_rh',
                 'BK01F10_Berkshire_rh', 'BK01M20_Berkshire_rh', 'BS01F10_British_Saddle_rh',
                 'BS01F35_British_Saddleback_rh', 'CA01F14_Calabrese_rh', 'CM01F17_Chato_Murciano_rh',
-                'CM01F18_Chato_Murciano_rh', 'CS01F02_Cinta_Senese_rh', 'CT01F13_Cassertana_rh', 'CT01M12_Cassertana_rh',
-                'DU22M01_Duroc_rh', 'DU22M02_Duroc_rh', 'DU22M03_Duroc_rh', 'DU23M01_Duroc_rh', 'DU23M02_Duroc_rh',
-                'DU23M03_Duroc_rh', 'DU23M04_Duroc_rh', 'GO01F04_Gl_Old_Spots_rh', 'GO01F23_GloucesterOldSpot_rh',
-                'HA20U01_Hampshire_rh', 'HA20U02_Hampshire_rh', 'HA20U04_Hampshire_rh', 'HA20U06_Hampshire_rh',
-                'LB01F49_Large_Black_rh', 'LE01F25_Leicoma_rh', 'LR21M03_rh', 'LR24F01_rh', 'LR24F08_rh', 'LR24M17_rh',
-                'LR24M18_rh', 'LR24M19_rh', 'LR24M20_rh', 'LR24M21_rh', 'LR24M22_rh', 'LR30F02_rh', 'LR30F03_rh',
-                'LR30F04_Landrace_rh', 'LS01F04_Linderodsvin_rh', 'LW22F01_rh', 'LW22F02_rh', 'LW22F03_rh', 'LW22F04_rh',
-                'LW22F06_rh', 'LW22F07_rh', 'LW22F08_LargeWhite_rh', 'LW22F09_LargeWhite_rh', 'LW22M04_rh', 'LW36F01_rh',
-                'LW36F02_rh', 'LW36F03_rh', 'LW36F04_rh', 'LW36F05_rh', 'LW36F06_rh', 'LW37M01_rh', 'LW38MF02_rh',
-                'LW39M01_rh', 'LW39M02_rh', 'LW39M03_rh', 'LW39M04_rh', 'LW39M05_rh', 'LW39M07_rh', 'LW39M08_rh',
-                'MA01F18_Mangalica_rh', 'MA01F20_Mangalica_rh', 'MW01F29_Middle_White_rh', 'MW01F33_Middle_White_rh',
-                'NI01U07_Negro_Iberico_rh', 'NS01F05_Nera_Siciliana_rh', 'PI21F02_rh', 'PI21F06_rh', 'PI21F07_Pietrain_rh',
-                'PI21F08_Pietrain_rh', 'PI21F09_Pietrain_rh', 'PI21M17_rh', 'PI21M20_rh', 'RE01F51_Retinto_rh',
-                'TA01F19_Tamworth_rh', 'TA01M06_Tamworth_rh'],
+                'CM01F18_Chato_Murciano_rh', 'CS01F02_Cinta_Senese_rh', 'CT01F13_Cassertana_rh',
+                'CT01M12_Cassertana_rh', 'DU22M01_Duroc_rh', 'DU22M02_Duroc_rh', 'DU22M03_Duroc_rh', 'DU23M01_Duroc_rh',
+                'DU23M02_Duroc_rh', 'DU23M03_Duroc_rh', 'DU23M04_Duroc_rh', 'GO01F04_Gl_Old_Spots_rh',
+                'GO01F23_GloucesterOldSpot_rh', 'HA20U01_Hampshire_rh', 'HA20U02_Hampshire_rh', 'HA20U04_Hampshire_rh',
+                'HA20U06_Hampshire_rh', 'LB01F49_Large_Black_rh', 'LE01F25_Leicoma_rh', 'LR21M03_rh', 'LR24F01_rh',
+                'LR24F08_rh', 'LR24M17_rh', 'LR24M18_rh', 'LR24M19_rh', 'LR24M20_rh', 'LR24M21_rh', 'LR24M22_rh',
+                'LR30F02_rh', 'LR30F03_rh', 'LR30F04_Landrace_rh', 'LS01F04_Linderodsvin_rh', 'LW22F01_rh',
+                'LW22F02_rh', 'LW22F03_rh', 'LW22F04_rh', 'LW22F06_rh', 'LW22F07_rh', 'LW22F08_LargeWhite_rh',
+                'LW22F09_LargeWhite_rh', 'LW22M04_rh', 'LW36F01_rh', 'LW36F02_rh', 'LW36F03_rh', 'LW36F04_rh',
+                'LW36F05_rh', 'LW36F06_rh', 'LW37M01_rh', 'LW38MF02_rh', 'LW39M01_rh', 'LW39M02_rh', 'LW39M03_rh',
+                'LW39M04_rh', 'LW39M05_rh', 'LW39M07_rh', 'LW39M08_rh', 'MA01F18_Mangalica_rh', 'MA01F20_Mangalica_rh',
+                'MW01F29_Middle_White_rh', 'MW01F33_Middle_White_rh', 'NI01U07_Negro_Iberico_rh',
+                'NS01F05_Nera_Siciliana_rh', 'PI21F02_rh', 'PI21F06_rh', 'PI21F07_Pietrain_rh', 'PI21F08_Pietrain_rh',
+                'PI21F09_Pietrain_rh', 'PI21M17_rh', 'PI21M20_rh', 'RE01F51_Retinto_rh', 'TA01F19_Tamworth_rh',
+                'TA01M06_Tamworth_rh'],
 
         # the 22 Asian domestic pigs
         'ASD': ['JI01U08_Jinhua_rh', 'JI01U10_Jinhua_rh', 'JQ01U02_Jiangquhai_rh', 'JQ01U03_Jiangquahai_rh',
-                'JQ01U08_Jiangquahai_rh', 'LSP01U16_LepingSpotted_rh', 'LSP01U18_LepingSpotted_rh', 'MS20M03_Meishan_rh',
-                'MS20M05_Meishan_rh', 'MS20U10_Meishan_rh', 'MS20U11_Meishan_rh', 'MS20U13_Meishan_rh',
-                'MS21M01_Meishan_rh', 'MS21M05_Meishan_rh', 'MS21M07_Meishan_rh', 'MS21M08_Meishan_rh',
-                'MS21M14_Meishan_rh', 'WS01U03_WannanSpotted_rh', 'WS01U13_WannanSpotted_rh', 'XI01U03_rh',
-                'XI01U04_Xiang_rh', 'ZA01U02_Zang_rh'],
+                'JQ01U08_Jiangquahai_rh', 'LSP01U16_LepingSpotted_rh', 'LSP01U18_LepingSpotted_rh',
+                'MS20M03_Meishan_rh', 'MS20M05_Meishan_rh', 'MS20U10_Meishan_rh', 'MS20U11_Meishan_rh',
+                'MS20U13_Meishan_rh', 'MS21M01_Meishan_rh', 'MS21M05_Meishan_rh', 'MS21M07_Meishan_rh',
+                'MS21M08_Meishan_rh', 'MS21M14_Meishan_rh', 'WS01U03_WannanSpotted_rh', 'WS01U13_WannanSpotted_rh',
+                'XI01U03_rh', 'XI01U04_Xiang_rh', 'ZA01U02_Zang_rh'],
 
         # the 2 Sumatran scrofa (for ascertaining ancient alleles)
         'SUM': ['INDO22_Sumatra_rh', 'INDO33_Sumatra_rh'],
@@ -89,9 +90,9 @@ SAMPLES = {
 
         # the 24 Domestic horses
         'DOM2': ['Arab_0237A', 'Conn_0004A', 'Duel_0238A', 'FrMo_0065A', 'Frie_0296A', 'Hano_0235A', 'Heav_0269A',
-                'Icel_0144A', 'Icel_0247A', 'Jeju_0275A', 'Marw_0239A', 'Mong_0153A', 'Mong_0215A', 'Morg_0096A',
-                'Quar_0073A', 'Shet_0249A', 'Shet_0250A', 'Sorr_0236A', 'Stan_0081A', 'Thor_0145A', 'Thor_0290A',
-                'Yaku_0163A', 'Yaku_0170A', 'Yaku_0171A'],
+                 'Icel_0144A', 'Icel_0247A', 'Jeju_0275A', 'Marw_0239A', 'Mong_0153A', 'Mong_0215A', 'Morg_0096A',
+                 'Quar_0073A', 'Shet_0249A', 'Shet_0250A', 'Sorr_0236A', 'Stan_0081A', 'Thor_0145A', 'Thor_0290A',
+                 'Yaku_0163A', 'Yaku_0170A', 'Yaku_0171A'],
     }
 }
 
@@ -170,7 +171,6 @@ BAM_FILES = {
     }
 }
 
-
 # the per-site mutation rate
 MUTATION_RATE = {
     'horse': 7.242e-9  # https://www.pnas.org/content/111/52/E5661.full#sec-17
@@ -178,13 +178,13 @@ MUTATION_RATE = {
 
 # the average generation time in years
 GENERATION_TIME = {
-    'pig': 5,   # see https://www.nature.com/articles/ng.3197
+    'pig': 5,  # see https://www.nature.com/articles/ng.3197
     'horse': 8  # see https://www.sciencedirect.com/science/article/pii/S0960982215010039
 }
 
 # the reference effective population size
 POPULATION_SIZE = {
-    'pig': {    # see https://www.nature.com/articles/ng.3394
+    'pig': {  # see https://www.nature.com/articles/ng.3394
         'EUD': 20563,
         'EUW': 8497
     },

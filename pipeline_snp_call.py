@@ -5,7 +5,6 @@ import luigi
 import numpy
 
 # import my custom modules
-# TODO make these into PipelineTask properties
 from pipeline_consts import BAM_FILES, SAMPLE_SEX, MIN_GENO_QUAL
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
 
@@ -27,6 +26,10 @@ class ExternalFASTA(PipelineExternalTask):
     """
     species = luigi.Parameter()
 
+    # TODO make this into a download task from ensembl
+    # TODO use the gzip version
+    # TODO add an index method
+    # TODO add method for chrom size
     def output(self):
         return luigi.LocalTarget('fasta/{}.{}.dna.toplevel.fa'.format(self.binomial, self.assembly))
 
@@ -47,6 +50,22 @@ class ExternalBAM(PipelineExternalTask):
         return luigi.LocalTarget(BAM_FILES[self.species][self.sample])
 
 
+class ExternalPloidy(PipelineExternalTask):
+    """
+    External dependency for a bcftools file which specifies the sex based ploidy of chromosomes in an assembly.
+
+    See --ploidy-file in https://samtools.github.io/bcftools/bcftools.html#call
+
+    N.B. These have been created outside the workflow of this pipeline.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def output(self):
+        return luigi.LocalTarget('fasta/{}.{}.ploidy'.format(self.binomial, self.assembly))
+
+
 class BCFToolsCall(PipelineTask):
     """
     Make genotype calls using the bcftools mpileup workflow
@@ -65,6 +84,7 @@ class BCFToolsCall(PipelineTask):
 
     def requires(self):
         yield ExternalFASTA(self.species)
+        yield ExternalPloidy(self.species)
 
         for sample in self.all_samples():
             yield ExternalBAM(self.species, sample)
@@ -74,7 +94,7 @@ class BCFToolsCall(PipelineTask):
 
     def run(self):
         # unpack the input params
-        ref_file, bam_files = self.input()[0], self.input()[1:]
+        ref_file, pld_file, bam_files = self.input()[0], self.input()[1], self.input()[2:]
 
         # bcftools needs the sex specified in a separate file
         sex_file = 'vcf/{}-{}-modern.sex'.format(self.species, self.population)
@@ -93,7 +113,7 @@ class BCFToolsCall(PipelineTask):
                 'ref': ref_file.path,
                 'chr': 'chr{}'.format(self.chrom) if self.species == 'horse' else self.chrom,
                 'bam': ' '.join([bam.path for bam in bam_files]),
-                'pld': 'data/{}.ploidy'.format(self.species),
+                'pld': pld_file.path,
                 'sex': sex_file,
                 'vcf': vcf_out
             }

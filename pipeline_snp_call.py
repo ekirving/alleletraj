@@ -112,22 +112,16 @@ class BCFToolsCall(PipelineTask):
     Make genotype calls using the bcftools mpileup workflow
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
-
-    def all_samples(self):
-        # include the outgroup in the sample list, as we need it for polarization
-        return [self.outgroup] + self.samples
 
     def requires(self):
         yield ReferenceFASTA(self.species)
         yield ReferencePloidy(self.species)
 
-        for sample in self.all_samples():
+        for sample in self.all_samples:
             yield ExternalBAM(self.species, sample)
 
     def output(self):
@@ -138,15 +132,15 @@ class BCFToolsCall(PipelineTask):
         (ref_file, _), pld_file, bam_files = self.input()[0], self.input()[1], self.input()[2:]
 
         # bcftools needs the sex specified in a separate file
-        sex_file = 'vcf/{}-{}-modern.sex'.format(self.species, self.population)
+        sex_file = 'vcf/{}-modern.sex'.format(self.species)
         with open(sex_file, 'w') as fout:
-            for sample in self.all_samples():
+            for sample in self.all_samples:
                 fout.write('{}\t{}\n'.format(sample, SAMPLE_SEX[self.species][sample]))
 
         # sample names in the BAM file(s) may not be consistent, so override the @SM code
-        rgs_file = 'vcf/{}-{}-modern.rgs'.format(self.species, self.population)
+        rgs_file = 'vcf/{}-modern.rgs'.format(self.species)
         with open(rgs_file, 'w') as fout:
-            for idx, sample in enumerate(self.all_samples()):
+            for idx, sample in enumerate(self.all_samples):
                 fout.write('*\t{}\t{}'.format(bam_files[idx], sample))
 
         with self.output().temporary_path() as vcf_out:
@@ -173,17 +167,15 @@ class QuantilesOfCoverageVCF(PipelineTask):
     The DoC distribution is calculated exclusively on sites that pass the genotype quality filter.
 
     :type species: str
-    :type population: str
     :type chrom: str
     :type qual: int
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
     qual = luigi.IntParameter()
 
     def requires(self):
-        return BCFToolsCall(self.species, self.population, self.chrom)
+        return BCFToolsCall(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}.quant'.format(self.basename))
@@ -215,19 +207,17 @@ class FilterVCF(PipelineTask):
     Also, normalise indels and merge multiallelic sites.
 
     :type species: str
-    :type population: str
     :type chrom: str
     :type qual: int
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
     qual = luigi.IntParameter()
 
     def requires(self):
         yield ReferenceFASTA(self.species)
-        yield BCFToolsCall(self.species, self.population, self.chrom)
-        yield QuantilesOfCoverageVCF(self.species, self.population, self.chrom, self.qual)
+        yield BCFToolsCall(self.species, self.chrom)
+        yield QuantilesOfCoverageVCF(self.species, self.chrom, self.qual)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}-quant.vcf.gz'.format(self.basename))
@@ -262,17 +252,15 @@ class PolarizeVCF(PipelineTask):
     Drops any sites which are heterozygous or uncallable in the outgroup.
 
     :type species: str
-    :type population: str
     :type chrom: str
     :type qual: int
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
     qual = luigi.IntParameter(default=MIN_GENO_QUAL)
 
     def requires(self):
-        return FilterVCF(self.species, self.population, self.chrom, self.qual)
+        return FilterVCF(self.species, self.chrom, self.qual)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}-quant-polar.vcf.gz'.format(self.basename))
@@ -324,17 +312,15 @@ class BiallelicSNPsVCF(PipelineTask):
     Extract all the biallelic SNPs from the filtered and polarised VCF.
 
     :type species: str
-    :type population: str
     :type chrom: str
     :type qual: int
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
     qual = luigi.IntParameter(default=MIN_GENO_QUAL)
 
     def requires(self):
-        return PolarizeVCF(self.species, self.population, self.chrom, self.qual)
+        return PolarizeVCF(self.species, self.chrom, self.qual)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}-quant-polar-SNPs.vcf.gz'.format(self.basename))
@@ -362,17 +348,15 @@ class WholeGenomeSNPsVCF(PipelineTask):
     Concatenate the all chromosome VCFs into a single file.
 
     :type species: str
-    :type population: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
 
     def requires(self):
         for chrom in self.chromosomes:
-            yield BiallelicSNPsVCF(self.species, self.population, chrom)
+            yield BiallelicSNPsVCF(self.species, chrom)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.species))
 
     def run(self):
 
@@ -399,8 +383,7 @@ class SNPCallPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop in self.populations:
-            yield WholeGenomeSNPsVCF(self.species, pop)
+        yield WholeGenomeSNPsVCF(self.species)
 
 
 if __name__ == '__main__':

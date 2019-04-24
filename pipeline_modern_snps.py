@@ -68,18 +68,16 @@ class ModernSNPsFromFASTA(PipelineTask):
     Ascertain moderns SNPS, and estimate their allele frequency, from the given chromosome FASTA files.
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     def requires(self):
         yield CreateDatabase(self.species)
 
         # include the outgroup in the sample list, as we need it for polarization
-        for sample in [self.outgroup] + self.samples:
+        for sample in self.all_samples:
             yield ExternalFASTA(sample)
 
     def output(self):
@@ -163,7 +161,6 @@ class ModernSNPsFromFASTA(PipelineTask):
                 daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
 
                 record = {
-                    'population': self.population,
                     'chrom': self.chrom,
                     'site': site,
                     'ancestral': ancestral,
@@ -171,7 +168,7 @@ class ModernSNPsFromFASTA(PipelineTask):
                     'derived': derived,
                     'derived_count': observations[derived],
                     'type': snp_type,
-                    'daf': daf,
+                    'daf': daf,  # TODO one per population
                 }
 
                 dbc.save_record('modern_snps', record)
@@ -185,16 +182,14 @@ class ModernSNPsFromVCF(PipelineTask):
     Ascertain moderns SNPS, and estimate their allele frequency, from the given chromosome VCF file.
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     def requires(self):
         yield CreateDatabase(self.species)
-        yield BiallelicSNPsVCF(self.species, self.population, self.chrom)
+        yield BiallelicSNPsVCF(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -239,7 +234,6 @@ class ModernSNPsFromVCF(PipelineTask):
             daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
 
             record = {
-                'population': self.population,
                 'chrom': self.chrom,
                 'site': rec.pos,
                 'ancestral': ancestral,
@@ -247,7 +241,7 @@ class ModernSNPsFromVCF(PipelineTask):
                 'derived': derived,
                 'derived_count': observations[derived],
                 'type': snp_type,
-                'daf': daf,
+                'daf': daf,  # TODO one per population
             }
 
             dbc.save_record('modern_snps', record)
@@ -262,20 +256,18 @@ class LoadModernSNPs(PipelineWrapperTask):
     Ascertain modern SNPs in whole-genome data.
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     def requires(self):
         if self.species == 'pig':
             # special case of FASTA data for pig ascertainment
-            yield ModernSNPsFromFASTA(self.species, self.population, self.chrom)
+            yield ModernSNPsFromFASTA(self.species, self.chrom)
         else:
             # parse the VCF files for all other species
-            yield ModernSNPsFromVCF(self.species, self.population, self.chrom)
+            yield ModernSNPsFromVCF(self.species, self.chrom)
 
 
 class ModernSNPsPipeline(PipelineWrapperTask):
@@ -288,10 +280,9 @@ class ModernSNPsPipeline(PipelineWrapperTask):
 
     def requires(self):
 
-        # process SNPs for all populations and all chromosomes
-        for pop in self.populations:
-            for chrom in self.chromosomes:
-                yield LoadModernSNPs(self.species, pop, chrom)
+        # process SNPs for all chromosomes
+        for chrom in self.chromosomes:
+            yield LoadModernSNPs(self.species, chrom)
 
 
 if __name__ == '__main__':

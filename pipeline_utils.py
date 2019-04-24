@@ -281,9 +281,17 @@ class PipelineTask(luigi.Task):
     @property
     def samples(self):
         """
-        List of the modern samples for the species
+        List of the modern samples for this population
         """
         return SAMPLES[self.species][self.population]
+
+    @property
+    def all_samples(self):
+        """
+        All samples, from all populations, including the outgroup (which is always the first in the list).
+        :return:
+        """
+        return [self.outgroup] + [sample for population in SAMPLES for sample in SAMPLES[population]]
 
     def all_params(self):
         """

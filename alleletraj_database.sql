@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
 # Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-04-24 14:01:39 +0000
+# Generation Time: 2019-04-25 09:37:32 +0000
 # ************************************************************
 
 
@@ -35,8 +35,8 @@ CREATE TABLE `ascertainment` (
   `chip_name` varchar(255) DEFAULT '',
   `snp_name` varchar(510) DEFAULT '',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `qtl_id` (`qtl_id`,`chrom`,`site`),
-  KEY `chrom` (`chrom`,`site`),
+  UNIQUE KEY `qtl_chrom_site` (`qtl_id`,`chrom`,`site`),
+  KEY `chrom_site` (`chrom`,`site`),
   KEY `rsnumber` (`rsnumber`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -57,7 +57,7 @@ CREATE TABLE `ensembl_genes` (
   `end` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `gene_id` (`gene_id`),
-  KEY `chrom` (`chrom`,`start`,`end`)
+  KEY `chrom_start_end` (`chrom`,`start`,`end`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -78,10 +78,9 @@ CREATE TABLE `ensembl_variants` (
   `indel` tinyint(1) DEFAULT NULL,
   KEY `id` (`id`),
   KEY `rsnumber` (`rsnumber`),
-  KEY `chrom` (`chrom`,`start`,`end`),
+  KEY `chrom_start_end` (`chrom`,`start`,`end`),
   KEY `type` (`type`),
-  KEY `indel` (`indel`),
-  KEY `id_2` (`id`,`indel`)
+  KEY `indel` (`indel`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 /*!50500 PARTITION BY LIST  COLUMNS(chrom)
 (PARTITION p1 VALUES IN ('1') ENGINE = InnoDB,
@@ -121,31 +120,41 @@ CREATE TABLE `ensembl_variants` (
 
 
 
+# Dump of table modern_snp_daf
+# ------------------------------------------------------------
+
+CREATE TABLE `modern_snp_daf` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `modsnp_id` int(11) unsigned NOT NULL,
+  `population` varchar(255) NOT NULL DEFAULT '',
+  `ancestral_count` int(11) unsigned NOT NULL,
+  `derived_count` int(11) unsigned NOT NULL,
+  `daf` float NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
 # Dump of table modern_snps
 # ------------------------------------------------------------
 
 CREATE TABLE `modern_snps` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `population` char(4) DEFAULT NULL,
   `chrom` char(2) NOT NULL DEFAULT '',
   `site` int(11) NOT NULL,
   `ancestral` char(1) NOT NULL DEFAULT '',
-  `ancestral_count` int(11) NOT NULL,
   `derived` char(1) NOT NULL DEFAULT '',
-  `derived_count` int(11) NOT NULL,
-  `type` char(2) DEFAULT NULL,
-  `daf` float DEFAULT NULL,
+  `type` char(2) NOT NULL DEFAULT '',
   `variant_id` int(11) DEFAULT NULL,
   `snpchip_id` int(11) DEFAULT NULL,
   `gene_id` int(11) unsigned DEFAULT NULL,
   `neutral` tinyint(1) DEFAULT NULL,
   KEY `id` (`id`),
-  KEY `population` (`population`,`chrom`,`site`),
+  KEY `chrom_site` (`chrom`,`site`),
   KEY `variant_id` (`variant_id`),
   KEY `snpchip_id` (`snpchip_id`),
   KEY `gene_id` (`gene_id`),
-  KEY `neutral` (`neutral`),
-  KEY `chrom` (`chrom`,`site`)
+  KEY `neutral` (`neutral`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 /*!50500 PARTITION BY LIST  COLUMNS(chrom)
 (PARTITION p1 VALUES IN ('1') ENGINE = InnoDB,
@@ -209,7 +218,7 @@ CREATE TABLE `qtl_snps` (
   `num_reads` int(11) DEFAULT NULL,
   `best` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `qtl_id` (`qtl_id`,`modsnp_id`),
+  UNIQUE KEY `qtl_modsnp` (`qtl_id`,`modsnp_id`),
   KEY `best` (`best`),
   KEY `num_reads` (`num_reads`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -282,9 +291,9 @@ CREATE TABLE `qtls` (
   KEY `trait_fk` (`trait_id`),
   KEY `pubmed_fk` (`pubmed_id`),
   KEY `peak` (`peak`),
-  KEY `species` (`chrom`,`start`,`end`),
+  KEY `chrom_start_end` (`chrom`,`start`,`end`),
   KEY `valid` (`valid`),
-  KEY `associationType` (`associationType`,`valid`)
+  KEY `associationtype_valid` (`associationType`,`valid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -343,7 +352,7 @@ CREATE TABLE `sample_files` (
   `sample_id` int(11) unsigned DEFAULT NULL,
   `path` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `sample_id` (`sample_id`,`path`)
+  UNIQUE KEY `sample_path` (`sample_id`,`path`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -391,7 +400,7 @@ CREATE TABLE `sample_reads` (
   `called` tinyint(1) DEFAULT NULL,
   KEY `id` (`id`),
   KEY `sampleID` (`sample_id`),
-  KEY `chrom` (`chrom`,`site`),
+  KEY `chrom_site` (`chrom`,`site`),
   KEY `snp` (`called`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 /*!50500 PARTITION BY LIST  COLUMNS(chrom)
@@ -438,8 +447,8 @@ CREATE TABLE `sample_reads` (
 CREATE TABLE `samples` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `accession` varchar(255) NOT NULL DEFAULT '',
-  `population` varchar(255) DEFAULT NULL,
-  `sex` char(1) DEFAULT NULL,
+  `population` varchar(255) NOT NULL DEFAULT '',
+  `sex` char(1) NOT NULL DEFAULT '',
   `map_reads` int(11) unsigned DEFAULT NULL,
   `map_prcnt` float DEFAULT NULL,
   `age` varchar(255) DEFAULT NULL,
@@ -470,11 +479,11 @@ CREATE TABLE `snpchip` (
   `site` int(11) NOT NULL,
   `snp_name` varchar(255) NOT NULL DEFAULT '',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `chip_name` (`chip_name`,`rsnumber`,`snp_name`),
+  UNIQUE KEY `chip_rsnumber_snp` (`chip_name`,`rsnumber`,`snp_name`),
   KEY `snp_name` (`snp_name`),
   KEY `rsnumber` (`rsnumber`),
-  KEY `chip_name_2` (`chip_name`,`chrom`,`site`),
-  KEY `chrom` (`chrom`,`site`)
+  KEY `chip_chrom_site` (`chip_name`,`chrom`,`site`),
+  KEY `chrom_site` (`chrom`,`site`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

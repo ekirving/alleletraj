@@ -13,7 +13,7 @@ from pipeline_snp_call import BiallelicSNPsVCF
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
 
 # TODO move into spreadsheet
-FASTA_PATH = '/media/jbod/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
+FASTA_PATH = '/media/jbod2/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
 
 # extended FASTA codes for biallelic sites
 FASTA_MAP = {
@@ -51,13 +51,15 @@ def mutation_type(alleles):
 
 class ExternalFASTA(PipelineExternalTask):
     """
-    External task dependency for a whole-genome FASTA file.
+    External task dependency for a chromosome FASTA file.
 
     N.B. These have been created outside the workflow of this pipeline.
 
     :type sample: str
+    :type chrom: str
     """
     sample = luigi.Parameter()
+    chrom = luigi.Parameter()
 
     def output(self):
         return luigi.LocalTarget("{}/{}/{}.fa".format(FASTA_PATH, self.sample, self.chrom))
@@ -211,41 +213,45 @@ class ModernSNPsFromVCF(PipelineTask):
             ancestral = rec.ref
             derived = rec.alts[0]
 
-            # lets collate all the haploid observations for the two alleles
-            haploids = []
-
-            # resolve the genotypes of all the samples
-            for sample in self.samples:
-                # get the alleles, but skip any missing genotypes
-                haploids += [alleles for alleles in rec.samples[sample].alleles if alleles is not None]
-
-            # count the haploid observations
-            observations = Counter(haploids)
-            alleles = observations.keys()
-
-            if len(alleles) != 2:
-                # skip non-variant sites
-                continue
-
             # is this mutation a transition or a transversion
-            snp_type = mutation_type(alleles)
+            snp_type = mutation_type([ancestral, derived])
 
-            # calculate the derived allele frequency (DAF)
-            daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
-
-            record = {
+            modern_snp = {
                 'chrom': self.chrom,
                 'site': rec.pos,
                 'ancestral': ancestral,
-                'ancestral_count': observations[ancestral],
                 'derived': derived,
-                'derived_count': observations[derived],
                 'type': snp_type,
-                'daf': daf,  # TODO one per population
             }
 
-            dbc.save_record('modern_snps', record)
+            modsnp_id = dbc.save_record('modern_snps', modern_snp)
+
             num_snps += 1
+
+            # resolve the genotypes of the samples in one population at a time
+            for pop in self.populations:
+
+                # lets collate all the haploid observations for the two alleles
+                haploids = []
+
+                for sample in self.populations[pop]:
+                    # get the alleles, but skip any missing genotypes
+                    haploids += [alleles for alleles in rec.samples[sample].alleles if alleles is not None]
+
+                # count the haploid observations
+                observations = Counter(haploids)
+
+                # calculate the derived allele frequency (DAF)
+                daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
+
+                modern_snp_daf = {
+                    'modsnp_id': modsnp_id,
+                    'ancestral_count': observations[ancestral],
+                    'derived_count': observations[derived],
+                    'daf': daf,
+                }
+
+                dbc.save_record('modern_snp_daf', modern_snp_daf)
 
         with self.output().open('w') as fout:
             fout.write("Added {:,} SNPs".format(num_snps))

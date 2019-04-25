@@ -30,7 +30,7 @@ CHROMOSOMES = {
     'ARS1': map(str, range(1, 30)) + ['MT'],
 
     # horse assemblies
-    'EquCab2':   map(str, range(1, 32)) + ['X'],
+    'EquCab2':   map(str, range(1, 32)) + ['X'],  # NOTE: MT omitted intentionally, as it is absent from the BAM files
     'EquCab3.0': map(str, range(1, 32)) + ['X'],
 
     # pig assemblies

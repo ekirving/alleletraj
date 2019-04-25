@@ -16,7 +16,7 @@ GATK = "/usr/local/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
 PICARD = "/usr/local/picard-tools-2.5.0/picard.jar"
 
 
-class SraToolsFastqDump(luigi.Task):
+class SraToolsFastqDump(PipelineTask):
     """
     Fetches the paired-end and single end FASTQ files for a given accession code, using SRA Tools
     """
@@ -97,7 +97,7 @@ class ReferenceFASTA(PipelineTask):
         run_cmd(['samtools', 'faidx', ref_file.path])
 
 
-class BwaIndexBWTSW(ReferenceFASTA):
+class BwaIndexBWTSW(PipelineTask):
     """
     Builds the BWA index for the reference genome, needed for performing alignments
 

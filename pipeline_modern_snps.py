@@ -120,38 +120,41 @@ class ModernSNPsFromFASTA(PipelineTask):
                 # convert iterator into a list
                 pileup = list(pileup)
 
-                # get the outgroup alleles
-                out_allele = pileup.pop(0)
+                # decode the outgroup allele(s)
+                out_alleles = decode_fasta(pileup.pop(0))
 
-                # decode the fasta format
+                # we cannot handle variable sites in the outgroup
+                if len(set(out_alleles)) != 1:
+                    fout.write("WARNING: Cannot polarize site chr{}:{} = {}\n".format(self.chrom, site, out_alleles))
+                    continue
+
+                # get the ancestral allele
+                ancestral = out_alleles.pop()
+
+                # TODO how to group by population
+                # decode all the sample genotypes
                 haploids = decode_fasta(pileup)
 
+                all_alleles = set(out_alleles + haploids)
+
                 # how many alleles are there at this site
-                num_alleles = len(set(haploids))
+                num_alleles = len(all_alleles)
 
                 # we only want biallelic SNPs
-                if num_alleles > 2:
-                    fout.write("WARNING: Polyallelic site chr{}:{} = {}\n".format(self.chrom, site, set(haploids)))
+                if num_alleles == 1:
+                    # skip non-variant sites
+                    continue
+                elif num_alleles > 2:
+                    fout.write("WARNING: Polyallelic site chr{}:{} = {}\n".format(self.chrom, site, all_alleles))
+                    continue
+                elif len(set(haploids)) == 1:
+                    # exclude sites exclusively hom-ALT, as these are likely mispolarised
+                    fout.write("WARNING: Mispolarized site chr{}:{} = {}\n".format(self.chrom, site, all_alleles))
                     continue
 
                 # count the haploid observations
                 observations = Counter(haploids)
-
-                # decode the outgroup allele
-                ancestral = set(decode_fasta(out_allele))
-
-                # we cannot handle variable sites in the outgroup
-                if len(ancestral) != 1:
-                    fout.write("WARNING: Unknown ancestral allele chr{}:{} = {}\n".format(self.chrom, site, out_allele))
-                    continue
-
-                ancestral = ancestral.pop()
                 alleles = observations.keys()
-
-                if ancestral not in alleles:
-                    fout.write("WARNING: Polyallelic site chr{}:{} = {}, ancestral {}\n".format(self.chrom, site,
-                                                                                              set(haploids), ancestral))
-                    continue
 
                 # is this mutation a transition or a transversion
                 snp_type = mutation_type(alleles)
@@ -162,19 +165,25 @@ class ModernSNPsFromFASTA(PipelineTask):
                 # calculate the derived allele frequency (DAF)
                 daf = float(observations[derived]) / (observations[ancestral] + observations[derived])
 
-                record = {
+                modern_snp = {
                     'chrom': self.chrom,
                     'site': site,
                     'ancestral': ancestral,
-                    'ancestral_count': observations[ancestral],
                     'derived': derived,
-                    'derived_count': observations[derived],
                     'type': snp_type,
-                    'daf': daf,  # TODO one per population
                 }
 
-                dbc.save_record('modern_snps', record)
+                modsnp_id = dbc.save_record('modern_snps', modern_snp)
                 num_snps += 1
+
+                modern_snp_daf = {
+                    'modsnp_id': modsnp_id,
+                    'ancestral_count': observations[ancestral],
+                    'derived_count': observations[derived],
+                    'daf': daf,
+                }
+
+                dbc.save_record('modern_snp_daf', modern_snp_daf)
 
             fout.write("FINISHED: Added {:,} SNPs\n".format(num_snps))
 

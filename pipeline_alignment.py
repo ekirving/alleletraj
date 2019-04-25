@@ -31,7 +31,7 @@ class SraToolsFastqDump(luigi.Task):
                  '--gzip',               # output gzipped files
                  '--split-3',            # split into two paired end fastq files + one unpaired fastq
                  '--outdir', './fastq',  # output directory
-                 self.sample])
+                 self.accession])
 
 
 class TrimGalore(PipelineTask):

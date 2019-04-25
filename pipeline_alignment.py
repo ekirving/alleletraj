@@ -271,16 +271,15 @@ class GATKRealignerTargetCreator(PipelineTask):
         (bam_in, _, _), (ref_file, _), _ = self.input()
         itv_file, log_file = self.output()
 
-        # TODO switch log_file with actual output file
-        with log_file.temporary_path() as log_path:
+        with itv_file.temporary_path() as itv_path, open(log_file.path, 'w') as log_fout:
 
             run_cmd(['java', self.java_mem,
                      '-jar', GATK,
                      '--analysis_type', 'RealignerTargetCreator',
                      '--reference_sequence', ref_file.path,
                      '--input_file', bam_in.path,
-                     '--out', itv_file.path],
-                    stdout=open(log_path, 'w'))
+                     '--out', itv_path],
+                    stdout=log_fout)
 
 
 class GATKIndelRealigner(PipelineTask):
@@ -309,8 +308,7 @@ class GATKIndelRealigner(PipelineTask):
         (bam_in, _, _), (itv_file, _), (ref_file, _) = self.input()
         bam_out, _, log_file = self.output()
 
-        # TODO switch log_file with actual output file
-        with log_file.temporary_path() as log_path:
+        with bam_out.temporary_path() as bam_path, open(log_file.path, 'w') as log_fout:
 
             run_cmd(['java', self.java_mem,
                      '-jar', GATK,
@@ -318,8 +316,8 @@ class GATKIndelRealigner(PipelineTask):
                      '--reference_sequence', ref_file.path,
                      '--input_file', bam_in.path,
                      '--targetIntervals', itv_file.path,
-                     '--out', bam_out.path],
-                    stdout=open(log_path, 'w'))
+                     '--out', bam_path],
+                    stdout=log_fout)
 
 
 class SAMToolsMerge(PipelineTask):
@@ -346,6 +344,7 @@ class SAMToolsMerge(PipelineTask):
         bam_out, _ = self.output()
 
         with bam_out.temporary_path() as bam_path:
+
             run_cmd(['samtools',
                      'merge',
                      bam_path

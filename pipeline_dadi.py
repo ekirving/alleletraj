@@ -14,6 +14,9 @@ from pipeline_consts import MUTATION_RATE
 from pipeline_snp_call import PolarizeVCF, WholeGenomeSNPsVCF
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
 
+# location of software tool
+EASYSFS = "../easySFS/easySFS.py"
+
 # TODO handle this better
 # modern samples to leave out of the SFS calculation
 SFS_EXCLUSIONS = {
@@ -102,6 +105,7 @@ class EasySFS(PipelineTask):
                 fout.write('{}\t{}\n'.format(sample, self.population))
 
         params = {
+            'easysfs': EASYSFS,
             'vcf':  self.input().path,
             'pops': pop_file,
             'out':  self.basename,
@@ -110,8 +114,7 @@ class EasySFS(PipelineTask):
         }
 
         # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
-        cmd = "echo 'yes' | " \
-              "../easySFS/easySFS.py -a -f -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
+        cmd = "echo 'yes' | {easysfs} -a -f -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
 
         log = run_cmd([cmd], shell=True)
 
@@ -307,7 +310,7 @@ class CountCallableSites(PipelineTask):
 
     def requires(self):
         for chrom in self.chromosomes:
-            yield PolarizeVCF(self.species, self.population, 'chr{}'.format(chrom))  # TODO handle chr prefixes better
+            yield PolarizeVCF(self.species, self.population, chrom)
 
     def output(self):
         return luigi.LocalTarget('dadi/{}.L'.format(self.basename))

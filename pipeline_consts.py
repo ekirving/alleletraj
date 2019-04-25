@@ -177,8 +177,10 @@ BAM_FILES = {
 # TODO move into a spreadsheet
 # TODO testing data only
 SRA_ACCESSIONS = {
-    'AS01F01_AnglerSattleschwein_rh': ['ERR977189', 'ERR977190'],
-    'AS01F09_Angler_Sattelsw_rh': ['ERR977191','ERR977192','ERR977193', 'ERR977194']
+    'pig': {
+        'AS01F01_AnglerSattleschwein_rh': ['ERR977189', 'ERR977190'],
+        'AS01F09_Angler_Sattelsw_rh': ['ERR977191','ERR977192','ERR977193', 'ERR977194']
+    }
 }
 
 # the per-site mutation rate

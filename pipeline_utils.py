@@ -227,7 +227,7 @@ class PipelineTask(luigi.Task):
         """
         List of SRA accession codes for a sample
         """
-        return SRA_ACCESSIONS[self.sample]
+        return SRA_ACCESSIONS[self.species][self.sample]
 
     @property
     def assembly(self):

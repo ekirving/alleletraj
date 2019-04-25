@@ -51,6 +51,7 @@ OUTGROUP = {
 # TODO move into spreadsheet
 SAMPLES = {
 
+    # https://www.nature.com/articles/ng.3394
     'pig': {
 
         # the 81 European domestic pigs
@@ -171,6 +172,13 @@ BAM_FILES = {
         'Yaku_0170A': '/home/ludo/inbox/BAMs/modern/Yaku_0170A_Yak8.Horse_nuc_wY.realigned.bam',
         'Yaku_0171A': '/home/ludo/inbox/BAMs/modern/Yaku_0171A_Yak9.Horse_nuc_wY.realigned.bam'
     }
+}
+
+# TODO move into a spreadsheet
+# TODO testing data only
+SRA_ACCESSIONS = {
+    'AS01F01_AnglerSattleschwein_rh': ['ERR977189', 'ERR977190'],
+    'AS01F09_Angler_Sattelsw_rh': ['ERR977191','ERR977192','ERR977193', 'ERR977194']
 }
 
 # the per-site mutation rate

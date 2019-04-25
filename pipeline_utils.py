@@ -10,7 +10,7 @@ from collections import Iterable
 from multiprocessing import Process
 
 # import my libraries
-from pipeline_consts import CHROMOSOMES, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, SAMPLES
+from pipeline_consts import CHROMOSOMES, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, SAMPLES, SRA_ACCESSIONS
 
 from database import Database
 
@@ -221,6 +221,13 @@ class PipelineTask(luigi.Task):
                     params.append('{}{}'.format(name, value))
 
         return '-'.join(params)
+
+    @property
+    def accessions(self):
+        """
+        List of SRA accession codes for a sample
+        """
+        return SRA_ACCESSIONS[self.sample]
 
     @property
     def assembly(self):

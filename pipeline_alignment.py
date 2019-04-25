@@ -335,7 +335,6 @@ class SAMToolsMerge(PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
-        # TODO implement self.accessions
         for accession in self.accessions:
             yield GATKIndelRealigner(self.species, accession)
 

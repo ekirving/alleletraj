@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from multiprocessing import cpu_count
+
 # QTLdb release number (changing this number will trigger a complete db rebuild)
 QTLDB_RELEASE = 'rel37'
 
@@ -201,3 +203,13 @@ MIN_DAF = 0.05
 # TODO move me
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_GENO_QUAL = 30
+
+# how many CPU cores does this machine have
+TOTAL_CORES = cpu_count()
+
+# set how many cores a single working can use
+CPU_CORES_ONE = 1
+CPU_CORES_LOW = int(TOTAL_CORES * 0.1)   # 10%
+CPU_CORES_MED = int(TOTAL_CORES * 0.25)  # 25%
+CPU_CORES_HIGH = int(TOTAL_CORES * 0.5)  # 50%
+CPU_CORES_MAX = int(TOTAL_CORES * 0.9)   # 90%

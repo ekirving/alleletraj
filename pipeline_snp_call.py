@@ -5,7 +5,8 @@ import luigi
 import numpy
 
 # import my custom modules
-from pipeline_consts import BAM_FILES, SAMPLE_SEX, MIN_GENO_QUAL
+from pipeline_alignment import ReferenceFASTA, AlignedBAM
+from pipeline_consts import SAMPLE_SEX, MIN_GENO_QUAL
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
 
 # VCF parser
@@ -14,49 +15,6 @@ from pysam import VariantFile
 # quantiles for filtering VCF files
 QUANTILE_LOW = 0.05
 QUANTILE_HIGH = 0.95
-
-
-class ExternalBAM(PipelineExternalTask):
-    """
-    External task dependency for an aligned BAM file.
-
-    N.B. These have been created outside the workflow of this pipeline.
-
-    :type species: str
-    :type sample: str
-    """
-    species = luigi.Parameter()
-    sample = luigi.Parameter()
-
-    def output(self):
-        return luigi.LocalTarget(BAM_FILES[self.species][self.sample])
-
-
-class ReferenceFASTA(PipelineTask):
-    """
-    Get the reference genome and index it.
-
-    # TODO horse BAMs were aligned against a ref with chr prefix
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    def requires(self):
-        # avoid circular dependency
-        from pipeline_ensembl import DownloadEnsemblData
-        return DownloadEnsemblData(self.species, 'fasta', bgzip=True)
-
-    def output(self):
-        return [luigi.LocalTarget('ensembl/{}.{}.dna.toplevel.{}'.format(self.binomial, self.assembly, ext)) for ext in
-                ['fa.gz', 'fa.gz.fai']]
-
-    def run(self):
-        # get the downloaded reference assembly
-        ref_file = self.input()
-
-        # build an index
-        run_cmd(['samtools', 'faidx', ref_file.path])
 
 
 class ReferencePloidy(PipelineExternalTask):
@@ -122,7 +80,7 @@ class BCFToolsCall(PipelineTask):
         yield ReferencePloidy(self.species)
 
         for sample in self.all_samples:
-            yield ExternalBAM(self.species, sample)
+            yield AlignedBAM(self.species, sample)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}.vcf.gz'.format(self.basename))

@@ -12,7 +12,7 @@ from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants
 from pipeline_snpchip import LoadSNPChipVariants
 from pipeline_discover_snps import ApplyGenotypeFilters
 from pipeline_qtls import MC1R_GENE
-from pipeline_snp_call import ReferenceFASTA
+from pipeline_alignment import ReferenceFASTA
 from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, get_chrom_sizes
 
 # the number of flanking SNPs (on either side) to include

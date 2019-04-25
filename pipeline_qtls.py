@@ -11,7 +11,7 @@ from collections import defaultdict, OrderedDict
 from pipeline_consts import MIN_DAF, QTLDB_RELEASE
 from pipeline_database import CreateDatabase
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes, EnsemblPipeline
-from pipeline_snp_call import ReferenceFASTA
+from pipeline_alignment import ReferenceFASTA
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals, \
     get_chrom_sizes
 

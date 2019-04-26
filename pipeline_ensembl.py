@@ -217,11 +217,9 @@ class LinkEnsemblGenes(PipelineTask):
     Link modern SNPs to their Ensembl genes
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     db_lock_tables = ['modern_snps_{chrom}']
@@ -242,8 +240,7 @@ class LinkEnsemblGenes(PipelineTask):
                 ON eg.chrom = ms.chrom
                AND ms.site BETWEEN eg.start AND eg.end
                SET ms.gene_id = eg.id
-             WHERE ms.population = '{pop}'
-               AND ms.chrom = '{chrom}'""".format(pop=self.population, chrom=self.chrom))
+             WHERE ms.chrom = '{chrom}'""".format(chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -254,11 +251,9 @@ class LinkEnsemblVariants(PipelineTask):
     Link modern SNPs to their Ensembl dbsnp variants
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     db_lock_tables = ['modern_snps_{chrom}']
@@ -279,10 +274,9 @@ class LinkEnsemblVariants(PipelineTask):
                 ON ms.chrom = v.chrom
                AND ms.site = v.start
                SET ms.variant_id = v.id
-             WHERE ms.population = '{pop}'
-               AND ms.chrom = '{chrom}'
-               AND v.type = 'SNV'        
-               AND CHAR_LENGTH(alt) = 1   
+             WHERE ms.chrom = '{chrom}'
+               AND v.type = 'SNV'
+               AND CHAR_LENGTH(alt) = 1
                AND v.ref IN (ms.derived, ms.ancestral)
                AND v.alt IN (ms.derived, ms.ancestral)""".format(pop=self.population, chrom=self.chrom))
 
@@ -302,8 +296,8 @@ class EnsemblPipeline(PipelineWrapperTask):
         # process all the populations in chromosome chunks
         for pop in self.populations:
             for chrom in self.chromosomes:
-                yield LinkEnsemblGenes(self.species, pop, chrom)
-                yield LinkEnsemblVariants(self.species, pop, chrom)
+                yield LinkEnsemblGenes(self.species, chrom)
+                yield LinkEnsemblVariants(self.species, chrom)
 
 
 if __name__ == '__main__':

@@ -430,6 +430,7 @@ class FetchAncestralSNPs(PipelineTask):
             # get the weighted number of SNPs for this chrom
             num_snps = int(round(NUM_ANCESTRAL_SNPS * percent[chrom]))
 
+            # TODO doesn't work anymore, because modern_snps doesn't have a population column
             dbc.execute_sql("""
                 INSERT
                   INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
@@ -438,7 +439,7 @@ class FetchAncestralSNPs(PipelineTask):
                        sc.chip_name, GROUP_CONCAT(DISTINCT sc.snp_name) AS snp_name
                   FROM modern_snps asd
                   JOIN modern_snps sum
-                    ON sum.population = 'SUM'
+                    ON sum.population = 'SUM'  # TODO fix me
                    AND sum.chrom = asd.chrom
                    AND sum.variant_id = asd.variant_id
                   JOIN ensembl_variants ev
@@ -449,7 +450,7 @@ class FetchAncestralSNPs(PipelineTask):
              LEFT JOIN ascertainment a
                     ON asd.chrom = a.chrom
                    AND asd.site = a.site
-                 WHERE asd.population = 'ASD'
+                 WHERE asd.population = 'ASD'  # TODO fix me
                    AND asd.chrom = '{chrom}'
                    AND asd.derived_count > 1
               GROUP BY asd.id

@@ -75,7 +75,7 @@ class SelectionInputFile(PipelineTask):
         pop_size = POPULATION_SIZE[self.species][self.population]
 
         # resolve pseudo-population DOM2WLD
-        pop = self.population if self.population != 'DOM2WLD' else "DOM2', 'WILD"
+        pop_sql = self.population if self.population != 'DOM2WLD' else "DOM2', 'WILD"
 
         bins = dbc.get_records_sql("""
             # get the ancient frequencies in each bin
@@ -92,7 +92,7 @@ class SelectionInputFile(PipelineTask):
                 ON s.id = sr.sample_id
              WHERE ms.id = {modsnp_id}
                AND s.age IS NOT NULL
-               AND s.population IN ('{population}')
+               AND s.population IN ('{pop_sql}')
           GROUP BY bin_high
 
              UNION
@@ -103,7 +103,7 @@ class SelectionInputFile(PipelineTask):
              WHERE ms.id = {modsnp_id}
 
           ORDER BY bin_high
-               """.format(modsnp_id=self.modsnp_id, population=pop, gen_time=gen_time,
+               """.format(modsnp_id=self.modsnp_id, pop_sql=pop_sql, gen_time=gen_time,
                           pop_size=pop_size), key=None)
 
         if len(bins) < MCMC_MIN_BINS:

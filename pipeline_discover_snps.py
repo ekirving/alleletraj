@@ -123,8 +123,7 @@ class ChooseRandomRead(PipelineTask):
                     JOIN samples s
                       ON s.id = sr.sample_id
                     JOIN modern_snps ms
-                      ON ms.population = s.population
-                     AND ms.chrom = sr.chrom
+                      ON ms.chrom = sr.chrom
                      AND ms.site = sr.site
                    WHERE s.population = '{pop}'
                      AND sr.chrom = '{chrom}'

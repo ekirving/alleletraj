@@ -598,11 +598,9 @@ class PopulateQTLSNPs(PipelineTask):
     Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     def requires(self):
@@ -621,13 +619,12 @@ class PopulateQTLSNPs(PipelineTask):
                  SELECT q.id, ms.id
                    FROM qtls q
                    JOIN modern_snps ms
-                     ON ms.population = '{population}'
-                    AND ms.chrom = q.chrom
+                     ON ms.chrom = q.chrom
                     AND ms.site BETWEEN q.start AND q.end
                   WHERE q.chrom = '{chrom}'
                     AND q.valid = 1
                     AND ms.daf >= {daf}
-                    """.format(population=self.population, chrom=self.chrom, daf=MIN_DAF))
+                    """.format(chrom=self.chrom, daf=MIN_DAF))
 
         with self.output().open('w') as fout:
             fout.write('INFO: Execution took {}'.format(exec_time))
@@ -638,17 +635,15 @@ class MarkNeutralSNPs(PipelineTask):
     Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     db_lock_tables = ['modern_snps_{chrom}']
 
     def requires(self):
-        return PopulateQTLSNPs(self.species, self.population, self.chrom)
+        return PopulateQTLSNPs(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -663,11 +658,10 @@ class MarkNeutralSNPs(PipelineTask):
               JOIN qtls q
                 ON q.id = qs.qtl_id
                SET ms.neutral = 1
-             WHERE ms.population = '{population}'
-               AND q.chrom = '{chrom}'
+             WHERE q.chrom = '{chrom}'
                AND q.associationType = 'Neutral'
                AND q.valid = 1
-               """.format(population=self.population, chrom=self.chrom))
+               """.format(chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('INFO: Execution took {}'.format(exec_time))
@@ -683,11 +677,10 @@ class QTLPipeline(PipelineWrapperTask):
 
     def requires(self):
 
-        # process all the populations in chromosome chunks
-        for pop in self.populations:
-            for chrom in self.chromosomes:
-                # flag the modern SNPs which fall into 'neutral' regions
-                yield MarkNeutralSNPs(self.species, pop, chrom)
+        # process all the chromosomes in chunks
+        for chrom in self.chromosomes:
+            # flag the modern SNPs which fall into 'neutral' regions
+            yield MarkNeutralSNPs(self.species, chrom)
 
 
 if __name__ == '__main__':

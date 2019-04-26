@@ -170,11 +170,9 @@ class LinkSNPChipVariants(PipelineTask):
     Link modern SNPs to their SNPchip variants
 
     :type species: str
-    :type population: str
     :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.Parameter()
 
     db_lock_tables = ['modern_snps_{chrom}']
@@ -186,7 +184,7 @@ class LinkSNPChipVariants(PipelineTask):
             # handle special case for horse data
             yield LoadAxiomEquineHD(self.species)
 
-        yield LoadModernSNPs(self.species, self.population, self.chrom)
+        yield LoadModernSNPs(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -200,8 +198,7 @@ class LinkSNPChipVariants(PipelineTask):
                 ON sc.chrom = ms.chrom
                AND sc.site = ms.site
                SET ms.snpchip_id = sc.id
-             WHERE ms.population = '{pop}'
-               AND ms.chrom = '{chrom}'""".format(pop=self.population, chrom=self.chrom))
+             WHERE ms.chrom = '{chrom}'""".format(chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))
@@ -220,7 +217,7 @@ class SNPChipPipeline(PipelineWrapperTask):
         # process all the populations in chromosome chunks
         for pop in self.populations:
             for chrom in self.chromosomes:
-                yield LinkSNPChipVariants(self.species, pop, chrom)
+                yield LinkSNPChipVariants(self.species, chrom)
 
 
 if __name__ == '__main__':

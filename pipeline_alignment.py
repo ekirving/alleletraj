@@ -323,7 +323,7 @@ class GATKIndelRealigner(PipelineTask):
     def requires(self):
         yield PicardMarkDuplicates(self.species, self.accession)
         yield GATKRealignerTargetCreator(self.species, self.accession)
-        yield ReferenceFASTA(self.species)
+        yield PicardSequenceDictionary(self.species)
 
     def output(self):
         return [luigi.LocalTarget('bam/{}.sort.rmdup.realign.{}'.format(self.accession, ext)) for ext in
@@ -331,7 +331,7 @@ class GATKIndelRealigner(PipelineTask):
 
     def run(self):
         # unpack the inputs/outputs
-        (bam_in, _, _), (itv_file, _), (ref_file, _) = self.input()
+        (bam_in, _, _), (itv_file, _), (ref_file, _, _) = self.input()
         bam_out, _, log_file = self.output()
 
         with bam_out.temporary_path() as bam_path, open(log_file.path, 'w') as log_fout:

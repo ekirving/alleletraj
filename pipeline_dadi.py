@@ -77,6 +77,7 @@ class EasySFS(PipelineTask):
 
     :type species: str
     :type population: str
+    :type folded: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -85,7 +86,7 @@ class EasySFS(PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 96}
 
     def requires(self):
-        return WholeGenomeSNPsVCF(self.species, self.population)
+        return WholeGenomeSNPsVCF(self.species)
 
     def output(self):
         return [luigi.LocalTarget('sfs/{}/dadi/{}.{}'.format(self.basename, self.population, ext))
@@ -303,14 +304,12 @@ class CountCallableSites(PipelineTask):
     Count the number of callable sites, as dadi needs this number to estimate the ancestral population size from theta.
 
     :type species: str
-    :type population: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
 
     def requires(self):
         for chrom in self.chromosomes:
-            yield PolarizeVCF(self.species, self.population, chrom)
+            yield PolarizeVCF(self.species, chrom)
 
     def output(self):
         return luigi.LocalTarget('dadi/{}.L'.format(self.basename))
@@ -341,7 +340,7 @@ class DadiDemography(PipelineTask):
 
     def requires(self):
         yield DadiEpochBestModel(self.species, self.population, self.folded)
-        yield CountCallableSites(self.species, self.population)
+        yield CountCallableSites(self.species)
 
     def output(self):
         return [luigi.LocalTarget("dadi/{}.{}".format(self.basename, ext)) for ext in ['pop', 'nref']]

@@ -213,11 +213,8 @@ class SNPChipPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-
-        # process all the populations in chromosome chunks
-        for pop in self.populations:
-            for chrom in self.chromosomes:
-                yield LinkSNPChipVariants(self.species, chrom)
+        for chrom in self.chromosomes:
+            yield LinkSNPChipVariants(self.species, chrom)
 
 
 if __name__ == '__main__':

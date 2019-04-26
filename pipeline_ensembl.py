@@ -340,7 +340,7 @@ class LinkEnsemblVariants(PipelineTask):
                AND v.type = 'SNV'
                AND CHAR_LENGTH(alt) = 1
                AND v.ref IN (ms.derived, ms.ancestral)
-               AND v.alt IN (ms.derived, ms.ancestral)""".format(pop=self.population, chrom=self.chrom))
+               AND v.alt IN (ms.derived, ms.ancestral)""".format(chrom=self.chrom))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(exec_time))

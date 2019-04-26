@@ -351,8 +351,6 @@ class SampleReadsPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-
-        # process SNPs for all populations and all chromosomes
         for pop in self.populations:
             for chrom in self.chromosomes:
                 yield LoadSampleReads(self.species, pop, chrom)

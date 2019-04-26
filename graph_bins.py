@@ -16,7 +16,7 @@ BIN_WIDTH = 500
 BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
 
 # open a db connection
-dbc = Database()
+dbc = Database('horse')
 
 with open("tsv/all-bins.tsv", "wb") as tsv_file:
     fields = ['bin', 'accession', 'map_prcnt', 'population', 'age', 'confident', 'lower', 'upper', 'width', 'overlap',

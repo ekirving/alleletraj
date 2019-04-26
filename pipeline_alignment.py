@@ -5,7 +5,7 @@ import luigi
 
 # import my custom modules
 from pipeline_consts import CPU_CORES_MED, BAM_FILES
-from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, trim_ext
+from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
 
 # hard filters for TrimGalore!
 TRIM_MIN_BASEQ = 20

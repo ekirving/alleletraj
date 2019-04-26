@@ -6,10 +6,9 @@ import urllib
 import urllib2
 import xmltodict
 from time import sleep
+from collections import OrderedDict
 
 from xml.sax.saxutils import escape
-
-from pipeline_consts import *
 
 # QTLdb settings
 QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'

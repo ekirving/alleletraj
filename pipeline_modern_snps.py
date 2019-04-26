@@ -149,8 +149,8 @@ class ModernSNPsFromFASTA(PipelineTask):
                 alleles = observations.keys()
 
                 if ancestral not in alleles:
-                    fout.write("WARNING: Polyallelic site chr{}:{} = {}, ancestral {}\n".format(self.chrom, site,
-                                                                                              set(haploids), ancestral))
+                    fout.write("WARNING: Polyallelic site chr{}:{} = {}, ancestral {}\n"
+                               .format(self.chrom, site, set(haploids), ancestral))
                     continue
 
                 # is this mutation a transition or a transversion

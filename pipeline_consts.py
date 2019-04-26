@@ -179,7 +179,7 @@ BAM_FILES = {
 SRA_ACCESSIONS = {
     'pig': {
         'AS01F01_AnglerSattleschwein_rh': ['ERR977190'],
-        'AS01F09_Angler_Sattelsw_rh': ['ERR977191','ERR977192','ERR977193', 'ERR977194']
+        'AS01F09_Angler_Sattelsw_rh': ['ERR977191', 'ERR977192', 'ERR977193', 'ERR977194']
     }
 }
 
@@ -219,8 +219,6 @@ POPULATION_SIZE = {
         'DOM2WLD': 16000
     }
 }
-
-
 
 # how many CPU cores does this machine have
 TOTAL_CORES = cpu_count()

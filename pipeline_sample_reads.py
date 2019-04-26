@@ -8,13 +8,12 @@ import random
 import glob
 
 from collections import defaultdict
-from pipeline_consts import MIN_GENO_QUAL
 
 from pipeline_qtls import PopulateAllLoci, MIN_DAF
 from pipeline_modern_snps import ModernSNPsPipeline
 from pipeline_ensembl import EnsemblPipeline
 from pipeline_alignment import ReferenceFASTA
-from pipeline_snp_call import ReferencePloidy
+from pipeline_snp_call import ReferencePloidy, MIN_GENO_QUAL
 from pipeline_samples import LoadSamples
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
 

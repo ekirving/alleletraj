@@ -258,7 +258,7 @@ class PicardSequenceDictionary(PipelineTask):
         ref_out, dict_file = self.output()
 
         # unzip the reference genome
-        run_cmd(['gunzip --keep {}'.format(ref_in.path)])
+        run_cmd(['gunzip', '--keep', ref_in.path])
 
         # create the sequence dictionary
         with dict_file.temporary_path() as dict_path:

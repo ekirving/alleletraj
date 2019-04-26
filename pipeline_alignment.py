@@ -251,7 +251,7 @@ class PicardSequenceDictionary(PipelineTask):
 
     def output(self):
         return [luigi.LocalTarget('ensembl/{}.{}.dna.toplevel.{}'.format(self.binomial, self.assembly, ext)) for ext in
-                ['fa', 'fa.fai', 'fa.dict']]
+                ['fa', 'fa.fai', 'dict']]
 
     def run(self):
         ref_in, _ = self.input()

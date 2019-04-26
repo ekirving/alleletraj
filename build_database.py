@@ -16,6 +16,7 @@ from pipeline_discover_snps import DiscoverSNPsPipeline
 from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_ascertainment import AscertainmentPipeline
 from pipeline_selection import SelectionBestQTLSNPs
+from pipeline_graphs import GraphsPipeline
 
 
 class BuildDatabase(PipelineWrapperTask):
@@ -52,6 +53,7 @@ class BuildDatabase(PipelineWrapperTask):
         # apply quality filters to the sample reads
         yield DiscoverSNPsPipeline(self.species)
 
+        # TODO test these work
         # # analyse the coverage and quality for SNPs in each QTLs
         # yield AnalyseQTLsPipeline(self.species)
         #
@@ -61,10 +63,10 @@ class BuildDatabase(PipelineWrapperTask):
         #
         # # run `selection` on all the 'best' QTL SNPs
         # yield SelectionBestQTLSNPs(self.species)
-        #
-        # # TODO make a plotting pipeline
+
+        # TODO make a plotting pipeline
+        # yield GraphsPipeline(self.species)
 
 
 if __name__ == '__main__':
     luigi.run()
-

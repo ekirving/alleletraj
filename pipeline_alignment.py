@@ -19,19 +19,34 @@ PICARD = "/usr/local/picard-tools-2.5.0/picard.jar"
 class SraToolsFastqDump(PipelineTask):
     """
     Fetches the paired-end and single end FASTQ files for a given accession code, using SRA Tools
+
+    :type accession: str
+    :type paired: bool
     """
     accession = luigi.Parameter()
+    paired = luigi.BoolParameter()
 
     def output(self):
-        return [luigi.LocalTarget('fastq/{}_{}.fastq.gz'.format(self.accession, i)) for i in [1, 2]]
+        if self.paired:
+            yield luigi.LocalTarget('fastq/{}_1.fastq.gz'.format(self.accession))
+            yield luigi.LocalTarget('fastq/{}_2.fastq.gz'.format(self.accession))
+        else:
+            yield [luigi.LocalTarget('fastq/{}.fq.gz'.format(self.accession))]
+
+        yield luigi.LocalTarget('fastq/{}.log'.format(self.accession))
 
     def run(self):
+        log_file = list(self.output()).pop()
+
         # use the NCBI SRA toolkit to fetch the fastq files
-        run_cmd(['fastq-dump',
-                 '--gzip',               # output gzipped files
-                 '--split-3',            # split into two paired end fastq files + one unpaired fastq
-                 '--outdir', './fastq',  # output directory
-                 self.accession])
+        log = run_cmd(['fastq-dump',
+                       '--gzip',               # output gzipped files
+                       '--split-3',            # split into two paired end fastq files + one unpaired fastq
+                       '--outdir', './fastq',  # output directory
+                       self.accession])
+
+        with log_file.open('w') as fout:
+            fout.write(log)
 
 
 class TrimGalore(PipelineTask):
@@ -49,11 +64,15 @@ class TrimGalore(PipelineTask):
 
     def output(self):
         if self.paired:
-            return [luigi.LocalTarget('fastq/{}_R{}_val_{}.fq.gz'.format(self.accession, end, end)) for end in [1, 2]]
+            for pair in [1, 2]:
+                yield luigi.LocalTarget('fastq/{}_{}_val_{}.fq.gz'.format(self.accession, pair, pair))
+                yield luigi.LocalTarget('fastq/{}_{}_val_{}_fastqc.zip'.format(self.accession, pair, pair))
         else:
-            return [luigi.LocalTarget('fastq/{}_trimmed.fq.gz'.format(self.accession))]
+            yield luigi.LocalTarget('fastq/{}_trimmed.fq.gz'.format(self.accession))
+            yield luigi.LocalTarget('fastq/{}_fastqc.zip'.format(self.accession))
 
     def run(self):
+        fastq_files = self.input()[:-1]
 
         cmd = ['trim_galore',
                '--quality', TRIM_MIN_BASEQ,   # trim low-quality ends from reads in addition to adapter removal
@@ -64,8 +83,8 @@ class TrimGalore(PipelineTask):
         if self.paired:
             cmd.append('--paired')
 
-        # add the BAM files
-        for fastq in self.input():
+        # add the fastq files
+        for fastq in fastq_files:
             cmd.append(fastq.path)
 
         # perform the trimming
@@ -145,7 +164,7 @@ class BwaMem(PipelineTask):
 
     def run(self):
         # unpack the input params
-        fastq_files, (ref_file, _), _ = self.input()
+        fastq_input, (ref_file, _), _ = self.input()
         bam_out, _ = self.output()
 
         params = {
@@ -159,7 +178,7 @@ class BwaMem(PipelineTask):
             'reference': ref_file.path,
 
             # get the fastq file(s) to align
-            'fastq': ' '.join(fastq.path for fastq in fastq_files),
+            'fastq': ' '.join(fastq.path for fastq in fastq_input if '.fq.gz' in fastq.path),
         }
 
         with bam_out.temporary_path() as bam_path:

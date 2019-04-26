@@ -258,7 +258,7 @@ class PicardSequenceDictionary(PipelineTask):
         ref_out, _, dict_file = self.output()
 
         # unzip the reference genome
-        run_cmd(['gunzip', '--keep', ref_in.path])
+        run_cmd(['gunzip', '--keep', '--force', ref_in.path])
 
         # build a regular index
         run_cmd(['samtools', 'faidx', ref_out.path])

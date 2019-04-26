@@ -246,6 +246,7 @@ class ModernSNPsFromVCF(PipelineTask):
 
                 modern_snp_daf = {
                     'modsnp_id': modsnp_id,
+                    'population': pop,
                     'ancestral_count': observations[ancestral],
                     'derived_count': observations[derived],
                     'daf': daf,

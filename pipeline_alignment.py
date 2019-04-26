@@ -251,7 +251,7 @@ class PicardSequenceDictionary(PipelineTask):
 
     def output(self):
         return [luigi.LocalTarget('ensembl/{}.{}.dna.toplevel.{}'.format(self.binomial, self.assembly, ext)) for ext in
-                ['fa', 'fa.dict']]
+                ['fa', 'fa.fai', 'fa.dict']]
 
     def run(self):
         ref_in, _ = self.input()
@@ -259,6 +259,9 @@ class PicardSequenceDictionary(PipelineTask):
 
         # unzip the reference genome
         run_cmd(['gunzip', '--keep', ref_in.path])
+
+        # build a regular index
+        run_cmd(['samtools', 'faidx', ref_out.path])
 
         # create the sequence dictionary
         with dict_file.temporary_path() as dict_path:
@@ -291,7 +294,7 @@ class GATKRealignerTargetCreator(PipelineTask):
 
     def run(self):
         # unpack the inputs/outputs
-        (bam_in, _, _), (ref_file, _) = self.input()
+        (bam_in, _, _), (ref_file, _, _) = self.input()
         itv_file, log_file = self.output()
 
         with itv_file.temporary_path() as itv_path, open(log_file.path, 'w') as log_fout:

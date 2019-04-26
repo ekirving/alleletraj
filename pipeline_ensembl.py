@@ -5,10 +5,13 @@ import luigi
 import os
 import gzip
 
+from datetime import timedelta
+from time import time
+
 # import my custom modules
 from pipeline_database import CreateDatabase
 from pipeline_modern_snps import ModernSNPsPipeline
-from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, curl_download
+from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd, curl_download
 
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {
@@ -27,6 +30,9 @@ ENSEMBL_RELEASES = {
     'Sscrofa10.2': 89,  # Ensembl release 89 - May 2017
     'Sscrofa11.1': 96,  # Ensembl release 96 - April 2019
 }
+
+# minimum distance +/- from an INDEL
+INDEL_BUFFER = 10
 
 
 class DownloadEnsemblData(PipelineTask):
@@ -212,6 +218,62 @@ class LoadEnsemblVariants(PipelineTask):
             fout.write('Inserted {:,} Ensembl variant records'.format(num_recs))
 
 
+class FlagSNPsNearIndels(PipelineTask):
+    """
+    Flag any dbsnp variants that are within a given range of an INDEL
+
+    :type species: str
+    :type chrom: str
+    """
+    species = luigi.Parameter()
+    chrom = luigi.Parameter()
+
+    db_lock_tables = ['ensembl_variants_{chrom}']
+
+    def requires(self):
+        return LoadEnsemblVariants(self.species)
+
+    def output(self):
+        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+
+    def run(self):
+        dbc = self.db_conn()
+
+        start = time()
+
+        indels = dbc.get_records_sql("""
+            SELECT ev.start, ev.end
+              FROM ensembl_variants ev
+             WHERE ev.chrom = '{chrom}' 
+               AND ev.type IN ('insertion', 'deletion')
+               """.format(chrom=self.chrom), key=None)
+
+        loci = []
+
+        for indel in indels:
+            loci.append((int(indel['start']) - INDEL_BUFFER, int(indel['end']) + INDEL_BUFFER))
+
+        # merge overlapping loci
+        loci = list(merge_intervals(loci))
+
+        # process the INDELs in chunks
+        for i in range(0, len(loci), dbc.max_query_size):
+
+            # convert each locus into sql conditions
+            conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + dbc.max_query_size]]
+
+            dbc.execute_sql("""
+                UPDATE ensembl_variants
+                   SET indel = 1
+                 WHERE chrom = '{chrom}'
+                   AND ({conds})
+                   AND type = 'SNV'
+                   """.format(chrom=self.chrom, conds=" OR ".join(conds)))
+
+        with self.output().open('w') as fout:
+            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
+
+
 class LinkEnsemblGenes(PipelineTask):
     """
     Link modern SNPs to their Ensembl genes
@@ -293,11 +355,10 @@ class EnsemblPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # process all the populations in chromosome chunks
-        for pop in self.populations:
-            for chrom in self.chromosomes:
-                yield LinkEnsemblGenes(self.species, chrom)
-                yield LinkEnsemblVariants(self.species, chrom)
+        for chrom in self.chromosomes:
+            yield FlagSNPsNearIndels(self.species, chrom)
+            yield LinkEnsemblGenes(self.species, chrom)
+            yield LinkEnsemblVariants(self.species, chrom)
 
 
 if __name__ == '__main__':

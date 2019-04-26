@@ -8,12 +8,12 @@ from time import time
 
 from collections import OrderedDict
 
-from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants
+from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
 from pipeline_snpchip import LoadSNPChipVariants
 from pipeline_discover_snps import ApplyGenotypeFilters
 from pipeline_qtls import MC1R_GENE
 from pipeline_alignment import ReferenceFASTA
-from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, get_chrom_sizes
+from pipeline_utils import PipelineTask, PipelineWrapperTask, get_chrom_sizes
 
 # the number of flanking SNPs (on either side) to include
 QTL_FLANK_NUM_SNPS = 3
@@ -29,67 +29,6 @@ NUM_NEUTRAL_SNPS = 60000
 
 # the number of "ancestral" SNPs to include in the ascertainment
 NUM_ANCESTRAL_SNPS = 30000
-
-# minimum distance from an INDEL
-INDEL_BUFFER = 10
-
-
-class FlagSNPsNearIndels(PipelineTask):
-    """
-    Check our ascertainment against the dbsnp indel set to enforce a minimum distance.
-
-    :type species: str
-    :type population: str
-    :type chrom: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    chrom = luigi.Parameter()
-
-    db_lock_tables = ['ensembl_variants_{chrom}']
-
-    def requires(self):
-        return ApplyGenotypeFilters(self.species, self.population, self.chrom)
-
-    def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        dbc = self.db_conn()
-
-        start = time()
-
-        indels = dbc.get_records_sql("""
-            SELECT ev.start, ev.end
-              FROM ensembl_variants ev
-             WHERE ev.chrom = '{chrom}' 
-               AND ev.type IN ('insertion', 'deletion')
-               """.format(chrom=self.chrom), key=None)
-
-        loci = []
-
-        for indel in indels:
-            loci.append((int(indel['start']) - INDEL_BUFFER, int(indel['end']) + INDEL_BUFFER))
-
-        # merge overlapping loci
-        loci = list(merge_intervals(loci))
-
-        # process the INDELs in chunks
-        for i in range(0, len(loci), dbc.max_query_size):
-
-            # convert each locus into sql conditions
-            conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + dbc.max_query_size]]
-
-            dbc.execute_sql("""
-                UPDATE ensembl_variants
-                   SET indel = 1
-                 WHERE chrom = '{chrom}'
-                   AND ({conds})
-                   AND type = 'SNV'
-                   """.format(chrom=self.chrom, conds=" OR ".join(conds)))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
 class FetchGWASPeaks(PipelineTask):
@@ -143,7 +82,7 @@ class FetchGWASFlankingSNPs(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return FlagSNPsNearIndels(self.species, self.population, self.chrom)
+        return FlagSNPsNearIndels(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

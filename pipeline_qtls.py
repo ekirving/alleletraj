@@ -8,7 +8,7 @@ from natsort import natsorted
 from collections import defaultdict, OrderedDict
 
 # import my custom modules
-from pipeline_consts import MIN_DAF, QTLDB_RELEASE
+from pipeline_consts import QTLDB_RELEASE, SWEEP_DATA
 from pipeline_database import CreateDatabase
 from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes, EnsemblPipeline
 from pipeline_alignment import ReferenceFASTA
@@ -23,31 +23,21 @@ QTL_WINDOW = 50000
 # offset all genes by 100 Kb to preclude linkage with our 'neutral' SNPs
 GENE_OFFSET = 100000
 
-# genomic regions of selective sweeps ascertained in other papers
-SWEEP_DATA = {
-    # 'cattle': {}, # TODO add other species
-    # 'goat': {},
-    # 'pig': {},
-
-    # see https://www.nature.com/articles/ng.3394
-    'pig': {
-        'loci': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff_MERGED10kb.bed',
-        'snps': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed'
-    }
-}
+# the minimum derived allele frequency of modern SNPs to include
+MIN_DAF = 0.05
 
 # Melanocortin 1 receptor
 MC1R_GENE = 'MC1R'
 
 
-def extract_qtl_fields(dbfile, fields):
+def extract_qtl_fields(tsv_file, fields):
     """
     Helper function for extracting specified fields from the AnimalQTLdb data file.
     """
     data = defaultdict(list)
 
     # get all the QTL IDs for this scope
-    with open(dbfile, 'rU') as fin:
+    with open(tsv_file, 'rU') as fin:
 
         # get the column headers
         header = fin.readline().split('\t')
@@ -115,9 +105,11 @@ class PopulateQTLs(PipelineTask):
             fout.write("INFO: Processing {:,} QTLs from '{}'\n".format(len(qtl_ids), qtl_file.path))
 
             # get all the QTLs already in the DB
-            qtls = dbc.get_records('qtls')
+            qtls = dbc.get_records_sql("""
+                SELECT qtldb_id 
+                  FROM qtls 
+                 WHERE qtldb_id IS NOT NULL""", key='qtldb_id')
 
-            # TODO move AnimalQTLdb id into separate field
             # find the new IDs in the list
             new_ids = list(set(qtl_ids) - set(qtls.keys()))
 
@@ -125,6 +117,7 @@ class PopulateQTLs(PipelineTask):
 
             # rename these fields
             key_map = {
+                'id':         'qtldb_id',
                 'pubmedID':   'pubmed_id',
                 'geneId':     'gene_id',
                 'chromosome': 'chrom'
@@ -135,7 +128,6 @@ class PopulateQTLs(PipelineTask):
             # get all the new records
             for record in api.get_qtls(self.species, new_ids):
 
-                # TODO when resultset is len() = 1 then this throws an error
                 # extract the nested trait record
                 trait = record.pop('trait')
                 trait['name'] = record.pop('name')
@@ -507,7 +499,7 @@ class PopulateNeutralLoci(PipelineTask):
               FROM qtls q
               JOIN ensembl_variants ev
                 ON ev.rsnumber = q.peak
-             WHERE q.associationType NOT IN ('Neutral', 'Sweep', 'MC1R')  # TODO improve clarity
+             WHERE q.associationType = 'Association'
 
             UNION
 

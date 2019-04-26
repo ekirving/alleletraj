@@ -16,6 +16,9 @@ from pipeline_database import CreateDatabase
 
 # from pipeline_utils import *
 
+# TODO fix this
+ANCIENT_PATH = '/home/ludo/inbox/BAMs/ancient/'
+
 GOOGLE_SHEET = {
 
     # Pig_Table_Final_05_03_18
@@ -294,7 +297,7 @@ class ConfirmAgeMapping(PipelineTask):
 
         # check if any samples have an age which is unmapped
         missing = dbc.get_records_sql("""
-            SELECT s.age
+            SELECT DISTINCT s.age
               FROM samples s
          LEFT JOIN sample_dates sd
                 ON s.age = sd.age
@@ -303,13 +306,8 @@ class ConfirmAgeMapping(PipelineTask):
           GROUP BY s.age""", key=None)
 
         if missing:
-            print("ERROR: Not all sample ages have numeric mappings!")
-
-            for age in missing:
-                print(age['age'].encode('utf-8'))
-
-            # TODO raise exception
-            quit()
+            ages = ', '.join(["'{}'".format(age['age']) for age in missing])
+            raise Exception("ERROR: Not all sample ages have numeric mappings - {}".format(ages))
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
@@ -439,7 +437,7 @@ class PopulateHorseSamples(PipelineTask):
 
             bam_file = dict()
             bam_file['sample_id'] = sample['id']
-            bam_file['path'] = '/home/ludo/inbox/BAMs/ancient/' + os.path.basename(path)  # TODO fix this
+            bam_file['path'] = ANCIENT_PATH + os.path.basename(path)
 
             if not dbc.exists_record('sample_files', bam_file):
                 dbc.save_record('sample_files', bam_file)

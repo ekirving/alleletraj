@@ -48,25 +48,30 @@ class DownloadEnsemblData(PipelineTask):
     bgzip = luigi.BoolParameter(default=False)
 
     @property
-    def url(self):
-        params = {
+    def params(self):
+        return {
             'rel': ENSEMBL_RELEASES[self.assembly],
             'Bin': self.binomial,
             'bin': self.binomial.lower(),
-            'ref': self.assembly
+            'ref': self.assembly,
         }
 
+    @property
+    def url(self):
         if self.type == 'fasta':
             return 'ftp://ftp.ensembl.org/pub/release-{rel}/fasta/{bin}/dna/{Bin}.{ref}.dna.toplevel.fa.gz'.format(
-                **params)
+                **self.params)
         elif self.type == 'gtf':
-            return 'ftp://ftp.ensembl.org/pub/release-{rel}/gtf/{bin}/{Bin}.{ref}.{rel}.gtf.gz'.format(**params)
+            return 'ftp://ftp.ensembl.org/pub/release-{rel}/gtf/{bin}/{Bin}.{ref}.{rel}.gtf.gz'.format(**self.params)
         elif self.type == 'gvf':
-            return 'ftp://ftp.ensembl.org/pub/release-{rel}/variation/gvf/{bin}/{bin}.gvf.gz'.format(**params)
+            return 'ftp://ftp.ensembl.org/pub/release-{rel}/variation/gvf/{bin}/{bin}.gvf.gz'.format(**self.params)
 
     def output(self):
-        # TODO the gvf output filename is not unique and will cause collisions if Ensembl release or assembly changes
-        return luigi.LocalTarget('ensembl/{}'.format(os.path.basename(self.url)))
+        # handle non-unique gvf filenames
+        filename = '{Bin}.{ref}.{rel}.gvf.gz'.format(**self.params) \
+            if self.type == 'gvf' else os.path.basename(self.url)
+
+        return luigi.LocalTarget('ensembl/{}'.format(filename))
 
     def run(self):
         with self.output().temporary_path() as tmp_path:

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
+import luigi
 
-from pipeline_sample_reads import *
-from pipeline_utils import *
-
+# import my custom modules
+from pipeline_snp_call import MIN_GENO_QUAL
+from pipeline_sample_reads import SampleReadsPipeline
+from pipeline_utils import PipelineTask, PipelineWrapperTask
 
 MIN_BASE_QUAL = 30
 MIN_MAP_QUAL = 30
@@ -142,7 +143,7 @@ class ChooseRandomRead(PipelineTask):
 
 class ApplyGenotypeFilters(PipelineTask):
     """
-    Apply MIN_GENO_QUAL quality filter.
+    Apply the minimum quality filter.
 
     :type species: str
     :type population: str

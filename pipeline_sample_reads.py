@@ -8,9 +8,9 @@ import random
 import glob
 
 from collections import defaultdict
-from pipeline_consts import MIN_GENO_QUAL, MIN_DAF
+from pipeline_consts import MIN_GENO_QUAL
 
-from pipeline_qtls import PopulateAllLoci
+from pipeline_qtls import PopulateAllLoci, MIN_DAF
 from pipeline_modern_snps import ModernSNPsPipeline
 from pipeline_ensembl import EnsemblPipeline
 from pipeline_alignment import ReferenceFASTA

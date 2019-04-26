@@ -6,11 +6,14 @@ import numpy
 
 # import my custom modules
 from pipeline_alignment import ReferenceFASTA, AlignedBAM
-from pipeline_consts import SAMPLE_SEX, MIN_GENO_QUAL
+from pipeline_consts import SAMPLE_SEX
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
 
 # VCF parser
 from pysam import VariantFile
+
+# the minimum phred scaled genotype quality (30 = 99.9%)
+MIN_GENO_QUAL = 30
 
 # quantiles for filtering VCF files
 QUANTILE_LOW = 0.05

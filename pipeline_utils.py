@@ -188,16 +188,15 @@ class PipelineTask(luigi.Task):
         """
         Dynamically set task priority.
         """
-        # TODO do CPU intensive tasks first
 
-        # deprioritise large values of K or m
-        offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm']])
+        # deprioritise large values of K, m or n
+        offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm', 'n']])
 
         # prioritise chromosomes by number, as running the largest chroms first is more efficient for multithreading
         if hasattr(self, 'chrom') and hasattr(self, 'species'):
             offset = CHROMOSOMES[self.assembly].index(self.chrom) + 1
 
-        return 100 - offset if offset else 0
+        return 1000 - offset if offset else 0
 
     @property
     def basename(self):

@@ -25,8 +25,8 @@ REF_ASSEMBLY = {
 # the name of the chromosomes in each assembly
 CHROMOSOMES = {
     # cattle assemblies
-    'UMD3.1':     map(str, range(1, 30)) + ['X'],
-    'ARS-UCD1.2': map(str, range(1, 30)) + ['X'],
+    'UMD3.1':     map(str, range(1, 30)) + ['X', 'MT'],
+    'ARS-UCD1.2': map(str, range(1, 30)) + ['X', 'MT'],
 
     # goat assemblies
     'ARS1': map(str, range(1, 30)) + ['MT'],
@@ -36,8 +36,8 @@ CHROMOSOMES = {
     'EquCab3.0': map(str, range(1, 32)) + ['X'],
 
     # pig assemblies
-    'Sscrofa10.2': map(str, range(1, 19)) + ['X', 'Y'],
-    'Sscrofa11.1': map(str, range(1, 19)) + ['X', 'Y'],
+    'Sscrofa10.2': map(str, range(1, 19)) + ['X', 'Y', 'MT'],
+    'Sscrofa11.1': map(str, range(1, 19)) + ['X', 'Y', 'MT'],
 }
 
 # the name of the outgroup sample
@@ -183,6 +183,20 @@ SRA_ACCESSIONS = {
     }
 }
 
+# genomic regions of selective sweeps ascertained in other papers
+SWEEP_DATA = {
+    # 'cattle': {}, # TODO add other species
+    # 'goat': {},
+    # 'pig': {},
+
+    # see https://www.nature.com/articles/ng.3394
+    'pig': {
+        'loci': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff_MERGED10kb.bed',
+        'snps': 'data/sweep/EUD_Sweep_p001_FINAL_cutoff.bed'
+    }
+}
+
+
 # the per-site mutation rate
 MUTATION_RATE = {
     'horse': 7.242e-9  # https://www.pnas.org/content/111/52/E5661.full#sec-17
@@ -206,19 +220,12 @@ POPULATION_SIZE = {
     }
 }
 
-# TODO move me
-# the minimum derived allele frequency of modern SNPs to include
-MIN_DAF = 0.05
 
-# TODO move me
-# the minimum phred scaled genotype quality (30 = 99.9%)
-MIN_GENO_QUAL = 30
 
 # how many CPU cores does this machine have
 TOTAL_CORES = cpu_count()
 
 # set how many cores a single working can use
-CPU_CORES_ONE = 1
 CPU_CORES_LOW = int(TOTAL_CORES * 0.1)   # 10%
 CPU_CORES_MED = int(TOTAL_CORES * 0.25)  # 25%
 CPU_CORES_HIGH = int(TOTAL_CORES * 0.5)  # 50%

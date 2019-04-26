@@ -254,6 +254,7 @@ CREATE TABLE `qtl_stats` (
 
 CREATE TABLE `qtls` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `qtldb_id` int(11) unsigned DEFAULT NULL,
   `associationType` char(255) DEFAULT NULL,
   `symbol` char(255) DEFAULT NULL,
   `pubmed_id` int(11) unsigned DEFAULT NULL,
@@ -289,6 +290,7 @@ CREATE TABLE `qtls` (
   `start` int(11) DEFAULT NULL,
   `end` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
+  UNIQUE KEY `qtldb_id` (`qtldb_id`),
   KEY `trait_fk` (`trait_id`),
   KEY `pubmed_fk` (`pubmed_id`),
   KEY `peak` (`peak`),

@@ -255,7 +255,7 @@ class PicardSequenceDictionary(PipelineTask):
 
     def run(self):
         ref_in, _ = self.input()
-        ref_out, dict_file = self.output()
+        ref_out, _, dict_file = self.output()
 
         # unzip the reference genome
         run_cmd(['gunzip', '--keep', ref_in.path])

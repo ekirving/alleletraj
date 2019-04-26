@@ -130,7 +130,8 @@ CREATE TABLE `modern_snp_daf` (
   `ancestral_count` int(11) unsigned NOT NULL,
   `derived_count` int(11) unsigned NOT NULL,
   `daf` float NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `modsnp_population` (`modsnp_id`,`population`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

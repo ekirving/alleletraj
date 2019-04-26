@@ -5,7 +5,7 @@ import luigi
 
 # import my custom modules
 from pipeline_consts import CPU_CORES_MED, BAM_FILES
-from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
+from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, trim_ext
 
 # hard filters for TrimGalore!
 TRIM_MIN_BASEQ = 20
@@ -236,9 +236,9 @@ class PicardMarkDuplicates(PipelineTask):
         run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
-class PicardCreateSequenceDictionary(PipelineTask):
+class PicardSequenceDictionary(PipelineTask):
     """
-    Create the sequence dictionary for the reference genome, needed for GATK
+    Unzip the reference genome and create the sequence dictionary, because GATK is stupid and cannot handle bgzip.
 
     :type species: str
     """
@@ -250,17 +250,22 @@ class PicardCreateSequenceDictionary(PipelineTask):
         return ReferenceFASTA(self.species)
 
     def output(self):
-        ref_file, _ = self.input()
-        return luigi.LocalTarget('{}.dict'.format(ref_file.path))
+        return [luigi.LocalTarget('ensembl/{}.{}.dna.toplevel.{}'.format(self.binomial, self.assembly, ext)) for ext in
+                ['fa', 'fa.dict']]
 
     def run(self):
-        ref_file, _ = self.input()
+        ref_in, _ = self.input()
+        ref_out, dict_file = self.output()
 
-        with self.output().temporary_path() as dict_path:
+        # unzip the reference genome
+        run_cmd(['gunzip --keep {}'.format(ref_in.path)])
+
+        # create the sequence dictionary
+        with dict_file.temporary_path() as dict_path:
             run_cmd(['java', self.java_mem,
                      '-jar', PICARD,
                      'CreateSequenceDictionary',
-                     'R=' + ref_file.path,
+                     'R=' + ref_out.path,
                      'O=' + dict_path])
 
 
@@ -278,8 +283,7 @@ class GATKRealignerTargetCreator(PipelineTask):
 
     def requires(self):
         yield PicardMarkDuplicates(self.species, self.accession)
-        yield ReferenceFASTA(self.species)
-        yield PicardCreateSequenceDictionary(self.species)
+        yield PicardSequenceDictionary(self.species)
 
     def output(self):
         return [luigi.LocalTarget('bam/{}.sort.rmdup.realign.{}'.format(self.accession, ext)) for ext in
@@ -287,7 +291,7 @@ class GATKRealignerTargetCreator(PipelineTask):
 
     def run(self):
         # unpack the inputs/outputs
-        (bam_in, _, _), (ref_file, _), _ = self.input()
+        (bam_in, _, _), (ref_file, _) = self.input()
         itv_file, log_file = self.output()
 
         with itv_file.temporary_path() as itv_path, open(log_file.path, 'w') as log_fout:

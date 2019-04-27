@@ -238,6 +238,10 @@ class ModernSNPsFromVCF(PipelineTask):
                     # get the alleles, but skip any missing genotypes
                     haploids += [alleles for alleles in rec.samples[sample].alleles if alleles is not None]
 
+                if len(haploids) == 0:
+                    # skip sites with no genotypes for this population
+                    continue
+
                 # count the haploid observations
                 observations = Counter(haploids)
 

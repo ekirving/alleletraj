@@ -310,7 +310,7 @@ class GATKRealignerTargetCreator(PipelineTask):
 
 class GATKIndelRealigner(PipelineTask):
     """
-    Use the GATK IndelRealigner to fix perform local realignment of reads around indels
+    Use the GATK IndelRealigner to perform local realignment of reads around indels
 
     :type species: str
     :type accession: str
@@ -327,7 +327,7 @@ class GATKIndelRealigner(PipelineTask):
 
     def output(self):
         return [luigi.LocalTarget('bam/{}.sort.rmdup.realign.{}'.format(self.accession, ext)) for ext in
-                ['bam', 'bai', 'log']]
+                ['bam', 'bam.bai', 'log']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -344,6 +344,9 @@ class GATKIndelRealigner(PipelineTask):
                      '--targetIntervals', itv_file.path,
                      '--out', bam_path],
                     stdout=log_fout)
+
+        # index the BAM file
+        run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
 class SAMToolsMerge(PipelineTask):
@@ -363,7 +366,8 @@ class SAMToolsMerge(PipelineTask):
             yield GATKIndelRealigner(self.species, accession)
 
     def output(self):
-        return [luigi.LocalTarget('bam/{}.sort.rmdup.realign.{}'.format(self.sample, ext)) for ext in ['bam', 'bai']]
+        return [luigi.LocalTarget('bam/{}.sort.rmdup.realign.{}'.format(self.sample, ext)) for ext in
+                ['bam', 'bam.bai']]
 
     def run(self):
         bam_inputs = [bam_file.path for bam_file, bai_file, log_file in self.input()]

@@ -61,12 +61,9 @@ class TrimGalore(PipelineTask):
 
     def output(self):
         if self.paired:
-            for pair in [1, 2]:
-                yield luigi.LocalTarget('fastq/{}_{}_val_{}.fq.gz'.format(self.accession, pair, pair))
-                yield luigi.LocalTarget('fastq/{}_{}_val_{}_fastqc.zip'.format(self.accession, pair, pair))
+            return [luigi.LocalTarget('fastq/{}_{}_trimmed.fq.gz'.format(self.accession, pair)) for pair in [1, 2]]
         else:
-            yield luigi.LocalTarget('fastq/{}_trimmed.fq.gz'.format(self.accession))
-            yield luigi.LocalTarget('fastq/{}_fastqc.zip'.format(self.accession))
+            return [luigi.LocalTarget('fastq/{}_trimmed.fq.gz'.format(self.accession))]
 
     def run(self):
         fastq_files = self.input()
@@ -86,6 +83,9 @@ class TrimGalore(PipelineTask):
 
         # perform the trimming
         run_cmd(cmd)
+
+        # trim_galore does not let us name the outputs so rename the files
+        run_cmd(["rename 's/_val_[12]/_trimmed/' fastq/{}_*".format(self.accession)], shell=True)
 
 
 class ReferenceFASTA(PipelineTask):
@@ -177,7 +177,7 @@ class BwaMem(PipelineTask):
             'reference': ref_file.path,
 
             # get the fastq file(s) to align
-            'fastq': ' '.join(fastq.path for fastq in fastq_input if '.fq.gz' in fastq.path),
+            'fastq': ' '.join(fastq.path for fastq in fastq_input),
         }
 
         with bam_out.temporary_path() as bam_path:

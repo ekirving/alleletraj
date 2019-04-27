@@ -61,7 +61,7 @@ class TrimGalore(PipelineTask):
 
     def output(self):
         if self.paired:
-            return [luigi.LocalTarget('fastq/{}_{}_trimmed.fq.gz'.format(self.accession, pair)) for pair in [1, 2]]
+            return [luigi.LocalTarget('fastq/{}_{}_trim.fq.gz'.format(self.accession, pair)) for pair in [1, 2]]
         else:
             return [luigi.LocalTarget('fastq/{}_trimmed.fq.gz'.format(self.accession))]
 
@@ -85,7 +85,7 @@ class TrimGalore(PipelineTask):
         run_cmd(cmd)
 
         # trim_galore does not let us name the outputs so rename the files
-        run_cmd(["rename 's/_val_[12]/_trimmed/' fastq/{}_*".format(self.accession)], shell=True)
+        run_cmd(["rename 's/_val_[12]/_trim/' fastq/{}_*".format(self.accession)], shell=True)
 
 
 class ReferenceFASTA(PipelineTask):

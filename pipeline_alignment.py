@@ -72,7 +72,7 @@ class TrimGalore(PipelineTask):
             yield luigi.LocalTarget('fastq/{}_fastqc.zip'.format(self.accession))
 
     def run(self):
-        fastq_files = self.input()[:-1]
+        fastq_files = list(self.input())[:-1]
 
         cmd = ['trim_galore',
                '--quality', TRIM_MIN_BASEQ,   # trim low-quality ends from reads in addition to adapter removal

@@ -4,13 +4,13 @@
 import luigi
 import numpy
 
+# VCF parser
+from pysam import VariantFile
+
 # import my custom modules
 from pipeline_alignment import ReferenceFASTA, AlignedBAM
 from pipeline_consts import SAMPLE_SEX
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
-
-# VCF parser
-from pysam import VariantFile
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_GENO_QUAL = 30
@@ -291,12 +291,12 @@ class BiallelicSNPsVCF(PipelineTask):
         with self.output().temporary_path() as vcf_out:
             run_cmd(['bcftools',
                      'view',
-                     '--types', 'snps',            # only keep SNPs
-                     '--min-alleles', 2,           # which are biallelic
-                     '--max-alleles', 2,
-                     '--exclude', 'INFO/INDEL=1',  # exclude sites marked as INDELs in INFO tag
                      '--samples', '^' + self.outgroup,  # drop the outgroup
-                     '--min-ac', '1:nref',         # exclude sites exclusively hom-ALT, as these are likely mispolarised
+                     '--types', 'snps',                 # only keep SNPs
+                     '--min-alleles', 2,                # which are biallelic
+                     '--max-alleles', 2,
+                     '--min-ac', '1:minor',             # and they must be variable, after dropping the outgroup
+                     '--exclude', 'INFO/INDEL=1',       # exclude sites marked as INDELs in INFO tag
                      '--output-type', 'z',
                      '--output-file', vcf_out,
                      self.input().path])

@@ -145,10 +145,12 @@ class BwaMem(PipelineTask):
     Align a fastq file to the reference genome
 
     :type species: str
+    :type sample: str
     :type accession: str
     :type paired: bool
     """
     species = luigi.Parameter()
+    sample = luigi.Parameter()
     accession = luigi.Parameter()
     paired = luigi.BoolParameter(default=True)
 
@@ -172,7 +174,7 @@ class BwaMem(PipelineTask):
             'threads': self.resources['cpu-cores'],
 
             # compose the read group metadata
-            'readgroup': r'@RG\tID:{sample}\tSM:{sample}'.format(sample=self.accession),
+            'readgroup': r'@RG\tID:{sample}\tSM:{sample}'.format(sample=self.sample),
 
             # reference genome
             'reference': ref_file.path,
@@ -202,15 +204,17 @@ class PicardMarkDuplicates(PipelineTask):
     Remove PCR duplicates, so we don't overestimate coverage
 
     :type species: str
+    :type sample: str
     :type accession: str
     """
     species = luigi.Parameter()
+    sample = luigi.Parameter()
     accession = luigi.Parameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
-        return BwaMem(self.species, self.accession)
+        return BwaMem(self.species, self.sample, self.accession)
 
     def output(self):
         return [luigi.LocalTarget('bam/{}.sort.rmdup.{}'.format(self.accession, ext)) for ext in
@@ -277,15 +281,17 @@ class GATKRealignerTargetCreator(PipelineTask):
     Use the GATK RealignerTargetCreator to find suspicious indels to target for local realignment
 
     :type species: str
+    :type sample: str
     :type accession: str
     """
     species = luigi.Parameter()
+    sample = luigi.Parameter()
     accession = luigi.Parameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 4}
 
     def requires(self):
-        yield PicardMarkDuplicates(self.species, self.accession)
+        yield PicardMarkDuplicates(self.species, self.sample, self.accession)
         yield PicardSequenceDictionary(self.species)
 
     def output(self):
@@ -313,16 +319,18 @@ class GATKIndelRealigner(PipelineTask):
     Use the GATK IndelRealigner to perform local realignment of reads around indels
 
     :type species: str
+    :type sample: str
     :type accession: str
     """
     species = luigi.Parameter()
+    sample = luigi.Parameter()
     accession = luigi.Parameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 4}
 
     def requires(self):
-        yield PicardMarkDuplicates(self.species, self.accession)
-        yield GATKRealignerTargetCreator(self.species, self.accession)
+        yield PicardMarkDuplicates(self.species, self.sample, self.accession)
+        yield GATKRealignerTargetCreator(self.species, self.sample, self.accession)
         yield PicardSequenceDictionary(self.species)
 
     def output(self):
@@ -363,7 +371,7 @@ class SAMToolsMerge(PipelineTask):
 
     def requires(self):
         for accession in self.accessions:
-            yield GATKIndelRealigner(self.species, accession)
+            yield GATKIndelRealigner(self.species, self.sample, accession)
 
     def output(self):
         return [luigi.LocalTarget('bam/{}.sort.rmdup.realign.{}'.format(self.sample, ext)) for ext in

@@ -60,7 +60,7 @@ class TrimGalore(PipelineTask):
     paired = luigi.BoolParameter()
 
     def requires(self):
-        return SraToolsFastqDump(self.accession)
+        return SraToolsFastqDump(self.accession, self.paired)
 
     def output(self):
         if self.paired:

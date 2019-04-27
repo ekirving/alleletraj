@@ -5,7 +5,7 @@ import luigi
 
 # import my custom modules
 from pipeline_consts import CPU_CORES_MED, BAM_FILES
-from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
+from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, trim_ext
 
 # hard filters for TrimGalore!
 TRIM_MIN_BASEQ = 20
@@ -28,25 +28,17 @@ class SraToolsFastqDump(PipelineTask):
 
     def output(self):
         if self.paired:
-            yield luigi.LocalTarget('fastq/{}_1.fastq.gz'.format(self.accession))
-            yield luigi.LocalTarget('fastq/{}_2.fastq.gz'.format(self.accession))
+            return [luigi.LocalTarget('fastq/{}_{}.fastq.gz'.format(self.accession, pair)) for pair in [1, 2]]
         else:
-            yield [luigi.LocalTarget('fastq/{}.fq.gz'.format(self.accession))]
-
-        yield luigi.LocalTarget('fastq/{}.log'.format(self.accession))
+            return [luigi.LocalTarget('fastq/{}.fastq.gz'.format(self.accession))]
 
     def run(self):
-        log_file = list(self.output()).pop()
-
         # use the NCBI SRA toolkit to fetch the fastq files
-        log = run_cmd(['fastq-dump',
-                       '--gzip',               # output gzipped files
-                       '--split-3',            # split into two paired end fastq files + one unpaired fastq
-                       '--outdir', './fastq',  # output directory
-                       self.accession])
+        run_cmd(['fasterq-dump', '--outdir', './fastq', self.accession])
 
-        with log_file.open('w') as fout:
-            fout.write(log)
+        # fasterq-dump does not support the old --gzip flag, so we need to do it manually
+        for fastq in self.output():
+            run_cmd(['gzip', trim_ext(fastq.path)])
 
 
 class TrimGalore(PipelineTask):
@@ -72,7 +64,7 @@ class TrimGalore(PipelineTask):
             yield luigi.LocalTarget('fastq/{}_fastqc.zip'.format(self.accession))
 
     def run(self):
-        fastq_files = list(self.input())[:-1]
+        fastq_files = self.input()
 
         cmd = ['trim_galore',
                '--quality', TRIM_MIN_BASEQ,   # trim low-quality ends from reads in addition to adapter removal

@@ -177,6 +177,7 @@ BAM_FILES = {
 # TODO move into a spreadsheet
 SRA_ACCESSIONS = {
     'pig': {
+        # https://www.ncbi.nlm.nih.gov/sra?linkname=bioproject_sra_all&from_uid=294150
         'AS01F01_AnglerSattleschwein_rh': ['ERR977189', 'ERR977190'],
         'AS01F09_Angler_Sattelsw_rh': ['ERR977191', 'ERR977192', 'ERR977193', 'ERR977194'],
         'BB01M47_Bunte_Bentheimer_rh': ['ERR977195', 'ERR977196'],

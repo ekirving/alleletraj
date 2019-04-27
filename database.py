@@ -198,8 +198,8 @@ class Database:
                   u"WHERE `id` = {id}".format(**data)
         else:
             # insert new record
-            sql = u"INSERT INTO {table} ({fields}) VALUES ({values}) " \
-                  u"ON DUPLICATE KEY UPDATE {update}".format(**data)
+            sql = u"INSERT INTO {table} ({fields}) " \
+                  u"VALUES ({values})".format(**data)
 
         try:
             self.cursor.execute(sql)

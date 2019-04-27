@@ -126,11 +126,13 @@ class LoadSampleReads(PipelineTask):
             snps = dbc.get_records_sql("""
                 SELECT ms.site, ms.ancestral, ms.derived, ev.ref, ev.alt
                   FROM modern_snps ms
+                  JOIN modern_snp_daf msd
+                    ON msd.modsnp_id = ms.id
              LEFT JOIN ensembl_variants ev
                     ON ev.id = ms.variant_id
                  WHERE ms.chrom = '{chrom}'
                    AND ms.site BETWEEN {start} AND {end}
-                   AND ms.daf >= {daf}""".format(chrom=chrom, start=start, end=end, daf=MIN_DAF), key='site')
+                   AND msd.daf >= {daf}""".format(chrom=chrom, start=start, end=end, daf=MIN_DAF), key='site')
 
             log.write("INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 

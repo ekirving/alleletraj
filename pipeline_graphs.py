@@ -76,7 +76,6 @@ class GraphDerivedVersusAge(PipelineTask):
                     t.class AS trait,
                     ms.ancestral,
                     ms.derived,
-                    ms.daf,
                     MAX({median}) AS oldest_sample,
                     MAX(IF(sr.base = ms.derived, {median}, NULL)) AS oldest_derived
                FROM (
@@ -109,7 +108,7 @@ class GraphDerivedVersusAge(PipelineTask):
 
         with open("tsv/{}-snps-ages.tsv".format(self.species), "wb") as tsv_file:
 
-            fields = ['modsnp_id', 'trait', 'ancestral', 'derived', 'daf', 'oldest_sample', 'oldest_derived']
+            fields = ['modsnp_id', 'trait', 'ancestral', 'derived', 'oldest_sample', 'oldest_derived']
             writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
             writer.writeheader()
 

@@ -433,8 +433,9 @@ class AlignmentPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for samples in self.samples:
-            yield AlignedBAM(self.species, samples)
+        for pop in self.populations:
+            for samples in self.populations[pop]:
+                yield AlignedBAM(self.species, samples)
 
 
 if __name__ == '__main__':

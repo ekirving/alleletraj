@@ -114,6 +114,7 @@ class EasySFS(PipelineTask):
             'fold': '--unfolded' if not self.folded else ''
         }
 
+        # TODO look at the easySFS code to see how it expects polarization to be done - e.g. AA ancestral allele in INFO
         # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
         cmd = "echo 'yes' | {easysfs} -a -f -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
 

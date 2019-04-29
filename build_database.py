@@ -18,6 +18,8 @@ from pipeline_ascertainment import AscertainmentPipeline
 from pipeline_selection import SelectionBestQTLSNPs
 from pipeline_graphs import GraphsPipeline
 
+# TODO make a docker image with all the dependencies
+
 
 class BuildDatabase(PipelineWrapperTask):
     """
@@ -41,15 +43,18 @@ class BuildDatabase(PipelineWrapperTask):
         # link the SNPChip data to the modern SNPs
         yield SNPChipPipeline(self.species)
 
+        # TODO drop qtl_snps table?
         # load the QTLs from the AnimalQTL database, and other regions of interest
         yield QTLPipeline(self.species)
 
         # load the sample metadata
         yield SamplesPipeline(self.species)
 
+        # TODO do the random call before loading into the db as >2 billion reads is too many!
         # load the sample reads for each ascertained SNP
         yield SampleReadsPipeline(self.species)
 
+        # TODO drop the SNP calling stuff
         # apply quality filters to the sample reads
         yield DiscoverSNPsPipeline(self.species)
 

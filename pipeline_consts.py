@@ -314,15 +314,18 @@ SWEEP_DATA = {
 
 # the per-site mutation rate
 MUTATION_RATE = {
+    # TODO cattle, pig and goat
     'horse': 7.242e-9  # https://www.pnas.org/content/111/52/E5661.full#sec-17
 }
 
 # the average generation time in years
 GENERATION_TIME = {
+    # TODO cattle and goat
     'pig': 5,  # see https://www.nature.com/articles/ng.3197
     'horse': 8  # see https://www.sciencedirect.com/science/article/pii/S0960982215010039
 }
 
+# TODO deprecated
 # the reference effective population size
 POPULATION_SIZE = {
     'pig': {  # see https://www.nature.com/articles/ng.3394

@@ -21,26 +21,6 @@ ANCIENT_PATH = '/home/ludo/inbox/BAMs/ancient/'
 
 GOOGLE_SHEET = {
 
-    # Pig_Table_Final_05_03_18
-    # 'pig': {
-    #     'id':   '1IWCt8OtTz6USOmN5DO0jcYxZOLnnOVdstTGzRcBZolI',
-    #     'tabs': ['Everything for the paper - updated'],
-    #     'cols': OrderedDict([
-    #                 ('Extract No.',       'accession'),
-    #                 ('Total Reads',       'map_reads'),
-    #                 ('% Mapped',          'map_prcnt'),
-    #                 ('Age',               'age'),
-    #                 ('Period',            'period'),
-    #                 ('Location',          'location'),
-    #                 ('Country',           'country'),
-    #                 ('Wild/Dom Status',   'population'),
-    #                 ('GMM Status',        'gmm_status'),
-    #                 ('Group',             'group'),
-    #                 ('Haplogroup',        'haplogroup'),
-    #                 ('DNA',               'dna')
-    #             ])
-    # },
-
     'pig': {
         'id': '1GBxNiRWAqPdz4MdSpi0ec_K8x4TRns31VgUcICq68qo',
         'tabs': ['final combined'],
@@ -72,7 +52,23 @@ GOOGLE_SHEET = {
                     ('Age',      'period'),
                     ('Site',     'location'),
                 ])
-    }
+    },
+
+    # Goat Samples for Allele Trajectory
+    'gaot': {
+        'id': '1HPKfpxKgwz7MDrt3b6U8530zoQYaYte035aOGl9MzgU',
+        'tabs': ['Sheet1'],
+        'cols': OrderedDict([
+            ('Sample ID', 'accession'),
+            ('Wild/Dom', 'population'),
+            # TODO sex
+            ('Approximate Age ', 'age'),
+            ('Archaeological Context', 'period'),
+            ('Archaeological Site', 'location'),
+            ('Country', 'country'),
+            # TODO Latitude / Longitude
+        ])
+    },
 }
 
 # list of junk input to mask with NULL
@@ -80,6 +76,7 @@ SHEET_NA = ['n/a', 'NA', 'N', '-', '?', 'NULL', 'None', '...', '']
 
 AGE_MAP = {
 
+    # TODO use this for the goats as well
     'pig': {
         'id': '1bH5u_qDaFXJdTyybeahqgF7je17td0FdyOMs_tlECdA',
         'tabs': ['Age Map'],
@@ -117,9 +114,10 @@ EUROPE = [
 ]
 
 # list of non-permissible countries outside of Europe
-NON_EUROPE = ['Africa', 'Armenia', 'Azerbaijan', 'Cyprus', 'Egypt', 'Egyptian', 'EuroAm', 'Georgia', 'Iran', 'Iraq',
-              'Israel', 'Morocco', 'Sudan', 'Syria', 'Tunisia', 'Turkey', 'Turkmenistan', 'United Arab Emirates']
-
+NON_EUROPE = [
+    'Africa', 'Armenia', 'Azerbaijan', 'Cyprus', 'Egypt', 'Egyptian', 'EuroAm', 'Georgia', 'Iran', 'Iraq', 'Israel',
+    'Morocco', 'Sudan', 'Syria', 'Tunisia', 'Turkey', 'Turkmenistan', 'United Arab Emirates'
+]
 
 # the arbitrary +/- age uncertainty for median age dates
 MEDIAN_AGE_UNCERT = 100

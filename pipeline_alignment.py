@@ -350,6 +350,7 @@ class GATKIndelRealigner(PipelineTask):
                      '--out', bam_path],
                     stdout=log_fout)
 
+        # TODO GATK has already made the index for us, so we just need to rename the temp file
         # index the BAM file
         run_cmd(['samtools', 'index', '-b', bam_out.path])
 

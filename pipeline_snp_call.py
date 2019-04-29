@@ -9,7 +9,6 @@ from pysam import VariantFile
 
 # import my custom modules
 from pipeline_alignment import ReferenceFASTA, AlignedBAM
-from pipeline_consts import SAMPLE_SEX
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
@@ -95,9 +94,10 @@ class BCFToolsCall(PipelineTask):
         # bcftools needs the sex specified in a separate file
         sex_file = 'vcf/{}-modern.sex'.format(self.species)
         with open(sex_file, 'w') as fout:
-            for sample in self.all_samples:
-                sex = SAMPLE_SEX[self.species][sample][0].upper()  # use single letter uppercase
-                fout.write('{}\t{}\n'.format(sample, sex))
+            for pop in self.populations:
+                for sample in self.populations[pop]:
+                    sex = self.populations[pop][sample]['sex'][0].upper()  # use single letter uppercase
+                    fout.write('{}\t{}\n'.format(sample, sex))
 
         # sample names in the BAM file(s) may not be consistent, so override the @SM code
         rgs_file = 'vcf/{}-modern.rgs'.format(self.species)

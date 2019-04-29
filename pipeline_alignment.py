@@ -4,7 +4,7 @@
 import luigi
 
 # import my custom modules
-from pipeline_consts import CPU_CORES_LOW, CPU_CORES_MED, BAM_FILES
+from pipeline_consts import CPU_CORES_LOW, CPU_CORES_MED
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, trim_ext
 
 # hard filters for TrimGalore!
@@ -360,15 +360,17 @@ class SAMToolsMerge(PipelineTask):
     Merge multiple libraries into a single BAM file
 
     :type species: str
+    :type population: str
     :type sample: str
     """
     species = luigi.Parameter()
+    population = luigi.Parameter()
     sample = luigi.Parameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
-        for accession in self.accessions:
+        for accession in self.modern_data[self.population][self.sample]['accessions']:
             yield GATKIndelRealigner(self.species, self.sample, accession)
 
     def output(self):
@@ -396,14 +398,12 @@ class ExternalBAM(PipelineExternalTask):
 
     N.B. These have been created outside the workflow of this pipeline.
 
-    :type species: str
-    :type sample: str
+    :type path: str
     """
-    species = luigi.Parameter()
-    sample = luigi.Parameter()
+    path = luigi.Parameter()
 
     def output(self):
-        return luigi.LocalTarget(BAM_FILES[self.species][self.sample])
+        return luigi.LocalTarget(self.path)
 
 
 class AlignedBAM(PipelineWrapperTask):
@@ -411,18 +411,20 @@ class AlignedBAM(PipelineWrapperTask):
     Align raw reads to a reference genome, deduplicate, realign indels, and merge multiple libraries.
 
     :type species: str
+    :type population: str
     :type sample: str
     """
     species = luigi.Parameter()
+    population = luigi.Parameter()
     sample = luigi.Parameter()
 
     def requires(self):
-        if self.species == 'pig':
-            # use the BAM file we aligned ourselves
-            yield SAMToolsMerge(self.species, self.sample)
+        if 'path' in self.modern_data[self.population][self.sample]:
+            # use the provided BAM file
+            yield ExternalBAM(self.modern_data[self.population][self.sample]['path'])
         else:
-            # use the BAM file provide by collaborators
-            yield ExternalBAM(self.species, self.sample)
+            # align our own BAM file
+            yield SAMToolsMerge(self.species, self.population, self.sample)
 
 
 class AlignmentPipeline(PipelineWrapperTask):
@@ -435,8 +437,8 @@ class AlignmentPipeline(PipelineWrapperTask):
 
     def requires(self):
         for pop in self.populations:
-            for samples in self.populations[pop]:
-                yield AlignedBAM(self.species, samples)
+            for sample in self.populations[pop]:
+                yield AlignedBAM(self.species, self.population, sample)
 
 
 if __name__ == '__main__':

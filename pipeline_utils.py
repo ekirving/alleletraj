@@ -4,14 +4,14 @@
 import luigi
 import os
 import subprocess
+import csv
+import re
 
 # import common libraries
 from collections import Iterable
-from multiprocessing import Process
 
 # import my libraries
-from pipeline_consts import CHROMOSOMES, REF_ASSEMBLY, OUTGROUP, BINOMIAL_NAME, SAMPLES, SRA_ACCESSIONS
-
+from pipeline_consts import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME
 from database import Database
 
 # enforce max interval size of 1 Gb
@@ -96,19 +96,27 @@ def merge_intervals(ranges, capped=True):
         yield (saved[0], saved[1])
 
 
-def run_in_parallel(*fns):
+def load_samples_csv(csv_file):
     """
-    Simple wrapper for running functions in parallel.
+    Load a samples csv file as a nested dictionary
     """
-    proc = []
+    populations = {}
+    with open(csv_file, 'r') as fin:
+        data = csv.DictReader(fin)
+        data._fieldnames = [re.sub(r'\W+','', field).lower() for field in data.fieldnames]  # strip bad chars from Excel
+        for row in data:
+            pop = populations.get(row['population'], dict())
 
-    for fn in fns:
-        p = Process(target=fn)
-        p.start()
-        proc.append(p)
+            sample = dict()
+            for column in row:
+                if column not in ['population', 'sample']:
+                    sample[column] = row[column] if column != 'accessions' not in row[column] \
+                        else [acc for acc in row[column].split(';') if acc != '']
 
-    for p in proc:
-        p.join()
+            pop[row['sample']] = sample
+            populations[row['population']] = pop
+
+    return populations
 
 
 def trim_ext(full_path, n=1):
@@ -165,8 +173,11 @@ def get_chrom_sizes(fai_file, exclude_scaffolds=True):
 
 class PipelineTask(luigi.Task):
     """
-    PrioritisedTask that implements a several dynamic attributes
+    PrioritisedTask that implements several dynamic attributes
     """
+
+    _modern_data = None
+
     @property
     def resources(self):
         """
@@ -222,11 +233,14 @@ class PipelineTask(luigi.Task):
         return '-'.join(params)
 
     @property
-    def accessions(self):
+    def modern_data(self):
         """
-        List of SRA accession codes for a sample
+        Fetch all the modern data from the CSV
         """
-        return SRA_ACCESSIONS[self.species][self.sample]
+        if self._modern_data is None:
+            self._modern_data = load_samples_csv('data/modern_samples_{}.csv'.format(self.species))
+
+        return self._modern_data
 
     @property
     def assembly(self):
@@ -275,29 +289,28 @@ class PipelineTask(luigi.Task):
         """
         Identifier of the outgroup sample
         """
-        return OUTGROUP[self.species]
+        return self.modern_data['OUT'].keys().pop()
 
     @property
     def populations(self):
         """
         List of the populations for the species
         """
-        return SAMPLES[self.species]
+        return self.modern_data
 
     @property
     def samples(self):
         """
         List of the modern samples for this population
         """
-        return SAMPLES[self.species][self.population]
+        return self.modern_data[self.population]
 
     @property
     def all_samples(self):
         """
-        All samples, from all populations, including the outgroup (which is always the first in the list).
-        :return:
+        All samples, from all populations, including the outgroup.
         """
-        return [self.outgroup] + [sample for pop in SAMPLES[self.species] for sample in SAMPLES[self.species][pop]]
+        return [sample for pop in self.modern_data for sample in self.modern_data[pop]]
 
     def all_params(self):
         """

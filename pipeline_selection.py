@@ -6,7 +6,8 @@ import os
 import unicodecsv as csv
 
 # import my custom modules
-from pipeline_consts import GENERATION_TIME, POPULATION_SIZE
+from pipeline_consts import GENERATION_TIME
+from pipeline_dadi import DadiDemography
 from pipeline_discover_snps import DiscoverSNPsPipeline
 from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
@@ -62,17 +63,23 @@ class SelectionInputFile(PipelineTask):
     modsnp_id = luigi.IntParameter()
 
     def requires(self):
-        return DiscoverSNPsPipeline(self.species)
+        yield DadiDemography(self.species, self.population)
+        yield DiscoverSNPsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget("selection/{}.input".format(self.basename))
 
     def run(self):
+        # unpack the inputs
+        (_, nref_file), _ = self.input()
 
         dbc = self.db_conn()
 
         gen_time = GENERATION_TIME[self.species]
-        pop_size = POPULATION_SIZE[self.species][self.population]
+
+        # get the Nref population size
+        with nref_file.open() as fin:
+            pop_size = int(fin.read())
 
         # resolve pseudo-population DOM2WLD
         pop_sql = self.population if self.population != 'DOM2WLD' else "DOM2', 'WILD"
@@ -194,27 +201,32 @@ class SelectionPlot(PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 64}
 
     def requires(self):
-        return SelectionRunMCMC(self.species, self.population, self.modsnp_id, self.pop_hist, self.mcmc_cycles,
-                                self.mcmc_freq)
+        yield DadiDemography(self.species, self.population)
+        yield SelectionRunMCMC(self.species, self.population, self.modsnp_id, self.pop_hist, self.mcmc_cycles,
+                               self.mcmc_freq)
 
     def output(self):
         return luigi.LocalTarget("pdf/{}.pdf".format(self.basename))
 
     def run(self):
+        # unpack the inputs
+        (_, nref_file), _ = self.input()
 
         # compose the input and output file paths
         input_file = "selection/{}-{}-{}.input".format(self.species, self.population, self.modsnp_id)
         output_prefix = trim_ext(self.input()[0].path)
 
         gen_time = GENERATION_TIME[self.species]
-        pop_size = POPULATION_SIZE[self.species][self.population]
-        burn_in = self.mcmc_cycles / self.mcmc_freq * MCMC_BURN_IN
+
+        # get the Nref population size
+        with nref_file.open() as fin:
+            pop_size = int(fin.read())
+
+        burn_in = (self.mcmc_cycles / self.mcmc_freq) * MCMC_BURN_IN
 
         try:
             # plot the allele trajectory
             run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, gen_time, pop_size, burn_in])
-
-            # TODO plot the strength of selection (a1 and a2)
 
         except RuntimeError as e:
             # delete the broken PDF

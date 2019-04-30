@@ -14,10 +14,10 @@ from pipeline_consts import MUTATION_RATE
 from pipeline_snp_call import PolarizeVCF, WholeGenomeSNPsVCF
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
 
-# location of software tool
+# TODO find better solution to this
 EASYSFS = "../easySFS/easySFS.py"
 
-# TODO handle this better
+# TODO move this into the CSV
 # modern samples to leave out of the SFS calculation
 SFS_EXCLUSIONS = {
     'horse': [

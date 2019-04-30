@@ -3,9 +3,19 @@
 
 import luigi
 
+from multiprocessing import cpu_count
+
 # import my custom modules
-from pipeline_consts import CPU_CORES_LOW, CPU_CORES_MED
 from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, trim_ext
+
+# how many CPU cores does this machine have
+TOTAL_CORES = cpu_count()
+
+# set how many cores a single working can use
+CPU_CORES_LOW = int(TOTAL_CORES * 0.1)   # 10%
+CPU_CORES_MED = int(TOTAL_CORES * 0.25)  # 25%
+CPU_CORES_HIGH = int(TOTAL_CORES * 0.5)  # 50%
+CPU_CORES_MAX = int(TOTAL_CORES * 0.9)   # 90%
 
 # hard filters for TrimGalore!
 TRIM_MIN_BASEQ = 20

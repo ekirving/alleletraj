@@ -233,7 +233,8 @@ class LoadSampleReads(PipelineTask):
                                 # store the read so we can batch insert later
                                 reads[(chrom, site)].append(read)
 
-                # now we're buffered all the reads, lets call diploid genotypes on those that pass our depth threshold
+                # now we're buffered all the reads for this sample at this locus, lets call diploid genotypes on those
+                # that pass our depth threshold
                 diploid = [idx for idx in reads if len(reads[idx]) >= MIN_GENO_DEPTH]
 
                 if diploid:
@@ -328,19 +329,25 @@ class LoadSampleReads(PipelineTask):
                     for tmp in glob.glob("vcf/*{}*".format(suffix)):
                         os.remove(tmp)
 
-                # TODO still need to random call
-                # apply hard filters
-                reads = [read for (chrom, site) in reads for read in reads[(chrom, site)]
-                         if read[fields.index('dist')] >= HARD_CLIP_DIST
-                         and read[fields.index('mapq')] >= HARD_MAPQ_CUTOFF
-                         and read[fields.index('baseq')] >= HARD_BASEQ_CUTOFF]
+                randcall = []
+
+                for chrom, site in reads:
+                    # apply hard filters
+                    qual = [read for read in reads[(chrom, site)]
+                            if read[fields.index('dist')] >= HARD_CLIP_DIST
+                            and read[fields.index('mapq')] >= HARD_MAPQ_CUTOFF
+                            and read[fields.index('baseq')] >= HARD_BASEQ_CUTOFF]
+
+                    # call a pseudo-haploid genotype at random
+                    if len(qual):
+                        randcall.append(random.choice(qual))
 
                 # count the total number of reads
-                num_reads += len(reads)
+                num_reads += len(randcall)
 
                 # bulk insert all the reads for this sample
-                if reads:
-                    dbc.save_records('sample_reads', fields, reads)
+                if randcall:
+                    dbc.save_records('sample_reads', fields, randcall)
 
             log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end))
 

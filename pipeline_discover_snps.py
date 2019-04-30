@@ -133,8 +133,8 @@ class ChooseRandomRead(PipelineTask):
                 GROUP BY sr.chrom, sr.site, sr.sample_id
                 
                ) AS rand ON rand.id = sample_reads.id
-         WHERE sr.chrom = '{chrom}'
            SET sr.called = 1
+         WHERE sr.chrom = '{chrom}'
            """.format(pop=self.population, chrom=self.chrom))
 
         with self.output().open('w') as fout:

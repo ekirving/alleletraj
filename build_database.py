@@ -42,7 +42,6 @@ class BuildDatabase(PipelineWrapperTask):
         # link the SNPChip data to the modern SNPs
         yield SNPChipPipeline(self.species)
 
-        # TODO drop qtl_snps table?
         # load the QTLs from the AnimalQTL database, and other regions of interest
         yield QTLPipeline(self.species)
 
@@ -52,10 +51,9 @@ class BuildDatabase(PipelineWrapperTask):
         # load the sample reads for each ascertained SNP
         yield SampleReadsPipeline(self.species)
 
-        # TODO test these work
-        # # analyse the coverage and quality for SNPs in each QTLs
-        # yield AnalyseQTLsPipeline(self.species)
-        #
+        # analyse the coverage and quality for SNPs in each QTLs
+        yield AnalyseQTLsPipeline(self.species)
+
         # if self.species == 'pig':
         #     # pick the best SNPs to target for a capture array
         #     yield AscertainmentPipeline(self.species)

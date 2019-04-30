@@ -8,7 +8,7 @@ import unicodecsv as csv
 # import my custom modules
 from pipeline_consts import GENERATION_TIME
 from pipeline_dadi import DadiDemography
-from pipeline_discover_snps import DiscoverSNPsPipeline
+from pipeline_sample_reads import SampleReadsPipeline
 from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
 
@@ -64,7 +64,7 @@ class SelectionInputFile(PipelineTask):
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
-        yield DiscoverSNPsPipeline(self.species)
+        yield SampleReadsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget("selection/{}.input".format(self.basename))
@@ -94,7 +94,6 @@ class SelectionInputFile(PipelineTask):
               JOIN sample_reads sr
                 ON sr.chrom = ms.chrom
                AND sr.site = ms.site
-               AND sr.called = 1
               JOIN samples s
                 ON s.id = sr.sample_id
              WHERE ms.id = {modsnp_id}

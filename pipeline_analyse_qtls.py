@@ -3,7 +3,7 @@
 
 import luigi
 
-from pipeline_discover_snps import DiscoverSNPsPipeline
+from pipeline_sample_reads import LoadSampleReads
 from pipeline_utils import PipelineTask, PipelineWrapperTask
 
 # the number of SNPs to model per QTL
@@ -23,7 +23,7 @@ class CountSNPCoverage(PipelineTask):
     db_lock_tables = ['qtl_snps']
 
     def requires(self):
-        return DiscoverSNPsPipeline(self.species, self.chrom)
+        return LoadSampleReads(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -46,7 +46,6 @@ class CountSNPCoverage(PipelineTask):
                         JOIN sample_reads sr
                           ON sr.chrom = ms.chrom
                          AND sr.site = ms.site
-                         AND sr.called = 1
                        WHERE q.chrom = '{chrom}'
                          AND q.valid = 1
                     GROUP BY qs.id
@@ -160,7 +159,6 @@ class CalculateSummaryStats(PipelineTask):
                             JOIN sample_reads sr
                               ON sr.chrom = ms.chrom
                              AND sr.site = ms.site
-                             AND sr.called = 1
                            WHERE q.chrom = '{chrom}'
                              AND q.valid = 1
                         GROUP BY qs.id

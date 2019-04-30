@@ -12,7 +12,6 @@ from pipeline_snpchip import SNPChipPipeline
 from pipeline_qtls import QTLPipeline
 from pipeline_samples import SamplesPipeline
 from pipeline_sample_reads import SampleReadsPipeline
-from pipeline_discover_snps import DiscoverSNPsPipeline
 from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_ascertainment import AscertainmentPipeline
 from pipeline_selection import SelectionBestQTLSNPs
@@ -50,13 +49,8 @@ class BuildDatabase(PipelineWrapperTask):
         # load the sample metadata
         yield SamplesPipeline(self.species)
 
-        # TODO do the random call before loading into the db as >2 billion reads is too many!
         # load the sample reads for each ascertained SNP
         yield SampleReadsPipeline(self.species)
-
-        # TODO drop the SNP calling stuff
-        # apply quality filters to the sample reads
-        yield DiscoverSNPsPipeline(self.species)
 
         # TODO test these work
         # # analyse the coverage and quality for SNPs in each QTLs

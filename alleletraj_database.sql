@@ -399,12 +399,9 @@ CREATE TABLE `sample_reads` (
   `mapq` int(11) DEFAULT NULL,
   `baseq` int(11) DEFAULT NULL,
   `genoq` int(11) DEFAULT NULL,
-  `quality` tinyint(1) DEFAULT NULL,
-  `called` tinyint(1) DEFAULT NULL,
   KEY `id` (`id`),
   KEY `sampleID` (`sample_id`),
-  KEY `chrom_site` (`chrom`,`site`),
-  KEY `snp` (`called`)
+  KEY `chrom_site` (`chrom`,`site`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8
 /*!50500 PARTITION BY LIST  COLUMNS(chrom)
 (PARTITION p1 VALUES IN ('1') ENGINE = InnoDB,

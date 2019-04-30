@@ -20,11 +20,14 @@ from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10
 
+# number of bases to hard clip
+HARD_CLIP_DIST = 5
+
 # minimum mapping quality (hard filtered)
-HARD_MAPQ_CUTOFF = 20
+HARD_MAPQ_CUTOFF = 30
 
 # minimum base quality (hard filtered)
-HARD_BASEQ_CUTOFF = 20
+HARD_BASEQ_CUTOFF = 30
 
 
 class MergeAllLoci(PipelineTask):
@@ -306,28 +309,30 @@ class LoadSampleReads(PipelineTask):
                             # the genotype is good, so drop the raw reads
                             reads.pop((chrom, site))
 
-                        # decode the GT notation into allele calls (e.g. 0/0, 0/1, 1/1)
-                        alleles = [rec.alleles[idx] for idx in geno if idx is not None]
+                            # decode the GT notation into allele calls (e.g. 0/0, 0/1, 1/1)
+                            alleles = [rec.alleles[idx] for idx in geno if idx is not None]
 
-                        for allele in alleles:
-                            # compose the read records
-                            read = {
-                                'sample_id':   sample_id,
-                                'chrom':       chrom,
-                                'site':        site,
-                                'genoq':       genoq,
-                                'base':        allele
-                            }
+                            for allele in alleles:
+                                # compose the read records
+                                read = {
+                                    'sample_id':   sample_id,
+                                    'chrom':       chrom,
+                                    'site':        site,
+                                    'genoq':       genoq,
+                                    'base':        allele
+                                }
 
-                            dbc.save_record('sample_reads', read)
+                                dbc.save_record('sample_reads', read)
 
                     # delete the temp files
                     for tmp in glob.glob("vcf/*{}*".format(suffix)):
                         os.remove(tmp)
 
-                # apply hard filters before inserting (otherwise we swamp the DB with too many low quality reads)
+                # TODO still need to random call
+                # apply hard filters
                 reads = [read for (chrom, site) in reads for read in reads[(chrom, site)]
-                         if read[fields.index('mapq')] >= HARD_MAPQ_CUTOFF
+                         if read[fields.index('dist')] >= HARD_CLIP_DIST
+                         and read[fields.index('mapq')] >= HARD_MAPQ_CUTOFF
                          and read[fields.index('baseq')] >= HARD_BASEQ_CUTOFF]
 
                 # count the total number of reads

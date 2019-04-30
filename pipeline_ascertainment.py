@@ -10,7 +10,7 @@ from collections import OrderedDict
 
 from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
 from pipeline_snpchip import LoadSNPChipVariants
-from pipeline_discover_snps import DiscoverSNPsPipeline
+from pipeline_sample_reads import SampleReadsPipeline
 from pipeline_qtls import MC1R_GENE
 from pipeline_alignment import ReferenceFASTA
 from pipeline_utils import PipelineTask, PipelineWrapperTask, get_chrom_sizes
@@ -40,7 +40,7 @@ class FetchGWASPeaks(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return DiscoverSNPsPipeline(self.species)
+        return SampleReadsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -234,7 +234,7 @@ class FetchMC1RSNPs(PipelineTask):
     def requires(self):
         yield LoadEnsemblGenes(self.species)
         yield LoadEnsemblVariants(self.species)
-        yield DiscoverSNPsPipeline(self.species)
+        yield SampleReadsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -278,7 +278,7 @@ class FetchNeutralSNPs(PipelineTask):
     def requires(self):
         yield ReferenceFASTA(self.species)
         yield LoadEnsemblVariants(self.species)
-        yield DiscoverSNPsPipeline(self.species)
+        yield SampleReadsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -344,7 +344,7 @@ class FetchAncestralSNPs(PipelineTask):
 
     def requires(self):
         yield ReferenceFASTA(self.species)
-        yield DiscoverSNPsPipeline(self.species)
+        yield SampleReadsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

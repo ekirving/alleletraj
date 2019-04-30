@@ -5,7 +5,7 @@ import luigi
 import unicodecsv as csv
 
 # import my custom modules
-from pipeline_discover_snps import DiscoverSNPsPipeline
+from pipeline_sample_reads import SampleReadsPipeline
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
 
 
@@ -18,7 +18,7 @@ class GraphDerivedVersusAge(PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        yield DiscoverSNPsPipeline(self.species)
+        yield SampleReadsPipeline(self.species)
 
     def output(self):
         return [luigi.LocalTarget('pdf/{}-snps-ages.{}'.format(self.species, ext)) for ext in ['pdf', 'png']]
@@ -51,7 +51,6 @@ class GraphDerivedVersusAge(PipelineTask):
                JOIN sample_reads sr
                  ON sr.chrom = ms.chrom
                 AND sr.site = ms.site
-                AND sr.called = 1
                JOIN samples s
                  ON s.id = sr.sample_id
           LEFT JOIN sample_dates sd
@@ -96,7 +95,6 @@ class GraphDerivedVersusAge(PipelineTask):
                JOIN sample_reads sr
                  ON sr.chrom = ms.chrom
                 AND sr.site = ms.site
-                AND sr.called = 1
                JOIN samples s
                  ON s.id = sr.sample_id
           LEFT JOIN sample_dates sd

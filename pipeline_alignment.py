@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import luigi
+import os
 
 from multiprocessing import cpu_count
 
@@ -347,7 +348,7 @@ class GATKIndelRealigner(PipelineTask):
     def run(self):
         # unpack the inputs/outputs
         (bam_in, _, _), (itv_file, _), (ref_file, _, _) = self.input()
-        bam_out, _, log_file = self.output()
+        bam_out, bai_out, log_file = self.output()
 
         with bam_out.temporary_path() as bam_path, open(log_file.path, 'w') as log_fout:
 
@@ -360,9 +361,8 @@ class GATKIndelRealigner(PipelineTask):
                      '--out', bam_path],
                     stdout=log_fout)
 
-        # TODO GATK has already made the index for us, so we just need to rename the temp file
-        # index the BAM file
-        run_cmd(['samtools', 'index', '-b', bam_out.path])
+            # GATK automatically creates an index for us, but we just need to rename the temp file
+            os.rename('{}.bai'.format(bam_path), bai_out)
 
 
 class SAMToolsMerge(PipelineTask):

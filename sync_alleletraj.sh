@@ -14,8 +14,10 @@ rsync -avz --partial \
            --exclude '*.bak' \
            --exclude '*tmp*' \
            --exclude '*.ld' \
+           --exclude '*.csv' \
            --exclude 'screening' \
            --exclude 'fastq' \
+           --exclude 'bam' \
            --exclude 'vcf' \
            --exclude 'selection/*.traj' \
            --exclude 'selection/*.time' \

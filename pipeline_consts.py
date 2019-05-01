@@ -54,11 +54,10 @@ SWEEP_DATA = {
 
 # the per-site mutation rate mutation rate per generation
 MUTATION_RATE = {
-    # TODO tidy this up
     'cattle': 1.10e-8,    # 5 years / see https://www.frontiersin.org/articles/10.3389/fgene.2018.00728/full
     # 'cattle': 1.26e-8,  # 6 years / see https://www.nature.com/articles/s41467-018-04737-0
     # 'cattle': 2.20e-9 / 5,        # see https://www.nature.com/articles/s41559-018-0562-y
-    # actually citing https://www.pnas.org/content/99/2/803
+    #                     actually citing https://www.pnas.org/content/99/2/803
 
     'goat':   2.5e-8,    # https://www.nature.com/articles/s41467-018-03206-y
 
@@ -74,17 +73,4 @@ GENERATION_TIME = {
     'goat':   2,  # https://www.nature.com/articles/s41467-018-03206-y
     'horse':  8,  # https://www.pnas.org/content/111/52/E5661.full#sec-17
     'pig':    5,  # https://www.nature.com/articles/ng.3197
-}
-
-# TODO deprecated
-# the reference effective population size
-POPULATION_SIZE = {
-    'pig': {  # see https://www.nature.com/articles/ng.3394
-        'EUD': 20563,
-        'EUW': 8497
-    },
-    'horse': {  # see https://www.sciencedirect.com/science/article/pii/S0960982215010039
-        'DOM2': 16000,
-        'DOM2WLD': 16000
-    }
 }

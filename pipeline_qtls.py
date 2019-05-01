@@ -343,8 +343,7 @@ class PopulateMC1RLocus(PipelineTask):
     """
     Populate a dummy QTL for the MC1R gene.
 
-    # TODO we want to model ALL 18 dbsnp variants, not just the 8 which are variable in EUD
-
+    # TODO make this a generic method for genes
     :type species: str
     """
     species = luigi.Parameter()

@@ -14,23 +14,11 @@ from pipeline_consts import MUTATION_RATE
 from pipeline_snp_call import PolarizeVCF, WholeGenomeSNPsVCF
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
 
-# TODO find better solution to this
-EASYSFS = "../easySFS/easySFS.py"
-
-# TODO move this into the CSV
-# modern samples to leave out of the SFS calculation
-SFS_EXCLUSIONS = {
-    'horse': [
-        'Esom_0226A', 'Icel_0144A', 'Icel_0247A', 'Shet_0249A', 'Shet_0250A', 'Yaku_0163A', 'Yaku_0170A', 'Yaku_0171A',
-        'Mong_0153A', 'Mong_0215A', 'Jeju_0275A', 'Frie_0296A'
-    ]
-}
-
 # number of sequential epochs to test
 DADI_EPOCHS = 5
 
 # how many independent replicates should we run to find the global maximum params (dadi can get stuck in local maxima)
-DADI_REPLICATES = 200  # TODO increase this
+DADI_REPLICATES = 500
 
 # number of points to use in the grid
 DADI_GRID_PTS = 100
@@ -96,8 +84,8 @@ class EasySFS(PipelineTask):
         # unpack the outputs
         sfs_file, log_file = self.output()
 
-        # get all the samples to use
-        samples = [s for s in self.samples if s not in SFS_EXCLUSIONS[self.species]]
+        # get all the samples to use (excluding those not explicitly flagged for the SFS calculation)
+        samples = [sample for sample in self.samples if self.samples[sample]['sfs'] == '1']
 
         # make a sample/population file
         pop_file = 'sfs/{}.pops'.format(self.basename)
@@ -106,7 +94,6 @@ class EasySFS(PipelineTask):
                 fout.write('{}\t{}\n'.format(sample, self.population))
 
         params = {
-            'easysfs': EASYSFS,
             'vcf':  self.input().path,
             'pops': pop_file,
             'out':  self.basename,
@@ -114,9 +101,9 @@ class EasySFS(PipelineTask):
             'fold': '--unfolded' if not self.folded else ''
         }
 
-        # TODO look at the easySFS code to see how it expects polarization to be done - e.g. AA ancestral allele in INFO
+        # NOTE easySFS expects the REF allele to be ancestral, rather than using the INFO/AA field
         # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
-        cmd = "echo 'yes' | {easysfs} -a -f -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
+        cmd = "echo 'yes' | easySFS.py -a -f -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
 
         log = run_cmd([cmd], shell=True)
 
@@ -359,14 +346,14 @@ class DadiDemography(PipelineTask):
         theta, params, epoch = best['theta'], list(best['params']), best['epoch']
 
         # get the mutation rate
-        mu = MUTATION_RATE[self.species]
+        rate = MUTATION_RATE[self.species]
 
         # get the count of all callable sites
         length = int(size_file.open().read())
 
         # dadi scales population size by 2*Nref, where Nref is the size of the most ancient population
-        # in dadi, θ = 4*Nref*µ, so to solve to Nref
-        nref = theta / (4 * mu * length)
+        # in dadi, θ = 4*Nref*µ, where µ = number of mutations per generation, so to solve for Nref
+        nref = theta / (4 * rate * length)
 
         # save the Nref, so we can interpret the modelling results
         with nfef_file.open('w') as fout:

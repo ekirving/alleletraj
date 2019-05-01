@@ -380,7 +380,7 @@ class SAMToolsMerge(PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
-        for accession in self.modern_data[self.population][self.sample]['accessions']:
+        for accession in self.all_populations[self.population][self.sample]['accessions']:
             yield GATKIndelRealigner(self.species, self.sample, accession)
 
     def output(self):
@@ -429,10 +429,11 @@ class AlignedBAM(PipelineWrapperTask):
     sample = luigi.Parameter()
 
     def requires(self):
-        if 'path' in self.modern_data[self.population][self.sample]:
+        try:
             # use the provided BAM file
-            yield ExternalBAM(self.modern_data[self.population][self.sample]['path'])
-        else:
+            yield ExternalBAM(self.all_populations[self.population][self.sample]['path'])
+
+        except IndexError:
             # align our own BAM file
             yield SAMToolsMerge(self.species, self.population, self.sample)
 
@@ -446,8 +447,8 @@ class AlignmentPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop in self.populations:
-            for sample in self.populations[pop]:
+        for pop in self.all_populations:
+            for sample in self.all_populations[pop]:
                 yield AlignedBAM(self.species, self.population, sample)
 
 

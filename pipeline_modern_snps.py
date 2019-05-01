@@ -79,8 +79,9 @@ class ModernSNPsFromFASTA(PipelineTask):
         yield CreateDatabase(self.species)
 
         # include the outgroup in the sample list, as we need it for polarization
-        for sample in self.all_samples:
-            yield ExternalFASTA(sample)  # TODO outgroup is no longer the first sample in the list
+        for pop in self.all_populations:
+            for sample in self.all_populations[pop]:
+                yield ExternalFASTA(sample)  # TODO outgroup is no longer the first sample in the list
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

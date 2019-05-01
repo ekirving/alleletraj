@@ -77,12 +77,19 @@ class BCFToolsCall(PipelineTask):
     species = luigi.Parameter()
     chrom = luigi.Parameter()
 
+    @property
+    def all_samples(self):
+        """
+        Get all the samples from all the populations (including the outgroup)
+        """
+        return [(pop, sample) for pop in self.all_populations for sample in self.all_populations[pop]]
+
     def requires(self):
         yield ReferenceFASTA(self.species)
         yield ReferencePloidy(self.species)
 
-        for sample in self.all_samples:
-            yield AlignedBAM(self.species, sample)
+        for pop, sample in self.all_samples:
+            yield AlignedBAM(self.species, pop, sample)
 
     def output(self):
         return luigi.LocalTarget('vcf/{}.vcf.gz'.format(self.basename))
@@ -94,15 +101,14 @@ class BCFToolsCall(PipelineTask):
         # bcftools needs the sex specified in a separate file
         sex_file = 'vcf/{}-modern.sex'.format(self.species)
         with open(sex_file, 'w') as fout:
-            for pop in self.populations:
-                for sample in self.populations[pop]:
-                    sex = self.populations[pop][sample]['sex'][0].upper()  # use single letter uppercase
-                    fout.write('{}\t{}\n'.format(sample, sex))
+            for pop, sample in self.all_samples:
+                sex = self.all_populations[pop][sample]['sex'][0].upper()  # use single letter uppercase
+                fout.write('{}\t{}\n'.format(sample, sex))
 
         # sample names in the BAM file(s) may not be consistent, so override the @SM code
         rgs_file = 'vcf/{}-modern.rgs'.format(self.species)
         with open(rgs_file, 'w') as fout:
-            for idx, sample in enumerate(self.all_samples):
+            for idx, (pop, sample) in enumerate(self.all_samples):
                 fout.write('*\t{}\t{}\n'.format(bam_files[idx].path, sample))
 
         with self.output().temporary_path() as vcf_out:

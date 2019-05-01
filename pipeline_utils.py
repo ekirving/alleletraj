@@ -109,9 +109,8 @@ def load_samples_csv(csv_file):
 
             sample = dict()
             for column in row:
-                if column not in ['population', 'sample']:
-                    sample[column] = row[column] if column != 'accessions' not in row[column] \
-                        else [acc for acc in row[column].split(';') if acc != '']
+                sample[column] = row[column] if column != 'accessions' \
+                    else [val for val in row[column].split(';') if val != '']
 
             pop[row['sample']] = sample
             populations[row['population']] = pop
@@ -176,7 +175,9 @@ class PipelineTask(luigi.Task):
     PrioritisedTask that implements several dynamic attributes
     """
 
+    _all_data = None
     _modern_data = None
+    _outgroup = None
 
     @property
     def resources(self):
@@ -216,7 +217,7 @@ class PipelineTask(luigi.Task):
         """
         params = []
 
-        for name, value in self.all_params():
+        for name, value in self._all_params():
             if name == 'chrom':
                 params.append('chr{}'.format(value))
             elif isinstance(value, str):
@@ -231,16 +232,6 @@ class PipelineTask(luigi.Task):
                     params.append('{}{}'.format(name, value))
 
         return '-'.join(params)
-
-    @property
-    def modern_data(self):
-        """
-        Fetch all the modern data from the CSV
-        """
-        if self._modern_data is None:
-            self._modern_data = load_samples_csv('data/modern_samples_{}.csv'.format(self.species))
-
-        return self._modern_data
 
     @property
     def assembly(self):
@@ -285,38 +276,58 @@ class PipelineTask(luigi.Task):
         return "-Xmx{}G".format(self.resources['ram-gb'])
 
     @property
-    def outgroup(self):
+    def all_populations(self):
         """
-        Identifier of the outgroup sample
+        List of the populations for the species
         """
-        return self.modern_data['OUT'].keys().pop()
+        if self._all_data is None:
+            self._load_modern_data()
+
+        return self._all_data
 
     @property
     def populations(self):
         """
         List of the populations for the species
         """
-        return self.modern_data
+        if self._modern_data is None:
+            self._load_modern_data()
+
+        return self._modern_data
 
     @property
     def samples(self):
         """
         List of the modern samples for this population
         """
-        return self.modern_data[self.population]
+        return self.populations[self.population]
 
     @property
-    def all_samples(self):
+    def outgroup(self):
         """
-        All samples, from all populations, including the outgroup.
+        Identifier of the outgroup sample
         """
-        return [sample for pop in self.modern_data for sample in self.modern_data[pop]]
+        if self._outgroup is None:
+            self._load_modern_data()
 
-    def all_params(self):
+        return self._outgroup.keys().pop()
+
+    def _all_params(self):
         """
         Get all the params as a (name, value) tuple
         """
         return [(name, getattr(self, name)) for name in self.get_param_names()]
+
+    def _load_modern_data(self):
+        """
+        Initialise the modern data dictionary and outgroup sample
+        """
+        self._all_data = load_samples_csv('data/modern_samples_{}.csv'.format(self.species))
+        self._modern_data = dict(self._all_data)
+        self._outgroup = self._modern_data.pop('OUT')
+
+        # there must be exactly one outgroup
+        assert len(self._outgroup) == 1
 
     def db_conn(self):
         """

@@ -6,7 +6,7 @@ import luigi
 from datetime import timedelta
 from time import time
 
-from pipeline_sample_reads import LoadSampleReads
+from pipeline_ancient_snps import LoadAncientSNPs
 from pipeline_utils import PipelineTask, PipelineWrapperTask
 
 # the number of SNPs to model per QTL
@@ -26,7 +26,7 @@ class CountSNPCoverage(PipelineTask):
     db_lock_tables = ['qtl_snps']
 
     def requires(self):
-        return LoadSampleReads(self.species, self.chrom)
+        return LoadAncientSNPs(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

@@ -8,7 +8,7 @@ import unicodecsv as csv
 # import my custom modules
 from pipeline_consts import GENERATION_TIME
 from pipeline_dadi import DadiDemography
-from pipeline_sample_reads import SampleReadsPipeline
+from pipeline_ancient_snps import AncientSNPsPipeline
 from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
 
@@ -64,7 +64,7 @@ class SelectionInputFile(PipelineTask):
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
-        yield SampleReadsPipeline(self.species)
+        yield AncientSNPsPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget("selection/{}.input".format(self.basename))

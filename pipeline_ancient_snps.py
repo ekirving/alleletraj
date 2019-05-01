@@ -76,7 +76,7 @@ class MergeAllLoci(PipelineTask):
             fout.write(bed)
 
 
-class LoadSampleReads(PipelineTask):
+class LoadAncientSNPs(PipelineTask):
     """
     Load all the ancient data for SNPs that fall within the loci of interest.
 
@@ -355,7 +355,7 @@ class LoadSampleReads(PipelineTask):
         fin.close()
 
 
-class SampleReadsPipeline(PipelineWrapperTask):
+class AncientSNPsPipeline(PipelineWrapperTask):
     """
     Populate the modern_snps table.
 
@@ -365,7 +365,7 @@ class SampleReadsPipeline(PipelineWrapperTask):
 
     def requires(self):
         for chrom in self.chromosomes:
-            yield LoadSampleReads(self.species, chrom)
+            yield LoadAncientSNPs(self.species, chrom)
 
 
 if __name__ == '__main__':

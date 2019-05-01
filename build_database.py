@@ -11,7 +11,7 @@ from pipeline_ensembl import EnsemblPipeline
 from pipeline_snpchip import SNPChipPipeline
 from pipeline_qtls import QTLPipeline
 from pipeline_samples import SamplesPipeline
-from pipeline_sample_reads import SampleReadsPipeline
+from pipeline_ancient_snps import AncientSNPsPipeline
 from pipeline_analyse_qtls import AnalyseQTLsPipeline
 from pipeline_ascertainment import AscertainmentPipeline
 from pipeline_selection import SelectionBestQTLSNPs
@@ -49,7 +49,7 @@ class BuildDatabase(PipelineWrapperTask):
         yield SamplesPipeline(self.species)
 
         # load the sample reads for each ascertained SNP
-        yield SampleReadsPipeline(self.species)
+        yield AncientSNPsPipeline(self.species)
 
         # analyse the coverage and quality for SNPs in each QTLs
         yield AnalyseQTLsPipeline(self.species)

@@ -3,6 +3,9 @@
 
 import luigi
 
+from datetime import timedelta
+from time import time
+
 from pipeline_sample_reads import LoadSampleReads
 from pipeline_utils import PipelineTask, PipelineWrapperTask
 
@@ -33,7 +36,19 @@ class CountSNPCoverage(PipelineTask):
         # open a db connection
         dbc = self.db_conn()
 
-        exec_time = dbc.execute_sql("""
+        start = time()
+
+        # clear any existing values
+        dbc.execute_sql("""
+            UPDATE qtl_snps qs
+              JOIN qtls q
+                ON q.id = qs.qtl_id 
+               SET qs.num_reads = NULL
+             WHERE q.chrom = '{chrom}'
+               AND qs.num_reads IS NOT NULL""".format(chrom=self.chrom))
+
+        # count the SNPs for each QTL
+        dbc.execute_sql("""
             UPDATE qtl_snps
               JOIN (
                       SELECT qs.id,
@@ -56,7 +71,7 @@ class CountSNPCoverage(PipelineTask):
                SET qtl_snps.num_reads = num.num_reads""".format(chrom=self.chrom))
 
         with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
+            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
 class FindBestSNPs(PipelineTask):
@@ -82,7 +97,19 @@ class FindBestSNPs(PipelineTask):
         # open a db connection
         dbc = self.db_conn()
 
-        exec_time = dbc.execute_sql("""
+        start = time()
+
+        # clear any existing values
+        dbc.execute_sql("""
+            UPDATE qtl_snps qs
+              JOIN qtls q
+                ON q.id = qs.qtl_id 
+               SET qs.best = NULL
+             WHERE q.chrom = '{chrom}'
+               AND qs.best IS NOT NULL""".format(chrom=self.chrom))
+
+        # find the N best SNPs
+        dbc.execute_sql("""
             UPDATE qtl_snps
               JOIN (
                       SELECT qtl_id,
@@ -106,7 +133,7 @@ class FindBestSNPs(PipelineTask):
                 SET qtl_snps.best = 1""".format(chrom=self.chrom, num_snps=SNPS_PER_QTL))
 
         with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
+            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
 class CalculateSummaryStats(PipelineTask):

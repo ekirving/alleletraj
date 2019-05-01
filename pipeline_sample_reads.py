@@ -81,9 +81,9 @@ class LoadSampleReads(PipelineTask):
     Load all the ancient data for SNPs that fall within the loci of interest.
 
     :type species: str
+    :type chrom: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     chrom = luigi.IntParameter()
 
     def requires(self):
@@ -364,9 +364,8 @@ class SampleReadsPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop in self.populations:
-            for chrom in self.chromosomes:
-                yield LoadSampleReads(self.species, pop, chrom)
+        for chrom in self.chromosomes:
+            yield LoadSampleReads(self.species, chrom)
 
 
 if __name__ == '__main__':

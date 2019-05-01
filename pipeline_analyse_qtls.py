@@ -23,8 +23,7 @@ class CountSNPCoverage(PipelineTask):
     db_lock_tables = ['qtl_snps']
 
     def requires(self):
-        for pop in self.populations:
-            yield LoadSampleReads(self.species, pop, self.chrom)
+        return LoadSampleReads(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

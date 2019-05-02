@@ -149,7 +149,7 @@ class CalculateSummaryStats(PipelineTask):
     db_lock_tables = ['qtl_stats']
 
     def requires(self):
-        return CountSNPCoverage(self.species, self.chrom)
+        return FindBestSNPs(self.species, self.chrom)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
@@ -206,12 +206,6 @@ class AnalyseQTLsPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-
-        # process all the chromosomes
         for chrom in self.chromosomes:
-
-            # choose the best SNPs for each QTL
-            yield FindBestSNPs(self.species, chrom)
-
-            # calculate summary stats for each QTL
+            # Calculate summary stats for each QTL
             yield CalculateSummaryStats(self.species, chrom)

@@ -159,7 +159,10 @@ class CalculateSummaryStats(PipelineTask):
         dbc = self.db_conn()
 
         # remove any existing stats for this chromosome
-        dbc.execute_sql("TRUNCATE qtl_stats")
+        dbc.execute_sql("""
+            DELETE 
+              FROM qtl_stats qs
+             WHERE qs.chrom = '{chrom}'""".format(chrom=self.chrom))
 
         exec_time = dbc.execute_sql("""
             INSERT INTO qtl_stats (qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, 

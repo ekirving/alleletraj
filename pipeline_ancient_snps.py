@@ -76,6 +76,9 @@ class MergeAllLoci(PipelineTask):
             fout.write(bed)
 
 
+# TODO align the ancient data
+
+
 class LoadAncientSNPs(PipelineTask):
     """
     Load all the ancient data for SNPs that fall within the loci of interest.

@@ -86,8 +86,7 @@ class Database:
 
         self.cursor.execute(sql)
 
-    # noinspection SqlResolve
-    # noinspection SqlWithoutWhere
+    # noinspection SqlResolve, SqlWithoutWhere
     def __delete_records(self, table, conds=None):
         """
         Helper function for deleting records

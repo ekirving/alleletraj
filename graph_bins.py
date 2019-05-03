@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from alleletraj.database.api import Database
+from alleletraj.database.conn import Database
 
 import unicodecsv as csv
 

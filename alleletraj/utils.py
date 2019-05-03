@@ -12,7 +12,7 @@ from collections import Iterable
 
 # import my libraries
 from alleletraj.consts import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME
-from alleletraj.database.api import Database
+from alleletraj.database.conn import Database
 
 # enforce max interval size of 1 Gb
 MAX_INTERVAL_SIZE = int(1e6)

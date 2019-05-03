@@ -5,7 +5,7 @@ from __future__ import print_function
 
 import unicodecsv as csv
 
-from alleletraj.database.api import Database
+from alleletraj.database.conn import Database
 
 
 def generate_mc1r_snp_input(species, population):

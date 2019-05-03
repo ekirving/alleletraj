@@ -5,7 +5,7 @@ import luigi
 
 # import my custom modules
 from alleletraj import utils
-from alleletraj.database.api import Database
+from alleletraj.database.conn import Database
 
 
 class ExternalDatabaseSQL(utils.PipelineExternalTask):

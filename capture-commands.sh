@@ -54,11 +54,11 @@ parallel "echo {} && samtools view -F 0x904 -q 30 -c {}" ::: ~/alleletraj/screen
 # AL712_merged.bam	8645762
 
 # call consensus on PCR duplicates (from SAM format)
-/usr/local/bin/samtools1.3 view -h screening/AA133_merged.bam | ./FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AA133_merged_rmdup.bam &
-/usr/local/bin/samtools1.3 view -h screening/AA325_merged.bam | ./FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AA325_merged_rmdup.bam &
-/usr/local/bin/samtools1.3 view -h screening/AA241_merged.bam | ./FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AA241_merged_rmdup.bam &
-/usr/local/bin/samtools1.3 view -h screening/AA363_merged.bam | ./FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AA363_merged_rmdup.bam &
-/usr/local/bin/samtools1.3 view -h screening/AL712_merged.bam | ./FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AL712_merged_rmdup.bam &
+/usr/local/bin/samtools1.3 view -h screening/AA133_merged.bam | FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AA133_merged_rmdup.bam &
+/usr/local/bin/samtools1.3 view -h screening/AA325_merged.bam | FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AA325_merged_rmdup.bam &
+/usr/local/bin/samtools1.3 view -h screening/AA241_merged.bam | FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AA241_merged_rmdup.bam &
+/usr/local/bin/samtools1.3 view -h screening/AA363_merged.bam | FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AA363_merged_rmdup.bam &
+/usr/local/bin/samtools1.3 view -h screening/AL712_merged.bam | FilterUniqueSAMCons.py | /usr/local/bin/samtools1.3 view -b > screening/AL712_merged_rmdup.bam &
 
 # bug fix
 for accession in AA133 AA325 AA241 AA363 AL712; do

@@ -417,7 +417,7 @@ class ExternalBAM(PipelineExternalTask):
         yield luigi.LocalTarget(self.path + '.bai')
 
 
-class AlignedBAM(PipelineWrapperTask):
+class AlignedBAM(PipelineTask):
     """
     Align raw reads to a reference genome, deduplicate, realign indels, and merge multiple libraries.
 
@@ -438,6 +438,9 @@ class AlignedBAM(PipelineWrapperTask):
             # align our own BAM file
             return SAMToolsMerge(self.species, self.population, self.sample)
 
+    def output(self):
+        return self.input()
+
 
 class AlignmentPipeline(PipelineWrapperTask):
     """
@@ -448,9 +451,8 @@ class AlignmentPipeline(PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop in self.all_populations:
-            for sample in self.all_populations[pop]:
-                yield AlignedBAM(self.species, self.population, sample)
+        for pop, sample in self.all_samples:
+            yield AlignedBAM(self.species, pop, sample)
 
 
 if __name__ == '__main__':

@@ -10,7 +10,7 @@ from alleletraj.consts import GENERATION_TIME
 from alleletraj.modern.demography import DadiDemography
 from alleletraj.ancient.load_snps import AncientSNPsPipeline
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
-from alleletraj.utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
+from alleletraj import utils
 
 # the population history is either: constant, or a fully specified complex demography
 MCMC_POP_CONST = 'const'
@@ -43,7 +43,7 @@ MCMC_RANDOM_SEED = 234395
 MCMC_MIN_BINS = 3
 
 
-class SelectionInputFile(PipelineTask):
+class SelectionInputFile(utils.PipelineTask):
     """
     Generate the 4-column sample input file for `selection` (Schraiber et al., 2016)
 
@@ -127,7 +127,7 @@ class SelectionInputFile(PipelineTask):
                 writer.writerow(b)
 
 
-class SelectionRunMCMC(PipelineTask):
+class SelectionRunMCMC(utils.PipelineTask):
     """
     Run `selection` for the given SNP.
     """
@@ -150,7 +150,7 @@ class SelectionRunMCMC(PipelineTask):
         # compose the input and output file paths
         input_file = self.input().path
         log_file, param_file, time_file, traj_file = self.output()
-        output_prefix = trim_ext(log_file.path)
+        output_prefix = utils.trim_ext(log_file.path)
         
         # get path of the population history file
         pop_hist = 'data/selection/{}-{}-{}.pop'.format(self.species, self.population, self.pop_hist)
@@ -158,19 +158,20 @@ class SelectionRunMCMC(PipelineTask):
         try:
             with log_file.open('w') as fout:
                 # run `selection`
-                run_cmd(['sr',
-                         '-D', input_file,        # path to data input file
-                         '-P', pop_hist,          # path to population size history file
-                         '-o', output_prefix,     # output file prefix
-                         '-a',                    # flag to infer allele age
-                         '-A',                    # ascertainment flag
-                         '-h', MCMC_ADDITIVE,     # assume derived allele is additive
-                         '-n', self.mcmc_cycles,  # number of MCMC cycles to run
-                         '-s', self.mcmc_freq,    # frequency of sampling from the posterior
-                         '-f', MCMC_PRINT,        # frequency of printing output to the screen
-                         '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory move
-                         '-e', MCMC_RANDOM_SEED,  # random number seed
-                         ], stdout=fout)
+                cmd = ['sr',
+                       '-D', input_file,        # path to data input file
+                       '-P', pop_hist,          # path to population size history file
+                       '-o', output_prefix,     # output file prefix
+                       '-a',                    # flag to infer allele age
+                       '-A',                    # ascertainment flag
+                       '-h', MCMC_ADDITIVE,     # assume derived allele is additive
+                       '-n', self.mcmc_cycles,  # number of MCMC cycles to run
+                       '-s', self.mcmc_freq,    # frequency of sampling from the posterior
+                       '-f', MCMC_PRINT,        # frequency of printing output to the screen
+                       '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory move
+                       '-e', MCMC_RANDOM_SEED]  # random number seed
+
+                utils.run_cmd(cmd, stdout=fout)
 
         except RuntimeError as e:
             # delete the unfinished *.time and *.traj files
@@ -179,12 +180,13 @@ class SelectionRunMCMC(PipelineTask):
 
             raise RuntimeError(e)
 
+        # TODO gzip the output files
         # TODO measure ESS and enforce threshold
         # https://www.rdocumentation.org/packages/LaplacesDemon/versions/16.1.0/topics/ESS
         # https://cran.r-project.org/web/packages/coda/index.html
 
 
-class SelectionPlot(PipelineTask):
+class SelectionPlot(utils.PipelineTask):
     """
     Plot the allele trajectory.
 
@@ -214,7 +216,7 @@ class SelectionPlot(PipelineTask):
 
         # compose the input and output file paths
         input_file = "selection/{}-{}-{}.input".format(self.species, self.population, self.modsnp_id)
-        output_prefix = trim_ext(self.input()[0].path)
+        output_prefix = utils.trim_ext(self.input()[0].path)
 
         gen_time = GENERATION_TIME[self.species]
 
@@ -226,7 +228,13 @@ class SelectionPlot(PipelineTask):
 
         try:
             # plot the allele trajectory
-            run_cmd(['Rscript', 'rscript/plot-selection.R', input_file, output_prefix, gen_time, pop_size, burn_in])
+            utils.run_cmd(['Rscript',
+                           'rscript/plot-selection.R',
+                           input_file,
+                           output_prefix,
+                           gen_time,
+                           pop_size,
+                           burn_in])
 
         except RuntimeError as e:
             # delete the broken PDF
@@ -236,7 +244,7 @@ class SelectionPlot(PipelineTask):
             raise RuntimeError(e)
 
 
-class SelectionGWASSNPs(PipelineWrapperTask):
+class SelectionGWASSNPs(utils.PipelineWrapperTask):
     """
     Run `selection` on all the direct GWAS hits.
 
@@ -267,7 +275,7 @@ class SelectionGWASSNPs(PipelineWrapperTask):
                 yield SelectionPlot(self.species, pop, modsnp_id, MCMC_POP_CONST)
 
 
-class SelectionBestQTLSNPs(PipelineWrapperTask):
+class SelectionBestQTLSNPs(utils.PipelineWrapperTask):
     """
     Run `selection` on all the 'best' QTL SNPs
 
@@ -296,7 +304,7 @@ class SelectionBestQTLSNPs(PipelineWrapperTask):
             yield SelectionPlot(self.species, 'DOM2WLD', modsnp_id, MCMC_POP_CONST)
 
 
-class SelectionExportSLURM(PipelineWrapperTask):
+class SelectionExportSLURM(utils.PipelineWrapperTask):
     """
     Export a script for batch running `selection` on the HPC, using SLURM.
 

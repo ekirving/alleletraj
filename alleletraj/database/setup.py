@@ -4,11 +4,11 @@
 import luigi
 
 # import my custom modules
-from alleletraj.utils import PipelineTask, PipelineExternalTask
+from alleletraj import utils
 from alleletraj.database.api import Database
 
 
-class ExternalDatabaseSQL(PipelineExternalTask):
+class ExternalDatabaseSQL(utils.PipelineExternalTask):
     """
     External task dependency for SQL table definitions.
     """
@@ -16,7 +16,7 @@ class ExternalDatabaseSQL(PipelineExternalTask):
         return luigi.LocalTarget('alleletraj_database.sql')
 
 
-class CreateDatabase(PipelineTask):
+class CreateDatabase(utils.PipelineTask):
     """
     Create and new database and add all the empty tables.
 

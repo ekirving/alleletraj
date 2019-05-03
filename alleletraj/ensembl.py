@@ -11,7 +11,7 @@ from time import time
 # import my custom modules
 from alleletraj.database.setup import CreateDatabase
 from alleletraj.modern.load_snps import ModernSNPsPipeline
-from alleletraj.utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd, curl_download
+from alleletraj import utils
 
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {
@@ -35,7 +35,7 @@ ENSEMBL_RELEASES = {
 INDEL_BUFFER = 10
 
 
-class DownloadEnsemblData(PipelineTask):
+class DownloadEnsemblData(utils.PipelineTask):
     """
     Fetches the data from the Ensembl FTP site.
 
@@ -75,15 +75,15 @@ class DownloadEnsemblData(PipelineTask):
 
     def run(self):
         with self.output().temporary_path() as tmp_path:
-            curl_download(self.url, tmp_path)
+            utils.curl_download(self.url, tmp_path)
 
             if self.bgzip:
                 # convert from gzip to bgzip (so we can index the file)
-                run_cmd(["mv {gz} {gz}-tmp; gunzip -c {gz}-tmp | bgzip > {gz}; rm {gz}-tmp".format(gz=tmp_path)],
-                        shell=True)
+                utils.run_cmd(["mv {gz} {gz}-tmp; gunzip -c {gz}-tmp | bgzip > {gz}; rm {gz}-tmp".format(gz=tmp_path)],
+                              shell=True)
 
 
-class LoadEnsemblGenes(PipelineTask):
+class LoadEnsemblGenes(utils.PipelineTask):
     """
     Load the GTF (General Transfer Format) data from Ensembl.
 
@@ -150,7 +150,7 @@ class LoadEnsemblGenes(PipelineTask):
             fout.write('Inserted {:,} Ensembl gene records'.format(len(records)))
 
 
-class LoadEnsemblVariants(PipelineTask):
+class LoadEnsemblVariants(utils.PipelineTask):
     """
     Load the GVF (Genome Variation Format) data from Ensembl.
 
@@ -223,7 +223,7 @@ class LoadEnsemblVariants(PipelineTask):
             fout.write('Inserted {:,} Ensembl variant records'.format(num_recs))
 
 
-class FlagSNPsNearIndels(PipelineTask):
+class FlagSNPsNearIndels(utils.PipelineTask):
     """
     Flag any dbsnp variants that are within a given range of an INDEL
 
@@ -260,7 +260,7 @@ class FlagSNPsNearIndels(PipelineTask):
             loci.append((int(indel['start']) - INDEL_BUFFER, int(indel['end']) + INDEL_BUFFER))
 
         # merge overlapping loci
-        loci = list(merge_intervals(loci))
+        loci = list(utils.merge_intervals(loci))
 
         # process the INDELs in chunks
         for i in range(0, len(loci), dbc.max_query_size):
@@ -280,7 +280,7 @@ class FlagSNPsNearIndels(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class LinkEnsemblGenes(PipelineTask):
+class LinkEnsemblGenes(utils.PipelineTask):
     """
     Link modern SNPs to their Ensembl genes
 
@@ -314,7 +314,7 @@ class LinkEnsemblGenes(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class LinkEnsemblVariants(PipelineTask):
+class LinkEnsemblVariants(utils.PipelineTask):
     """
     Link modern SNPs to their Ensembl dbsnp variants
 
@@ -352,7 +352,7 @@ class LinkEnsemblVariants(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class EnsemblPipeline(PipelineWrapperTask):
+class EnsemblPipeline(utils.PipelineWrapperTask):
     """
     Populate the ensembl_* tables and link modern_snps records to genes, dbsnp variants.
 

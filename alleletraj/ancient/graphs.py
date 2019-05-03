@@ -6,10 +6,10 @@ import unicodecsv as csv
 
 # import my custom modules
 from alleletraj.ancient.load_snps import AncientSNPsPipeline
-from alleletraj.utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
+from alleletraj import utils
 
 
-class GraphDerivedVersusAge(PipelineTask):
+class GraphDerivedVersusAge(utils.PipelineTask):
     """
     Produce a scatter plot of the oldest observed derived allele vs. the oldest sample at that site.
 
@@ -23,7 +23,7 @@ class GraphDerivedVersusAge(PipelineTask):
     def output(self):
         return [luigi.LocalTarget('pdf/{}-snps-ages.{}'.format(self.species, ext)) for ext in ['pdf', 'png']]
 
-    # noinspection SqlResolve
+    # noinspection SqlResolve, SqlAmbiguousColumn
     def run(self):
         pdf_file, png_file = self.output()
 
@@ -116,14 +116,15 @@ class GraphDerivedVersusAge(PipelineTask):
                 writer.writerow(snp)
 
         # now generate the plot
-        run_cmd(['Rscript', 'rscript/plot-age-derived.R', trim_ext(pdf_file.path), 'Derived Allele vs. Sample Age'])
+        utils.run_cmd(['Rscript', 'rscript/plot-age-derived.R', utils.trim_ext(pdf_file.path),
+                       'Derived Allele vs. Sample Age'])
 
         # convert to PNG
-        run_cmd(["convert -density 300 {pdf} -quality 100 {png}".format(pdf=pdf_file.path, png=png_file.path)],
-                shell=True)
+        utils.run_cmd(["convert -density 300 {pdf} -quality 100 {png}".format(pdf=pdf_file.path, png=png_file.path)],
+                      shell=True)
 
 
-class GraphsPipeline(PipelineWrapperTask):
+class GraphsPipeline(utils.PipelineWrapperTask):
     """
     Print all the graphs.
 

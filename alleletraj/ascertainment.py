@@ -13,7 +13,7 @@ from alleletraj.snpchip import LoadSNPChipVariants
 from alleletraj.ancient.load_snps import AncientSNPsPipeline
 from alleletraj.qtl.qtls import MC1R_GENE
 from alleletraj.modern.alignment import ReferenceFASTA
-from alleletraj.utils import PipelineTask, PipelineWrapperTask, get_chrom_sizes
+from alleletraj import utils
 
 # the number of flanking SNPs (on either side) to include
 QTL_FLANK_NUM_SNPS = 3
@@ -31,7 +31,7 @@ NUM_NEUTRAL_SNPS = 60000
 NUM_ANCESTRAL_SNPS = 30000
 
 
-class FetchGWASPeaks(PipelineTask):
+class FetchGWASPeaks(utils.PipelineTask):
     """
     Fetch all the GWAS peaks from the QTL database.
 
@@ -73,7 +73,7 @@ class FetchGWASPeaks(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class FetchGWASFlankingSNPs(PipelineTask):
+class FetchGWASFlankingSNPs(utils.PipelineTask):
     """
     Fetch the best flanking SNPs for each GWAS peak.
 
@@ -149,7 +149,7 @@ class FetchGWASFlankingSNPs(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class FetchSelectiveSweepSNPs(PipelineTask):
+class FetchSelectiveSweepSNPs(utils.PipelineTask):
     """
     Fetch the best SNPs from the selective sweep loci.
 
@@ -220,7 +220,7 @@ class FetchSelectiveSweepSNPs(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class FetchMC1RSNPs(PipelineTask):
+class FetchMC1RSNPs(utils.PipelineTask):
     """
     Get all the dnsnp SNPs which fall within the MC1R gene.
 
@@ -270,7 +270,7 @@ class FetchMC1RSNPs(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class FetchNeutralSNPs(PipelineTask):
+class FetchNeutralSNPs(utils.PipelineTask):
     """
     Get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
 
@@ -296,7 +296,7 @@ class FetchNeutralSNPs(PipelineTask):
         start = time()
 
         # get the sizes of the chromosomes
-        sizes = get_chrom_sizes(fai_file)
+        sizes = utils.get_chrom_sizes(fai_file)
 
         # get the total size of the autosomes
         total = sum(sizes[chrom] for chrom in self.autosomes)
@@ -336,7 +336,7 @@ class FetchNeutralSNPs(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class FetchAncestralSNPs(PipelineTask):
+class FetchAncestralSNPs(utils.PipelineTask):
     """
     Get ancestral SNPs which are variable in ASD (Asian domestic) and SUM (Sumatran Sus scrofa) populations.
 
@@ -363,7 +363,7 @@ class FetchAncestralSNPs(PipelineTask):
         start = time()
 
         # get the sizes of the chromosomes
-        sizes = get_chrom_sizes(fai_file)
+        sizes = utils.get_chrom_sizes(fai_file)
 
         # get the total size of the autosomes
         total = sum(sizes[chrom] for chrom in self.autosomes)
@@ -407,7 +407,7 @@ class FetchAncestralSNPs(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class FetchRemainingSNPChipSNPs(PipelineTask):
+class FetchRemainingSNPChipSNPs(utils.PipelineTask):
     """
     Include any SNPchip SNPs which were not already included in a previous ascertainment category.
 
@@ -446,7 +446,7 @@ class FetchRemainingSNPChipSNPs(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class PerformAscertainment(PipelineWrapperTask):
+class PerformAscertainment(utils.PipelineWrapperTask):
     """
     Ascertain the best SNPs for our capture array.
 
@@ -477,7 +477,7 @@ class PerformAscertainment(PipelineWrapperTask):
         yield FetchRemainingSNPChipSNPs(self.species)
 
 
-class ExportAscertainedSNPs(PipelineTask):
+class ExportAscertainedSNPs(utils.PipelineTask):
     """
     Export all the ascertained SNPs to a TSV.
 
@@ -514,7 +514,7 @@ class ExportAscertainedSNPs(PipelineTask):
                 writer.writerow(read)
 
 
-class AscertainmentPipeline(PipelineWrapperTask):
+class AscertainmentPipeline(utils.PipelineWrapperTask):
     """
     Perform the ascertainment for the pig SNP capture
 

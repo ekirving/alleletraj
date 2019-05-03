@@ -12,7 +12,7 @@ from datetime import timedelta
 from time import time
 
 import google_sheets as gs
-from alleletraj.utils import PipelineTask, PipelineWrapperTask
+from alleletraj import utils
 from alleletraj.database.setup import CreateDatabase
 
 # from pipeline_utils import *
@@ -163,7 +163,7 @@ def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
     return records
 
 
-class PopulatePigSamples(PipelineTask):
+class PopulatePigSamples(utils.PipelineTask):
     """
     Load all the ancient pig samples into the database.
 
@@ -229,7 +229,7 @@ class PopulatePigSamples(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class SyncRadiocarbonDates(PipelineTask):
+class SyncRadiocarbonDates(utils.PipelineTask):
     """
     Fetch all the radiocarbon dates
 
@@ -264,7 +264,7 @@ class SyncRadiocarbonDates(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class ConfirmAgeMapping(PipelineTask):
+class ConfirmAgeMapping(utils.PipelineTask):
     """
     Make sure that all the free-text dates have proper numeric mappings
 
@@ -312,7 +312,7 @@ class ConfirmAgeMapping(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class ConfirmCountryMapping(PipelineTask):
+class ConfirmCountryMapping(utils.PipelineTask):
     """
     Make sure that all the free-text countries have been properly mapped to Europe.
 
@@ -352,7 +352,7 @@ class ConfirmCountryMapping(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class MarkValidPigs(PipelineTask):
+class MarkValidPigs(utils.PipelineTask):
     """
     Pig samples are valid if they are from Europe and have a BAM file or MC1R genotype.
 
@@ -389,7 +389,7 @@ class MarkValidPigs(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class PopulateHorseSamples(PipelineTask):
+class PopulateHorseSamples(utils.PipelineTask):
     """
     Load all the ancient horse samples into the database.
 
@@ -445,7 +445,7 @@ class PopulateHorseSamples(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class LoadSamples(PipelineWrapperTask):
+class LoadSamples(utils.PipelineWrapperTask):
     """
     Load all the ancient samples
 
@@ -461,7 +461,7 @@ class LoadSamples(PipelineWrapperTask):
             yield PopulateHorseSamples(self.species)
 
 
-class CreateSampleBins(PipelineTask):
+class CreateSampleBins(utils.PipelineTask):
     """
     Create the sample bins.
 
@@ -509,7 +509,7 @@ class CreateSampleBins(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class BinSamples(PipelineTask):
+class BinSamples(utils.PipelineTask):
     """
     Assign samples to temporal bins.
 
@@ -564,7 +564,7 @@ class BinSamples(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class SamplesPipeline(PipelineWrapperTask):
+class SamplesPipeline(utils.PipelineWrapperTask):
     """
     Load all the ancient samples and group them in temporal bins
 

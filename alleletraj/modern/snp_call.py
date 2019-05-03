@@ -9,7 +9,7 @@ from pysam import VariantFile
 
 # import my custom modules
 from alleletraj.modern.alignment import ReferenceFASTA, AlignedBAM
-from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
+from alleletraj import utils
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_GENO_QUAL = 30
@@ -19,7 +19,7 @@ QUANTILE_LOW = 0.05
 QUANTILE_HIGH = 0.95
 
 
-class ReferencePloidy(PipelineExternalTask):
+class ReferencePloidy(utils.PipelineExternalTask):
     """
     Make a ploidy-file file for bcftools which specifies the sex based ploidy of chromosomes in an assembly.
 
@@ -67,7 +67,7 @@ class ReferencePloidy(PipelineExternalTask):
                     fout.write('\t'.join(['*', '*', '*', sex, '2']) + '\n')
 
 
-class BCFToolsSamplesFile(PipelineTask):
+class BCFToolsSamplesFile(utils.PipelineTask):
     """
     Make a samples sex file and a samples readgroup file for bcftools.
 
@@ -102,7 +102,7 @@ class BCFToolsSamplesFile(PipelineTask):
                 fout.write('*\t{}\t{}\n'.format(bam_files[idx].path, sample))
 
 
-class BCFToolsCall(PipelineTask):
+class BCFToolsCall(utils.PipelineTask):
     """
     Make genotype calls using the bcftools mpileup workflow
 
@@ -145,10 +145,10 @@ class BCFToolsCall(PipelineTask):
                   "bcftools call  --multiallelic-caller --ploidy-file {pld} --samples-file {sex} --output-type z " \
                   " --output {vcf}".format(**params)
 
-            run_cmd([cmd], shell=True)
+            utils.run_cmd([cmd], shell=True)
 
 
-class QuantilesOfCoverageVCF(PipelineTask):
+class QuantilesOfCoverageVCF(utils.PipelineTask):
     """
     Calculate the lower (5%) and upper (95%) quantiles of the depth of coverage for a VCF.
 
@@ -188,7 +188,7 @@ class QuantilesOfCoverageVCF(PipelineTask):
             fout.write('{} {}'.format(int(quants[0]), int(quants[1])))
 
 
-class FilterVCF(PipelineTask):
+class FilterVCF(utils.PipelineTask):
     """
     Remove low quality sites and sites in the upper and lower quantiles of the depth of coverage distribution.
 
@@ -230,10 +230,10 @@ class FilterVCF(PipelineTask):
             cmd = "bcftools filter --exclude 'QUAL<{qual} | DP<{qlow} | DP>{qhigh}' --output-type u {vcf} | " \
                   "bcftools norm --fasta-ref {ref} --multiallelics +any --output-type z --output {out}".format(**params)
 
-            run_cmd([cmd], shell=True)
+            utils.run_cmd([cmd], shell=True)
 
 
-class PolarizeVCF(PipelineTask):
+class PolarizeVCF(utils.PipelineTask):
     """
     Switch the REF allele for the ancestral allele, based on an outgroup present in the VCF.
 
@@ -295,7 +295,7 @@ class PolarizeVCF(PipelineTask):
                 vcf_out.write(rec)
 
 
-class BiallelicSNPsVCF(PipelineTask):
+class BiallelicSNPsVCF(utils.PipelineTask):
     """
     Extract all the biallelic SNPs from the filtered and polarised VCF.
 
@@ -315,23 +315,23 @@ class BiallelicSNPsVCF(PipelineTask):
 
     def run(self):
         with self.output().temporary_path() as vcf_out:
-            run_cmd(['bcftools',
-                     'view',
-                     '--samples', '^' + self.outgroup,  # drop the outgroup
-                     '--types', 'snps',                 # only keep SNPs
-                     '--min-alleles', 2,                # which are biallelic
-                     '--max-alleles', 2,
-                     '--min-ac', '1:minor',             # and they must be variable, after dropping the outgroup
-                     '--exclude', 'INFO/INDEL=1',       # exclude sites marked as INDELs in INFO tag
-                     '--output-type', 'z',
-                     '--output-file', vcf_out,
-                     self.input().path])
+            utils.run_cmd(['bcftools',
+                           'view',
+                           '--samples', '^' + self.outgroup,  # drop the outgroup
+                           '--types', 'snps',                 # only keep SNPs
+                           '--min-alleles', 2,                # which are biallelic
+                           '--max-alleles', 2,
+                           '--min-ac', '1:minor',             # and they must be variable, after dropping the outgroup
+                           '--exclude', 'INFO/INDEL=1',       # exclude sites marked as INDELs in INFO tag
+                           '--output-type', 'z',
+                           '--output-file', vcf_out,
+                           self.input().path])
 
         # index the vcf
-        run_cmd(['bcftools', 'index', '--tbi', self.output().path])
+        utils.run_cmd(['bcftools', 'index', '--tbi', self.output().path])
 
 
-class WholeGenomeSNPsVCF(PipelineTask):
+class WholeGenomeSNPsVCF(utils.PipelineTask):
     """
     Concatenate the all chromosome VCFs into a single file.
 
@@ -352,17 +352,17 @@ class WholeGenomeSNPsVCF(PipelineTask):
         vcf_files = [vcf.path for vcf in self.input()]
 
         with self.output().temporary_path() as tmp_out:
-            run_cmd(['bcftools',
-                     'concat',
-                     '--output-type', 'z',
-                     '--output', tmp_out
-                     ] + vcf_files)
+            utils.run_cmd(['bcftools',
+                           'concat',
+                           '--output-type', 'z',
+                           '--output', tmp_out
+                           ] + vcf_files)
 
         # index the vcf
-        run_cmd(['bcftools', 'index', '--tbi', self.output().path])
+        utils.run_cmd(['bcftools', 'index', '--tbi', self.output().path])
 
 
-class SNPCallPipeline(PipelineWrapperTask):
+class SNPCallPipeline(utils.PipelineWrapperTask):
     """
     Call SNPs using the bcftools `mpileup | call` workflow.
 

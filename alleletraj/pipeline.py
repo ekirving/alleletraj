@@ -3,8 +3,7 @@
 
 import luigi
 
-from alleletraj.utils import PipelineWrapperTask
-
+from alleletraj import utils
 from alleletraj.database.setup import CreateDatabase
 from alleletraj.modern.load_snps import ModernSNPsPipeline
 from alleletraj.modern.demography import DadiPipeline
@@ -16,8 +15,7 @@ from alleletraj.ancient.load_snps import AncientSNPsPipeline
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
 
 
-
-class RunAll(PipelineWrapperTask):
+class RunAll(utils.PipelineWrapperTask):
     """
     Build the species database
 

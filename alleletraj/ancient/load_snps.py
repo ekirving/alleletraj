@@ -14,8 +14,8 @@ from alleletraj.modern.load_snps import ModernSNPsPipeline
 from alleletraj.ensembl import EnsemblPipeline
 from alleletraj.modern.alignment import ReferenceFASTA
 from alleletraj.modern.snp_call import ReferencePloidy, MIN_GENO_QUAL
-from samples import LoadSamples
-from alleletraj.utils import PipelineTask, PipelineWrapperTask, run_cmd
+from alleletraj.ancient.samples import LoadSamples
+from alleletraj import utils
 
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10
@@ -30,7 +30,7 @@ HARD_MAPQ_CUTOFF = 30
 HARD_BASEQ_CUTOFF = 30
 
 
-class MergeAllLoci(PipelineTask):
+class MergeAllLoci(utils.PipelineTask):
     """
     Merge all the overlapping QTL and pseudo-QTL windows.
 
@@ -66,7 +66,7 @@ class MergeAllLoci(PipelineTask):
                 fout.write('{}\t{}\t{}\n'.format(locus['chrom'], locus['start']-1, locus['end']))
 
         # now merge overlapping loci
-        bed = run_cmd(['bedtools', 'merge', '-i', tmp_loci])
+        bed = utils.run_cmd(['bedtools', 'merge', '-i', tmp_loci])
 
         # tidy up the tmp file
         os.remove(tmp_loci)
@@ -79,7 +79,7 @@ class MergeAllLoci(PipelineTask):
 # TODO align the ancient data
 
 
-class LoadAncientSNPs(PipelineTask):
+class LoadAncientSNPs(utils.PipelineTask):
     """
     Load all the ancient data for SNPs that fall within the loci of interest.
 
@@ -258,8 +258,8 @@ class LoadAncientSNPs(PipelineTask):
                                              for (chrom, site) in diploid))
 
                     # bgzip and index the target file
-                    run_cmd(["bgzip -c {} > {}".format(tsv_file, tgz_file)], shell=True, verbose=False)
-                    run_cmd(["tabix -s1 -b2 -e2 {}".format(tgz_file)], shell=True, verbose=False)
+                    utils.run_cmd(["bgzip -c {} > {}".format(tsv_file, tgz_file)], shell=True, verbose=False)
+                    utils.run_cmd(["tabix -s1 -b2 -e2 {}".format(tgz_file)], shell=True, verbose=False)
 
                     # sample names in the BAM file(s) may not be consistent, so override the @SM code with accession
                     with open(rgs_file, 'w') as fout:
@@ -292,7 +292,7 @@ class LoadAncientSNPs(PipelineTask):
                           .format(**params)
 
                     # run the base calling
-                    run_cmd([cmd], shell=True, verbose=False)
+                    utils.run_cmd([cmd], shell=True, verbose=False)
 
                     # parse the results with pysam
                     for rec in pysam.VariantFile(vcf_file).fetch():
@@ -356,7 +356,7 @@ class LoadAncientSNPs(PipelineTask):
         fin.close()
 
 
-class AncientSNPsPipeline(PipelineWrapperTask):
+class AncientSNPsPipeline(utils.PipelineWrapperTask):
     """
     Populate the modern_snps table.
 

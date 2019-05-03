@@ -10,7 +10,7 @@ from collections import Counter
 # import my custom modules
 from alleletraj.database.setup import CreateDatabase
 from snp_call import BiallelicSNPsVCF
-from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
+from alleletraj import utils
 
 # TODO move into spreadsheet
 FASTA_PATH = '/media/jbod2/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'
@@ -49,7 +49,7 @@ def mutation_type(alleles):
     return 'ts' if set(alleles) == {'A', 'G'} or set(alleles) == {'C', 'T'} else 'tv'
 
 
-class ExternalFASTA(PipelineExternalTask):
+class ExternalFASTA(utils.PipelineExternalTask):
     """
     External task dependency for a chromosome FASTA file.
 
@@ -65,7 +65,7 @@ class ExternalFASTA(PipelineExternalTask):
         return luigi.LocalTarget("{}/{}/{}.fa".format(FASTA_PATH, self.sample, self.chrom))
 
 
-class ModernSNPsFromFASTA(PipelineTask):
+class ModernSNPsFromFASTA(utils.PipelineTask):
     """
     Ascertain moderns SNPS, and estimate their allele frequency, from the given chromosome FASTA files.
 
@@ -180,7 +180,7 @@ class ModernSNPsFromFASTA(PipelineTask):
             fout.write("FINISHED: Added {:,} SNPs\n".format(num_snps))
 
 
-class ModernSNPsFromVCF(PipelineTask):
+class ModernSNPsFromVCF(utils.PipelineTask):
     """
     Ascertain moderns SNPS, and estimate their allele frequency, from the given chromosome VCF file.
 
@@ -263,7 +263,7 @@ class ModernSNPsFromVCF(PipelineTask):
             fout.write("Added {:,} SNPs".format(num_snps))
 
 
-class LoadModernSNPs(PipelineWrapperTask):
+class LoadModernSNPs(utils.PipelineWrapperTask):
     """
     Ascertain modern SNPs in whole-genome data.
 
@@ -282,7 +282,7 @@ class LoadModernSNPs(PipelineWrapperTask):
             yield ModernSNPsFromVCF(self.species, self.chrom)
 
 
-class ModernSNPsPipeline(PipelineWrapperTask):
+class ModernSNPsPipeline(utils.PipelineWrapperTask):
     """
     Populate the modern_snps table.
 

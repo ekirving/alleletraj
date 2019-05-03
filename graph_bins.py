@@ -18,7 +18,6 @@ BIN_PERCENT = 0.5  # samples must overlap a bin by >= 50%
 # open a db connection
 dbc = Database('horse')
 
-# noinspection SqlResolve
 with open("tsv/all-bins.tsv", "wb") as tsv_file:
     fields = ['bin', 'accession', 'map_prcnt', 'population', 'age', 'confident', 'lower', 'upper', 'width', 'overlap',
               'perct_overlap']
@@ -80,4 +79,4 @@ with open("tsv/all-bins.tsv", "wb") as tsv_file:
             writer.writerow(sample)
 
         # now generate the plot
-        # run_cmd(['Rscript', 'rscript/plot-bin-mapping.R', stub, label])
+        # utils.run_cmd(['Rscript', 'rscript/plot-bin-mapping.R', stub, label])

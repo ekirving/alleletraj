@@ -9,13 +9,13 @@ import random
 from alleletraj.database.setup import CreateDatabase
 from alleletraj.ensembl import LoadEnsemblVariants
 from alleletraj.modern.load_snps import LoadModernSNPs
-from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download, trim_ext
+from alleletraj import utils
 
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \
             'Axiom_MNEc670_Annotation.r2.csv.zip'
 
 
-class ExternalSNPchimp(PipelineExternalTask):
+class ExternalSNPchimp(utils.PipelineExternalTask):
     """
     External task dependency for SNPchimp data.
 
@@ -30,7 +30,7 @@ class ExternalSNPchimp(PipelineExternalTask):
         return luigi.LocalTarget('snpchip/SNPchimp_{}.tsv.gz'.format(self.assembly))
 
 
-class DownloadAxiomEquineHD(PipelineTask):
+class DownloadAxiomEquineHD(utils.PipelineTask):
     """
     Fetches the data for the Axiom EquineHD array.
     """
@@ -43,10 +43,10 @@ class DownloadAxiomEquineHD(PipelineTask):
 
     def run(self):
         with self.output().temporary_path() as tmp_path:
-            curl_download(self.url, tmp_path)
+            utils.curl_download(self.url, tmp_path)
 
 
-class LoadSNPChipVariants(PipelineTask):
+class LoadSNPChipVariants(utils.PipelineTask):
     """
     Load the SNP chip variants from SNPchimp
 
@@ -73,9 +73,10 @@ class LoadSNPChipVariants(PipelineTask):
         dbc = self.db_conn()
 
         # unzip the archive into a named pipe
-        pipe = '{}-luigi-tmp-{:010}'.format(trim_ext(gzip_file.path), random.randrange(0, 1e10))
-        run_cmd(['mkfifo -m0666 {pipe}'.format(pipe=pipe)], shell=True)
-        run_cmd(['gzip --stdout -d  {gz} > {pipe}'.format(gz=gzip_file.path, pipe=pipe)], shell=True, background=True)
+        pipe = '{}-luigi-tmp-{:010}'.format(utils.trim_ext(gzip_file.path), random.randrange(0, 1e10))
+        utils.run_cmd(['mkfifo -m0666 {pipe}'.format(pipe=pipe)], shell=True)
+        utils.run_cmd(['gzip --stdout -d  {gz} > {pipe}'.format(gz=gzip_file.path, pipe=pipe)], shell=True,
+                      background=True)
 
         # load the data into the db
         dbc.execute_sql("""
@@ -92,13 +93,13 @@ class LoadSNPChipVariants(PipelineTask):
              WHERE rsnumber = 'NULL'""")
 
         # remove the named pipe
-        run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
+        utils.run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
 
         with self.output().open('w') as fout:
             fout.write('Loaded SNPchimp records')
 
 
-class LoadAxiomEquineHD(PipelineTask):
+class LoadAxiomEquineHD(utils.PipelineTask):
     """
     SNPchimp doesn't have the details for the Affymetrix Axiom EquineHD array, so we have to load the data separately.
 
@@ -128,10 +129,10 @@ class LoadAxiomEquineHD(PipelineTask):
         awk = "awk -F ',' 'NR>1 {print $1 \"\\t\" $4 \"\\t\" $5}'"
 
         # unzip the dump into a named pipe
-        pipe = '{}-luigi-tmp-{:010}'.format(trim_ext(axiom_file.path), random.randrange(0, 1e10))
-        run_cmd(['mkfifo -m0666 {pipe}'.format(pipe=pipe)], shell=True)
-        run_cmd(["unzip -p {axiom} | grep -vP '^#' | {awk} > {pipe}".format(axiom=axiom_file.path, awk=awk, pipe=pipe)],
-                shell=True, background=True)
+        pipe = '{}-luigi-tmp-{:010}'.format(utils.trim_ext(axiom_file.path), random.randrange(0, 1e10))
+        utils.run_cmd(['mkfifo -m0666 {pipe}'.format(pipe=pipe)], shell=True)
+        utils.run_cmd(["unzip -p {axiom} | grep -vP '^#' | {awk} > {pipe}"
+                      .format(axiom=axiom_file.path, awk=awk, pipe=pipe)], shell=True, background=True)
 
         # load the data into the db
         dbc.execute_sql("""
@@ -142,7 +143,7 @@ class LoadAxiomEquineHD(PipelineTask):
               ENCLOSED BY '"' (snp_name, chrom, site)""".format(pipe=pipe))
 
         # remove the named pipe
-        run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
+        utils.run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
 
         # fix the missing chrom/site data
         dbc.execute_sql("""
@@ -165,7 +166,7 @@ class LoadAxiomEquineHD(PipelineTask):
             fout.write('Loaded Axiom EquineHD records')
 
 
-class LinkSNPChipVariants(PipelineTask):
+class LinkSNPChipVariants(utils.PipelineTask):
     """
     Link modern SNPs to their SNPchip variants
 
@@ -204,7 +205,7 @@ class LinkSNPChipVariants(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class SNPChipPipeline(PipelineWrapperTask):
+class SNPChipPipeline(utils.PipelineWrapperTask):
     """
     Populate the snpchip_* tables and link modern_snps records to their snpchip variants.
 

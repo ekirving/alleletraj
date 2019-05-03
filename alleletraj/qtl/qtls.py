@@ -12,8 +12,7 @@ from alleletraj.consts import QTLDB_RELEASE, SWEEP_DATA
 from alleletraj.database.setup import CreateDatabase
 from alleletraj.ensembl import LoadEnsemblVariants, LoadEnsemblGenes, EnsemblPipeline
 from alleletraj.modern.alignment import ReferenceFASTA
-from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals, \
-    get_chrom_sizes
+from alleletraj import utils
 
 from qtldb_api import QTLdbAPI
 
@@ -59,7 +58,7 @@ def extract_qtl_fields(tsv_file, fields):
     return data
 
 
-class ExternalAnimalQTLdb(PipelineExternalTask):
+class ExternalAnimalQTLdb(utils.PipelineExternalTask):
     """
     External task dependency for AnimalQTLdb data.
 
@@ -73,7 +72,7 @@ class ExternalAnimalQTLdb(PipelineExternalTask):
         return luigi.LocalTarget('qtldb/{}_cM_{}.txt'.format(self.species, QTLDB_RELEASE))
 
 
-class PopulateQTLs(PipelineTask):
+class PopulateQTLs(utils.PipelineTask):
     """
     Fetch all the QTLs from the QTLdb API and populate the local database.
 
@@ -204,7 +203,7 @@ class PopulateQTLs(PipelineTask):
             fout.write('INFO: Finished adding {} new QTLs\n'.format(len(new_ids)))
 
 
-class SetQTLWindows(PipelineTask):
+class SetQTLWindows(utils.PipelineTask):
     """
     Calculate the QTL window sizes.
 
@@ -239,7 +238,7 @@ class SetQTLWindows(PipelineTask):
                """, key=None)
 
         # get the sizes of the chromosomes, to bound the QTL windows
-        sizes = get_chrom_sizes(fai_file)
+        sizes = utils.get_chrom_sizes(fai_file)
 
         for result in results:
             # get the size of the current chrom
@@ -268,7 +267,7 @@ class SetQTLWindows(PipelineTask):
             fout.write('INFO: Set window sizes for {:,} QTLs'.format(len(results)))
 
 
-class PopulateSweepLoci(PipelineTask):
+class PopulateSweepLoci(utils.PipelineTask):
     """
     Populate the db with any selective sweep regions.
 
@@ -313,8 +312,8 @@ class PopulateSweepLoci(PipelineTask):
                 num_loci += 1
 
                 # get the all the SNPs from this locus
-                snps = run_cmd(["printf '{}' | bedtools intersect -a {} -b stdin".format(locus.strip(), snps_file)],
-                               shell=True)
+                snps = utils.run_cmd(["printf '{}' | bedtools intersect -a {} -b stdin"
+                                     .format(locus.strip(), snps_file)], shell=True)
 
                 if not snps:
                     raise Exception('ERROR: Found no SNPs for sweep region {}:{}-{}'.format(chrom, start, end))
@@ -339,7 +338,7 @@ class PopulateSweepLoci(PipelineTask):
             fout.write('INFO: Loaded {} selective sweep loci (inc. {} SNPs)'.format(num_loci, num_snps))
 
 
-class PopulateMC1RLocus(PipelineTask):
+class PopulateMC1RLocus(utils.PipelineTask):
     """
     Populate a dummy QTL for the MC1R gene.
 
@@ -375,7 +374,7 @@ class PopulateMC1RLocus(PipelineTask):
             fout.write('INFO: Added the MC1R gene locus')
 
 
-class PopulatePigMummyLoci(PipelineTask):
+class PopulatePigMummyLoci(utils.PipelineTask):
     """
     Balancing selection on a recessive lethal deletion with pleiotropic effects on two neighboring genes in the porcine
     genome.
@@ -403,7 +402,7 @@ class PopulatePigMummyLoci(PipelineTask):
         dbc = self.db_conn()
 
         # get the sizes of the chromosomes
-        sizes = get_chrom_sizes(fai_file)
+        sizes = utils.get_chrom_sizes(fai_file)
 
         # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
         max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
@@ -439,7 +438,7 @@ class PopulatePigMummyLoci(PipelineTask):
             fout.write('INFO: Added {:,} pig mummy loci'.format(len(results)))
 
 
-class PopulateTraitLoci(PipelineWrapperTask):
+class PopulateTraitLoci(utils.PipelineWrapperTask):
     """
     Wrapper task to populate all the QTLs and other trait loci of interest
 
@@ -462,7 +461,7 @@ class PopulateTraitLoci(PipelineWrapperTask):
             yield PopulatePigMummyLoci(self.species)
 
 
-class PopulateNeutralLoci(PipelineTask):
+class PopulateNeutralLoci(utils.PipelineTask):
     """
     Populate dummy QTLs for all the 'neutral' loci (i.e. regions outside of all QTLs and gene regions +/- a buffer)
 
@@ -485,7 +484,7 @@ class PopulateNeutralLoci(PipelineTask):
         dbc = self.db_conn()
 
         # get the sizes of the chromosomes
-        sizes = get_chrom_sizes(fai_file)
+        sizes = utils.get_chrom_sizes(fai_file)
 
         # compose a CASE statement to cap the upper bound of the QTLs by the size of the chromosome
         max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
@@ -540,11 +539,11 @@ class PopulateNeutralLoci(PipelineTask):
         with open(non_neutral, 'w') as fout:
             for chrom in natsorted(intervals.keys()):
                 # merge overlapping intervals
-                for start, stop in merge_intervals(intervals[chrom], capped=False):
+                for start, stop in utils.merge_intervals(intervals[chrom], capped=False):
                     fout.write('{}\t{}\t{}\n'.format(chrom, start, stop))
 
         # subtract the non-neutral regions from the whole genome
-        loci = run_cmd(['bedtools', 'subtract', '-a', all_regions, '-b', non_neutral])
+        loci = utils.run_cmd(['bedtools', 'subtract', '-a', all_regions, '-b', non_neutral])
 
         num_loci = 0
 
@@ -572,7 +571,7 @@ class PopulateNeutralLoci(PipelineTask):
             fout.write('INFO: Added {:,} neutral loci'.format(num_loci))
 
 
-class PopulateAllLoci(PipelineWrapperTask):
+class PopulateAllLoci(utils.PipelineWrapperTask):
     """
     Wrapper task to populate all the QTL and pseudo-QTL windows.
 
@@ -586,7 +585,7 @@ class PopulateAllLoci(PipelineWrapperTask):
         yield PopulateNeutralLoci(self.species)
 
 
-class PopulateQTLSNPs(PipelineTask):
+class PopulateQTLSNPs(utils.PipelineTask):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
 
@@ -626,7 +625,7 @@ class PopulateQTLSNPs(PipelineTask):
             fout.write('INFO: Execution took {}'.format(exec_time))
 
 
-class MarkNeutralSNPs(PipelineTask):
+class MarkNeutralSNPs(utils.PipelineTask):
     """
     Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
 
@@ -663,7 +662,7 @@ class MarkNeutralSNPs(PipelineTask):
             fout.write('INFO: Execution took {}'.format(exec_time))
 
 
-class QTLPipeline(PipelineWrapperTask):
+class QTLPipeline(utils.PipelineWrapperTask):
     """
     Load all the QTLs, pseudo-QTLs and Neutral regions.
 

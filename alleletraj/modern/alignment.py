@@ -7,7 +7,7 @@ import os
 from multiprocessing import cpu_count
 
 # import my custom modules
-from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, trim_ext
+from alleletraj import utils
 from alleletraj.ensembl import DownloadEnsemblData
 
 # how many CPU cores does this machine have
@@ -28,7 +28,7 @@ GATK = "/usr/local/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
 PICARD = "/usr/local/picard-tools-2.5.0/picard.jar"
 
 
-class SraToolsFastqDump(PipelineTask):
+class SraToolsFastqDump(utils.PipelineTask):
     """
     Fetches the paired-end and single end FASTQ files for a given accession code, using SRA Tools
 
@@ -48,17 +48,17 @@ class SraToolsFastqDump(PipelineTask):
 
     def run(self):
         # use the NCBI SRA toolkit to fetch the fastq files
-        run_cmd(['fasterq-dump',
-                 '--threads', self.resources['cpu-cores'],
-                 '--outdir', './fastq',
-                 self.accession])
+        utils.run_cmd(['fasterq-dump',
+                       '--threads', self.resources['cpu-cores'],
+                       '--outdir', './fastq',
+                       self.accession])
 
         # fasterq-dump does not support the old --gzip flag, so we need to do it manually
         for fastq in self.output():
-            run_cmd(['gzip', trim_ext(fastq.path)])
+            utils.run_cmd(['gzip', utils.trim_ext(fastq.path)])
 
 
-class TrimGalore(PipelineTask):
+class TrimGalore(utils.PipelineTask):
     """
     Trim adapters, low-quality bases from the 3' end, and drop any resulting reads below a min-length threshold.
 
@@ -94,13 +94,13 @@ class TrimGalore(PipelineTask):
             cmd.append(fastq.path)
 
         # perform the trimming
-        run_cmd(cmd)
+        utils.run_cmd(cmd)
 
         # trim_galore does not let us name the outputs so rename the files
-        run_cmd(["rename 's/_val_[12]/_trim/' fastq/{}_*".format(self.accession)], shell=True)
+        utils.run_cmd(["rename 's/_val_[12]/_trim/' fastq/{}_*".format(self.accession)], shell=True)
 
 
-class ReferenceFASTA(PipelineTask):
+class ReferenceFASTA(utils.PipelineTask):
     """
     Get the reference genome and index it.
 
@@ -120,10 +120,10 @@ class ReferenceFASTA(PipelineTask):
         ref_file = self.input()
 
         # build an index
-        run_cmd(['samtools', 'faidx', ref_file.path])
+        utils.run_cmd(['samtools', 'faidx', ref_file.path])
 
 
-class BwaIndexBWTSW(PipelineTask):
+class BwaIndexBWTSW(utils.PipelineTask):
     """
     Builds the BWA index for the reference genome, needed for performing alignments
 
@@ -141,13 +141,13 @@ class BwaIndexBWTSW(PipelineTask):
     def run(self):
         ref_file, _ = self.input()
 
-        run_cmd(['bwa',
-                 'index',        # index needed for bwa alignment
-                 '-a', 'bwtsw',  # algorithm suitable for mammals
-                 ref_file.path])
+        utils.run_cmd(['bwa',
+                       'index',        # index needed for bwa alignment
+                       '-a', 'bwtsw',  # algorithm suitable for mammals
+                       ref_file.path])
 
 
-class BwaMem(PipelineTask):
+class BwaMem(utils.PipelineTask):
     """
     Align a fastq file to the reference genome
 
@@ -200,13 +200,13 @@ class BwaMem(PipelineTask):
                   " | samtools sort -@ {threads} -O bam -o {bam} -".format(**params)
 
             # perform the alignment
-            run_cmd([cmd], shell=True)
+            utils.run_cmd([cmd], shell=True)
 
         # index the BAM file
-        run_cmd(['samtools', 'index', '-b', bam_out.path])
+        utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
-class PicardMarkDuplicates(PipelineTask):
+class PicardMarkDuplicates(utils.PipelineTask):
     """
     Remove PCR duplicates, so we don't overestimate coverage
 
@@ -234,20 +234,20 @@ class PicardMarkDuplicates(PipelineTask):
 
         with bam_out.temporary_path() as bam_path:
 
-            run_cmd(['java', self.java_mem,
-                     '-jar', PICARD,
-                     'MarkDuplicates',
-                     'INPUT=' + bam_in.path,
-                     'OUTPUT=' + bam_path,
-                     'METRICS_FILE=' + log_file.path,
-                     'REMOVE_DUPLICATES=true',
-                     'QUIET=true'])
+            utils.run_cmd(['java', self.java_mem,
+                           '-jar', PICARD,
+                           'MarkDuplicates',
+                           'INPUT=' + bam_in.path,
+                           'OUTPUT=' + bam_path,
+                           'METRICS_FILE=' + log_file.path,
+                           'REMOVE_DUPLICATES=true',
+                           'QUIET=true'])
 
         # index the BAM file
-        run_cmd(['samtools', 'index', '-b', bam_out.path])
+        utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
-class PicardSequenceDictionary(PipelineTask):
+class PicardSequenceDictionary(utils.PipelineTask):
     """
     Unzip the reference genome and create the sequence dictionary, because GATK is stupid and cannot handle bgzip.
 
@@ -269,21 +269,21 @@ class PicardSequenceDictionary(PipelineTask):
         ref_out, _, dict_file = self.output()
 
         # unzip the reference genome
-        run_cmd(['gunzip', '--keep', '--force', ref_in.path])
+        utils.run_cmd(['gunzip', '--keep', '--force', ref_in.path])
 
         # build a regular index
-        run_cmd(['samtools', 'faidx', ref_out.path])
+        utils.run_cmd(['samtools', 'faidx', ref_out.path])
 
         # create the sequence dictionary
         with dict_file.temporary_path() as dict_path:
-            run_cmd(['java', self.java_mem,
-                     '-jar', PICARD,
-                     'CreateSequenceDictionary',
-                     'R=' + ref_out.path,
-                     'O=' + dict_path])
+            utils.run_cmd(['java', self.java_mem,
+                           '-jar', PICARD,
+                           'CreateSequenceDictionary',
+                           'R=' + ref_out.path,
+                           'O=' + dict_path])
 
 
-class GATKRealignerTargetCreator(PipelineTask):
+class GATKRealignerTargetCreator(utils.PipelineTask):
     """
     Use the GATK RealignerTargetCreator to find suspicious indels to target for local realignment
 
@@ -312,16 +312,16 @@ class GATKRealignerTargetCreator(PipelineTask):
 
         with itv_file.temporary_path() as itv_path, open(log_file.path, 'w') as log_fout:
 
-            run_cmd(['java', self.java_mem,
-                     '-jar', GATK,
-                     '--analysis_type', 'RealignerTargetCreator',
-                     '--reference_sequence', ref_file.path,
-                     '--input_file', bam_in.path,
-                     '--out', itv_path],
-                    stdout=log_fout)
+            utils.run_cmd(['java', self.java_mem,
+                           '-jar', GATK,
+                           '--analysis_type', 'RealignerTargetCreator',
+                           '--reference_sequence', ref_file.path,
+                           '--input_file', bam_in.path,
+                           '--out', itv_path],
+                          stdout=log_fout)
 
 
-class GATKIndelRealigner(PipelineTask):
+class GATKIndelRealigner(utils.PipelineTask):
     """
     Use the GATK IndelRealigner to perform local realignment of reads around indels
 
@@ -351,20 +351,20 @@ class GATKIndelRealigner(PipelineTask):
 
         with bam_out.temporary_path() as bam_path, open(log_file.path, 'w') as log_fout:
 
-            run_cmd(['java', self.java_mem,
-                     '-jar', GATK,
-                     '--analysis_type', 'IndelRealigner',
-                     '--reference_sequence', ref_file.path,
-                     '--input_file', bam_in.path,
-                     '--targetIntervals', itv_file.path,
-                     '--out', bam_path],
-                    stdout=log_fout)
+            utils.run_cmd(['java', self.java_mem,
+                           '-jar', GATK,
+                           '--analysis_type', 'IndelRealigner',
+                           '--reference_sequence', ref_file.path,
+                           '--input_file', bam_in.path,
+                           '--targetIntervals', itv_file.path,
+                           '--out', bam_path],
+                          stdout=log_fout)
 
             # GATK automatically creates an index for us, but we need to rename the temp file
             os.rename('{}.bai'.format(bam_path), bai_out)
 
 
-class SAMToolsMerge(PipelineTask):
+class SAMToolsMerge(utils.PipelineTask):
     """
     Merge multiple libraries into a single BAM file
 
@@ -392,16 +392,16 @@ class SAMToolsMerge(PipelineTask):
 
         with bam_out.temporary_path() as bam_path:
 
-            run_cmd(['samtools',
-                     'merge',
-                     bam_path
-                     ] + bam_inputs)
+            utils.run_cmd(['samtools',
+                           'merge',
+                           bam_path
+                           ] + bam_inputs)
 
         # index the BAM file
-        run_cmd(['samtools', 'index', '-b', bam_out.path])
+        utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
-class ExternalBAM(PipelineExternalTask):
+class ExternalBAM(utils.PipelineExternalTask):
     """
     External task dependency for an aligned BAM file.
 
@@ -416,7 +416,7 @@ class ExternalBAM(PipelineExternalTask):
         yield luigi.LocalTarget(self.path + '.bai')
 
 
-class AlignedBAM(PipelineTask):
+class AlignedBAM(utils.PipelineTask):
     """
     Align raw reads to a reference genome, deduplicate, realign indels, and merge multiple libraries.
 
@@ -441,7 +441,7 @@ class AlignedBAM(PipelineTask):
         return self.input()
 
 
-class AlignmentPipeline(PipelineWrapperTask):
+class AlignmentPipeline(utils.PipelineWrapperTask):
     """
     Get BAM files for all samples
 

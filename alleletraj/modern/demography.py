@@ -12,7 +12,7 @@ import random
 # import my custom modules
 from alleletraj.consts import MUTATION_RATE
 from snp_call import PolarizeVCF, WholeGenomeSNPsVCF
-from alleletraj.utils import PipelineTask, PipelineWrapperTask, run_cmd
+from alleletraj import utils
 
 # number of sequential epochs to test
 DADI_EPOCHS = 5
@@ -59,7 +59,7 @@ def dadi_n_epoch(params, ns, pts):
     return fs
 
 
-class EasySFS(PipelineTask):
+class EasySFS(utils.PipelineTask):
     """
     Calculate the Site Frequency Spectrum.
 
@@ -105,14 +105,14 @@ class EasySFS(PipelineTask):
         # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
         cmd = "echo 'yes' | easySFS.py -a -f -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
 
-        log = run_cmd([cmd], shell=True)
+        log = utils.run_cmd([cmd], shell=True)
 
         # save the output
         with log_file.open('w') as fout:
             fout.write(log)
 
 
-class DadiEpochOptimizeParams(PipelineTask):
+class DadiEpochOptimizeParams(utils.PipelineTask):
     """
     Optimise the log likelihood of the model parameters for the given SFS.
 
@@ -176,7 +176,7 @@ class DadiEpochOptimizeParams(PipelineTask):
             pickle.dump(best, fout)
 
 
-class DadiEpochMaximumLikelihood(PipelineTask):
+class DadiEpochMaximumLikelihood(utils.PipelineTask):
     """
     Find the model run with the maximum log likelihood out of all the replicates.
 
@@ -216,7 +216,7 @@ class DadiEpochMaximumLikelihood(PipelineTask):
             pickle.dump(max_lnl, fout)
 
 
-class DadiEpochBestModel(PipelineTask):
+class DadiEpochBestModel(utils.PipelineTask):
     """
     Find the best fitting model across all epochs, using the Akaike information criterion (AIC).
 
@@ -287,7 +287,7 @@ class DadiEpochBestModel(PipelineTask):
             pickle.dump(epochs, fout)
 
 
-class CountCallableSites(PipelineTask):
+class CountCallableSites(utils.PipelineTask):
     """
     Count the number of callable sites, as dadi needs this number to estimate the ancestral population size from theta.
 
@@ -307,14 +307,15 @@ class CountCallableSites(PipelineTask):
 
         # count all unique sites
         for vcf_file in self.input():
-            size = run_cmd(["bcftools query -f '%CHROM %POS\\n' {} | uniq | wc -l".format(vcf_file.path)], shell=True)
+            size = utils.run_cmd(["bcftools query -f '%CHROM %POS\\n' {} | uniq | wc -l"
+                                 .format(vcf_file.path)], shell=True)
             total += int(size)
 
         with self.output().open('w') as fout:
             fout.write(str(total))
 
 
-class DadiDemography(PipelineTask):
+class DadiDemography(utils.PipelineTask):
     """
     Convert the best fitting dadi model into a demography file for `selection`
 
@@ -380,7 +381,7 @@ class DadiDemography(PipelineTask):
             fout.write("1.0\t0\t-Inf\n")
 
 
-class DadiPipeline(PipelineWrapperTask):
+class DadiPipeline(utils.PipelineWrapperTask):
     """
     Find the best fitting of 5 sequential epoch ∂a∂i models (i.e. 1 epoch, 2 epochs, etc.).
 

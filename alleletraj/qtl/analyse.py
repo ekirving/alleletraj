@@ -7,13 +7,13 @@ from datetime import timedelta
 from time import time
 
 from alleletraj.ancient.load_snps import LoadAncientSNPs
-from alleletraj.utils import PipelineTask, PipelineWrapperTask
+from alleletraj import utils
 
 # the number of SNPs to model per QTL
 SNPS_PER_QTL = 3
 
 
-class CountSNPCoverage(PipelineTask):
+class CountSNPCoverage(utils.PipelineTask):
     """
     Count the read coverage for each SNP
 
@@ -74,7 +74,7 @@ class CountSNPCoverage(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class FindBestSNPs(PipelineTask):
+class FindBestSNPs(utils.PipelineTask):
     """
     Choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
 
@@ -137,7 +137,7 @@ class FindBestSNPs(PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class CalculateSummaryStats(PipelineTask):
+class CalculateSummaryStats(utils.PipelineTask):
     """
     Calculate summary stats for each QTL
 
@@ -201,7 +201,7 @@ class CalculateSummaryStats(PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class AnalyseQTLsPipeline(PipelineWrapperTask):
+class AnalyseQTLsPipeline(utils.PipelineWrapperTask):
     """
     Run queries to pick the best QTLs and SNPs to run the selection scan on.
 

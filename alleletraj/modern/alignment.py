@@ -8,7 +8,7 @@ from multiprocessing import cpu_count
 
 # import my custom modules
 from alleletraj import utils
-from alleletraj.ensembl import DownloadEnsemblData
+from alleletraj.ensembl.load import DownloadEnsemblData
 
 # how many CPU cores does this machine have
 TOTAL_CORES = cpu_count()

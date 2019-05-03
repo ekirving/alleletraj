@@ -11,7 +11,7 @@ from collections import defaultdict
 
 from alleletraj.qtl.qtls import PopulateAllLoci, MIN_DAF
 from alleletraj.modern.load_snps import ModernSNPsPipeline
-from alleletraj.ensembl import EnsemblPipeline
+from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.alignment import ReferenceFASTA
 from alleletraj.modern.snp_call import ReferencePloidy, MIN_GENO_QUAL
 from alleletraj.ancient.samples import LoadSamples
@@ -95,7 +95,7 @@ class LoadAncientSNPs(utils.PipelineTask):
         yield MergeAllLoci(self.species, self.chrom)
         yield LoadSamples(self.species)
         yield ModernSNPsPipeline(self.species)
-        yield EnsemblPipeline(self.species)
+        yield EnsemblLinkPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

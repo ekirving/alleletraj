@@ -7,7 +7,7 @@ import random
 
 # import my custom modules
 from alleletraj.database.create import CreateDatabase
-from alleletraj.ensembl import LoadEnsemblVariants
+from alleletraj.ensembl.load import LoadEnsemblVariants
 from alleletraj.modern.load_snps import LoadModernSNPs
 from alleletraj import utils
 

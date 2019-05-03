@@ -100,7 +100,7 @@ def load_samples_csv(csv_file):
     """
     Load a samples csv file as a nested dictionary
     """
-    populations = {}
+    populations = dict()
     with open(csv_file, 'r') as fin:
         data = csv.DictReader(fin)
         data._fieldnames = [re.sub(r'\W+', '', field).lower() for field in data.fieldnames]  # strip bad Excel chars

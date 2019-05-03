@@ -10,7 +10,7 @@ from collections import defaultdict, OrderedDict
 # import my custom modules
 from alleletraj.consts import QTLDB_RELEASE, SWEEP_DATA
 from alleletraj.database.create import CreateDatabase
-from alleletraj.ensembl import LoadEnsemblVariants, LoadEnsemblGenes, EnsemblPipeline
+from alleletraj.ensembl.load import LoadEnsemblVariants, LoadEnsemblGenes
 from alleletraj.modern.alignment import ReferenceFASTA
 from alleletraj import utils
 
@@ -597,7 +597,6 @@ class PopulateQTLSNPs(utils.PipelineTask):
 
     def requires(self):
         yield PopulateAllLoci(self.species)
-        yield EnsemblPipeline(self.species)
 
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))

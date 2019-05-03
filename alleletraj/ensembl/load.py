@@ -10,7 +10,6 @@ from time import time
 
 # import my custom modules
 from alleletraj.database.create import CreateDatabase
-from alleletraj.modern.load_snps import ModernSNPsPipeline
 from alleletraj import utils
 
 # the most recent Ensembl releases for a given genome assembly
@@ -280,91 +279,19 @@ class FlagSNPsNearIndels(utils.PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class LinkEnsemblGenes(utils.PipelineTask):
+class EnsemblLoadPipeline(utils.PipelineWrapperTask):
     """
-    Link modern SNPs to their Ensembl genes
+    Populate the ensembl genes and variants tables.
 
     :type species: str
-    :type chrom: str
     """
     species = luigi.Parameter()
-    chrom = luigi.Parameter()
-
-    db_lock_tables = ['modern_snps_{chrom}']
 
     def requires(self):
         yield LoadEnsemblGenes(self.species)
-        yield ModernSNPsPipeline(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        dbc = self.db_conn()
-
-        exec_time = dbc.execute_sql("""
-            UPDATE modern_snps ms
-              JOIN ensembl_genes eg
-                ON eg.chrom = ms.chrom
-               AND ms.site BETWEEN eg.start AND eg.end
-               SET ms.gene_id = eg.id
-             WHERE ms.chrom = '{chrom}'""".format(chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
-
-
-class LinkEnsemblVariants(utils.PipelineTask):
-    """
-    Link modern SNPs to their Ensembl dbsnp variants
-
-    :type species: str
-    :type chrom: str
-    """
-    species = luigi.Parameter()
-    chrom = luigi.Parameter()
-
-    db_lock_tables = ['modern_snps_{chrom}']
-
-    def requires(self):
-        yield LoadEnsemblVariants(self.species)
-        yield ModernSNPsPipeline(self.species)
-
-    def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        dbc = self.db_conn()
-
-        exec_time = dbc.execute_sql("""
-            UPDATE modern_snps ms
-              JOIN ensembl_variants v
-                ON ms.chrom = v.chrom
-               AND ms.site = v.start
-               SET ms.variant_id = v.id
-             WHERE ms.chrom = '{chrom}'
-               AND v.type = 'SNV'
-               AND CHAR_LENGTH(alt) = 1
-               AND v.ref IN (ms.derived, ms.ancestral)
-               AND v.alt IN (ms.derived, ms.ancestral)""".format(chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
-
-
-class EnsemblPipeline(utils.PipelineWrapperTask):
-    """
-    Populate the ensembl_* tables and link modern_snps records to genes, dbsnp variants.
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    def requires(self):
         for chrom in self.chromosomes:
             yield FlagSNPsNearIndels(self.species, chrom)
-            yield LinkEnsemblGenes(self.species, chrom)
-            yield LinkEnsemblVariants(self.species, chrom)
 
 
 if __name__ == '__main__':

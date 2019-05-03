@@ -413,7 +413,8 @@ class ExternalBAM(PipelineExternalTask):
     path = luigi.Parameter()
 
     def output(self):
-        return luigi.LocalTarget(self.path)
+        yield luigi.LocalTarget(self.path)
+        yield luigi.LocalTarget(self.path + '.bai')
 
 
 class AlignedBAM(PipelineWrapperTask):
@@ -431,11 +432,11 @@ class AlignedBAM(PipelineWrapperTask):
     def requires(self):
         try:
             # use the provided BAM file
-            yield ExternalBAM(self.all_populations[self.population][self.sample]['path'])
+            return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
 
         except IndexError:
             # align our own BAM file
-            yield SAMToolsMerge(self.species, self.population, self.sample)
+            return SAMToolsMerge(self.species, self.population, self.sample)
 
 
 class AlignmentPipeline(PipelineWrapperTask):

@@ -87,7 +87,7 @@ class BCFToolsSamplesFile(PipelineTask):
 
     def run(self):
         # unpack the params
-        bam_files = self.input()
+        bam_files = [bam_file for bam_file, bai_file in self.input()]
         sex_file, rgs_file = self.output()
 
         # bcftools needs the sex specified in a separate file
@@ -128,7 +128,7 @@ class BCFToolsCall(PipelineTask):
         ref_file, _ = self.input()[0]
         pld_file = self.input()[1]
         sex_file, rgs_file = self.input()[2]
-        bam_files = self.input()[3:]
+        bam_files = [bam_file for bam_file, bai_file in self.input()[3:]]
 
         with self.output().temporary_path() as vcf_out:
             params = {

@@ -13,6 +13,9 @@ from alleletraj.qtl.qtls import QTLPipeline
 from alleletraj.ancient.samples import SamplesPipeline
 from alleletraj.ancient.load_snps import AncientSNPsPipeline
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
+# from alleletraj.ascertainment import AscertainmentPipeline
+# from alleletraj.ancient.selection import SelectionBestQTLSNPs
+# from alleletraj.ancient.graphs import GraphsPipeline
 
 
 class RunAll(utils.PipelineWrapperTask):
@@ -35,7 +38,7 @@ class RunAll(utils.PipelineWrapperTask):
         yield DadiPipeline(self.species)
 
         # link all the Ensembl data to the modern SNPs
-        yield EnsemblPipeline(self.species)
+        yield EnsemblLinkPipeline(self.species)
 
         # link the SNPChip data to the modern SNPs
         yield SNPChipPipeline(self.species)
@@ -58,8 +61,8 @@ class RunAll(utils.PipelineWrapperTask):
         #
         # # run `selection` on all the 'best' QTL SNPs
         # yield SelectionBestQTLSNPs(self.species)
-
-        # TODO make a plotting pipeline
+        #
+        # # make all the plots
         # yield GraphsPipeline(self.species)
 
 

@@ -114,7 +114,7 @@ class BCFToolsCall(PipelineTask):
         with self.output().temporary_path() as vcf_out:
             params = {
                 'ref': ref_file.path,
-                'chr': 'chr{}'.format(self.chrom) if self.species == 'horse' else self.chrom,
+                'chr': self.chrom,
                 'rgs': rgs_file,
                 'bam': ' '.join([bam.path for bam in bam_files]),
                 'pld': pld_file.path,

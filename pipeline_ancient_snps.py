@@ -87,7 +87,7 @@ class LoadAncientSNPs(PipelineTask):
     :type chrom: str
     """
     species = luigi.Parameter()
-    chrom = luigi.IntParameter()
+    chrom = luigi.Parameter()
 
     def requires(self):
         yield ReferenceFASTA(self.species)
@@ -142,16 +142,13 @@ class LoadAncientSNPs(PipelineTask):
 
             log.write("INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
-            # handle chr1 vs. 1 chromosome names
-            contig = 'chr' + chrom if self.species == 'horse' else chrom
-
             # not all SNPs have a dbsnp entry, so we need to scan the reference to find which alleles are REF/ALT
             # because bcftools needs this info to constrain the diploid genotype calls
             with pysam.FastaFile(ref_file.path) as fasta_file:
                 for site in snps:
                     if not snps[site]['ref']:
                         # fetch the ref and snp alleles
-                        ref_allele = fasta_file.fetch(contig, site-1, site)
+                        ref_allele = fasta_file.fetch(chrom, site-1, site)
                         snp_alleles = [snps[site]['ancestral'], snps[site]['derived']]
 
                         if ref_allele not in snp_alleles:
@@ -195,7 +192,7 @@ class LoadAncientSNPs(PipelineTask):
                     # open the BAM file for reading
                     with pysam.AlignmentFile(path, 'rb') as bam_file:
 
-                        for pileup_column in bam_file.pileup(contig, int(start), int(end)):
+                        for pileup_column in bam_file.pileup(chrom, int(start), int(end)):
 
                             # NOTE PileupColumn.reference_pos is 0 based
                             # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
@@ -256,7 +253,7 @@ class LoadAncientSNPs(PipelineTask):
 
                     # save all the callable positions to a file
                     with open(tsv_file, 'w') as fout:
-                        fout.write("\n".join("{}\t{}\t{},{}".format(contig, site, snps[site]['ref'], snps[site]['alt'])
+                        fout.write("\n".join("{}\t{}\t{},{}".format(chrom, site, snps[site]['ref'], snps[site]['alt'])
                                              for (chrom, site) in diploid))
 
                     # bgzip and index the target file
@@ -274,7 +271,7 @@ class LoadAncientSNPs(PipelineTask):
 
                     params = {
                         'ref': ref_file.path,
-                        'reg': '{}:{}-{}'.format(contig, int(start) + 1, end),  # restrict the callable region
+                        'reg': '{}:{}-{}'.format(chrom, int(start) + 1, end),  # restrict the callable region
                         'tgz': tgz_file,                                        # only call the specified SNPs
                         'rgs': rgs_file,
                         'bam': ' '.join(sample['paths'].split(',')),            # use all the BAM files

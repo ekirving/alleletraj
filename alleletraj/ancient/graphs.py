@@ -5,8 +5,8 @@ import luigi
 import unicodecsv as csv
 
 # import my custom modules
-from pipeline_ancient_snps import AncientSNPsPipeline
-from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
+from alleletraj.ancient.load_snps import AncientSNPsPipeline
+from alleletraj.utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
 
 
 class GraphDerivedVersusAge(PipelineTask):

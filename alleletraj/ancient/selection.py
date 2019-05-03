@@ -6,11 +6,11 @@ import os
 import unicodecsv as csv
 
 # import my custom modules
-from pipeline_consts import GENERATION_TIME
-from pipeline_dadi import DadiDemography
-from pipeline_ancient_snps import AncientSNPsPipeline
-from pipeline_analyse_qtls import AnalyseQTLsPipeline
-from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
+from alleletraj.consts import GENERATION_TIME
+from alleletraj.modern.dadi import DadiDemography
+from alleletraj.ancient.load_snps import AncientSNPsPipeline
+from alleletraj.qtl.analyse import AnalyseQTLsPipeline
+from alleletraj.utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext
 
 # the population history is either: constant, or a fully specified complex demography
 MCMC_POP_CONST = 'const'

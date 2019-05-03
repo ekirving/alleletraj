@@ -8,14 +8,14 @@ from natsort import natsorted
 from collections import defaultdict, OrderedDict
 
 # import my custom modules
-from pipeline_consts import QTLDB_RELEASE, SWEEP_DATA
-from pipeline_database import CreateDatabase
-from pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes, EnsemblPipeline
-from pipeline_alignment import ReferenceFASTA
-from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals, \
+from alleletraj.consts import QTLDB_RELEASE, SWEEP_DATA
+from alleletraj.database import CreateDatabase
+from alleletraj.pipeline_ensembl import LoadEnsemblVariants, LoadEnsemblGenes, EnsemblPipeline
+from alleletraj.modern.alignment import ReferenceFASTA
+from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, merge_intervals, \
     get_chrom_sizes
 
-from qtldbapi import QTLdbAPI
+from qtldb_api import QTLdbAPI
 
 # offset to use for the QTL window (+/- 50 Kb)
 QTL_WINDOW = 50000

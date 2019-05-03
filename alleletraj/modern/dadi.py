@@ -10,9 +10,9 @@ import pickle
 import random
 
 # import my custom modules
-from pipeline_consts import MUTATION_RATE
-from pipeline_snp_call import PolarizeVCF, WholeGenomeSNPsVCF
-from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
+from alleletraj.consts import MUTATION_RATE
+from snp_call import PolarizeVCF, WholeGenomeSNPsVCF
+from alleletraj.utils import PipelineTask, PipelineWrapperTask, run_cmd
 
 # number of sequential epochs to test
 DADI_EPOCHS = 5

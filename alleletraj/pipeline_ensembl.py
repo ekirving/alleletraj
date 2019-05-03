@@ -9,9 +9,9 @@ from datetime import timedelta
 from time import time
 
 # import my custom modules
-from pipeline_database import CreateDatabase
-from pipeline_modern_snps import ModernSNPsPipeline
-from pipeline_utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd, curl_download
+from alleletraj.database import CreateDatabase
+from alleletraj.modern.load_snps import ModernSNPsPipeline
+from alleletraj.utils import PipelineTask, PipelineWrapperTask, merge_intervals, run_cmd, curl_download
 
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {

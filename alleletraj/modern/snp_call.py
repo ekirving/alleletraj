@@ -8,8 +8,8 @@ import numpy
 from pysam import VariantFile
 
 # import my custom modules
-from pipeline_alignment import ReferenceFASTA, AlignedBAM
-from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
+from alleletraj.modern.alignment import ReferenceFASTA, AlignedBAM
+from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_GENO_QUAL = 30

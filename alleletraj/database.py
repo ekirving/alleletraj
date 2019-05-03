@@ -4,7 +4,7 @@
 import luigi
 
 # import my custom modules
-from pipeline_utils import PipelineTask, PipelineExternalTask
+from utils import PipelineTask, PipelineExternalTask
 from database import Database
 
 

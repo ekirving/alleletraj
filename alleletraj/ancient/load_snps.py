@@ -9,13 +9,13 @@ import glob
 
 from collections import defaultdict
 
-from pipeline_qtls import PopulateAllLoci, MIN_DAF
-from pipeline_modern_snps import ModernSNPsPipeline
-from pipeline_ensembl import EnsemblPipeline
-from pipeline_alignment import ReferenceFASTA
-from pipeline_snp_call import ReferencePloidy, MIN_GENO_QUAL
-from pipeline_samples import LoadSamples
-from pipeline_utils import PipelineTask, PipelineWrapperTask, run_cmd
+from alleletraj.qtl.qtls import PopulateAllLoci, MIN_DAF
+from alleletraj.modern.load_snps import ModernSNPsPipeline
+from alleletraj.pipeline_ensembl import EnsemblPipeline
+from alleletraj.modern.alignment import ReferenceFASTA
+from alleletraj.modern.snp_call import ReferencePloidy, MIN_GENO_QUAL
+from samples import LoadSamples
+from alleletraj.utils import PipelineTask, PipelineWrapperTask, run_cmd
 
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10

@@ -12,7 +12,7 @@ from pprint import pprint
 from time import time
 
 # import my custom modules
-from pipeline_consts import REF_ASSEMBLY, QTLDB_RELEASE
+from alleletraj.consts import REF_ASSEMBLY, QTLDB_RELEASE
 
 
 class Database:

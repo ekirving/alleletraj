@@ -8,9 +8,9 @@ import pysam
 from collections import Counter
 
 # import my custom modules
-from pipeline_database import CreateDatabase
-from pipeline_snp_call import BiallelicSNPsVCF
-from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
+from alleletraj.database import CreateDatabase
+from snp_call import BiallelicSNPsVCF
+from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask
 
 # TODO move into spreadsheet
 FASTA_PATH = '/media/jbod2/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'

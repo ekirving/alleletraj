@@ -11,7 +11,7 @@ import re
 from collections import Iterable
 
 # import my libraries
-from pipeline_consts import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME
+from alleletraj.consts import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME
 from database import Database
 
 # enforce max interval size of 1 Gb

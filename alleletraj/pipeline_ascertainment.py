@@ -8,12 +8,12 @@ from time import time
 
 from collections import OrderedDict
 
-from pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
-from pipeline_snpchip import LoadSNPChipVariants
-from pipeline_ancient_snps import AncientSNPsPipeline
-from pipeline_qtls import MC1R_GENE
-from pipeline_alignment import ReferenceFASTA
-from pipeline_utils import PipelineTask, PipelineWrapperTask, get_chrom_sizes
+from alleletraj.pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
+from alleletraj.pipeline_snpchip import LoadSNPChipVariants
+from alleletraj.ancient.load_snps import AncientSNPsPipeline
+from alleletraj.qtl.qtls import MC1R_GENE
+from alleletraj.modern.alignment import ReferenceFASTA
+from alleletraj.utils import PipelineTask, PipelineWrapperTask, get_chrom_sizes
 
 # the number of flanking SNPs (on either side) to include
 QTL_FLANK_NUM_SNPS = 3

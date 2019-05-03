@@ -3,19 +3,17 @@
 
 import luigi
 
-from pipeline_utils import PipelineWrapperTask
+from alleletraj.utils import PipelineWrapperTask
 
-from pipeline_database import CreateDatabase
-from pipeline_modern_snps import ModernSNPsPipeline
-from pipeline_ensembl import EnsemblPipeline
-from pipeline_snpchip import SNPChipPipeline
-from pipeline_qtls import QTLPipeline
-from pipeline_samples import SamplesPipeline
-from pipeline_ancient_snps import AncientSNPsPipeline
-from pipeline_analyse_qtls import AnalyseQTLsPipeline
-from pipeline_ascertainment import AscertainmentPipeline
-from pipeline_selection import SelectionBestQTLSNPs
-from pipeline_graphs import GraphsPipeline
+from alleletraj.database import CreateDatabase
+from alleletraj.modern.load_snps import ModernSNPsPipeline
+from alleletraj.pipeline_ensembl import EnsemblPipeline
+from alleletraj.pipeline_snpchip import SNPChipPipeline
+from alleletraj.qtl.qtls import QTLPipeline
+from alleletraj.ancient.samples import SamplesPipeline
+from alleletraj.ancient.load_snps import AncientSNPsPipeline
+from alleletraj.qtl.analyse import AnalyseQTLsPipeline
+
 
 # TODO make a docker image with all the dependencies
 

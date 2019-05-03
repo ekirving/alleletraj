@@ -7,7 +7,7 @@ import os
 from multiprocessing import cpu_count
 
 # import my custom modules
-from pipeline_utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, trim_ext
+from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, trim_ext
 
 # how many CPU cores does this machine have
 TOTAL_CORES = cpu_count()
@@ -109,7 +109,7 @@ class ReferenceFASTA(PipelineTask):
 
     def requires(self):
         # avoid circular dependency
-        from pipeline_ensembl import DownloadEnsemblData
+        from alleletraj.pipeline_ensembl import DownloadEnsemblData
         return DownloadEnsemblData(self.species, 'fasta', bgzip=True)
 
     def output(self):

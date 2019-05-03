@@ -6,8 +6,8 @@ import luigi
 from datetime import timedelta
 from time import time
 
-from pipeline_ancient_snps import LoadAncientSNPs
-from pipeline_utils import PipelineTask, PipelineWrapperTask
+from alleletraj.ancient.load_snps import LoadAncientSNPs
+from alleletraj.utils import PipelineTask, PipelineWrapperTask
 
 # the number of SNPs to model per QTL
 SNPS_PER_QTL = 3

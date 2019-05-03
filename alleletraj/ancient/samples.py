@@ -11,8 +11,8 @@ from datetime import timedelta
 from time import time
 
 import google_sheets as gs
-from pipeline_utils import PipelineTask, PipelineWrapperTask
-from pipeline_database import CreateDatabase
+from alleletraj.utils import PipelineTask, PipelineWrapperTask
+from alleletraj.database import CreateDatabase
 
 # from pipeline_utils import *
 

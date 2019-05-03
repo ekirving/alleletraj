@@ -27,7 +27,7 @@ class ExternalSNPchimp(utils.PipelineExternalTask):
 
     def output(self):
         # TODO goat is using the wrong assembly, but that might not matter because it has no chrom-pos entries
-        return luigi.LocalTarget('snpchip/SNPchimp_{}.tsv.gz'.format(self.assembly))
+        return luigi.LocalTarget('data/snpchip/SNPchimp_{}.tsv.gz'.format(self.assembly))
 
 
 class DownloadAxiomEquineHD(utils.PipelineTask):
@@ -39,7 +39,7 @@ class DownloadAxiomEquineHD(utils.PipelineTask):
         return AXIOM_URL
 
     def output(self):
-        return luigi.LocalTarget('snpchip/{}'.format(os.path.basename(self.url)))
+        return luigi.LocalTarget('data/snpchip/{}'.format(os.path.basename(self.url)))
 
     def run(self):
         with self.output().temporary_path() as tmp_path:
@@ -63,7 +63,7 @@ class LoadSNPChipVariants(utils.PipelineTask):
         yield CreateDatabase(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # get the input file
@@ -115,7 +115,7 @@ class LoadAxiomEquineHD(utils.PipelineTask):
         yield LoadEnsemblVariants(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlWithoutWhere
     def run(self):
@@ -188,7 +188,7 @@ class LinkSNPChipVariants(utils.PipelineTask):
         yield LoadModernSNPs(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()

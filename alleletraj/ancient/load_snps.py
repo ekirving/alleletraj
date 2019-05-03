@@ -43,7 +43,7 @@ class MergeAllLoci(utils.PipelineTask):
         yield PopulateAllLoci(self.species)
 
     def output(self):
-        return luigi.LocalTarget('bed/{}-loci.bed'.format(self.basename))
+        return luigi.LocalTarget('data/bed/{}-loci.bed'.format(self.basename))
 
     def run(self):
         # open a db connection
@@ -98,7 +98,7 @@ class LoadAncientSNPs(utils.PipelineTask):
         yield EnsemblLinkPipeline(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):

@@ -33,7 +33,7 @@ class ReferencePloidy(utils.PipelineExternalTask):
         return ReferenceFASTA(self.species)
 
     def output(self):
-        return luigi.LocalTarget('ensembl/{}.{}.dna.toplevel.ploidy'.format(self.binomial, self.assembly))
+        return luigi.LocalTarget('data/ensembl/{}.{}.dna.toplevel.ploidy'.format(self.binomial, self.assembly))
 
     def run(self):
         # get the reference index
@@ -83,7 +83,7 @@ class BCFToolsSamplesFile(utils.PipelineTask):
             yield AlignedBAM(self.species, pop, sample)
 
     def output(self):
-        return [luigi.LocalTarget('vcf/{}.{}'.format(self.species, ext)) for ext in ['sex', 'rgs']]
+        return [luigi.LocalTarget('data/vcf/{}.{}'.format(self.species, ext)) for ext in ['sex', 'rgs']]
 
     def run(self):
         # unpack the params
@@ -121,7 +121,7 @@ class BCFToolsCall(utils.PipelineTask):
             yield AlignedBAM(self.species, pop, sample)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('data/vcf/{}.vcf.gz'.format(self.basename))
 
     def run(self):
         # unpack the input params
@@ -166,7 +166,7 @@ class QuantilesOfCoverageVCF(utils.PipelineTask):
         return BCFToolsCall(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}.quant'.format(self.basename))
+        return luigi.LocalTarget('data/vcf/{}.quant'.format(self.basename))
 
     def run(self):
         depth = []
@@ -208,7 +208,7 @@ class FilterVCF(utils.PipelineTask):
         yield QuantilesOfCoverageVCF(self.species, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-quant.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('data/vcf/{}-quant.vcf.gz'.format(self.basename))
 
     def run(self):
         # unpack the input params
@@ -251,7 +251,7 @@ class PolarizeVCF(utils.PipelineTask):
         return FilterVCF(self.species, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-quant-polar.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('data/vcf/{}-quant-polar.vcf.gz'.format(self.basename))
 
     def run(self):
 
@@ -311,7 +311,7 @@ class BiallelicSNPsVCF(utils.PipelineTask):
         return PolarizeVCF(self.species, self.chrom, self.qual)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-quant-polar-SNPs.vcf.gz'.format(self.basename))
+        return luigi.LocalTarget('data/vcf/{}-quant-polar-SNPs.vcf.gz'.format(self.basename))
 
     def run(self):
         with self.output().temporary_path() as vcf_out:
@@ -344,7 +344,7 @@ class WholeGenomeSNPsVCF(utils.PipelineTask):
             yield BiallelicSNPsVCF(self.species, chrom)
 
     def output(self):
-        return luigi.LocalTarget('vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.species))
+        return luigi.LocalTarget('data/vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.species))
 
     def run(self):
 

@@ -77,7 +77,7 @@ class EasySFS(utils.PipelineTask):
         return WholeGenomeSNPsVCF(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('sfs/{}/dadi/{}.{}'.format(self.basename, self.population, ext))
+        return [luigi.LocalTarget('data/sfs/{}/dadi/{}.{}'.format(self.basename, self.population, ext))
                 for ext in ['sfs', 'log']]
 
     def run(self):
@@ -134,7 +134,7 @@ class DadiEpochOptimizeParams(utils.PipelineTask):
     def output(self):
         # trim the n value from the folder name
         folder = self.basename.rpartition('-')[0]
-        return [luigi.LocalTarget("dadi/{}/{}.{}".format(folder, self.basename, ext)) for ext in ['pkl', 'log']]
+        return [luigi.LocalTarget('data/dadi/{}/{}.{}'.format(folder, self.basename, ext)) for ext in ['pkl', 'log']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -197,7 +197,7 @@ class DadiEpochMaximumLikelihood(utils.PipelineTask):
             yield DadiEpochOptimizeParams(self.species, self.population, self.folded, self.epoch, n)
 
     def output(self):
-        return luigi.LocalTarget("dadi/{}/{}-maxlnL.pkl".format(self.basename, self.basename))
+        return luigi.LocalTarget('data/dadi/{}/{}-maxlnL.pkl'.format(self.basename, self.basename))
 
     def run(self):
 
@@ -235,7 +235,7 @@ class DadiEpochBestModel(utils.PipelineTask):
             yield DadiEpochMaximumLikelihood(self.species, self.population, self.folded, epoch)
 
     def output(self):
-        return [luigi.LocalTarget("dadi/{}.{}".format(self.basename, ext)) for ext in ['pkl', 'pdf']]
+        return [luigi.LocalTarget('data/dadi/{}.{}'.format(self.basename, ext)) for ext in ['pkl', 'pdf']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -300,7 +300,7 @@ class CountCallableSites(utils.PipelineTask):
             yield PolarizeVCF(self.species, chrom)
 
     def output(self):
-        return luigi.LocalTarget('dadi/{}.L'.format(self.basename))
+        return luigi.LocalTarget('data/dadi/{}.L'.format(self.basename))
 
     def run(self):
         total = 0
@@ -332,7 +332,7 @@ class DadiDemography(utils.PipelineTask):
         yield CountCallableSites(self.species)
 
     def output(self):
-        return [luigi.LocalTarget("dadi/{}.{}".format(self.basename, ext)) for ext in ['pop', 'nref']]
+        return [luigi.LocalTarget('data/dadi/{}.{}'.format(self.basename, ext)) for ext in ['pop', 'nref']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -375,10 +375,10 @@ class DadiDemography(utils.PipelineTask):
                 age += times[i]
 
                 # save the data
-                fout.write("{:.4f}\t0.0\t-{}\n".format(sizes[i], age))
+                fout.write('{:.4f}\t0.0\t-{}\n'.format(sizes[i], age))
 
             # add the infinite time-point
-            fout.write("1.0\t0\t-Inf\n")
+            fout.write('1.0\t0\t-Inf\n')
 
 
 class DadiPipeline(utils.PipelineWrapperTask):

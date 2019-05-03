@@ -13,7 +13,7 @@ class ExternalDatabaseSQL(utils.PipelineExternalTask):
     External task dependency for SQL table definitions.
     """
     def output(self):
-        return luigi.LocalTarget('alleletraj_database.sql')
+        return luigi.LocalTarget('data/alleletraj_database.sql')
 
 
 class CreateDatabase(utils.PipelineTask):
@@ -28,7 +28,7 @@ class CreateDatabase(utils.PipelineTask):
         return ExternalDatabaseSQL()
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         sql_file = self.input()

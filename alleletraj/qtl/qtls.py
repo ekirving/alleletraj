@@ -69,7 +69,7 @@ class ExternalAnimalQTLdb(utils.PipelineExternalTask):
     species = luigi.Parameter()
 
     def output(self):
-        return luigi.LocalTarget('qtldb/{}_cM_{}.txt'.format(self.species, QTLDB_RELEASE))
+        return luigi.LocalTarget('data/qtldb/{}_cM_{}.txt'.format(self.species, QTLDB_RELEASE))
 
 
 class PopulateQTLs(utils.PipelineTask):
@@ -85,7 +85,7 @@ class PopulateQTLs(utils.PipelineTask):
         yield ExternalAnimalQTLdb(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # get the file containing all the QTL IDs
@@ -217,7 +217,7 @@ class SetQTLWindows(utils.PipelineTask):
         yield LoadEnsemblVariants(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # unpack the inputs
@@ -279,7 +279,7 @@ class PopulateSweepLoci(utils.PipelineTask):
         yield CreateDatabase(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -351,7 +351,7 @@ class PopulateMC1RLocus(utils.PipelineTask):
         return LoadEnsemblGenes(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -392,7 +392,7 @@ class PopulatePigMummyLoci(utils.PipelineTask):
         yield LoadEnsemblVariants(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):
@@ -474,7 +474,7 @@ class PopulateNeutralLoci(utils.PipelineTask):
         yield PopulateTraitLoci(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):
@@ -599,7 +599,7 @@ class PopulateQTLSNPs(utils.PipelineTask):
         yield PopulateAllLoci(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):
@@ -640,7 +640,7 @@ class MarkNeutralSNPs(utils.PipelineTask):
         return PopulateQTLSNPs(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()

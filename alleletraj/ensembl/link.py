@@ -26,7 +26,7 @@ class LinkEnsemblGenes(utils.PipelineTask):
         yield ModernSNPsPipeline(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -60,7 +60,7 @@ class LinkEnsemblVariants(utils.PipelineTask):
         yield ModernSNPsPipeline(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()

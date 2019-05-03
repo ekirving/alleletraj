@@ -29,7 +29,7 @@ class CountSNPCoverage(utils.PipelineTask):
         return LoadAncientSNPs(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlWithoutWhere
     def run(self):
@@ -90,7 +90,7 @@ class FindBestSNPs(utils.PipelineTask):
         return CountSNPCoverage(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve, SqlWithoutWhere
     def run(self):
@@ -152,7 +152,7 @@ class CalculateSummaryStats(utils.PipelineTask):
         return FindBestSNPs(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # open a db connection

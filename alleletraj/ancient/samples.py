@@ -174,7 +174,7 @@ class PopulatePigSamples(utils.PipelineTask):
         return CreateDatabase(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -240,7 +240,7 @@ class SyncRadiocarbonDates(utils.PipelineTask):
         return PopulatePigSamples(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -275,7 +275,7 @@ class ConfirmAgeMapping(utils.PipelineTask):
         return PopulatePigSamples(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -323,7 +323,7 @@ class ConfirmCountryMapping(utils.PipelineTask):
         return PopulatePigSamples(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -367,7 +367,7 @@ class MarkValidPigs(utils.PipelineTask):
         yield ConfirmCountryMapping(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -400,7 +400,7 @@ class PopulateHorseSamples(utils.PipelineTask):
         return CreateDatabase(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -472,7 +472,7 @@ class CreateSampleBins(utils.PipelineTask):
         return LoadSamples(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -522,7 +522,7 @@ class BinSamples(utils.PipelineTask):
         return CreateSampleBins(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlWithoutWhere
     def run(self):

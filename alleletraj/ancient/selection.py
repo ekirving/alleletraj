@@ -67,7 +67,7 @@ class SelectionInputFile(utils.PipelineTask):
         yield AncientSNPsPipeline(self.species)
 
     def output(self):
-        return luigi.LocalTarget("selection/{}.input".format(self.basename))
+        return luigi.LocalTarget('data/selection/{}.input'.format(self.basename))
 
     def run(self):
         # unpack the inputs
@@ -117,7 +117,7 @@ class SelectionInputFile(utils.PipelineTask):
             raise RuntimeError('ERROR: Insufficient time bins to run `selection` (n={})'.format(len(bins)))
 
         # write the sample input file
-        with open(self.output().path, "wb") as tsv_file:
+        with open(self.output().path, 'wb') as tsv_file:
 
             fields = ['derived_count', 'sample_size', 'bin_high', 'bin_low']
             writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
@@ -142,7 +142,7 @@ class SelectionRunMCMC(utils.PipelineTask):
         return SelectionInputFile(self.species, self.population, self.modsnp_id)
 
     def output(self):
-        return [luigi.LocalTarget("selection/{}.{}".format(self.basename, ext))
+        return [luigi.LocalTarget('data/selection/{}.{}'.format(self.basename, ext))
                 for ext in ['log', 'param', 'time', 'traj']]
 
     def run(self):
@@ -208,14 +208,14 @@ class SelectionPlot(utils.PipelineTask):
                                self.mcmc_freq)
 
     def output(self):
-        return luigi.LocalTarget("pdf/{}.pdf".format(self.basename))
+        return luigi.LocalTarget('data/pdf/{}.pdf'.format(self.basename))
 
     def run(self):
         # unpack the inputs
         (_, nref_file), _ = self.input()
 
         # compose the input and output file paths
-        input_file = "selection/{}-{}-{}.input".format(self.species, self.population, self.modsnp_id)
+        input_file = 'selection/{}-{}-{}.input'.format(self.species, self.population, self.modsnp_id)
         output_prefix = utils.trim_ext(self.input()[0].path)
 
         gen_time = GENERATION_TIME[self.species]

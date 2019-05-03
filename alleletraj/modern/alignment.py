@@ -42,9 +42,9 @@ class SraToolsFastqDump(utils.PipelineTask):
 
     def output(self):
         if self.paired:
-            return [luigi.LocalTarget('fastq/{}_{}.fastq.gz'.format(self.accession, pair)) for pair in [1, 2]]
+            return [luigi.LocalTarget('data/fastq/{}_{}.fastq.gz'.format(self.accession, pair)) for pair in [1, 2]]
         else:
-            return [luigi.LocalTarget('fastq/{}.fastq.gz'.format(self.accession))]
+            return [luigi.LocalTarget('data/fastq/{}.fastq.gz'.format(self.accession))]
 
     def run(self):
         # use the NCBI SRA toolkit to fetch the fastq files
@@ -73,9 +73,9 @@ class TrimGalore(utils.PipelineTask):
 
     def output(self):
         if self.paired:
-            return [luigi.LocalTarget('fastq/{}_{}_trim.fq.gz'.format(self.accession, pair)) for pair in [1, 2]]
+            return [luigi.LocalTarget('data/fastq/{}_{}_trim.fq.gz'.format(self.accession, pair)) for pair in [1, 2]]
         else:
-            return [luigi.LocalTarget('fastq/{}_trimmed.fq.gz'.format(self.accession))]
+            return [luigi.LocalTarget('data/fastq/{}_trimmed.fq.gz'.format(self.accession))]
 
     def run(self):
         fastq_files = self.input()
@@ -112,8 +112,8 @@ class ReferenceFASTA(utils.PipelineTask):
         return DownloadEnsemblData(self.species, 'fasta', bgzip=True)
 
     def output(self):
-        return [luigi.LocalTarget('ensembl/{}.{}.dna.toplevel.{}'.format(self.binomial, self.assembly, ext)) for ext in
-                ['fa.gz', 'fa.gz.fai']]
+        return [luigi.LocalTarget('data/ensembl/{}.{}.dna.toplevel.{}'.format(self.binomial, self.assembly, ext))
+                for ext in ['fa.gz', 'fa.gz.fai']]
 
     def run(self):
         # get the downloaded reference assembly
@@ -136,7 +136,8 @@ class BwaIndexBWTSW(utils.PipelineTask):
 
     def output(self):
         ref_file, _ = self.input()
-        return [luigi.LocalTarget('{}.{}'.format(ref_file.path, ext)) for ext in ['amb', 'ann', 'bwt', 'pac', 'sa']]
+        return [luigi.LocalTarget('data/{}.{}'.format(ref_file.path, ext)) for ext in
+                ['amb', 'ann', 'bwt', 'pac', 'sa']]
 
     def run(self):
         ref_file, _ = self.input()
@@ -169,7 +170,7 @@ class BwaMem(utils.PipelineTask):
         yield BwaIndexBWTSW(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('bam/{}.sort.{}'.format(self.accession, ext)) for ext in ['bam', 'bam.bai']]
+        return [luigi.LocalTarget('data/bam/{}.sort.{}'.format(self.accession, ext)) for ext in ['bam', 'bam.bai']]
 
     def run(self):
         # unpack the input params
@@ -224,7 +225,7 @@ class PicardMarkDuplicates(utils.PipelineTask):
         return BwaMem(self.species, self.sample, self.accession)
 
     def output(self):
-        return [luigi.LocalTarget('bam/{}.sort.rmdup.{}'.format(self.accession, ext)) for ext in
+        return [luigi.LocalTarget('data/bam/{}.sort.rmdup.{}'.format(self.accession, ext)) for ext in
                 ['bam', 'bam.bai', 'log']]
 
     def run(self):
@@ -261,8 +262,8 @@ class PicardSequenceDictionary(utils.PipelineTask):
         return ReferenceFASTA(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('ensembl/{}.{}.dna.toplevel.{}'.format(self.binomial, self.assembly, ext)) for ext in
-                ['fa', 'fa.fai', 'dict']]
+        return [luigi.LocalTarget('data/ensembl/{}.{}.dna.toplevel.{}'.format(self.binomial, self.assembly, ext))
+                for ext in ['fa', 'fa.fai', 'dict']]
 
     def run(self):
         ref_in, _ = self.input()
@@ -302,7 +303,7 @@ class GATKRealignerTargetCreator(utils.PipelineTask):
         yield PicardSequenceDictionary(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('bam/{}.sort.rmdup.realign.{}'.format(self.accession, ext)) for ext in
+        return [luigi.LocalTarget('data/bam/{}.sort.rmdup.realign.{}'.format(self.accession, ext)) for ext in
                 ['intervals', 'intervals.log']]
 
     def run(self):
@@ -341,7 +342,7 @@ class GATKIndelRealigner(utils.PipelineTask):
         yield PicardSequenceDictionary(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('bam/{}.sort.rmdup.realign.{}'.format(self.accession, ext)) for ext in
+        return [luigi.LocalTarget('data/bam/{}.sort.rmdup.realign.{}'.format(self.accession, ext)) for ext in
                 ['bam', 'bam.bai', 'log']]
 
     def run(self):
@@ -383,7 +384,7 @@ class SAMToolsMerge(utils.PipelineTask):
             yield GATKIndelRealigner(self.species, self.sample, accession)
 
     def output(self):
-        return [luigi.LocalTarget('bam/{}.sort.rmdup.realign.{}'.format(self.sample, ext)) for ext in
+        return [luigi.LocalTarget('data/bam/{}.sort.rmdup.realign.{}'.format(self.sample, ext)) for ext in
                 ['bam', 'bam.bai']]
 
     def run(self):

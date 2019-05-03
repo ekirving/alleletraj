@@ -43,7 +43,7 @@ class FetchGWASPeaks(utils.PipelineTask):
         return AncientSNPsPipeline(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -85,7 +85,7 @@ class FetchGWASFlankingSNPs(utils.PipelineTask):
         return FlagSNPsNearIndels(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):
@@ -162,7 +162,7 @@ class FetchSelectiveSweepSNPs(utils.PipelineTask):
             yield FlagSNPsNearIndels(self.species, chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):
@@ -239,7 +239,7 @@ class FetchMC1RSNPs(utils.PipelineTask):
         yield AncientSNPsPipeline(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):
@@ -284,7 +284,7 @@ class FetchNeutralSNPs(utils.PipelineTask):
         yield AncientSNPsPipeline(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):
@@ -351,7 +351,7 @@ class FetchAncestralSNPs(utils.PipelineTask):
         yield AncientSNPsPipeline(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):
@@ -420,7 +420,7 @@ class FetchRemainingSNPChipSNPs(utils.PipelineTask):
         yield LoadSNPChipVariants(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         dbc = self.db_conn()
@@ -489,7 +489,7 @@ class ExportAscertainedSNPs(utils.PipelineTask):
         return PerformAscertainment(self.species)
 
     def output(self):
-        return luigi.LocalTarget('"tsv/{}.candidate-snps.tsv'.format(self.species))
+        return luigi.LocalTarget('data/"tsv/{}.candidate-snps.tsv'.format(self.species))
 
     def run(self):
         dbc = self.db_conn()

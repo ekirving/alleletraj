@@ -38,7 +38,7 @@ def stream_fasta(fin):
     Convert a file input into an iterable which returns a single character, filtering out newline characters
     """
     for character in itertools.chain.from_iterable(fin):
-        if character != "\n":
+        if character != '\n':
             yield character
 
 
@@ -62,7 +62,7 @@ class ExternalFASTA(utils.PipelineExternalTask):
     chrom = luigi.Parameter()
 
     def output(self):
-        return luigi.LocalTarget("{}/{}/{}.fa".format(FASTA_PATH, self.sample, self.chrom))
+        return luigi.LocalTarget('{}/{}/{}.fa'.format(FASTA_PATH, self.sample, self.chrom))
 
 
 class ModernSNPsFromFASTA(utils.PipelineTask):
@@ -84,7 +84,7 @@ class ModernSNPsFromFASTA(utils.PipelineTask):
                 yield ExternalFASTA(sample)  # TODO outgroup is no longer the first sample in the list
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # get all the input fasta files
@@ -94,7 +94,7 @@ class ModernSNPsFromFASTA(utils.PipelineTask):
         dbc = self.db_conn()
 
         with self.output().open('w') as fout:
-            fout.write("STARTED: Parsing {} fasta files.\n".format(len(fasta_files)))
+            fout.write('STARTED: Parsing {} fasta files.\n'.format(len(fasta_files)))
 
             site = 0
             num_snps = 0
@@ -102,7 +102,7 @@ class ModernSNPsFromFASTA(utils.PipelineTask):
 
             for fasta in fasta_files:
                 # load the fasta data
-                fin = open(fasta, "rU")
+                fin = open(fasta, 'rU')
 
                 # discard header row
                 fin.readline()
@@ -110,7 +110,7 @@ class ModernSNPsFromFASTA(utils.PipelineTask):
                 # wrap the file in an iterator
                 data.append(stream_fasta(fin))
 
-                fout.write("LOADED: {}\n".format(fasta))
+                fout.write('LOADED: {}\n'.format(fasta))
 
             # zip the sequences together so we can iterate over them one site at a time
             for pileup in itertools.izip_longest(*data, fillvalue='N'):
@@ -132,7 +132,7 @@ class ModernSNPsFromFASTA(utils.PipelineTask):
 
                 # we only want biallelic SNPs
                 if num_alleles > 2:
-                    fout.write("WARNING: Polyallelic site chr{}:{} = {}\n".format(self.chrom, site, set(haploids)))
+                    fout.write('WARNING: Polyallelic site chr{}:{} = {}\n'.format(self.chrom, site, set(haploids)))
                     continue
 
                 # count the haploid observations
@@ -143,14 +143,14 @@ class ModernSNPsFromFASTA(utils.PipelineTask):
 
                 # we cannot handle variable sites in the outgroup
                 if len(ancestral) != 1:
-                    fout.write("WARNING: Unknown ancestral allele chr{}:{} = {}\n".format(self.chrom, site, out_allele))
+                    fout.write('WARNING: Unknown ancestral allele chr{}:{} = {}\n'.format(self.chrom, site, out_allele))
                     continue
 
                 ancestral = ancestral.pop()
                 alleles = observations.keys()
 
                 if ancestral not in alleles:
-                    fout.write("WARNING: Polyallelic site chr{}:{} = {}, ancestral {}\n"
+                    fout.write('WARNING: Polyallelic site chr{}:{} = {}, ancestral {}\n'
                                .format(self.chrom, site, set(haploids), ancestral))
                     continue
 
@@ -177,7 +177,7 @@ class ModernSNPsFromFASTA(utils.PipelineTask):
                 dbc.save_record('modern_snps', record)
                 num_snps += 1
 
-            fout.write("FINISHED: Added {:,} SNPs\n".format(num_snps))
+            fout.write('FINISHED: Added {:,} SNPs\n'.format(num_snps))
 
 
 class ModernSNPsFromVCF(utils.PipelineTask):
@@ -195,7 +195,7 @@ class ModernSNPsFromVCF(utils.PipelineTask):
         yield BiallelicSNPsVCF(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # unpack the inputs
@@ -260,7 +260,7 @@ class ModernSNPsFromVCF(utils.PipelineTask):
                 dbc.save_record('modern_snp_daf', modern_snp_daf)
 
         with self.output().open('w') as fout:
-            fout.write("Added {:,} SNPs".format(num_snps))
+            fout.write('Added {:,} SNPs'.format(num_snps))
 
 
 class LoadModernSNPs(utils.PipelineWrapperTask):

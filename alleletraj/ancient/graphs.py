@@ -21,7 +21,7 @@ class GraphDerivedVersusAge(utils.PipelineTask):
         yield AncientSNPsPipeline(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('pdf/{}-snps-ages.{}'.format(self.species, ext)) for ext in ['pdf', 'png']]
+        return [luigi.LocalTarget('data/pdf/{}-snps-ages.{}'.format(self.species, ext)) for ext in ['pdf', 'png']]
 
     # noinspection SqlResolve, SqlAmbiguousColumn
     def run(self):

@@ -70,7 +70,7 @@ class DownloadEnsemblData(utils.PipelineTask):
         filename = '{Bin}.{ref}.{rel}.gvf.gz'.format(**self.params) \
             if self.type == 'gvf' else os.path.basename(self.url)
 
-        return luigi.LocalTarget('ensembl/{}'.format(filename))
+        return luigi.LocalTarget('data/ensembl/{}'.format(filename))
 
     def run(self):
         with self.output().temporary_path() as tmp_path:
@@ -99,7 +99,7 @@ class LoadEnsemblGenes(utils.PipelineTask):
         yield DownloadEnsemblData(self.species, 'gtf')
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # unpack the inputs
@@ -166,7 +166,7 @@ class LoadEnsemblVariants(utils.PipelineTask):
         yield DownloadEnsemblData(self.species, 'gvf')
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # unpack the inputs
@@ -238,7 +238,7 @@ class FlagSNPsNearIndels(utils.PipelineTask):
         return LoadEnsemblVariants(self.species)
 
     def output(self):
-        return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
+        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     # noinspection SqlResolve
     def run(self):

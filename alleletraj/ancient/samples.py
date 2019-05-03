@@ -6,6 +6,7 @@ import httplib2
 import math
 import os
 
+from apiclient import discovery
 from collections import defaultdict, OrderedDict
 from datetime import timedelta
 from time import time
@@ -140,7 +141,7 @@ def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
     credentials = gs.get_credentials()
     http = credentials.authorize(httplib2.Http())
     discovery_url = 'https://sheets.googleapis.com/$discovery/rest?version=v4'
-    service = gs.discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discovery_url, cache_discovery=False)
+    service = discovery.build('sheets', 'v4', http=http, discoveryServiceUrl=discovery_url, cache_discovery=False)
 
     records = []
 

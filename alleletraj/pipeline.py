@@ -6,9 +6,9 @@ import luigi
 from alleletraj import utils
 from alleletraj.database.create import CreateDatabase
 from alleletraj.modern.load_snps import ModernSNPsPipeline
-from alleletraj.modern.demography import DadiPipeline
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.snpchip import SNPChipPipeline
+from alleletraj.modern.demography import DadiPipeline
 from alleletraj.qtl.qtls import QTLPipeline
 from alleletraj.ancient.samples import SamplesPipeline
 from alleletraj.ancient.load_snps import AncientSNPsPipeline
@@ -34,14 +34,14 @@ class RunAll(utils.PipelineWrapperTask):
         # ascertain SNPs in modern whole genome data
         yield ModernSNPsPipeline(self.species)
 
-        # find the best fitting ∂a∂i model
-        yield DadiPipeline(self.species)
-
         # link all the Ensembl data to the modern SNPs
         yield EnsemblLinkPipeline(self.species)
 
         # link the SNPChip data to the modern SNPs
         yield SNPChipPipeline(self.species)
+
+        # find the best fitting ∂a∂i model
+        # yield DadiPipeline(self.species)
 
         # load the QTLs from the AnimalQTL database, and other regions of interest
         yield QTLPipeline(self.species)

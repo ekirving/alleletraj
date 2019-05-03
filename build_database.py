@@ -5,7 +5,7 @@ import luigi
 
 from alleletraj.utils import PipelineWrapperTask
 
-from alleletraj.database import CreateDatabase
+from alleletraj.database.setup import CreateDatabase
 from alleletraj.modern.load_snps import ModernSNPsPipeline
 from alleletraj.pipeline_ensembl import EnsemblPipeline
 from alleletraj.pipeline_snpchip import SNPChipPipeline

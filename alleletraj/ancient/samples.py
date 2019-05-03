@@ -12,7 +12,7 @@ from time import time
 
 import google_sheets as gs
 from alleletraj.utils import PipelineTask, PipelineWrapperTask
-from alleletraj.database import CreateDatabase
+from alleletraj.database.setup import CreateDatabase
 
 # from pipeline_utils import *
 

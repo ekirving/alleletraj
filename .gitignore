@@ -15,18 +15,12 @@ nohup*
 *.log
 
 # temp files
-temp*
-tmp*
-stub*
-test*
-*tmp
-misc 
-
-# ms output
-seedms
-
-# temp file for raw commands
-*commands.sh
+*temp*
+*tmp*
+*stub*
+*test*
+misc
+bash
 
 # serialised data
 *.pickle
@@ -37,9 +31,3 @@ seedms
 
 # old files or folders
 *.old*
-
-
-# other junk
-*.gz
-*.zip
-*.tsv

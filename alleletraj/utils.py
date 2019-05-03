@@ -12,7 +12,7 @@ from collections import Iterable
 
 # import my libraries
 from alleletraj.consts import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME
-from database import Database
+from alleletraj.database.api import Database
 
 # enforce max interval size of 1 Gb
 MAX_INTERVAL_SIZE = int(1e6)
@@ -103,7 +103,7 @@ def load_samples_csv(csv_file):
     populations = {}
     with open(csv_file, 'r') as fin:
         data = csv.DictReader(fin)
-        data._fieldnames = [re.sub(r'\W+','', field).lower() for field in data.fieldnames]  # strip bad chars from Excel
+        data._fieldnames = [re.sub(r'\W+', '', field).lower() for field in data.fieldnames]  # strip bad Excel chars
         for row in data:
             pop = populations.get(row['population'], dict())
 

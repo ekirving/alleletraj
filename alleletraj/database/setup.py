@@ -4,8 +4,8 @@
 import luigi
 
 # import my custom modules
-from utils import PipelineTask, PipelineExternalTask
-from database import Database
+from alleletraj.utils import PipelineTask, PipelineExternalTask
+from alleletraj.database.api import Database
 
 
 class ExternalDatabaseSQL(PipelineExternalTask):

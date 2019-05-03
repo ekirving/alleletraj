@@ -239,18 +239,19 @@ class Database:
                 sql = u"INSERT INTO {table} ({fields}) " \
                       u"VALUES {values}".format(**data)
 
-                self.cursor.execute(sql)
-                self.cnx.commit()
+                try:
+                    self.cursor.execute(sql)
+                    self.cnx.commit()
+
+                except Exception as e:
+                    # dump the record before throwing the exception
+                    print("ERROR: db_conn.save_records()")
+                    pprint(sql)
+                    raise e
 
         except StopIteration:
             # we're done
             pass
-
-        except Exception as e:
-            # dump the record before throwing the exception
-            print("ERROR: db_conn.save_records()")
-            pprint(sql)
-            raise e
 
     def execute_sql(self, sql):
         """

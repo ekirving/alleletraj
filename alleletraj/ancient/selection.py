@@ -7,7 +7,7 @@ import unicodecsv as csv
 
 # import my custom modules
 from alleletraj.consts import GENERATION_TIME
-from alleletraj.modern.dadi import DadiDemography
+from alleletraj.modern.demography import DadiDemography
 from alleletraj.ancient.load_snps import AncientSNPsPipeline
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
 from alleletraj.utils import PipelineTask, PipelineWrapperTask, run_cmd, trim_ext

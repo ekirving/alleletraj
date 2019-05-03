@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from multiprocessing import cpu_count
+
 # QTLdb release number (changing this number will trigger a complete db rebuild)
 QTLDB_RELEASE = 'rel37'
 
@@ -74,3 +76,13 @@ GENERATION_TIME = {
     'horse':  8,  # https://www.pnas.org/content/111/52/E5661.full#sec-17
     'pig':    5,  # https://www.nature.com/articles/ng.3197
 }
+
+
+# how many CPU cores does this machine have
+TOTAL_CORES = cpu_count()
+
+# set how many cores a single working can use
+CPU_CORES_LOW = int(TOTAL_CORES * 0.1)   # 10%
+CPU_CORES_MED = int(TOTAL_CORES * 0.25)  # 25%
+CPU_CORES_HIGH = int(TOTAL_CORES * 0.5)  # 50%
+CPU_CORES_MAX = int(TOTAL_CORES * 0.9)   # 90%

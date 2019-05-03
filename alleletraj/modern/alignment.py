@@ -4,20 +4,11 @@
 import luigi
 import os
 
-from multiprocessing import cpu_count
-
 # import my custom modules
 from alleletraj import utils
+from alleletraj.sratools import SraToolsFastqDump
 from alleletraj.ensembl.load import DownloadEnsemblData
-
-# how many CPU cores does this machine have
-TOTAL_CORES = cpu_count()
-
-# set how many cores a single working can use
-CPU_CORES_LOW = int(TOTAL_CORES * 0.1)   # 10%
-CPU_CORES_MED = int(TOTAL_CORES * 0.25)  # 25%
-CPU_CORES_HIGH = int(TOTAL_CORES * 0.5)  # 50%
-CPU_CORES_MAX = int(TOTAL_CORES * 0.9)   # 90%
+from alleletraj.consts import CPU_CORES_MED
 
 # hard filters for TrimGalore!
 TRIM_MIN_BASEQ = 20
@@ -26,36 +17,6 @@ TRIM_MIN_LENGTH = 25
 # location of software tools
 GATK = "/usr/local/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
 PICARD = "/usr/local/picard-tools-2.5.0/picard.jar"
-
-
-class SraToolsFastqDump(utils.PipelineTask):
-    """
-    Fetches the paired-end and single end FASTQ files for a given accession code, using SRA Tools
-
-    :type accession: str
-    :type paired: bool
-    """
-    accession = luigi.Parameter()
-    paired = luigi.BoolParameter()
-
-    resources = {'cpu-cores': CPU_CORES_LOW}
-
-    def output(self):
-        if self.paired:
-            return [luigi.LocalTarget('data/fastq/{}_{}.fastq.gz'.format(self.accession, pair)) for pair in [1, 2]]
-        else:
-            return [luigi.LocalTarget('data/fastq/{}.fastq.gz'.format(self.accession))]
-
-    def run(self):
-        # use the NCBI SRA toolkit to fetch the fastq files
-        utils.run_cmd(['fasterq-dump',
-                       '--threads', self.resources['cpu-cores'],
-                       '--outdir', './fastq',
-                       self.accession])
-
-        # fasterq-dump does not support the old --gzip flag, so we need to do it manually
-        for fastq in self.output():
-            utils.run_cmd(['gzip', utils.trim_ext(fastq.path)])
 
 
 class TrimGalore(utils.PipelineTask):

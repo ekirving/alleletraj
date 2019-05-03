@@ -239,8 +239,6 @@ class PolarizeVCF(PipelineTask):
 
     Drops any sites which are heterozygous or uncallable in the outgroup.
 
-    NOTE easySFS expects the REF allele to be ancestral, rather than using the INFO/AA field
-
     :type species: str
     :type chrom: str
     :type qual: int

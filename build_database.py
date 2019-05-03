@@ -54,6 +54,8 @@ class BuildDatabase(PipelineWrapperTask):
         # analyse the coverage and quality for SNPs in each QTLs
         yield AnalyseQTLsPipeline(self.species)
 
+        # TODO add dadi pipeline
+
         # if self.species == 'pig':
         #     # pick the best SNPs to target for a capture array
         #     yield AscertainmentPipeline(self.species)

@@ -12,7 +12,7 @@ from alleletraj.ensembl.load import LoadEnsemblGenes, LoadEnsemblVariants, FlagS
 from alleletraj.snpchip import LoadSNPChipVariants
 from alleletraj.ancient.load_snps import AncientSNPsPipeline
 from alleletraj.qtl.qtls import MC1R_GENE
-from alleletraj.modern.alignment import ReferenceFASTA
+from alleletraj.reference import ReferenceFASTA
 from alleletraj import utils
 
 # the number of flanking SNPs (on either side) to include

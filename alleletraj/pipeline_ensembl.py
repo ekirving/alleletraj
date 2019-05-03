@@ -241,6 +241,7 @@ class FlagSNPsNearIndels(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         dbc = self.db_conn()
 

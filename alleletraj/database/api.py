@@ -71,6 +71,7 @@ class Database:
 
         return u"WHERE {conds}".format(conds=u" AND ".join(sub))
 
+    # noinspection SqlResolve
     def __get_records(self, table, conds=None, sort=None):
         """
         Helper function for fetching records
@@ -85,6 +86,8 @@ class Database:
 
         self.cursor.execute(sql)
 
+    # noinspection SqlResolve
+    # noinspection SqlWithoutWhere
     def __delete_records(self, table, conds=None):
         """
         Helper function for deleting records
@@ -96,6 +99,7 @@ class Database:
 
         return self.cursor.execute(sql)
 
+    # noinspection SqlResolve
     def __count_records(self, table, conds=None):
         """
         Helper function for counting records
@@ -176,6 +180,7 @@ class Database:
 
         return self.cursor.fetchone()[u'COUNT(*)']
 
+    # noinspection SqlResolve
     def save_record(self, table, record, insert=None):
         """
         Insert/update a record
@@ -213,6 +218,7 @@ class Database:
             pprint(sql)
             raise e
 
+    # noinspection SqlResolve
     def save_records(self, table, fields, records):
         """
         Batch insert new records

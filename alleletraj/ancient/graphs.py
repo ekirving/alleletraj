@@ -23,6 +23,7 @@ class GraphDerivedVersusAge(PipelineTask):
     def output(self):
         return [luigi.LocalTarget('pdf/{}-snps-ages.{}'.format(self.species, ext)) for ext in ['pdf', 'png']]
 
+    # noinspection SqlResolve
     def run(self):
         pdf_file, png_file = self.output()
 

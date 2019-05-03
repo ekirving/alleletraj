@@ -100,6 +100,7 @@ class LoadAncientSNPs(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         # unpack the params
         (ref_file, _), pld_file, bed_file, _, _, _ = self.input()

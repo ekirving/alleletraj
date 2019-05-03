@@ -87,6 +87,7 @@ class FetchGWASFlankingSNPs(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         dbc = self.db_conn()
 
@@ -163,6 +164,7 @@ class FetchSelectiveSweepSNPs(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         dbc = self.db_conn()
 
@@ -239,6 +241,7 @@ class FetchMC1RSNPs(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         dbc = self.db_conn()
 
@@ -283,6 +286,7 @@ class FetchNeutralSNPs(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         # unpack the inputs
         (_, fai_file), _, _ = self.input()
@@ -349,6 +353,7 @@ class FetchAncestralSNPs(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         # unpack the inputs
         (_, fai_file), _ = self.input()

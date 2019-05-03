@@ -84,6 +84,7 @@ class SelectionInputFile(PipelineTask):
         # resolve pseudo-population DOM2WLD
         pop_sql = self.population if self.population != 'DOM2WLD' else "DOM2', 'WILD"
 
+        # noinspection SqlResolve
         bins = dbc.get_records_sql("""
             # get the ancient frequencies in each bin
             SELECT SUM(sr.base = ms.derived) AS derived_count,

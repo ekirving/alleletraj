@@ -395,6 +395,7 @@ class PopulatePigMummyLoci(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         # unpack the inputs
         (_, fai_file), _ = self.input()
@@ -476,6 +477,7 @@ class PopulateNeutralLoci(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         # unpack the inputs
         (_, fai_file), _ = self.input()
@@ -601,6 +603,7 @@ class PopulateQTLSNPs(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     def run(self):
         dbc = self.db_conn()
 

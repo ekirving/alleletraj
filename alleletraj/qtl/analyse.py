@@ -92,6 +92,7 @@ class FindBestSNPs(PipelineTask):
     def output(self):
         return luigi.LocalTarget('db/{}-{}.log'.format(self.basename, self.classname))
 
+    # noinspection SqlResolve
     # noinspection SqlWithoutWhere
     def run(self):
         # open a db connection

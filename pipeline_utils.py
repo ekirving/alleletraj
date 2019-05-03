@@ -296,6 +296,13 @@ class PipelineTask(luigi.Task):
         return self._modern_data
 
     @property
+    def all_samples(self):
+        """
+        Get all the samples from all the populations (including the outgroup)
+        """
+        return [(pop, sample) for pop in self.all_populations for sample in self.all_populations[pop]]
+
+    @property
     def samples(self):
         """
         List of the modern samples for this population

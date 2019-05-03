@@ -67,6 +67,41 @@ class ReferencePloidy(PipelineExternalTask):
                     fout.write('\t'.join(['*', '*', '*', sex, '2']) + '\n')
 
 
+class BCFToolsSamplesFile(PipelineTask):
+    """
+    Make a samples sex file and a samples readgroup file for bcftools.
+
+    The sex file specifies the sex of each samples, to be used with the ploidy file, and the readgroup file ensures that
+    BAM files containing multiple libraries with different accession codes are treated as one sample.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        for pop, sample in self.all_samples:
+            yield AlignedBAM(self.species, pop, sample)
+
+    def output(self):
+        return [luigi.LocalTarget('vcf/{}.{}'.format(self.species, ext)) for ext in ['sex', 'rgs']]
+
+    def run(self):
+        # unpack the params
+        bam_files = self.input()
+        sex_file, rgs_file = self.output()
+
+        # bcftools needs the sex specified in a separate file
+        with sex_file.open('w') as fout:
+            for pop, sample in self.all_samples:
+                sex = self.all_populations[pop][sample]['sex'][0].upper()  # use single letter uppercase
+                fout.write('{}\t{}\n'.format(sample, sex))
+
+        # sample names in the BAM file(s) may not be consistent, so override the @SM code
+        with rgs_file.open('w') as fout:
+            for idx, (pop, sample) in enumerate(self.all_samples):
+                fout.write('*\t{}\t{}\n'.format(bam_files[idx].path, sample))
+
+
 class BCFToolsCall(PipelineTask):
     """
     Make genotype calls using the bcftools mpileup workflow
@@ -77,16 +112,10 @@ class BCFToolsCall(PipelineTask):
     species = luigi.Parameter()
     chrom = luigi.Parameter()
 
-    @property
-    def all_samples(self):
-        """
-        Get all the samples from all the populations (including the outgroup)
-        """
-        return [(pop, sample) for pop in self.all_populations for sample in self.all_populations[pop]]
-
     def requires(self):
         yield ReferenceFASTA(self.species)
         yield ReferencePloidy(self.species)
+        yield BCFToolsSamplesFile(self.species)
 
         for pop, sample in self.all_samples:
             yield AlignedBAM(self.species, pop, sample)
@@ -96,29 +125,19 @@ class BCFToolsCall(PipelineTask):
 
     def run(self):
         # unpack the input params
-        (ref_file, _), pld_file, bam_files = self.input()[0], self.input()[1], self.input()[2:]
-
-        # bcftools needs the sex specified in a separate file
-        sex_file = 'vcf/{}-modern.sex'.format(self.species)
-        with open(sex_file, 'w') as fout:
-            for pop, sample in self.all_samples:
-                sex = self.all_populations[pop][sample]['sex'][0].upper()  # use single letter uppercase
-                fout.write('{}\t{}\n'.format(sample, sex))
-
-        # sample names in the BAM file(s) may not be consistent, so override the @SM code
-        rgs_file = 'vcf/{}-modern.rgs'.format(self.species)
-        with open(rgs_file, 'w') as fout:
-            for idx, (pop, sample) in enumerate(self.all_samples):
-                fout.write('*\t{}\t{}\n'.format(bam_files[idx].path, sample))
+        ref_file, _ = self.input()[0]
+        pld_file = self.input()[1]
+        sex_file, rgs_file = self.input()[2]
+        bam_files = self.input()[3:]
 
         with self.output().temporary_path() as vcf_out:
             params = {
                 'ref': ref_file.path,
                 'chr': self.chrom,
-                'rgs': rgs_file,
+                'rgs': rgs_file.path,
                 'bam': ' '.join([bam.path for bam in bam_files]),
                 'pld': pld_file.path,
-                'sex': sex_file,
+                'sex': sex_file.path,
                 'vcf': vcf_out
             }
 

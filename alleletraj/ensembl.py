@@ -9,7 +9,7 @@ from datetime import timedelta
 from time import time
 
 # import my custom modules
-from alleletraj.database.setup import CreateDatabase
+from alleletraj.database.create import CreateDatabase
 from alleletraj.modern.load_snps import ModernSNPsPipeline
 from alleletraj import utils
 

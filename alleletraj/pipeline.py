@@ -4,7 +4,7 @@
 import luigi
 
 from alleletraj import utils
-from alleletraj.database.setup import CreateDatabase
+from alleletraj.database.create import CreateDatabase
 from alleletraj.modern.load_snps import ModernSNPsPipeline
 from alleletraj.modern.demography import DadiPipeline
 from alleletraj.ensembl import EnsemblPipeline

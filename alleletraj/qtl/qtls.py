@@ -9,7 +9,7 @@ from collections import defaultdict, OrderedDict
 
 # import my custom modules
 from alleletraj.consts import QTLDB_RELEASE, SWEEP_DATA
-from alleletraj.database.setup import CreateDatabase
+from alleletraj.database.create import CreateDatabase
 from alleletraj.ensembl import LoadEnsemblVariants, LoadEnsemblGenes, EnsemblPipeline
 from alleletraj.modern.alignment import ReferenceFASTA
 from alleletraj import utils

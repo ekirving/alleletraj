@@ -6,7 +6,7 @@ import os
 import random
 
 # import my custom modules
-from alleletraj.database.setup import CreateDatabase
+from alleletraj.database.create import CreateDatabase
 from alleletraj.ensembl import LoadEnsemblVariants
 from alleletraj.modern.load_snps import LoadModernSNPs
 from alleletraj import utils

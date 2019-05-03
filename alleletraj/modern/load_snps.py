@@ -8,7 +8,7 @@ import pysam
 from collections import Counter
 
 # import my custom modules
-from alleletraj.database.setup import CreateDatabase
+from alleletraj.database.create import CreateDatabase
 from snp_call import BiallelicSNPsVCF
 from alleletraj import utils
 

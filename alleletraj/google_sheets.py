@@ -22,6 +22,8 @@ def get_credentials():
     Returns:
         Credentials, the obtained credential.
     """
+    import argparse
+
     home_dir = os.path.expanduser('~')
     credential_dir = os.path.join(home_dir, '.credentials')
     if not os.path.exists(credential_dir):
@@ -32,18 +34,10 @@ def get_credentials():
     store = Storage(credential_path)
     credentials = store.get()
     if not credentials or credentials.invalid:
-        try:
-            import argparse
-            flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
-        except ImportError:
-            flags = None
-
+        flags = argparse.ArgumentParser(parents=[tools.argparser]).parse_args()
         flow = client.flow_from_clientsecrets(CLIENT_SECRET_FILE, SCOPES)
         flow.user_agent = APPLICATION_NAME
-        if flags:
-            credentials = tools.run_flow(flow, store, flags)
-        else:  # Needed only for compatibility with Python 2.6
-            credentials = tools.run(flow, store)
+        credentials = tools.run_flow(flow, store, flags)
 
         print('Storing credentials to ' + credential_path)
 

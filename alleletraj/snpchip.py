@@ -7,7 +7,7 @@ import random
 
 # import my custom modules
 from alleletraj.database.setup import CreateDatabase
-from alleletraj.pipeline_ensembl import LoadEnsemblVariants
+from alleletraj.ensembl import LoadEnsemblVariants
 from alleletraj.modern.load_snps import LoadModernSNPs
 from alleletraj.utils import PipelineTask, PipelineExternalTask, PipelineWrapperTask, run_cmd, curl_download, trim_ext
 

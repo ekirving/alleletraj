@@ -8,8 +8,8 @@ from time import time
 
 from collections import OrderedDict
 
-from alleletraj.pipeline_ensembl import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
-from alleletraj.pipeline_snpchip import LoadSNPChipVariants
+from alleletraj.ensembl import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
+from alleletraj.snpchip import LoadSNPChipVariants
 from alleletraj.ancient.load_snps import AncientSNPsPipeline
 from alleletraj.qtl.qtls import MC1R_GENE
 from alleletraj.modern.alignment import ReferenceFASTA

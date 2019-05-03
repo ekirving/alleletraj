@@ -7,18 +7,17 @@ from alleletraj.utils import PipelineWrapperTask
 
 from alleletraj.database.setup import CreateDatabase
 from alleletraj.modern.load_snps import ModernSNPsPipeline
-from alleletraj.pipeline_ensembl import EnsemblPipeline
-from alleletraj.pipeline_snpchip import SNPChipPipeline
+from alleletraj.modern.demography import DadiPipeline
+from alleletraj.ensembl import EnsemblPipeline
+from alleletraj.snpchip import SNPChipPipeline
 from alleletraj.qtl.qtls import QTLPipeline
 from alleletraj.ancient.samples import SamplesPipeline
 from alleletraj.ancient.load_snps import AncientSNPsPipeline
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
 
 
-# TODO make a docker image with all the dependencies
 
-
-class BuildDatabase(PipelineWrapperTask):
+class RunAll(PipelineWrapperTask):
     """
     Build the species database
 
@@ -33,6 +32,9 @@ class BuildDatabase(PipelineWrapperTask):
 
         # ascertain SNPs in modern whole genome data
         yield ModernSNPsPipeline(self.species)
+
+        # find the best fitting ∂a∂i model
+        yield DadiPipeline(self.species)
 
         # link all the Ensembl data to the modern SNPs
         yield EnsemblPipeline(self.species)
@@ -51,8 +53,6 @@ class BuildDatabase(PipelineWrapperTask):
 
         # analyse the coverage and quality for SNPs in each QTLs
         yield AnalyseQTLsPipeline(self.species)
-
-        # TODO add dadi pipeline
 
         # if self.species == 'pig':
         #     # pick the best SNPs to target for a capture array

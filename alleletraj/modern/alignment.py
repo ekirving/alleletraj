@@ -319,7 +319,7 @@ class AlignedBAM(utils.PipelineTask):
         return self.input()
 
 
-class AlignmentPipeline(utils.PipelineWrapperTask):
+class ModernAlignmentPipeline(utils.PipelineWrapperTask):
     """
     Get BAM files for all samples
 

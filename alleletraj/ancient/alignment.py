@@ -217,18 +217,5 @@ class FilterUniqueSAMCons(utils.PipelineTask):
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
-class AncientAlignmentPipeline(utils.PipelineWrapperTask):
-    """
-    Get BAM files for all samples
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    def requires(self):
-        for pop, sample in self.all_samples:
-            yield AlignedBAM(self.species, pop, sample)
-
-
 if __name__ == '__main__':
     luigi.run()

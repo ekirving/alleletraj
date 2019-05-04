@@ -34,7 +34,7 @@ class TrimGalore(utils.PipelineTask):
 
     def output(self):
         if self.paired:
-            return [luigi.LocalTarget('data/fastq/{}_{}_trim.fq.gz'.format(self.accession, pair)) for pair in [1, 2]]
+            return [luigi.LocalTarget('data/fastq/{}_{}-trim.fq.gz'.format(self.accession, pair)) for pair in [1, 2]]
         else:
             return [luigi.LocalTarget('data/fastq/{}_trimmed.fq.gz'.format(self.accession))]
 
@@ -58,12 +58,12 @@ class TrimGalore(utils.PipelineTask):
         utils.run_cmd(cmd)
 
         # trim_galore does not let us name the outputs so rename the files
-        utils.run_cmd(["rename 's/_val_[12]/_trim/' fastq/{}_*".format(self.accession)], shell=True)
+        utils.run_cmd(["rename 's/_val_[12]/-trim/' fastq/{}_*".format(self.accession)], shell=True)
 
 
 class BwaMem(utils.PipelineTask):
     """
-    Align a fastq file to the reference genome
+    Align the fastq file(s) to the reference genome using the BWA-MEM algorithm.
 
     :type species: str
     :type sample: str
@@ -73,7 +73,7 @@ class BwaMem(utils.PipelineTask):
     species = luigi.Parameter()
     sample = luigi.Parameter()
     accession = luigi.Parameter()
-    paired = luigi.BoolParameter(default=True)
+    paired = luigi.BoolParameter(default=True)  # TODO read from CSV
 
     resources = {'cpu-cores': CPU_CORES_MED, 'ram-gb': 8}
 

@@ -5,7 +5,7 @@ import luigi
 import unicodecsv as csv
 
 # import my custom modules
-from alleletraj.ancient.load_snps import AncientSNPsPipeline
+from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj import utils
 
 

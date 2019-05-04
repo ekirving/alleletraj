@@ -9,9 +9,9 @@ from collections import defaultdict, OrderedDict
 
 # import my custom modules
 from alleletraj.consts import QTLDB_RELEASE, SWEEP_DATA
-from alleletraj.database.create import CreateDatabase
+from alleletraj.database.load import CreateDatabase
 from alleletraj.ensembl.load import LoadEnsemblVariants, LoadEnsemblGenes
-from alleletraj.reference import ReferenceFASTA
+from alleletraj.ref import ReferenceFASTA
 from alleletraj import utils
 
 from qtldb_api import QTLdbAPI

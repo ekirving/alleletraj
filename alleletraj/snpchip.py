@@ -6,9 +6,9 @@ import os
 import random
 
 # import my custom modules
-from alleletraj.database.create import CreateDatabase
+from alleletraj.database.load import CreateDatabase
 from alleletraj.ensembl.load import LoadEnsemblVariants
-from alleletraj.modern.load_snps import LoadModernSNPs
+from alleletraj.modern.snps import LoadModernSNPs
 from alleletraj import utils
 
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \

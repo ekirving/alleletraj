@@ -4,14 +4,14 @@
 import luigi
 
 from alleletraj import utils
-from alleletraj.database.create import CreateDatabase
-from alleletraj.modern.load_snps import ModernSNPsPipeline
+from alleletraj.database.load import CreateDatabase
+from alleletraj.modern.snps import ModernSNPsPipeline
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.snpchip import SNPChipPipeline
 # from alleletraj.modern.demography import DadiPipeline
 from alleletraj.qtl.qtls import QTLPipeline
 from alleletraj.ancient.samples import SamplesPipeline
-from alleletraj.ancient.load_snps import AncientSNPsPipeline
+from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
 # from alleletraj.ascertainment import AscertainmentPipeline
 # from alleletraj.ancient.selection import SelectionBestQTLSNPs

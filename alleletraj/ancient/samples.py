@@ -11,8 +11,8 @@ from collections import defaultdict, OrderedDict
 from datetime import timedelta
 from time import time
 
-from alleletraj import utils, google_sheets as gs
-from alleletraj.database.create import CreateDatabase
+from alleletraj import utils, gsheet as gs
+from alleletraj.database.load import CreateDatabase
 
 # from pipeline_utils import *
 

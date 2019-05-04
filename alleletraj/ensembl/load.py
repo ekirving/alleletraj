@@ -9,7 +9,7 @@ from datetime import timedelta
 from time import time
 
 # import my custom modules
-from alleletraj.database.create import CreateDatabase
+from alleletraj.database.load import CreateDatabase
 from alleletraj import utils
 
 # the most recent Ensembl releases for a given genome assembly

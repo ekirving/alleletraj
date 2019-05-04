@@ -8,8 +8,8 @@ import pysam
 from collections import Counter
 
 # import my custom modules
-from alleletraj.database.create import CreateDatabase
-from snp_call import BiallelicSNPsVCF
+from alleletraj.database.load import CreateDatabase
+from vcf import BiallelicSNPsVCF
 from alleletraj import utils
 
 # TODO move into spreadsheet

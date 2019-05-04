@@ -11,7 +11,7 @@ import random
 
 # import my custom modules
 from alleletraj.consts import MUTATION_RATE
-from snp_call import PolarizeVCF, WholeGenomeSNPsVCF
+from vcf import PolarizeVCF, WholeGenomeSNPsVCF
 from alleletraj import utils
 
 # number of sequential epochs to test

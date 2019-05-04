@@ -6,9 +6,9 @@ import os
 
 # import my custom modules
 from alleletraj import utils
-from alleletraj.ancient.alignment import FilterUniqueSAMCons
-from alleletraj.modern.alignment import PicardMarkDuplicates, GATK
-from alleletraj.reference import PicardSequenceDictionary
+from alleletraj.ancient.align import FilterUniqueSAMCons
+from alleletraj.modern.align import PicardMarkDuplicates, GATK
+from alleletraj.ref import PicardSequenceDictionary
 
 
 class DeduplicatedBAM(utils.PipelineTask):

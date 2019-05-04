@@ -6,7 +6,7 @@ import luigi
 from datetime import timedelta
 from time import time
 
-from alleletraj.ancient.load_snps import LoadAncientSNPs
+from alleletraj.ancient.snps import LoadAncientSNPs
 from alleletraj import utils
 
 # the number of SNPs to model per QTL

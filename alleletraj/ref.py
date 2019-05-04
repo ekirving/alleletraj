@@ -5,7 +5,7 @@ import luigi
 
 from alleletraj import utils
 from alleletraj.ensembl.load import DownloadEnsemblData
-from alleletraj.modern.alignment import PICARD
+from alleletraj.modern.align import PICARD
 
 
 class ReferenceFASTA(utils.PipelineTask):

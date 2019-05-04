@@ -9,7 +9,7 @@ from pysam import VariantFile
 
 # import my custom modules
 from alleletraj.bam import AlignedBAM
-from alleletraj.reference import ReferenceFASTA
+from alleletraj.ref import ReferenceFASTA
 from alleletraj import utils
 
 # the minimum phred scaled genotype quality (30 = 99.9%)

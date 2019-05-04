@@ -5,7 +5,7 @@ import luigi
 
 # import my custom modules
 from alleletraj.ensembl.load import LoadEnsemblGenes, LoadEnsemblVariants
-from alleletraj.modern.load_snps import ModernSNPsPipeline
+from alleletraj.modern.snps import ModernSNPsPipeline
 from alleletraj import utils
 
 

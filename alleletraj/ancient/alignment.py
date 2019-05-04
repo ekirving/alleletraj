@@ -5,7 +5,6 @@ import luigi
 
 # import my custom modules
 from alleletraj import utils
-from alleletraj.bam import AlignedBAM
 from alleletraj.sratools import SraToolsFastqDump
 from alleletraj.reference import ReferenceFASTA, BwaIndexBWTSW
 from alleletraj.consts import CPU_CORES_LOW, CPU_CORES_MED

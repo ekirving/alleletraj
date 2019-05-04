@@ -183,17 +183,23 @@ class AlignedBAM(utils.PipelineTask):
     sample = luigi.Parameter()
 
     def requires(self):
-        try:
-            # use the provided BAM file
-            if self.ancient:
-                # TODO implement this
+
+        if self.ancient:
+            try:
+                # TODO use the provided BAM file
                 pass
-            else:
+
+            except IndexError:
+                # TODO rescale baseq for ancient samples
+                pass
+        else:
+            try:
+                # use the provided BAM file
                 return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
 
-        except IndexError:
-            # align our own BAM file
-            return SAMToolsMerge(self.species, self.population, self.sample)
+            except IndexError:
+                # align our own BAM file
+                return SAMToolsMerge(self.species, self.population, self.sample)
 
     def output(self):
         return self.input()

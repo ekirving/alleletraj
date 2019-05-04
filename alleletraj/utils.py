@@ -234,6 +234,14 @@ class PipelineTask(luigi.Task):
         return '-'.join(params)
 
     @property
+    def ancient(self):
+        """
+        Boolean flag for ancient/modern status of sample
+        """
+        # TODO implement me
+        return False
+
+    @property
     def assembly(self):
         """
         Identifier of the reference assembly for the species

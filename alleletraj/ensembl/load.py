@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
-import os
+# standard modules
 import gzip
-
+import os
 from datetime import timedelta
 from time import time
 
-# import my custom modules
-from alleletraj.database.load import CreateDatabase
+# third party modules
+import luigi
+
+# local modules
 from alleletraj import utils
+from alleletraj.database.load import CreateDatabase
 
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {

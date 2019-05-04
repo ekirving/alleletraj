@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
-import os
-import subprocess
+# standard modules
 import csv
+import os
 import re
-
-# import common libraries
+import subprocess
 from collections import Iterable
+
+# third party modules
+import luigi
 
 # import my libraries
 from alleletraj.consts import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME

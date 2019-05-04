@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# standard modules
 import re
 import urllib
 import urllib2
-import xmltodict
-from time import sleep
 from collections import OrderedDict
-
+from time import sleep
 from xml.sax.saxutils import escape
+
+# third party modules
+import xmltodict
 
 # QTLdb settings
 QTLDB_API_URL = 'http://www.animalgenome.org/cgi-bin/QTLdb/API'

@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
+# third party modules
 import unicodecsv as csv
 
+# local modules
 from alleletraj.database.conn import Database
 
 

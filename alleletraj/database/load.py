@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# third party modules
 import luigi
 
-# import my custom modules
+# local modules
 from alleletraj import utils
 from alleletraj.database.conn import Database
 

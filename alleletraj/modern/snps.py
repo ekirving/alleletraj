@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# standard modules
 import itertools
+from collections import Counter
+
+# third party modules
 import luigi
 import pysam
 
-from collections import Counter
-
-# import my custom modules
+# local modules
+from alleletraj import utils
 from alleletraj.database.load import CreateDatabase
 from vcf import BiallelicSNPsVCF
-from alleletraj import utils
 
 # TODO move into spreadsheet
 FASTA_PATH = '/media/jbod2/raid1-sdc1/laurent/full_run_results/Pig/modern/FASTA'

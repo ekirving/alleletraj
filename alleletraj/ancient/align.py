@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# third party modules
 import luigi
 
-# import my custom modules
+# local modules
 from alleletraj import utils
-from alleletraj.sra import SraToolsFastqDump
-from alleletraj.ref import ReferenceFASTA, BwaIndexBWTSW
 from alleletraj.consts import CPU_CORES_LOW, CPU_CORES_MED
+from alleletraj.ref import ReferenceFASTA, BwaIndexBWTSW
+from alleletraj.sra import SraToolsFastqDump
 
 # hard filters for AdapterRemoval
 TRIM_MIN_BASEQ = 20

@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# third party modules
 import luigi
 import numpy
+import pysam
 
-# VCF parser
-from pysam import VariantFile
-
-# import my custom modules
+# local modules
+from alleletraj import utils
 from alleletraj.bam import AlignedBAM
 from alleletraj.ref import ReferenceFASTA
-from alleletraj import utils
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
 MIN_GENO_QUAL = 30
@@ -173,7 +172,7 @@ class QuantilesOfCoverageVCF(utils.PipelineTask):
         depth = []
 
         # iterate over the VCF and extract the depth of coverage at each site
-        for rec in VariantFile(self.input().path).fetch():
+        for rec in pysam.VariantFile(self.input().path).fetch():
             try:
                 # only count depth at sites which pass the genotype quality filter
                 if int(rec.qual) >= self.qual:
@@ -258,8 +257,8 @@ class PolarizeVCF(utils.PipelineTask):
 
         with self.output().temporary_path() as tmp_out:
             # open both VCF files
-            vcf_in = VariantFile(self.input().path)
-            vcf_out = VariantFile(tmp_out, 'wz', header=vcf_in.header)  # `z` tells pysam to bgzip output
+            vcf_in = pysam.VariantFile(self.input().path)
+            vcf_out = pysam.VariantFile(tmp_out, 'wz', header=vcf_in.header)  # `z` tells pysam to bgzip output
 
             # iterate over the VCF and determine the ancestral allele
             for rec in vcf_in.fetch():

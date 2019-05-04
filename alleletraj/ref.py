@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# third party modules
 import luigi
 
+# local modules
 from alleletraj import utils
 from alleletraj.ensembl.load import DownloadEnsemblData
 from alleletraj.modern.align import PICARD

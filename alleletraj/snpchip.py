@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
+# standard modules
 import os
 import random
 
-# import my custom modules
+# third party modules
+import luigi
+
+# local modules
+from alleletraj import utils
 from alleletraj.database.load import CreateDatabase
 from alleletraj.ensembl.load import LoadEnsemblVariants
 from alleletraj.modern.snps import LoadModernSNPs
-from alleletraj import utils
 
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \
             'Axiom_MNEc670_Annotation.r2.csv.zip'

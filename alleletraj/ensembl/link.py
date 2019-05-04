@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# third party modules
 import luigi
 
-# import my custom modules
+# local modules
+from alleletraj import utils
 from alleletraj.ensembl.load import LoadEnsemblGenes, LoadEnsemblVariants
 from alleletraj.modern.snps import ModernSNPsPipeline
-from alleletraj import utils
 
 
 class LinkEnsemblGenes(utils.PipelineTask):

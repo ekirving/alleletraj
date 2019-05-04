@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
+# standard modules
 import os
+
+# third party modules
+import luigi
 import unicodecsv as csv
 
-# import my custom modules
+# local modules
+from alleletraj import utils
+from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.consts import GENERATION_TIME
 from alleletraj.modern.demog import DadiDemography
-from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
-from alleletraj import utils
 
 # the population history is either: constant, or a fully specified complex demography
 MCMC_POP_CONST = 'const'

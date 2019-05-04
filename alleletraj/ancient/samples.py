@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
-import httplib2
+# standard modules
 import math
 import os
-
-from apiclient import discovery
 from collections import defaultdict, OrderedDict
 from datetime import timedelta
 from time import time
 
+# third party modules
+import httplib2
+import luigi
+from apiclient import discovery
+
+# local modules
 from alleletraj import utils, gsheet as gs
 from alleletraj.database.load import CreateDatabase
 

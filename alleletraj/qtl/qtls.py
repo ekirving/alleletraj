@@ -1,20 +1,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
+# standard modules
 import re
-
-from natsort import natsorted
 from collections import defaultdict, OrderedDict
 
-# import my custom modules
+# third party modules
+import luigi
+from natsort import natsorted
+
+# local modules
+from alleletraj import utils
 from alleletraj.consts import QTLDB_RELEASE, SWEEP_DATA
 from alleletraj.database.load import CreateDatabase
 from alleletraj.ensembl.load import LoadEnsemblVariants, LoadEnsemblGenes
+from alleletraj.qtl.qtldb_api import QTLdbAPI
 from alleletraj.ref import ReferenceFASTA
-from alleletraj import utils
-
-from qtldb_api import QTLdbAPI
 
 # offset to use for the QTL window (+/- 50 Kb)
 QTL_WINDOW = 50000

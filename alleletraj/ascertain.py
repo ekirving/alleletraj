@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
-import unicodecsv as csv
+# standard modules
+from collections import OrderedDict
 from datetime import timedelta
 from time import time
 
-from collections import OrderedDict
+# third party modules
+import luigi
+import unicodecsv as csv
 
-from alleletraj.ensembl.load import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
-from alleletraj.snpchip import LoadSNPChipVariants
+# local modules
+from alleletraj import utils
 from alleletraj.ancient.snps import AncientSNPsPipeline
+from alleletraj.ensembl.load import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
 from alleletraj.qtl.qtls import MC1R_GENE
 from alleletraj.ref import ReferenceFASTA
-from alleletraj import utils
+from alleletraj.snpchip import LoadSNPChipVariants
 
 # the number of flanking SNPs (on either side) to include
 QTL_FLANK_NUM_SNPS = 3

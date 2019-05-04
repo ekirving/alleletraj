@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
+# standard modules
 import os
 
-# import my custom modules
+# third party modules
+import luigi
+
+# local modules
 from alleletraj import utils
 from alleletraj.ancient.align import FilterUniqueSAMCons
 from alleletraj.modern.align import PicardMarkDuplicates, GATK

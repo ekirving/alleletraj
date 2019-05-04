@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-
+# standard modules
 import itertools
-import mysql.connector
-
 from collections import OrderedDict
 from datetime import timedelta
 from pprint import pprint
 from time import time
 
-# import my custom modules
+# third party modules
+import mysql.connector
+
+# local modules
 from alleletraj.consts import REF_ASSEMBLY, QTLDB_RELEASE
 
 

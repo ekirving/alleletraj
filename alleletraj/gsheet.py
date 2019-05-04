@@ -1,7 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-from __future__ import print_function
+# standard modules
 import os
 
+# third party modules
 from oauth2client import client
 from oauth2client import tools
 from oauth2client.file import Storage

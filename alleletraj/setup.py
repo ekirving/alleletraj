@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# standard modules
 from setuptools import setup, find_packages
 
 setup(name='alleletraj',

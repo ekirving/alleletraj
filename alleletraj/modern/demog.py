@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
+# standard modules
 import math
+
+# third party modules
+import luigi
 import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import dadi
 import pickle
 import random
 
-# import my custom modules
+# local modules
 from alleletraj.consts import MUTATION_RATE
 from vcf import PolarizeVCF, WholeGenomeSNPsVCF
 from alleletraj import utils

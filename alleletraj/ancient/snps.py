@@ -1,21 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
-import pysam
+# standard modules
+import glob
 import os
 import random
-import glob
-
 from collections import defaultdict
 
-from alleletraj.qtl.qtls import PopulateAllLoci, MIN_DAF
-from alleletraj.modern.snps import ModernSNPsPipeline
-from alleletraj.ensembl.link import EnsemblLinkPipeline
-from alleletraj.ref import ReferenceFASTA
-from alleletraj.modern.vcf import ReferencePloidy, MIN_GENO_QUAL
-from alleletraj.ancient.samples import LoadSamples
+# third party modules
+import luigi
+import pysam
+
+# local modules
 from alleletraj import utils
+from alleletraj.ancient.samples import LoadSamples
+from alleletraj.ensembl.link import EnsemblLinkPipeline
+from alleletraj.modern.snps import ModernSNPsPipeline
+from alleletraj.modern.vcf import ReferencePloidy, MIN_GENO_QUAL
+from alleletraj.qtl.qtls import PopulateAllLoci, MIN_DAF
+from alleletraj.ref import ReferenceFASTA
 
 # minimum depth of coverage to call diploid genotypes
 MIN_GENO_DEPTH = 10

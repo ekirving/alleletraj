@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import print_function
-from alleletraj.database.conn import Database
-
+# third party modules
 import unicodecsv as csv
+
+# local modules
+from alleletraj.database.conn import Database
 
 # the arbitrary +/- age uncertainty for median age dates
 MEDIAN_AGE_UNCERT = 100

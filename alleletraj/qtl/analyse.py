@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import luigi
-
+# standard modules
 from datetime import timedelta
 from time import time
 
-from alleletraj.ancient.snps import LoadAncientSNPs
+# third party modules
+import luigi
+
+# local modules
 from alleletraj import utils
+from alleletraj.ancient.snps import LoadAncientSNPs
 
 # the number of SNPs to model per QTL
 SNPS_PER_QTL = 3

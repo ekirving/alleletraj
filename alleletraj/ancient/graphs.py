@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# third party modules
 import luigi
 import unicodecsv as csv
 
-# import my custom modules
-from alleletraj.ancient.snps import AncientSNPsPipeline
+# local modules
 from alleletraj import utils
+from alleletraj.ancient.snps import AncientSNPsPipeline
 
 
 class GraphDerivedVersusAge(utils.PipelineTask):

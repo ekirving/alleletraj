@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# standard modules
 from multiprocessing import cpu_count
 
 # QTLdb release number (changing this number will trigger a complete db rebuild)

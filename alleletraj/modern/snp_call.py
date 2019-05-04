@@ -8,7 +8,7 @@ import numpy
 from pysam import VariantFile
 
 # import my custom modules
-from alleletraj.modern.alignment import AlignedBAM
+from alleletraj.bam import AlignedBAM
 from alleletraj.reference import ReferenceFASTA
 from alleletraj import utils
 

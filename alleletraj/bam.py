@@ -76,7 +76,11 @@ class AlignedBAM(utils.PipelineTask):
     def requires(self):
         try:
             # use the provided BAM file
-            return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
+            if self.ancient:
+                # TODO implement this
+                pass
+            else:
+                return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
 
         except IndexError:
             # align our own BAM file

@@ -13,7 +13,7 @@ setup(name='alleletraj',
       license='MIT',
       packages=find_packages(),
       install_requires=[
-            # TODO add these
+          # TODO add these
       ],
       include_package_data=True,
       zip_safe=False)

@@ -29,7 +29,6 @@ class RunAll(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-
         # create a new database and add all the empty tables
         yield CreateDatabase(self.species)
 

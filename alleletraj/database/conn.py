@@ -21,9 +21,9 @@ class Database:
     """
 
     db_config = {
-      'user':     'root',
-      'password': '',
-      'host':     '127.0.0.1'
+        'user': 'root',
+        'password': '',
+        'host': '127.0.0.1'
     }
 
     # the maximum number of rows to insert in a single operation

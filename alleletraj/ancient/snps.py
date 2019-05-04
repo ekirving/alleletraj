@@ -66,7 +66,7 @@ class MergeAllLoci(utils.PipelineTask):
         with open(tmp_loci, 'w') as fout:
             for locus in loci:
                 # NOTE that BED starts are zero-based and BED ends are one-based
-                fout.write('{}\t{}\t{}\n'.format(locus['chrom'], locus['start']-1, locus['end']))
+                fout.write('{}\t{}\t{}\n'.format(locus['chrom'], locus['start'] - 1, locus['end']))
 
         # now merge overlapping loci
         bed = utils.run_cmd(['bedtools', 'merge', '-i', tmp_loci])
@@ -152,7 +152,7 @@ class LoadAncientSNPs(utils.PipelineTask):
                 for site in snps:
                     if not snps[site]['ref']:
                         # fetch the ref and snp alleles
-                        ref_allele = fasta_file.fetch(chrom, site-1, site)
+                        ref_allele = fasta_file.fetch(chrom, site - 1, site)
                         snp_alleles = [snps[site]['ancestral'], snps[site]['derived']]
 
                         if ref_allele not in snp_alleles:
@@ -248,7 +248,7 @@ class LoadAncientSNPs(utils.PipelineTask):
                     suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
 
                     # make some temp files
-                    vcf_file, sex_file, tsv_file, tgz_file, rgs_file,  = [
+                    vcf_file, sex_file, tsv_file, tgz_file, rgs_file = [
                         'vcf/diploid-sample{}-{}.{}'.format(sample_id, suffix, ext) for ext in
                         ['vcf', 'sex', 'tsv', 'tsv.gz', 'rgs']]
 
@@ -276,9 +276,9 @@ class LoadAncientSNPs(utils.PipelineTask):
                     params = {
                         'ref': ref_file.path,
                         'reg': '{}:{}-{}'.format(chrom, int(start) + 1, end),  # restrict the callable region
-                        'tgz': tgz_file,                                        # only call the specified SNPs
+                        'tgz': tgz_file,                                       # only call the specified SNPs
                         'rgs': rgs_file,
-                        'bam': ' '.join(sample['paths'].split(',')),            # use all the BAM files
+                        'bam': ' '.join(sample['paths'].split(',')),           # use all the BAM files
                         'pld': pld_file.path,
                         'sex': sex_file,
                         'vcf': vcf_file
@@ -287,12 +287,12 @@ class LoadAncientSNPs(utils.PipelineTask):
                     # call bases with bcftools (and drop indels and other junk, but keen non-variant sites)
                     # uses both --region (random access) and --targets (streaming) for optimal speed
                     # see https://samtools.github.io/bcftools/bcftools.html#mpileup
-                    cmd = "bcftools mpileup --fasta-ref {ref} --regions {reg} --targets-file {tgz} --read-groups {rgs}"\
+                    cmd = "bcftools mpileup --fasta-ref {ref} --regions {reg} --targets-file {tgz} --read-groups {rgs}" \
                           " --output-type u {bam} | " \
                           "bcftools call --multiallelic-caller --ploidy-file {pld} --samples-file {sex} " \
                           " --targets-file {tgz} --constrain alleles --output-type u | " \
                           "bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf} " \
-                          .format(**params)
+                        .format(**params)
 
                     # run the base calling
                     utils.run_cmd([cmd], shell=True, verbose=False)
@@ -320,11 +320,11 @@ class LoadAncientSNPs(utils.PipelineTask):
                             for allele in alleles:
                                 # compose the read records
                                 read = {
-                                    'sample_id':   sample_id,
-                                    'chrom':       chrom,
-                                    'site':        site,
-                                    'genoq':       genoq,
-                                    'base':        allele
+                                    'sample_id': sample_id,
+                                    'chrom': chrom,
+                                    'site': site,
+                                    'genoq': genoq,
+                                    'base': allele
                                 }
 
                                 dbc.save_record('sample_reads', read)

@@ -219,12 +219,12 @@ class FilterVCF(utils.PipelineTask):
 
         with self.output().temporary_path() as vcf_out:
             params = {
-                'qual':  MIN_GENO_QUAL,
-                'qlow':  int(qlow),
+                'qual': MIN_GENO_QUAL,
+                'qlow': int(qlow),
                 'qhigh': int(qhigh),
-                'vcf':   vcf_input.path,
-                'ref':   ref_file.path,
-                'out':   vcf_out,
+                'vcf': vcf_input.path,
+                'ref': ref_file.path,
+                'out': vcf_out,
             }
 
             cmd = "bcftools filter --exclude 'QUAL<{qual} | DP<{qlow} | DP>{qhigh}' --output-type u {vcf} | " \
@@ -347,7 +347,6 @@ class WholeGenomeSNPsVCF(utils.PipelineTask):
         return luigi.LocalTarget('data/vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.species))
 
     def run(self):
-
         # get all the vcf files to concatenate
         vcf_files = [vcf.path for vcf in self.input()]
 

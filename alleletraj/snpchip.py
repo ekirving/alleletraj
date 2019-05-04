@@ -37,6 +37,7 @@ class DownloadAxiomEquineHD(utils.PipelineTask):
     """
     Fetches the data for the Axiom EquineHD array.
     """
+
     @property
     def url(self):
         return AXIOM_URL

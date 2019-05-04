@@ -52,7 +52,7 @@ class QTLdbAPI:
                 line, column = [int(s) for s in re.split('[ ,]', str(err)) if s.isdigit()]
 
                 lines = xml.splitlines(True)
-                problem = list(lines[line-1])
+                problem = list(lines[line - 1])
 
                 # handle entity encoding issues
                 problem[column - 1] = escape(problem[column - 1])
@@ -61,7 +61,7 @@ class QTLdbAPI:
                 #     # handle utf8 encoding issues
                 #     problem[column] = '&#{};'.format(ord(problem[column]))
 
-                lines[line-1] = ''.join(problem)
+                lines[line - 1] = ''.join(problem)
                 xml = ''.join(lines)
 
                 if loops > 100:

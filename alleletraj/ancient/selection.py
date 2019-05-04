@@ -154,7 +154,7 @@ class SelectionRunMCMC(utils.PipelineTask):
         input_file = self.input().path
         log_file, param_file, time_file, traj_file = self.output()
         output_prefix = utils.trim_ext(log_file.path)
-        
+
         # get path of the population history file
         pop_hist = 'data/selection/{}-{}-{}.pop'.format(self.species, self.population, self.pop_hist)
 
@@ -287,7 +287,6 @@ class SelectionBestQTLSNPs(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-
         # mark the best SNPs
         yield AnalyseQTLsPipeline(self.species)
 

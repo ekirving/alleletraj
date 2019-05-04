@@ -68,7 +68,6 @@ class GATKRealignerTargetCreator(utils.PipelineTask):
         itv_file, log_file = self.output()
 
         with itv_file.temporary_path() as itv_path, open(log_file.path, 'w') as log_fout:
-
             utils.run_cmd(['java', self.java_mem,
                            '-jar', GATK,
                            '--analysis_type', 'RealignerTargetCreator',
@@ -107,7 +106,6 @@ class GATKIndelRealigner(utils.PipelineTask):
         bam_out, bai_out, log_file = self.output()
 
         with bam_out.temporary_path() as bam_path, open(log_file.path, 'w') as log_fout:
-
             utils.run_cmd(['java', self.java_mem,
                            '-jar', GATK,
                            '--analysis_type', 'IndelRealigner',
@@ -148,7 +146,6 @@ class SAMToolsMerge(utils.PipelineTask):
         bam_out, _ = self.output()
 
         with bam_out.temporary_path() as bam_path:
-
             utils.run_cmd(['samtools',
                            'merge',
                            bam_path

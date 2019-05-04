@@ -293,7 +293,6 @@ class ModernSNPsPipeline(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-
         # process SNPs for all chromosomes
         for chrom in self.chromosomes:
             yield LoadModernSNPs(self.species, chrom)

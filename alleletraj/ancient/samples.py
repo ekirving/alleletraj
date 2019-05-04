@@ -28,33 +28,33 @@ GOOGLE_SHEET = {
         'id': '1GBxNiRWAqPdz4MdSpi0ec_K8x4TRns31VgUcICq68qo',
         'tabs': ['final combined'],
         'cols': OrderedDict([
-                    ('Extract No. / Lab code', 'accession'),
-                    ('Total Reads', 'map_reads'),
-                    ('% Mapped', 'map_prcnt'),
-                    ('Age', 'age'),
-                    ('Age (Mean years BP)', 'age_int'),
-                    ('Period', 'period'),
-                    ('Location', 'location'),
-                    ('Country', 'country'),
-                    ('Final status (MC1R+Morpho+Context)', 'population'),
-                    ('Genotype MC1R', 'mc1r_snp')
-                ])
+            ('Extract No. / Lab code', 'accession'),
+            ('Total Reads', 'map_reads'),
+            ('% Mapped', 'map_prcnt'),
+            ('Age', 'age'),
+            ('Age (Mean years BP)', 'age_int'),
+            ('Period', 'period'),
+            ('Location', 'location'),
+            ('Country', 'country'),
+            ('Final status (MC1R+Morpho+Context)', 'population'),
+            ('Genotype MC1R', 'mc1r_snp')
+        ])
     },
 
     # TODO carry over the GPS coordinates
     # HorseSelection_LO4EIP-TRANSFERED
     'horse': {
-        'id':   '1BMvIwYj-d8t3mpf67rzabrEvDoB8hBZbyS6XfGwcwUU',
+        'id': '1BMvIwYj-d8t3mpf67rzabrEvDoB8hBZbyS6XfGwcwUU',
         'tabs': ['Ancient'],
         'cols': OrderedDict([
-                    ('Name',     'accession'),
-                    ('Status',   'population'),
-                    ('path',     'path'),
-                    ('sex',      'sex'),
-                    ('Age BP',   'age_int'),
-                    ('Age',      'period'),
-                    ('Site',     'location'),
-                ])
+            ('Name', 'accession'),
+            ('Status', 'population'),
+            ('path', 'path'),
+            ('sex', 'sex'),
+            ('Age BP', 'age_int'),
+            ('Age', 'period'),
+            ('Site', 'location'),
+        ])
     },
 
     # Goat Samples for Allele Trajectory
@@ -84,10 +84,10 @@ AGE_MAP = {
         'id': '1bH5u_qDaFXJdTyybeahqgF7je17td0FdyOMs_tlECdA',
         'tabs': ['Age Map'],
         'cols': OrderedDict([
-            ('Age',         'age'),
-            ('Confident',   'confident'),
-            ('Lower (BP)',  'lower'),
-            ('Upper (BP)',  'upper'),
+            ('Age', 'age'),
+            ('Confident', 'confident'),
+            ('Lower (BP)', 'lower'),
+            ('Upper (BP)', 'upper'),
             ('Median (BP)', 'median'),
         ])
     }
@@ -99,13 +99,12 @@ RADIOCARBON_SHEET = {
         'id': '1odoL9hQh87bLLe3yipbo-CKKXLvIgb5n_kfoqSALHi8',
         'tabs': ['All Dates'],
         'cols': OrderedDict([
-            ('Extract_No',              'accession'),
+            ('Extract_No', 'accession'),
             ('From Cal BP (Int Cal13)', 'lower'),
-            ('To Cal BP',               'upper'),
+            ('To Cal BP', 'upper'),
         ])
     }
 }
-
 
 # list of permissible countries in Europe
 EUROPE = [

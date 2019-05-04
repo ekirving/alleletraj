@@ -265,7 +265,6 @@ class FlagSNPsNearIndels(utils.PipelineTask):
 
         # process the INDELs in chunks
         for i in range(0, len(loci), dbc.max_query_size):
-
             # convert each locus into sql conditions
             conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + dbc.max_query_size]]
 

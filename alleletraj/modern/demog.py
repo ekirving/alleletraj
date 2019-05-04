@@ -97,9 +97,9 @@ class EasySFS(utils.PipelineTask):
                 fout.write('{}\t{}\n'.format(sample, self.population))
 
         params = {
-            'vcf':  self.input().path,
+            'vcf': self.input().path,
             'pops': pop_file,
-            'out':  self.basename,
+            'out': self.basename,
             'proj': len(samples) * 2,  # don't project down
             'fold': '--unfolded' if not self.folded else ''
         }

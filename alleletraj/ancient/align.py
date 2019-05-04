@@ -109,7 +109,6 @@ class BwaAln(utils.PipelineTask):
         }
 
         with sai_out.temporary_path() as sai_path:
-
             # get the temporary path for the sai file
             params['sai'] = sai_path
 
@@ -161,7 +160,6 @@ class BwaSamSe(utils.PipelineTask):
         }
 
         with bam_out.temporary_path() as bam_path:
-
             # get the temporary path for the bam file
             params['bam'] = bam_path
 
@@ -207,7 +205,6 @@ class FilterUniqueSAMCons(utils.PipelineTask):
         bam_out, _ = self.output()
 
         with bam_out.temporary_path() as bam_path:
-
             # filter duplicates
             cmd = 'samtools view -h {} | FilterUniqueSAMCons.py | samtools view -b -o {}'.format(bam_in.path, bam_path)
 

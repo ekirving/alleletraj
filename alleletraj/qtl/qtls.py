@@ -117,9 +117,9 @@ class PopulateQTLs(utils.PipelineTask):
 
             # rename these fields
             key_map = {
-                'id':         'qtldb_id',
-                'pubmedID':   'pubmed_id',
-                'geneId':     'gene_id',
+                'id': 'qtldb_id',
+                'pubmedID': 'pubmed_id',
+                'geneId': 'gene_id',
                 'chromosome': 'chrom'
             }
 
@@ -137,7 +137,6 @@ class PopulateQTLs(utils.PipelineTask):
 
                 # does the trait exist
                 if not dbc.exists_record('traits', {'id': record['trait_id']}):
-
                     # setup the trait record
                     trait = dict((field.replace('trait', '').lower(), trait[field]) for field in trait)
                     # TODO this is broken!!
@@ -250,7 +249,8 @@ class SetQTLWindows(utils.PipelineTask):
             end = result['site'] + QTL_WINDOW if result['site'] + QTL_WINDOW < chrom_size else chrom_size
 
             if end <= start:
-                raise Exception('ERROR: Window size for QTL #{} is negative ({:,} bp)'.format(result['id'], end-start))
+                raise Exception(
+                    'ERROR: Window size for QTL #{} is negative ({:,} bp)'.format(result['id'], end - start))
 
             # update the QTL record
             qtl = {
@@ -301,11 +301,11 @@ class PopulateSweepLoci(utils.PipelineTask):
                 # setup a dummy QTL record
                 qtl = {
                     'associationType': 'Sweep',
-                    'chrom':           chrom,
-                    'significance':    'Significant',
-                    'valid':           1,
-                    'start':           start,
-                    'end':             end,
+                    'chrom': chrom,
+                    'significance': 'Significant',
+                    'valid': 1,
+                    'start': start,
+                    'end': end,
                 }
 
                 qtl_id = dbc.save_record('qtls', qtl)
@@ -325,10 +325,10 @@ class PopulateSweepLoci(utils.PipelineTask):
 
                     sweep_snp = {
                         'qtl_id': qtl_id,
-                        'chrom':  chrom,
-                        'site':   end,
-                        'cdf':    cdf,
-                        'p':      p
+                        'chrom': chrom,
+                        'site': end,
+                        'cdf': cdf,
+                        'p': p
                     }
 
                     dbc.save_record('sweep_snps', sweep_snp)
@@ -427,10 +427,10 @@ class PopulatePigMummyLoci(utils.PipelineTask):
             qtl = {
                 'associationType': 'Mummy',
                 'chrom': result['chrom'],
-                'peak':  result['rsnumber'],
+                'peak': result['rsnumber'],
                 'valid': 1,
                 'start': result['start'],
-                'end':   result['end'],
+                'end': result['end'],
             }
 
             dbc.save_record('qtls', qtl)
@@ -672,7 +672,6 @@ class QTLPipeline(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-
         # process all the chromosomes in chunks
         for chrom in self.chromosomes:
             # flag the modern SNPs which fall into 'neutral' regions

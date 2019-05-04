@@ -199,11 +199,10 @@ class FetchSelectiveSweepSNPs(utils.PipelineTask):
               JOIN sweep_snps ss
                 ON ss.id = near.ss_id
           GROUP BY ss.qtl_id
-               """.format(num_snps=SWEEP_NUM_SNPS, offset=SWEEP_PEAK_WIDTH/2), key=None)
+               """.format(num_snps=SWEEP_NUM_SNPS, offset=SWEEP_PEAK_WIDTH / 2), key=None)
 
         # we have to do this iteratively, as FIND_IN_SET() performs terribly
         for qtl in qtls:
-
             dbc.execute_sql("""
                 INSERT 
                   INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)

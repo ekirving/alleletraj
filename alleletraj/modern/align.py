@@ -105,7 +105,6 @@ class BwaMem(utils.PipelineTask):
         }
 
         with bam_out.temporary_path() as bam_path:
-
             # get the temporary path for the bam file
             params['bam'] = bam_path
 
@@ -147,7 +146,6 @@ class PicardMarkDuplicates(utils.PipelineTask):
         bam_out, _, log_file = self.output()
 
         with bam_out.temporary_path() as bam_path:
-
             utils.run_cmd(['java', self.java_mem,
                            '-jar', PICARD,
                            'MarkDuplicates',

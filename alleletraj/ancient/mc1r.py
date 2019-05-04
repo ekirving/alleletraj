@@ -46,7 +46,6 @@ def generate_mc1r_snp_input(species, population):
 
     # write the sample input file
     with open("selection/{}-{}-modsnp_71891.input".format(species, population), "wb") as tsv_file:
-
         fields = ['derived_count', 'sample_size', 'bin_high', 'bin_low']
         writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
 

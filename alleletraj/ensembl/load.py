@@ -12,7 +12,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.database.load import CreateDatabase
+from alleletraj.db.load import CreateDatabase
 
 # the most recent Ensembl releases for a given genome assembly
 ENSEMBL_RELEASES = {

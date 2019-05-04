@@ -11,7 +11,7 @@ import pysam
 
 # local modules
 from alleletraj import utils
-from alleletraj.database.load import CreateDatabase
+from alleletraj.db.load import CreateDatabase
 from vcf import BiallelicSNPsVCF
 
 # TODO move into spreadsheet
@@ -92,7 +92,7 @@ class ModernSNPsFromFASTA(utils.PipelineTask):
         # get all the input fasta files
         fasta_files = [fasta_file.path for fasta_file in self.input()[1:]]
 
-        # open a private connection to the database
+        # open a private connection to the db
         dbc = self.db_conn()
 
         with self.output().open('w') as fout:
@@ -203,7 +203,7 @@ class ModernSNPsFromVCF(utils.PipelineTask):
         # unpack the inputs
         _, vcf_file = self.input()
 
-        # open a private connection to the database
+        # open a private connection to the db
         dbc = self.db_conn()
 
         # count the number of SNPs added

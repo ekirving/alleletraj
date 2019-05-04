@@ -15,7 +15,7 @@ from apiclient import discovery
 
 # local modules
 from alleletraj import utils, gsheet as gs
-from alleletraj.database.load import CreateDatabase
+from alleletraj.db.load import CreateDatabase
 
 # from pipeline_utils import *
 
@@ -166,7 +166,7 @@ def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
 
 class PopulatePigSamples(utils.PipelineTask):
     """
-    Load all the ancient pig samples into the database.
+    Load all the ancient pig samples into the db.
 
     :type species: str
     """
@@ -392,7 +392,7 @@ class MarkValidPigs(utils.PipelineTask):
 
 class PopulateHorseSamples(utils.PipelineTask):
     """
-    Load all the ancient horse samples into the database.
+    Load all the ancient horse samples into the db.
 
     :type species: str
     """

@@ -17,7 +17,7 @@ from alleletraj.ancient.samples import LoadSamples
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
 from alleletraj.modern.vcf import ReferencePloidy, MIN_GENO_QUAL
-from alleletraj.qtl.qtls import PopulateAllLoci, MIN_DAF
+from alleletraj.qtl.load import PopulateAllLoci, MIN_DAF
 from alleletraj.ref import ReferenceFASTA
 
 # minimum depth of coverage to call diploid genotypes

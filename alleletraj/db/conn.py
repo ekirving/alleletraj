@@ -33,8 +33,8 @@ class Database:
     max_query_size = 5000
 
     def __init__(self, species):
-        # set the database name
-        self.db_config['database'] = Database.__get_name(species)
+        # set the db name
+        self.db_config['db'] = Database.__get_name(species)
 
         # connect to the db
         self.cnx = mysql.connector.connect(**self.db_config)
@@ -48,7 +48,7 @@ class Database:
     @staticmethod
     def __get_name(species):
         """
-        Embed the reference assembly and the QTLdb release number into the database name.
+        Embed the reference assembly and the QTLdb release number into the db name.
         """
         return 'alleletraj_{}_{}_{}'.format(species, REF_ASSEMBLY[species], QTLDB_RELEASE).lower()
 
@@ -113,7 +113,7 @@ class Database:
     @staticmethod
     def create_database(species):
         """
-        Create an empty database
+        Create an empty db
         """
         cnx = mysql.connector.connect(**Database.db_config)
         cursor = cnx.cursor()

@@ -10,7 +10,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.database.load import CreateDatabase
+from alleletraj.db.load import CreateDatabase
 from alleletraj.ensembl.load import LoadEnsemblVariants
 from alleletraj.modern.snps import LoadModernSNPs
 

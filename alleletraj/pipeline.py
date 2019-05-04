@@ -11,25 +11,25 @@ from alleletraj.ancient.samples import SamplesPipeline
 from alleletraj.ancient.selection import SelectionBestQTLSNPs
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.ascertain import AscertainmentPipeline
-from alleletraj.database.load import CreateDatabase
+from alleletraj.db.load import CreateDatabase
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.demog import DadiPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
-from alleletraj.qtl.qtls import QTLPipeline
+from alleletraj.qtl.load import QTLPipeline
 from alleletraj.snpchip import SNPChipPipeline
 
 
 class RunAll(utils.PipelineWrapperTask):
     """
-    Build the species database
+    Build the species db
 
     :type species: str
     """
     species = luigi.Parameter()
 
     def requires(self):
-        # create a new database and add all the empty tables
+        # create a new db and add all the empty tables
         yield CreateDatabase(self.species)
 
         # ascertain SNPs in modern whole genome data
@@ -44,7 +44,7 @@ class RunAll(utils.PipelineWrapperTask):
         # find the best fitting ∂a∂i model
         yield DadiPipeline(self.species)
 
-        # load the QTLs from the AnimalQTL database, and other regions of interest
+        # load the QTLs from the AnimalQTL db, and other regions of interest
         yield QTLPipeline(self.species)
 
         # load the sample metadata

@@ -14,7 +14,7 @@ import unicodecsv as csv
 from alleletraj import utils
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.ensembl.load import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
-from alleletraj.qtl.qtls import MC1R_GENE
+from alleletraj.qtl.load import MC1R_GENE
 from alleletraj.ref import ReferenceFASTA
 from alleletraj.snpchip import LoadSNPChipVariants
 
@@ -36,7 +36,7 @@ NUM_ANCESTRAL_SNPS = 30000
 
 class FetchGWASPeaks(utils.PipelineTask):
     """
-    Fetch all the GWAS peaks from the QTL database.
+    Fetch all the GWAS peaks from the QTL db.
 
     :type species: str
     """
@@ -457,7 +457,7 @@ class PerformAscertainment(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        # fetch all the GWAS peaks from the QTL database
+        # fetch all the GWAS peaks from the QTL db
         yield FetchGWASPeaks(self.species)
 
         # fetch the best flanking SNPs for each GWAS peak

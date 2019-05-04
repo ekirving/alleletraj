@@ -6,7 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.database.conn import Database
+from alleletraj.db.conn import Database
 
 
 class ExternalDatabaseSQL(utils.PipelineExternalTask):
@@ -20,7 +20,7 @@ class ExternalDatabaseSQL(utils.PipelineExternalTask):
 
 class CreateDatabase(utils.PipelineTask):
     """
-    Create and new database and add all the empty tables.
+    Create and new db and add all the empty tables.
 
     :type species: str
     """
@@ -35,7 +35,7 @@ class CreateDatabase(utils.PipelineTask):
     def run(self):
         sql_file = self.input()
 
-        # create the empty database
+        # create the empty db
         name = Database.create_database(self.species)
 
         # open a connection to the new db
@@ -45,7 +45,7 @@ class CreateDatabase(utils.PipelineTask):
         dbc.execute_file(sql_file.path)
 
         with self.output().open('w') as fout:
-            fout.write('INFO: Created database `{}`'.format(name))
+            fout.write('INFO: Created db `{}`'.format(name))
 
 
 if __name__ == '__main__':

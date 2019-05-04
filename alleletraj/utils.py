@@ -13,7 +13,7 @@ import luigi
 
 # import my libraries
 from alleletraj.consts import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME
-from alleletraj.database.conn import Database
+from alleletraj.db.conn import Database
 
 # enforce max interval size of 1 Gb
 MAX_INTERVAL_SIZE = int(1e6)
@@ -347,7 +347,7 @@ class PipelineTask(luigi.Task):
 
     def db_conn(self):
         """
-        Create a private connection to the database
+        Create a private connection to the db
         """
         return Database(self.species)
 

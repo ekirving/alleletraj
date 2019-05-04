@@ -12,7 +12,7 @@ from natsort import natsorted
 # local modules
 from alleletraj import utils
 from alleletraj.consts import QTLDB_RELEASE, SWEEP_DATA
-from alleletraj.database.load import CreateDatabase
+from alleletraj.db.load import CreateDatabase
 from alleletraj.ensembl.load import LoadEnsemblVariants, LoadEnsemblGenes
 from alleletraj.qtl.qtldb_api import QTLdbAPI
 from alleletraj.ref import ReferenceFASTA
@@ -75,7 +75,7 @@ class ExternalAnimalQTLdb(utils.PipelineExternalTask):
 
 class PopulateQTLs(utils.PipelineTask):
     """
-    Fetch all the QTLs from the QTLdb API and populate the local database.
+    Fetch all the QTLs from the QTLdb API and populate the local db.
 
     :type species: str
     """
@@ -449,7 +449,7 @@ class PopulateTraitLoci(utils.PipelineWrapperTask):
 
     def requires(self):
 
-        # load the QTLs from the AnimalQTL database, and set the window size
+        # load the QTLs from the AnimalQTL db, and set the window size
         yield SetQTLWindows(self.species)
 
         # load pseudo-QTLs from other sources

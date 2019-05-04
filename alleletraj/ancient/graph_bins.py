@@ -5,7 +5,7 @@
 import unicodecsv as csv
 
 # local modules
-from alleletraj.database.conn import Database
+from alleletraj.db.conn import Database
 
 # the arbitrary +/- age uncertainty for median age dates
 MEDIAN_AGE_UNCERT = 100

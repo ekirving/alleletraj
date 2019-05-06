@@ -60,7 +60,7 @@ class MergeAllLoci(utils.PipelineTask):
                AND q.valid = 1
           ORDER BY q.start, q.end""".format(chrom=self.chrom), key=None)
 
-        tmp_loci = 'bed/{}-tmp-loci.bed'.format(self.basename)
+        tmp_loci = 'data/bed/{}-tmp-loci.bed'.format(self.basename)
 
         # write all the QTL regions to a BED file
         with open(tmp_loci, 'w') as fout:
@@ -257,7 +257,7 @@ class LoadAncientSNPs(utils.PipelineTask):
 
                     # make some temp files
                     vcf_file, sex_file, tsv_file, tgz_file, rgs_file = [
-                        'vcf/diploid-sample{}-{}.{}'.format(sample_id, suffix, ext) for ext in
+                        'data/vcf/diploid-sample{}-{}.{}'.format(sample_id, suffix, ext) for ext in
                         ['vcf', 'sex', 'tsv', 'tsv.gz', 'rgs']]
 
                     # sort the diploid positions

@@ -61,7 +61,7 @@ class GraphDerivedVersusAge(utils.PipelineTask):
                  ON c14.accession = s.accession
             HAVING median IS NOT NULL""".format(median=median), key=None)
 
-        with open("tsv/{}-snps-counts.tsv".format(self.species), "wb") as tsv_file:
+        with open("data/tsv/{}-snps-counts.tsv".format(self.species), "wb") as tsv_file:
 
             fields = ['read_id', 'median']
             writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
@@ -106,7 +106,7 @@ class GraphDerivedVersusAge(utils.PipelineTask):
               WHERE qs.num_reads IS NOT NULL
            GROUP BY qs.modsnp_id""".format(median=median), key=None)
 
-        with open("tsv/{}-snps-ages.tsv".format(self.species), "wb") as tsv_file:
+        with open("data/tsv/{}-snps-ages.tsv".format(self.species), "wb") as tsv_file:
 
             fields = ['modsnp_id', 'trait', 'ancestral', 'derived', 'oldest_sample', 'oldest_derived']
             writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')

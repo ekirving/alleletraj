@@ -192,7 +192,7 @@ class PopulatePigSamples(utils.PipelineTask):
         bam_files = defaultdict(list)
 
         # load the BAM file paths
-        with open('./data/bam_files_{}.txt'.format(self.species), 'r') as fin:
+        with open('data/bam_files_{}.txt'.format(self.species), 'r') as fin:
             for line in fin:
                 # extract the accession code
                 accession = os.path.basename(line).replace('_rmdup.bam', '').strip()

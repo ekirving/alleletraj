@@ -91,7 +91,7 @@ class EasySFS(utils.PipelineTask):
         samples = [sample for sample in self.samples if self.samples[sample]['sfs'] == '1']
 
         # make a sample/population file
-        pop_file = 'sfs/{}.pops'.format(self.basename)
+        pop_file = 'data/sfs/{}.pops'.format(self.basename)
         with open(pop_file, 'w') as fout:
             for sample in samples:
                 fout.write('{}\t{}\n'.format(sample, self.population))

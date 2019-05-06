@@ -120,7 +120,7 @@ class SelectionInputFile(utils.PipelineTask):
             raise RuntimeError('ERROR: Insufficient time bins to run `selection` (n={})'.format(len(bins)))
 
         # write the sample input file
-        with open(self.output().path, 'wb') as tsv_file:
+        with self.output().open('wb') as tsv_file:
 
             fields = ['derived_count', 'sample_size', 'bin_high', 'bin_low']
             writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')

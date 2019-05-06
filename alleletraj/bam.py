@@ -10,7 +10,8 @@ import luigi
 # local modules
 from alleletraj import utils
 from alleletraj.ancient.align import FilterUniqueSAMCons
-from alleletraj.modern.align import PicardMarkDuplicates, GATK
+from alleletraj.const import GATK
+from alleletraj.modern.align import PicardMarkDuplicates
 from alleletraj.ref import PicardSequenceDictionary
 
 

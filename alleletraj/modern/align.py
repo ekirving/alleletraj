@@ -6,17 +6,13 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.const import CPU_CORES_MED
+from alleletraj.const import CPU_CORES_MED, PICARD
 from alleletraj.ref import ReferenceFASTA, BwaIndexBWTSW
 from alleletraj.sra import SraToolsFastqDump
 
 # hard filters for TrimGalore!
 TRIM_MIN_BASEQ = 20
 TRIM_MIN_LENGTH = 25
-
-# TODO set classpath properly
-GATK = "/usr/local/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
-PICARD = "/usr/local/picard-tools-2.5.0/picard.jar"
 
 
 class TrimGalore(utils.PipelineTask):

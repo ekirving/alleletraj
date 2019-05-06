@@ -528,8 +528,7 @@ class PopulateNeutralLoci(utils.PipelineTask):
         for result in results:
             intervals[result['chrom']].append((result['start'], result['end']))
 
-        # TODO fix this
-        all_regions = 'data/bed/{}-wholegenome.bed'.format(self.species)
+        all_regions = 'data/bed/{}-{}.bed'.format(self.species, self.assembly)
         non_neutral = 'data/bed/{}-nonneutral.bed'.format(self.species)
 
         # write a BED file for the whole genome

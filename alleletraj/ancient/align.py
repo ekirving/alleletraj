@@ -14,10 +14,6 @@ from alleletraj.sra import SraToolsFastqDump
 TRIM_MIN_BASEQ = 20
 TRIM_MIN_LENGTH = 25
 
-# TODO set classpath properly
-GATK = "/usr/local/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
-PICARD = "/usr/local/picard-tools-2.5.0/picard.jar"
-
 
 class AdapterRemoval(utils.PipelineTask):
     """

@@ -287,11 +287,11 @@ class LoadAncientSNPs(utils.PipelineTask):
                     # call bases with bcftools (and drop indels and other junk, but keen non-variant sites)
                     # uses both --region (random access) and --targets (streaming) for optimal speed
                     # see https://samtools.github.io/bcftools/bcftools.html#mpileup
-                    cmd = "bcftools mpileup --fasta-ref {ref} --regions {reg} --targets-file {tgz} --read-groups {rgs}" \
+                    cmd = "bcftools mpileup --fasta-ref {ref} --regions {reg} --targets-file {tgz} --read-groups {rgs}"\
                           " --output-type u {bam} | " \
                           "bcftools call --multiallelic-caller --ploidy-file {pld} --samples-file {sex} " \
                           " --targets-file {tgz} --constrain alleles --output-type u | " \
-                          "bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf} " \
+                          "bcftools view --exclude-types indels,bnd,other --exclude INFO/INDEL=1 --output-file {vcf}" \
                         .format(**params)
 
                     # run the base calling

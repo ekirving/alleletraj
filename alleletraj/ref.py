@@ -6,8 +6,8 @@ import luigi
 
 # local modules
 from alleletraj import utils
+from alleletraj.const import PICARD
 from alleletraj.ensembl.load import DownloadEnsemblData
-from alleletraj.modern.align import PICARD
 
 
 class ReferenceFASTA(utils.PipelineTask):

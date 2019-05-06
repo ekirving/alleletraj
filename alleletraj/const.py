@@ -87,3 +87,7 @@ CPU_CORES_LOW = int(TOTAL_CORES * 0.1)   # 10%
 CPU_CORES_MED = int(TOTAL_CORES * 0.25)  # 25%
 CPU_CORES_HIGH = int(TOTAL_CORES * 0.5)  # 50%
 CPU_CORES_MAX = int(TOTAL_CORES * 0.9)   # 90%
+
+# TODO set classpath properly
+GATK = "/usr/local/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar"
+PICARD = "/usr/local/picard-tools-2.5.0/picard.jar"

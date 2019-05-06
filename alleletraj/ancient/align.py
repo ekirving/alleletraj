@@ -69,7 +69,7 @@ class BwaAln(utils.PipelineTask):
 
     Step 1: Find the SA coordinates of the input reads.
 
-    We set aDNA specific thresholds in the alignment to improve mapping sensitivity.
+            Sets aDNA specific thresholds in the alignment to improve mapping sensitivity.
 
     :type species: str
     :type sample: str
@@ -121,7 +121,7 @@ class BwaSamSe(utils.PipelineTask):
 
     Step 2: Generate alignments in the SAM format, and convert to sorted BAM.
 
-    Becase we collapse paired-end reads we use SAM-SE, not SAM-PE, to produce the alignment.
+            Becase we collapse paired-end reads we use SAM-SE, not SAM-PE, to produce the alignment.
 
     :type species: str
     :type sample: str

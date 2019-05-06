@@ -190,13 +190,21 @@ class LoadAncientSNPs(utils.PipelineTask):
                 # buffer the reads so we can bulk insert them into the db
                 reads = defaultdict(list)
 
+                # TODO these should really be merged into one
                 # there may be multiple BAM files for each sample
                 for path in sample['paths'].split(','):
 
                     # open the BAM file for reading
                     with pysam.AlignmentFile(path, 'rb') as bam_file:
+                        contig = chrom
 
-                        for pileup_column in bam_file.pileup(chrom, int(start), int(end)):
+                        try:
+                            bam_file.pileup(contig)
+                        except ValueError:
+                            # handle non-standard chr prefixes
+                            contig = 'chr' + chrom
+
+                        for pileup_column in bam_file.pileup(contig, int(start), int(end)):
 
                             # NOTE PileupColumn.reference_pos is 0 based
                             # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
@@ -275,10 +283,10 @@ class LoadAncientSNPs(utils.PipelineTask):
 
                     params = {
                         'ref': ref_file.path,
-                        'reg': '{}:{}-{}'.format(chrom, int(start) + 1, end),  # restrict the callable region
-                        'tgz': tgz_file,                                       # only call the specified SNPs
+                        'reg': '{}:{}-{}'.format(contig, int(start) + 1, end),  # restrict the callable region
+                        'tgz': tgz_file,                                        # only call the specified SNPs
                         'rgs': rgs_file,
-                        'bam': ' '.join(sample['paths'].split(',')),           # use all the BAM files
+                        'bam': ' '.join(sample['paths'].split(',')),            # use all the BAM files
                         'pld': pld_file.path,
                         'sex': sex_file,
                         'vcf': vcf_file

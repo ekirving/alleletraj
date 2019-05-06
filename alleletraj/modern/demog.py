@@ -13,7 +13,7 @@ import pickle
 import random
 
 # local modules
-from alleletraj.consts import MUTATION_RATE
+from alleletraj.const import MUTATION_RATE
 from vcf import PolarizeVCF, WholeGenomeSNPsVCF
 from alleletraj import utils
 

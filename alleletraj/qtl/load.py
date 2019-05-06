@@ -11,7 +11,7 @@ from natsort import natsorted
 
 # local modules
 from alleletraj import utils
-from alleletraj.consts import QTLDB_RELEASE, SWEEP_DATA
+from alleletraj.const import QTLDB_RELEASE, SWEEP_DATA
 from alleletraj.db.load import CreateDatabase
 from alleletraj.ensembl.load import LoadEnsemblVariants, LoadEnsemblGenes
 from alleletraj.qtl.qtldb_api import QTLdbAPI

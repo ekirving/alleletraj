@@ -11,7 +11,7 @@ import unicodecsv as csv
 # local modules
 from alleletraj import utils
 from alleletraj.ancient.snps import AncientSNPsPipeline
-from alleletraj.consts import GENERATION_TIME
+from alleletraj.const import GENERATION_TIME
 from alleletraj.modern.demog import DadiDemography
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
 

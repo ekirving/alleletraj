@@ -12,7 +12,7 @@ from time import time
 import mysql.connector
 
 # local modules
-from alleletraj.consts import REF_ASSEMBLY, QTLDB_RELEASE
+from alleletraj.const import REF_ASSEMBLY, QTLDB_RELEASE
 
 
 class Database:

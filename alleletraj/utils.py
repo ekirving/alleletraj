@@ -12,7 +12,7 @@ from collections import Iterable
 import luigi
 
 # import my libraries
-from alleletraj.consts import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME
+from alleletraj.const import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME
 from alleletraj.db.conn import Database
 
 # enforce max interval size of 1 Gb

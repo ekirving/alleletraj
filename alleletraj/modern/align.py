@@ -6,7 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.consts import CPU_CORES_MED
+from alleletraj.const import CPU_CORES_MED
 from alleletraj.ref import ReferenceFASTA, BwaIndexBWTSW
 from alleletraj.sra import SraToolsFastqDump
 

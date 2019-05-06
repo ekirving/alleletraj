@@ -6,7 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.consts import CPU_CORES_LOW
+from alleletraj.const import CPU_CORES_LOW
 
 
 class SraToolsFastqDump(utils.PipelineTask):

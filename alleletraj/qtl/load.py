@@ -314,7 +314,7 @@ class PopulateSweepLoci(utils.PipelineTask):
 
                 # get the all the SNPs from this locus
                 snps = utils.run_cmd(["printf '{}' | bedtools intersect -a {} -b stdin"
-                                     .format(locus.strip(), snps_file)], shell=True)
+                                     .format(locus.strip(), snps_file)], shell=True, verbose=False)
 
                 if not snps:
                     raise Exception('ERROR: Found no SNPs for sweep region {}:{}-{}'.format(chrom, start, end))

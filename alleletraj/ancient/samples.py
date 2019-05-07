@@ -456,7 +456,7 @@ class LoadSamples(utils.PipelineWrapperTask):
 
     def requires(self):
         if self.species == 'pig':
-            yield MarkValidPigs()
+            yield MarkValidPigs(self.species)
         elif self.species == 'horse':
             # TODO can we make this generic / add other species
             yield PopulateHorseSamples(self.species)

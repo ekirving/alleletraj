@@ -50,11 +50,11 @@ class ValidateBamFile(utils.PipelineTask):
         return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
 
     def output(self):
-        return [luigi.LocalTarget('data/bam/{}.{}'.format(self.sample, ext)) for ext in ['log', 'errs']]
+        return [luigi.LocalTarget('data/bam/{}.{}'.format(self.sample, ext)) for ext in ['log', 'err']]
 
     def run(self):
         bam_file, _ = self.input()
-        log_file, errs_file = self.output()
+        log_file, err_file = self.output()
 
         # validate the BAM file
         with log_file.temporary_path() as log_path:
@@ -64,7 +64,7 @@ class ValidateBamFile(utils.PipelineTask):
                            'MODE=SUMMARY',
                            'IGNORE=MATE_NOT_FOUND',
                            'INPUT=' + bam_file.path,
-                           'OUTPUT=' + errs_file.path], stderr=open(log_path, 'w'))
+                           'OUTPUT=' + err_file.path], stderr=open(log_path, 'w'))
 
 
 class SAMToolsMerge(utils.PipelineTask):
@@ -123,7 +123,8 @@ class AlignedBAM(utils.PipelineTask):
         # is there a path defined in the CSV file
         if 'path' in self.all_populations[self.population][self.sample]:
             # we need to check that the provided file is valid
-            return ValidateBamFile(self.species, self.population, self.sample)
+            # return ValidateBamFile(self.species, self.population, self.sample)
+            return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
         else:
             # if not, then we need to align our own BAM file
             return SAMToolsMerge(self.species, self.population, self.sample)

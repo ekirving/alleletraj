@@ -65,7 +65,10 @@ class DownloadEnsemblData(utils.PipelineTask):
         elif self.type == 'gtf':
             return 'ftp://ftp.ensembl.org/pub/release-{rel}/gtf/{bin}/{Bin}.{ref}.{rel}.gtf.gz'.format(**self.params)
         elif self.type == 'gvf':
-            return 'ftp://ftp.ensembl.org/pub/release-{rel}/variation/gvf/{bin}/{bin}.gvf.gz'.format(**self.params)
+            if ENSEMBL_RELEASES[self.assembly] >= 91:
+                return 'ftp://ftp.ensembl.org/pub/release-{rel}/variation/gvf/{bin}/{bin}.gvf.gz'.format(**self.params)
+            else:
+                return 'ftp://ftp.ensembl.org/pub/release-{rel}/variation/gvf/{bin}/{Bin}.gvf.gz'.format(**self.params)
 
     def output(self):
         # handle non-unique gvf filenames

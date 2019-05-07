@@ -6,6 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
+from alleletraj.const import PICARD
 from alleletraj.gatk import GATKIndelRealigner
 from alleletraj.ancient.rescale import MapDamageRescale
 
@@ -23,6 +24,42 @@ class ExternalBAM(utils.PipelineExternalTask):
     def output(self):
         yield luigi.LocalTarget(self.path)
         yield luigi.LocalTarget(self.path + '.bai')
+
+
+class ValidateBamFile(utils.PipelineTask):
+    """
+    Validate an external BAM file using Picard.
+
+    This tool reports on the validity of a BAM file relative to the SAM format specification.
+
+    :type species: str
+    :type population: str
+    :type sample: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    sample = luigi.Parameter()
+
+    resources = {'cpu-cores': 1, 'ram-gb': 8}
+
+    def requires(self):
+        yield ExternalBAM(self.all_populations[self.population][self.sample]['path'])
+
+    def output(self):
+        return luigi.LocalTarget('data/bam/{}.log'.format(self.sample))
+
+    def run(self):
+        bam_file, _ = self.input()
+        log_file = self.output()
+
+        # validate the BAM file
+        with log_file.temporary_path() as log_path:
+            utils.run_cmd(['java', self.java_mem,
+                           '-jar', PICARD,
+                           'ValidateSamFile',
+                           'MODE=SUMMARY',
+                           'INPUT=' + bam_file.path,
+                           'OUTPUT=' + log_path])
 
 
 class SAMToolsMerge(utils.PipelineTask):
@@ -78,12 +115,12 @@ class AlignedBAM(utils.PipelineTask):
     sample = luigi.Parameter()
 
     def requires(self):
-        try:
-            # use the provided BAM file
-            return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
-
-        except IndexError:
-            # align our own BAM file
+        # is there a path defined in the CSV file
+        if 'path' in self.all_populations[self.population][self.sample]:
+            # we need to check that the provided file is valid
+            return ValidateBamFile(self.species, self.population, self.sample)
+        else:
+            # if not, then we need to align our own BAM file
             return SAMToolsMerge(self.species, self.population, self.sample)
 
     def output(self):

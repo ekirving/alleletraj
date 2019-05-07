@@ -41,15 +41,18 @@ class ValidateBamFile(utils.PipelineTask):
 
     resources = {'cpu-cores': 1, 'ram-gb': 4}
 
+    # do not retry after failure, as this just chews CPU cycles
+    retry_count = 0
+
     def requires(self):
         return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
 
     def output(self):
-        return luigi.LocalTarget('data/bam/{}.log'.format(self.sample))
+        return [luigi.LocalTarget('data/bam/{}.{}'.format(self.sample, ext)) for ext in ['log', 'errs']]
 
     def run(self):
         bam_file, _ = self.input()
-        log_file = self.output()
+        log_file, errs_file = self.output()
 
         # validate the BAM file
         with log_file.temporary_path() as log_path:
@@ -57,8 +60,9 @@ class ValidateBamFile(utils.PipelineTask):
                            '-jar', 'picard.jar',
                            'ValidateSamFile',
                            'MODE=SUMMARY',
+                           'IGNORE=MATE_NOT_FOUND',
                            'INPUT=' + bam_file.path,
-                           'OUTPUT=' + log_path])
+                           'OUTPUT=' + errs_file.path], stderr=open(log_path, 'w'))
 
 
 class SAMToolsMerge(utils.PipelineTask):

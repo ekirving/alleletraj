@@ -88,7 +88,7 @@ class SAMToolsMerge(utils.PipelineTask):
                 ['bam', 'bam.bai']]
 
     def run(self):
-        bam_inputs = [bam_file.path for bam_file, bai_file, log_file in self.input()]
+        bam_inputs = [bam_file.path for bam_file, _, _ in self.input()]
         bam_out, _ = self.output()
 
         with bam_out.temporary_path() as bam_path:

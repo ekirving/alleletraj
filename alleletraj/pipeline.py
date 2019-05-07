@@ -42,7 +42,7 @@ class RunAll(utils.PipelineWrapperTask):
         yield SNPChipPipeline(self.species)
 
         # find the best fitting ∂a∂i model
-        yield DadiPipeline(self.species)
+        # yield DadiPipeline(self.species)
 
         # load the QTLs from the AnimalQTL db, and other regions of interest
         yield QTLPipeline(self.species)
@@ -56,15 +56,15 @@ class RunAll(utils.PipelineWrapperTask):
         # analyse the coverage and quality for SNPs in each QTLs
         yield AnalyseQTLsPipeline(self.species)
 
-        if self.species == 'pig':
-            # pick the best SNPs to target for a capture array
-            yield AscertainmentPipeline(self.species)
-
-        # run `selection` on all the 'best' QTL SNPs
-        yield SelectionBestQTLSNPs(self.species)
-
-        # make all the plots
-        yield GraphsPipeline(self.species)
+        # if self.species == 'pig':
+        #     # pick the best SNPs to target for a capture array
+        #     yield AscertainmentPipeline(self.species)
+        #
+        # # run `selection` on all the 'best' QTL SNPs
+        # yield SelectionBestQTLSNPs(self.species)
+        #
+        # # make all the plots
+        # yield GraphsPipeline(self.species)
 
 
 if __name__ == '__main__':

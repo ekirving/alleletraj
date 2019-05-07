@@ -31,6 +31,8 @@ class ValidateBamFile(utils.PipelineTask):
 
     This tool reports on the validity of a BAM file relative to the SAM format specification.
 
+    https://software.broadinstitute.org/gatk/documentation/tooldocs/4.1.2.0/picard_sam_ValidateSamFile.php
+
     :type species: str
     :type population: str
     :type sample: str

@@ -39,7 +39,7 @@ class ValidateBamFile(utils.PipelineTask):
     population = luigi.Parameter()
     sample = luigi.Parameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 8}
+    resources = {'cpu-cores': 1, 'ram-gb': 4}
 
     def requires(self):
         return ExternalBAM(self.all_populations[self.population][self.sample]['path'])

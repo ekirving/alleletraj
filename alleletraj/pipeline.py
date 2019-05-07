@@ -7,7 +7,7 @@ import luigi
 # local modules
 from alleletraj import utils
 from alleletraj.ancient.graphs import GraphsPipeline
-from alleletraj.ancient.samples import SamplesPipeline
+from alleletraj.ancient.samples import AncientSamplesPipeline
 from alleletraj.ancient.selection import SelectionBestQTLSNPs
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.ascertain import AscertainmentPipeline
@@ -47,15 +47,15 @@ class RunAll(utils.PipelineWrapperTask):
         # load the QTLs from the AnimalQTL db, and other regions of interest
         yield QTLPipeline(self.species)
 
-        # load the sample metadata
-        yield SamplesPipeline(self.species)
-
-        # load the sample reads for each ascertained SNP
-        yield AncientSNPsPipeline(self.species)
-
-        # analyse the coverage and quality for SNPs in each QTLs
-        yield AnalyseQTLsPipeline(self.species)
-
+        # # load the ancient sample metadata
+        # yield AncientSamplesPipeline(self.species)
+        #
+        # # load the sample reads for each ascertained SNP
+        # yield AncientSNPsPipeline(self.species)
+        #
+        # # analyse the coverage and quality for SNPs in each QTLs
+        # yield AnalyseQTLsPipeline(self.species)
+        #
         # if self.species == 'pig':
         #     # pick the best SNPs to target for a capture array
         #     yield AscertainmentPipeline(self.species)

@@ -565,7 +565,7 @@ class BinSamples(utils.PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class SamplesPipeline(utils.PipelineWrapperTask):
+class AncientSamplesPipeline(utils.PipelineWrapperTask):
     """
     Load all the ancient samples and group them in temporal bins
 

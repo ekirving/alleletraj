@@ -42,7 +42,7 @@ class ValidateBamFile(utils.PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
-        yield ExternalBAM(self.all_populations[self.population][self.sample]['path'])
+        return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
 
     def output(self):
         return luigi.LocalTarget('data/bam/{}.log'.format(self.sample))

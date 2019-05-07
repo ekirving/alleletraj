@@ -69,7 +69,7 @@ CREATE TABLE `ensembl_variants` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `dbxref` varchar(255) NOT NULL,
   `rsnumber` varchar(255) NOT NULL,
-  `type` char(15) NOT NULL,
+  `type` char(20) NOT NULL,
   `chrom` varchar(10) NOT NULL,
   `start` int(11) NOT NULL,
   `end` int(11) NOT NULL,

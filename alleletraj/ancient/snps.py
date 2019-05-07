@@ -338,7 +338,7 @@ class LoadAncientSNPs(utils.PipelineTask):
                                 dbc.save_record('sample_reads', read)
 
                     # delete the temp files
-                    for tmp in glob.glob("vcf/*{}*".format(suffix)):
+                    for tmp in glob.glob("data/vcf/*{}*".format(suffix)):
                         os.remove(tmp)
 
                 randcall = []

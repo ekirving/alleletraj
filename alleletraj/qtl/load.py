@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
+import glob
+import os
+import random
 import re
 from collections import defaultdict, OrderedDict
 
@@ -528,8 +531,10 @@ class PopulateNeutralLoci(utils.PipelineTask):
         for result in results:
             intervals[result['chrom']].append((result['start'], result['end']))
 
-        all_regions = 'data/bed/{}-{}.bed'.format(self.species, self.assembly)
-        non_neutral = 'data/bed/{}-nonneutral.bed'.format(self.species)
+        suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
+
+        all_regions = 'data/{}-all_regions-{}.bed'.format(self.species, suffix)
+        non_neutral = 'data/{}-non_neutral-{}.bed'.format(self.species, suffix)
 
         # write a BED file for the whole genome
         with open(all_regions, 'w') as fout:
@@ -567,6 +572,10 @@ class PopulateNeutralLoci(utils.PipelineTask):
             dbc.save_record('qtls', qtl)
 
             num_loci += 1
+
+        # delete the temp files
+        for tmp in glob.glob("data/*{}*".format(suffix)):
+            os.remove(tmp)
 
         with self.output().open('w') as fout:
             fout.write('INFO: Added {:,} neutral loci'.format(num_loci))

@@ -6,7 +6,6 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.const import PICARD
 from alleletraj.ensembl.load import DownloadEnsemblData
 
 
@@ -88,7 +87,7 @@ class PicardSequenceDictionary(utils.PipelineTask):
         # create the sequence dictionary
         with dict_file.temporary_path() as dict_path:
             utils.run_cmd(['java', self.java_mem,
-                           '-jar', PICARD,
+                           '-jar', 'picard.jar',
                            'CreateSequenceDictionary',
                            'R=' + ref_out.path,
                            'O=' + dict_path])

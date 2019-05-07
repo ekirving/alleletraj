@@ -6,7 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.const import CPU_CORES_MED, PICARD
+from alleletraj.const import CPU_CORES_MED
 from alleletraj.ref import ReferenceFASTA, BwaIndexBWTSW
 from alleletraj.sra import SraToolsFastqDump
 
@@ -143,7 +143,7 @@ class PicardMarkDuplicates(utils.PipelineTask):
 
         with bam_out.temporary_path() as bam_path:
             utils.run_cmd(['java', self.java_mem,
-                           '-jar', PICARD,
+                           '-jar', 'picard.jar',
                            'MarkDuplicates',
                            'INPUT=' + bam_in.path,
                            'OUTPUT=' + bam_path,

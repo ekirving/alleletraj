@@ -6,7 +6,6 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.const import PICARD
 from alleletraj.gatk import GATKIndelRealigner
 from alleletraj.ancient.rescale import MapDamageRescale
 
@@ -55,7 +54,7 @@ class ValidateBamFile(utils.PipelineTask):
         # validate the BAM file
         with log_file.temporary_path() as log_path:
             utils.run_cmd(['java', self.java_mem,
-                           '-jar', PICARD,
+                           '-jar', 'picard.jar',
                            'ValidateSamFile',
                            'MODE=SUMMARY',
                            'INPUT=' + bam_file.path,

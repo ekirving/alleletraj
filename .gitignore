@@ -31,3 +31,6 @@ bash
 
 # old files or folders
 *.old*
+
+# java jars
+*.jar

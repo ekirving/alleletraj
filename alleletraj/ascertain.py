@@ -437,8 +437,8 @@ class FetchRemainingSNPChipSNPs(utils.PipelineTask):
               JOIN ensembl_variants ev
                 ON ev.rsnumber = sc.rsnumber
          LEFT JOIN ascertainment a
-                ON a.chrom = sc.chrom
-               AND a.site = sc.site
+                ON a.chrom = ev.chrom
+               AND a.site = ev.start
              WHERE a.id IS NULL
                AND ev.type = 'SNV'
                AND length(ev.alt) = 1

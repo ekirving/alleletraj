@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # https://github.com/sequelpro/sequelpro
 #
-# Host: 127.0.0.1 (MySQL 5.7.21)
+# Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-04-25 09:37:32 +0000
+# Generation Time: 2019-05-07 12:17:15 +0000
 # ************************************************************
 
 
@@ -475,15 +475,12 @@ CREATE TABLE `snpchip` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `chip_name` varchar(255) NOT NULL,
   `rsnumber` varchar(255) DEFAULT '',
-  `chrom` char(2) NOT NULL,
-  `site` int(11) NOT NULL,
   `snp_name` varchar(255) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `chip_rsnumber_snp` (`chip_name`,`rsnumber`,`snp_name`),
   KEY `snp_name` (`snp_name`),
   KEY `rsnumber` (`rsnumber`),
-  KEY `chip_chrom_site` (`chip_name`,`chrom`,`site`),
-  KEY `chrom_site` (`chrom`,`site`)
+  KEY `chip_chrom_site` (`chip_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

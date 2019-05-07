@@ -22,6 +22,8 @@ class ExternalSNPchimp(utils.PipelineExternalTask):
     """
     External task dependency for SNPchimp data.
 
+    NOTE: We use the rsnumber to anchor the snpchip to the assembly, not the chrom/pos details in the gzip file.
+
     See http://bioinformatics.tecnoparco.org/SNPchimp
 
     :type species: str
@@ -29,8 +31,7 @@ class ExternalSNPchimp(utils.PipelineExternalTask):
     species = luigi.Parameter()
 
     def output(self):
-        # TODO goat is using the wrong assembly, but that might not matter because it has no chrom-pos entries
-        return luigi.LocalTarget('data/snpchip/SNPchimp_{}.tsv.gz'.format(self.assembly))
+        return luigi.LocalTarget('data/snpchip/SNPchimp_{}.tsv.gz'.format(self.species))
 
 
 class DownloadAxiomEquineHD(utils.PipelineTask):
@@ -87,7 +88,7 @@ class LoadSNPChipVariants(utils.PipelineTask):
             LOAD DATA 
          LOCAL INFILE '{pipe}'
            INTO TABLE snpchip 
-               IGNORE 1 LINES (chip_name, rsnumber, chrom, site, snp_name)
+               IGNORE 1 LINES (chip_name, rsnumber, @dummy, @dummy, snp_name)
                   """.format(pipe=pipe))
 
         # tidy up NULL values which get imported as the string 'NULL'
@@ -149,20 +150,14 @@ class LoadAxiomEquineHD(utils.PipelineTask):
         # remove the named pipe
         utils.run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
 
-        # fix the missing chrom/site data
+        # fix the missing rsnumbers
         dbc.execute_sql("""
             UPDATE snpchip sc
               JOIN snpchip_axiom sa
                 ON sa.snp_name = sc.snp_name
-               SET sc.chrom = sa.chrom,
-                   sc.site = sa.site""")
-
-        # fix the missing rsnumbers
-        dbc.execute_sql("""
-            UPDATE snpchip sc
               JOIN ensembl_variants ev
-                ON ev.chrom = sc.chrom
-               AND ev.start = sc.site
+                ON sa.chrom = ev.chrom 
+               AND sa.site = ev.start
                SET sc.rsnumber = ev.rsnumber
              WHERE ev.type = 'SNV'""")
 
@@ -199,9 +194,10 @@ class LinkSNPChipVariants(utils.PipelineTask):
 
         exec_time = dbc.execute_sql("""
             UPDATE modern_snps ms
+              JOIN ensembl_variants ev
+                ON ev.id = ms.variant_id
               JOIN snpchip sc
-                ON sc.chrom = ms.chrom
-               AND sc.site = ms.site
+                ON sc.rsnumber = ev.rsnumber 
                SET ms.snpchip_id = sc.id
              WHERE ms.chrom = '{chrom}'""".format(chrom=self.chrom))
 

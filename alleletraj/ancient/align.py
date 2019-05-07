@@ -14,6 +14,10 @@ from alleletraj.sra import SraToolsFastqDump
 TRIM_MIN_BASEQ = 20
 TRIM_MIN_LENGTH = 25
 
+# BWA-ALN settings
+BWA_ALN_SEED = 1024  # long seed effectively disables seeding
+BWA_ALN_EDIT = 0.03  # small edit distance improves mapping when reads have errors
+
 
 class AdapterRemoval(utils.PipelineTask):
     """
@@ -97,8 +101,8 @@ class BwaAln(utils.PipelineTask):
         sai_out = self.output()
 
         params = {
-            'seed': 1024,  # disable seeding by setting very long length
-            'edit': 0.03,  # maximum edit distance
+            'seed': BWA_ALN_SEED,  # disable seeding by setting very long length
+            'edit': BWA_ALN_EDIT,  # maximum edit distance
             'threads': self.resources['cpu-cores'],
             'reference': ref_file.path,
             'fastq': fastq_file.path,

@@ -32,6 +32,7 @@ class ValidateBamFile(utils.PipelineTask):
     This tool reports on the validity of a BAM file relative to the SAM format specification.
 
     https://software.broadinstitute.org/gatk/documentation/tooldocs/4.1.2.0/picard_sam_ValidateSamFile.php
+    https://software.broadinstitute.org/gatk/documentation/article.php?id=7571
 
     :type species: str
     :type population: str
@@ -122,7 +123,7 @@ class AlignedBAM(utils.PipelineTask):
 
     def requires(self):
         # is there a path defined in the CSV file
-        if 'path' in self.all_populations[self.population][self.sample]:
+        if self.all_populations[self.population][self.sample].get('path') is not None:
             # we need to check that the provided file is valid
             return ValidateBamFile(self.species, self.population, self.sample)
         else:

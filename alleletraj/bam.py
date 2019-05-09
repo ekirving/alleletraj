@@ -52,7 +52,8 @@ class ValidateBamFile(utils.PipelineTask):
 
     def output(self):
         # included the bam and bai files in the output
-        return self.input() + [luigi.LocalTarget('data/bam/{}.{}'.format(self.sample, ext)) for ext in ['log', 'err']]
+        return list(self.input()) + [luigi.LocalTarget('data/bam/{}.{}'.format(self.sample, ext)) for ext in
+                                     ['log', 'err']]
 
     def run(self):
         bam_file, _ = self.input()

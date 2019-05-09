@@ -491,7 +491,7 @@ class ExportAscertainedSNPs(utils.PipelineTask):
         return PerformAscertainment(self.species)
 
     def output(self):
-        return luigi.LocalTarget('data/"tsv/{}.candidate-snps.tsv'.format(self.species))
+        return luigi.LocalTarget('data/tsv/{}.candidate-snps.tsv'.format(self.species))
 
     def run(self):
         dbc = self.db_conn()

@@ -106,7 +106,7 @@ class EasySFS(utils.PipelineTask):
 
         # NOTE easySFS expects the REF allele to be ancestral, rather than using the INFO/AA field
         # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
-        cmd = "echo 'yes' | easySFS.py -a -f -i {vcf} -p {pops} -o sfs/{out} --proj {proj} {fold}".format(**params)
+        cmd = "echo 'yes' | easySFS.py -a -f -i {vcf} -p {pops} -o data/sfs/{out} --proj {proj} {fold}".format(**params)
 
         log = utils.run_cmd([cmd], shell=True)
 

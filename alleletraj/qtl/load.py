@@ -533,8 +533,8 @@ class PopulateNeutralLoci(utils.PipelineTask):
 
         suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
 
-        all_regions = 'data/{}-all_regions-{}.bed'.format(self.species, suffix)
-        non_neutral = 'data/{}-non_neutral-{}.bed'.format(self.species, suffix)
+        all_regions = 'data/bed/{}-all_regions-{}.bed'.format(self.species, suffix)
+        non_neutral = 'data/bed/{}-non_neutral-{}.bed'.format(self.species, suffix)
 
         # write a BED file for the whole genome
         with open(all_regions, 'w') as fout:
@@ -574,7 +574,7 @@ class PopulateNeutralLoci(utils.PipelineTask):
             num_loci += 1
 
         # delete the temp files
-        for tmp in glob.glob("data/*{}*".format(suffix)):
+        for tmp in glob.glob("data/bed/*{}*".format(suffix)):
             os.remove(tmp)
 
         with self.output().open('w') as fout:

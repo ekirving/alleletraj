@@ -43,7 +43,7 @@ class MapDamageRescale(utils.PipelineTask):
             log = utils.run_cmd(['mapDamage',
                                  '-i', bam_in.path,
                                  '-r', ref_file.path,
-                                 '-d', 'mapdamage/{}'.format(self.sample),
+                                 '-d', 'data/mapdamage/{}'.format(self.sample),
                                  '-n', MAPDAMAGE_DOWNSAMPLE,
                                  '--merge-reference-sequences',
                                  '--rescale',

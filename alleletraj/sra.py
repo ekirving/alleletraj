@@ -31,7 +31,7 @@ class SraToolsFastqDump(utils.PipelineTask):
         # use the NCBI SRA toolkit to fetch the fastq files
         utils.run_cmd(['fasterq-dump',
                        '--threads', self.resources['cpu-cores'],
-                       '--outdir', './fastq',
+                       '--outdir', 'data/fastq',
                        self.accession])
 
         # fasterq-dump does not support the old --gzip flag, so we need to do it manually

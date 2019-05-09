@@ -218,7 +218,7 @@ class SelectionPlot(utils.PipelineTask):
         (_, nref_file), _ = self.input()
 
         # compose the input and output file paths
-        input_file = 'selection/{}-{}-{}.input'.format(self.species, self.population, self.modsnp_id)
+        input_file = 'data/selection/{}-{}-{}.input'.format(self.species, self.population, self.modsnp_id)
         output_prefix = utils.trim_ext(self.input()[0].path)
 
         gen_time = GENERATION_TIME[self.species]

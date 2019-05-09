@@ -279,7 +279,8 @@ class LoadAncientSNPs(utils.PipelineTask):
 
                     # bcftools needs the sex specified in a separate file
                     with open(sex_file, 'w') as fout:
-                        fout.write('{}\t{}\n'.format(sample['accession'], sample['sex']))
+                        sex = sample['sex'][0].upper() if sample['sex'] else ''
+                        fout.write('{}\t{}\n'.format(sample['accession'], sex))
 
                     params = {
                         'ref': ref_file.path,

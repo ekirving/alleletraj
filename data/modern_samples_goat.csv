@@ -1,103 +1,103 @@
-﻿Population,Sample,Bioproject,Accessions,Alias,Sex,LibraryLayout,Reference,Path,,,,,,,,,,,,,,,,,,
-AFR,Moroccan1,PRJEB3134,ERR219543,MOCH-T6-0074,male,PAIRED,,ERR219543_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-AFR,Moroccan10,PRJEB3134,ERR229467,MOCH-L14-0418,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan11,PRJEB3134,ERR229473,MOCH-S4-0026,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan12,PRJEB3134,ERR229478,MOCH-R11-0005,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan13,PRJEB3134,ERR229486,MOCH-S11-0188,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan14,PRJEB3134,ERR232496,MOCH-P13-0389,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan15,PRJEB3134,ERR234309,MOCH-L19-1290,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan16,PRJEB3134,ERR234316,MOCH-X9-2235,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan17,PRJEB3134,ERR246148,MOCH-K18-1315,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan18,PRJEB3134,ERR229482,MOCH-Q11-0193,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan19,PRJEB3134,ERR345973,MOCH-R9-0231,male,PAIRED,,,,,,,,,,,,,,,,,,,,
-AFR,Moroccan2,PRJEB3134,ERR234315,MOCH-L18-1280,male,PAIRED,,ERR234315_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-AFR,Moroccan3,PRJEB3134,ERR315500,MOCH-K17-1351,male,PAIRED,,ERR315500_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-AFR,Moroccan4,PRJEB3134,ERR229484,MOCH-Q10-0090,female,PAIRED,,ERR229484_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-AFR,Moroccan5,PRJEB3134,ERR232497,MOCH-T10-0266,female,PAIRED,,ERR232497_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-AFR,Moroccan6,PRJEB3134,ERR246139,MOCH-V8-2274,female,PAIRED,,ERR246139_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-AFR,Moroccan7,PRJEB3134,ERR248932,MOCH-X5-2098,female,PAIRED,,ERR248932_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-AFR,Moroccan8,PRJEB3134,ERR315498,MOCH-P14-1175,female,PAIRED,,ERR315498_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-AFR,Moroccan9,PRJEB3134,ERR340428,MOCH-S6-0065,male,PAIRED,,ERR340428_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-AFR,Togolese,PRJEB26011,ERS2429990,Tog,,PAIRED,,Tog_q30_realigned_dups-removed.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar1,PRJEB3136,ERR340340,IRCA-G2-5063,male,PAIRED,,ERR340340_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar10,PRJEB3136,ERR340426,IRCA-G2-5065,male,PAIRED,,ERR340426_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar2,PRJEB3136,ERR340331,IRCA-I6-5237,male,PAIRED,,ERR340331_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar3,PRJEB3136,ERR340334,IRCA-C3-1001,male,PAIRED,,ERR340334_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar4,PRJEB3136,ERR340336,IRCA-F3-0597,male,PAIRED,,ERR340336_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar5,PRJEB3136,ERR340342,IRCA-F3-0600,male,PAIRED,,ERR340342_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar6,PRJEB3136,ERR340343,IRCA-F2-5064,male,PAIRED,,ERR340343_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar7,PRJEB3136,ERR340344,IRCA-F2-5026,male,PAIRED,,ERR340344_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar8,PRJEB3136,ERR340345,IRCA-F2-5066,male,PAIRED,,ERR340345_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,AzerbaijanBezoar9,PRJEB3136,ERR340347,IRCA-G2-0568,male,PAIRED,,ERR340347_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,HamedanBezoar1,PRJEB3136,ERR340329,IRCA-I11-0002,male,PAIRED,,ERR340329_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,HamedanBezoar2,PRJEB3136,ERR340333,IRCA-I11-0001,male,PAIRED,,ERR340333_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,HamedanBezoar3,PRJEB3136,ERR340335,IRCA-K12-0005,male,PAIRED,,ERR340335_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,HamedanBezoar4,PRJEB3136,ERR340341,IRCA-I11-0003,male,PAIRED,,ERR340341_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,MarkaziBezoar1,PRJEB3136,ERR340348,IRCA-M12-0008,male,PAIRED,,ERR340348_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,QazvinBezoar1,PRJEB3136,ERR470100,IRCA-M7-5041,male,PAIRED,,ERR470100_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,QazvinBezoar2,PRJEB3136,ERR340330,IRCA-N8-0006,male,PAIRED,,ERR340330_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,QazvinBezoar3,PRJEB3136,ERR340328,IRCA-M7-0652,female,PAIRED,,ERR340328_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,QazvinBezoar4,PRJEB3136,ERR340338,IRCA-K7-0009,male,PAIRED,,ERR340338_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,QazvinBezoar5,PRJEB3136,ERR470104,IRCA-N8-5141,male,PAIRED,,ERR470104_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-BEZ,QazvinBezoar6,PRJEB3136,ERR470106,IRCA-M7-5147,male,PAIRED,,ERR470106_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-CHN,Cashmere1,PRJNA338022,SRR4052525,a1-1,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere10,PRJNA338022,SRR4068059,a57-10,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere11,PRJNA338022,SRR4051864,a18-10,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere12,PRJNA338022,SRR4051866,a19-13,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere13,PRJNA338022,SRR4051954,a38-13,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere14,PRJNA338022,SRR4051964,a48-12,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere15,PRJNA338022,SRR4051973,a54-3,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere16,PRJNA338022,SRR4052202,a2-13,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere17,PRJNA338022,SRR4052299,a42-4,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere18,PRJNA338022,SRR4052346,a43-3,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere19,PRJNA338022,SRR4052353,a4-9,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere2,PRJNA338022,SRR4052677,a5-4,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere20,PRJNA338022,SRR4052356,a7-12,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere3,PRJNA338022,SRR4053460,a29-11,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere4,PRJNA338022,SRR4053642,a43-14,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere5,PRJNA338022,SRR4051772,a46-10,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere6,PRJNA338022,SRR4067798,a33-3,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere7,PRJNA338022,SRR4067800,a35-5,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere8,PRJNA338022,SRR4068054,a48-6,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,Cashmere9,PRJNA338022,SRR4068057,a54-13,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-CHN,YunnanBlack,PRJNA158393,SRR488782; SRR488783; SRR488784; SRR488785; SRR488786; SRR488787; SRR488788; SRR488789; SRR488790; SRR488791; SRR488792; SRR488793; SRR488794; SRR488795; SRR488796; SRR488797; SRR488798; SRR488799; SRR488800; SRR488801; SRR488802; SRR488803; SRR488804; SRR488805; SRR488806; SRR488807; SRR488808; SRR488809; SRR488810; SRR488811; SRR488812; SRR488813; SRR488814; SRR488815; SRR488816; SRR488817; SRR488818; SRR488819; SRR488820; SRR488821; SRR488822; SRR488823; SRR488824; ,BGI_Goat,,PAIRED,,,,,,,,,,,,,,,,,,,,
-EUR,French1,PRJEB5900,ERR470103,FRCH-AL-0001,female,PAIRED,,ERR470103_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-EUR,French2,PRJEB5900,ERR470101,FRCH-SA-0001,female,PAIRED,,ERR470101_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-EUR,French3,PRJEB5900,ERR470102,FRCH-SA-0002,female,PAIRED,,ERR470102_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-EUR,French4,PRJEB5900,ERR470105,FRCH-AL-0002,female,PAIRED,,ERR470105_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-EUR,OldIrishGoat,PRJEB26011,ERS2429989,IOG,,PAIRED,,IOG_q30_realigned_dups-removed.bam,,,,,,,,,,,,,,,,,,
-EUR,Italian1,PRJEB5166,ERR405774,ITCH-SA-0001,,PAIRED,,ERR405774_q30_realigned_dups-removed.bam,,,,,,,,,,,,,,,,,,
-EUR,Italian2,PRJEB5166,ERR405775,ITCH-SA-0002,,PAIRED,,ERR405775_q30_realigned_dups-removed.bam,,,,,,,,,,,,,,,,,,
-EUR,Italian3,PRJEB5166,ERR405777,ITCH-SA-0004,,PAIRED,,ERR405777_q30_realigned_dups-removed.bam,,,,,,,,,,,,,,,,,,
-EUR,Italian4,PRJEB5166,ERR405776,ITCH-SA-0003,,PAIRED,,ERR405776_q30_realigned_dups-removed.bam,,,,,,,,,,,,,,,,,,
-EUR,Italian5,PRJEB5166,ERR405778,ITCH-SA-0005,,PAIRED,,ERR405778_q30_realigned_dups-removed.bam,,,,,,,,,,,,,,,,,,
-EUR,Norwegian,PRJEB31857,ERS3357880,TZCH-NRW-0002,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-EUR,Norwegian,PRJEB31858,ERS3357881,TZCH-NRW-0009,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-EUR,Norwegian,PRJEB31859,ERS3357882,TZCH-NRW-0010,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-EUR,Norwegian,PRJEB31860,ERS3357883,TZCH-NRW-0012,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-EUR,Norwegian,PRJEB31861,ERS3357884,TZCH-NRW-0015,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-EUR,Norwegian,PRJEB31862,ERS3357885,TZCH-NRW-0017,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-EUR,Norwegian,PRJEB31863,ERS3357886,TZCH-NRW-0018,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-EUR,Spainish1,PRJNA387635,SRS2230740,SP1,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-EUR,Spainish4,PRJNA387635,SRS2230744,SP4,female,PAIRED,,,,,,,,,,,,,,,,,,,,
-IRN,Iranian1,PRJEB3135,ERR313200,IRCH-C3-5039,female,PAIRED,,ERR313200_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian10,PRJEB3135,ERR313215,IRCH-F5-5133,female,PAIRED,,ERR313215_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian11,PRJEB3135,ERR297229,IRCH-F4-5093,female,PAIRED,,ERR297229_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian12,PRJEB3135,ERR313206,IRCH-G5-5185,male,PAIRED,,ERR313206_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian13,PRJEB3135,ERR299449,IRCH-D6-5189,female,PAIRED,,ERR299449_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian14,PRJEB3135,ERR313197,IRCH-E7-5193,male,PAIRED,,ERR313197_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian15,PRJEB3135,ERR313198,IRCH-C6-5204,female,PAIRED,,ERR313198_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian16,PRJEB3135,ERR313199,IRCH-D7-5132,male,PAIRED,,ERR313199_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian17,PRJEB3135,ERR313202,IRCH-E5-5053,female,PAIRED,,ERR313202_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian18,PRJEB3135,ERR313204,IRCH-F3-5044,female,PAIRED,,ERR313204_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian19,PRJEB3135,ERR313207,IRCH-D5-5240,female,PAIRED,,ERR313207_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian2,PRJEB3135,ERR313209,IRCH-E6-5087,female,PAIRED,,ERR313209_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian20,PRJEB3135,ERR313212,IRCH-B3-5031,female,PAIRED,,ERR313212_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian3,PRJEB3135,ERR313211,IRCH-C5-5206,male,PAIRED,,ERR313211_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian4,PRJEB3135,ERR313213,IRCH-B5-5032,male,PAIRED,,ERR313213_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian5,PRJEB3135,ERR340339,IRCH-C7-5144,male,PAIRED,,ERR340339_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian6,PRJEB3135,ERR299456,IRCH-B4-5209,female,PAIRED,,ERR299456_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian7,PRJEB3135,ERR313210,IRCH-F11-5140,female,PAIRED,,ERR313210_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian8,PRJEB3135,ERR340332,IRCH-G4-5194,female,PAIRED,,ERR340332_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-IRN,Iranian9,PRJEB3135,ERR340337,IRCH-G3-5210,male,PAIRED,,ERR340337_realigned_dups-removed_q30.bam,,,,,,,,,,,,,,,,,,
-OUT,Ovisaries,PRJNA169880,SRR1217905; SRR1217906; SRR1217907; SRR1217908; SRR1217909; SRR1217910; SRR1217911; SRR1217912; SRR1217913; SRR1217914; SRR1217915; SRR1217916; SRR1217917; SRR1217918; SRR1217919; SRR1217920; SRR1217921; SRR1217922; SRR1217923; SRR1217924; SRR1217925; SRR1217926; SRR1217927; SRR1217928; SRR1217929; SRR1217930; SRR1217931; SRR1217932; SRR1217933; SRR1217934; SRR1217935; SRR1217936; SRR1217937; SRR1217938; SRR1217939; SRR1217940; SRR1217941; SRR1217942; SRR1217943; SRR1217944; SRR1217945; SRR1217946; SRR1217947; SRR1217948; SRR1217949; SRR1217950; SRR1217951; SRR1217952; SRR1217953; SRR1217954; SRR1217955; SRR1217956; ,BGI_Ovis_aries,,PAIRED,,,,,,,,,,,,,,,,,,,,
+﻿Population,Sample,Bioproject,Accessions,Breed,Alias,Sex,LibraryLayout,Reference,Path
+AFR,Moroccan1,PRJEB3134,ERR219543,Moroccan village goat,MOCH-T6-0074,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR219543_realigned_dups-removed_q30.bam
+AFR,Moroccan10,PRJEB3134,ERR229467,Moroccan village goat,MOCH-L14-0418,female,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan11,PRJEB3134,ERR229473,Moroccan village goat,MOCH-S4-0026,female,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan12,PRJEB3134,ERR229478,Moroccan village goat,MOCH-R11-0005,female,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan13,PRJEB3134,ERR229486,Moroccan village goat,MOCH-S11-0188,female,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan14,PRJEB3134,ERR232496,Moroccan village goat,MOCH-P13-0389,female,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan15,PRJEB3134,ERR234309,Moroccan village goat,MOCH-L19-1290,female,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan16,PRJEB3134,ERR234316,Moroccan village goat,MOCH-X9-2235,female,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan17,PRJEB3134,ERR246148,Moroccan village goat,MOCH-K18-1315,female,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan18,PRJEB3134,ERR229482,Moroccan village goat,MOCH-Q11-0193,female,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan19,PRJEB3134,ERR345973,Moroccan village goat,MOCH-R9-0231,male,PAIRED,Alberto_et_al_2018,
+AFR,Moroccan2,PRJEB3134,ERR234315,Moroccan village goat,MOCH-L18-1280,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR234315_realigned_dups-removed_q30.bam
+AFR,Moroccan3,PRJEB3134,ERR315500,Moroccan village goat,MOCH-K17-1351,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR315500_realigned_dups-removed_q30.bam
+AFR,Moroccan4,PRJEB3134,ERR229484,Moroccan village goat,MOCH-Q10-0090,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR229484_realigned_dups-removed_q30.bam
+AFR,Moroccan5,PRJEB3134,ERR232497,Moroccan village goat,MOCH-T10-0266,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR232497_realigned_dups-removed_q30.bam
+AFR,Moroccan6,PRJEB3134,ERR246139,Moroccan village goat,MOCH-V8-2274,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR246139_realigned_dups-removed_q30.bam
+AFR,Moroccan7,PRJEB3134,ERR248932,Moroccan village goat,MOCH-X5-2098,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR248932_realigned_dups-removed_q30.bam
+AFR,Moroccan8,PRJEB3134,ERR315498,Moroccan village goat,MOCH-P14-1175,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR315498_realigned_dups-removed_q30.bam
+AFR,Moroccan9,PRJEB3134,ERR340428,Moroccan village goat,MOCH-S6-0065,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340428_realigned_dups-removed_q30.bam
+AFR,Togolese,PRJEB26011,ERS2429990,Togolese village goat,Tog,,PAIRED,Daly_et_al_2018,/home/trinity/inbox/goats/modern/Tog_q30_realigned_dups-removed.bam
+BEZ,AzerbaijanBezoar1,PRJEB3136,ERR340340,Iranian Bezoar,IRCA-G2-5063,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340340_realigned_dups-removed_q30.bam
+BEZ,AzerbaijanBezoar10,PRJEB3136,ERR340426,Iranian Bezoar,IRCA-G2-5065,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340426_realigned_dups-removed_q30.bam
+BEZ,AzerbaijanBezoar2,PRJEB3136,ERR340331,Iranian Bezoar,IRCA-I6-5237,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340331_realigned_dups-removed_q30.bam
+BEZ,AzerbaijanBezoar3,PRJEB3136,ERR340334,Iranian Bezoar,IRCA-C3-1001,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340334_realigned_dups-removed_q30.bam
+BEZ,AzerbaijanBezoar4,PRJEB3136,ERR340336,Iranian Bezoar,IRCA-F3-0597,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340336_realigned_dups-removed_q30.bam
+BEZ,AzerbaijanBezoar5,PRJEB3136,ERR340342,Iranian Bezoar,IRCA-F3-0600,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340342_realigned_dups-removed_q30.bam
+BEZ,AzerbaijanBezoar6,PRJEB3136,ERR340343,Iranian Bezoar,IRCA-F2-5064,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340343_realigned_dups-removed_q30.bam
+BEZ,AzerbaijanBezoar7,PRJEB3136,ERR340344,Iranian Bezoar,IRCA-F2-5026,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340344_realigned_dups-removed_q30.bam
+BEZ,AzerbaijanBezoar8,PRJEB3136,ERR340345,Iranian Bezoar,IRCA-F2-5066,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340345_realigned_dups-removed_q30.bam
+BEZ,AzerbaijanBezoar9,PRJEB3136,ERR340347,Iranian Bezoar,IRCA-G2-0568,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340347_realigned_dups-removed_q30.bam
+BEZ,HamedanBezoar1,PRJEB3136,ERR340329,Iranian Bezoar,IRCA-I11-0002,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340329_realigned_dups-removed_q30.bam
+BEZ,HamedanBezoar2,PRJEB3136,ERR340333,Iranian Bezoar,IRCA-I11-0001,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340333_realigned_dups-removed_q30.bam
+BEZ,HamedanBezoar3,PRJEB3136,ERR340335,Iranian Bezoar,IRCA-K12-0005,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340335_realigned_dups-removed_q30.bam
+BEZ,HamedanBezoar4,PRJEB3136,ERR340341,Iranian Bezoar,IRCA-I11-0003,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340341_realigned_dups-removed_q30.bam
+BEZ,MarkaziBezoar1,PRJEB3136,ERR340348,Iranian Bezoar,IRCA-M12-0008,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340348_realigned_dups-removed_q30.bam
+BEZ,QazvinBezoar1,PRJEB3136,ERR470100,Iranian Bezoar,IRCA-M7-5041,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR470100_realigned_dups-removed_q30.bam
+BEZ,QazvinBezoar2,PRJEB3136,ERR340330,Iranian Bezoar,IRCA-N8-0006,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340330_realigned_dups-removed_q30.bam
+BEZ,QazvinBezoar3,PRJEB3136,ERR340328,Iranian Bezoar,IRCA-M7-0652,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340328_realigned_dups-removed_q30.bam
+BEZ,QazvinBezoar4,PRJEB3136,ERR340338,Iranian Bezoar,IRCA-K7-0009,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340338_realigned_dups-removed_q30.bam
+BEZ,QazvinBezoar5,PRJEB3136,ERR470104,Iranian Bezoar,IRCA-N8-5141,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR470104_realigned_dups-removed_q30.bam
+BEZ,QazvinBezoar6,PRJEB3136,ERR470106,Iranian Bezoar,IRCA-M7-5147,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR470106_realigned_dups-removed_q30.bam
+CHN,Cashmere1,PRJNA338022,SRR4052525,Cashmere goat,a1-1,female,PAIRED,,
+CHN,Cashmere10,PRJNA338022,SRR4068059,Cashmere goat,a57-10,female,PAIRED,,
+CHN,Cashmere11,PRJNA338022,SRR4051864,Cashmere goat,a18-10,female,PAIRED,,
+CHN,Cashmere12,PRJNA338022,SRR4051866,Cashmere goat,a19-13,female,PAIRED,,
+CHN,Cashmere13,PRJNA338022,SRR4051954,Cashmere goat,a38-13,female,PAIRED,,
+CHN,Cashmere14,PRJNA338022,SRR4051964,Cashmere goat,a48-12,female,PAIRED,,
+CHN,Cashmere15,PRJNA338022,SRR4051973,Cashmere goat,a54-3,female,PAIRED,,
+CHN,Cashmere16,PRJNA338022,SRR4052202,Cashmere goat,a2-13,female,PAIRED,,
+CHN,Cashmere17,PRJNA338022,SRR4052299,Cashmere goat,a42-4,female,PAIRED,,
+CHN,Cashmere18,PRJNA338022,SRR4052346,Cashmere goat,a43-3,female,PAIRED,,
+CHN,Cashmere19,PRJNA338022,SRR4052353,Cashmere goat,a4-9,female,PAIRED,,
+CHN,Cashmere2,PRJNA338022,SRR4052677,Cashmere goat,a5-4,female,PAIRED,,
+CHN,Cashmere20,PRJNA338022,SRR4052356,Cashmere goat,a7-12,female,PAIRED,,
+CHN,Cashmere3,PRJNA338022,SRR4053460,Cashmere goat,a29-11,female,PAIRED,,
+CHN,Cashmere4,PRJNA338022,SRR4053642,Cashmere goat,a43-14,female,PAIRED,,
+CHN,Cashmere5,PRJNA338022,SRR4051772,Cashmere goat,a46-10,female,PAIRED,,
+CHN,Cashmere6,PRJNA338022,SRR4067798,Cashmere goat,a33-3,female,PAIRED,,
+CHN,Cashmere7,PRJNA338022,SRR4067800,Cashmere goat,a35-5,female,PAIRED,,
+CHN,Cashmere8,PRJNA338022,SRR4068054,Cashmere goat,a48-6,female,PAIRED,,
+CHN,Cashmere9,PRJNA338022,SRR4068057,Cashmere goat,a54-13,female,PAIRED,,
+CHN,YunnanBlack,PRJNA158393,SRR488782; SRR488783; SRR488784; SRR488785; SRR488786; SRR488787; SRR488788; SRR488789; SRR488790; SRR488791; SRR488792; SRR488793; SRR488794; SRR488795; SRR488796; SRR488797; SRR488798; SRR488799; SRR488800; SRR488801; SRR488802; SRR488803; SRR488804; SRR488805; SRR488806; SRR488807; SRR488808; SRR488809; SRR488810; SRR488811; SRR488812; SRR488813; SRR488814; SRR488815; SRR488816; SRR488817; SRR488818; SRR488819; SRR488820; SRR488821; SRR488822; SRR488823; SRR488824; ,Yunnan Black goat,CHIR1,,PAIRED,,/home/trinity/inbox/goats/modern/CHIR1_dups-removed_merged_realigned_q30.bam
+EUR,French1,PRJEB5900,ERR470103,Alpine goat,FRCH-AL-0001,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR470103_realigned_dups-removed_q30.bam
+EUR,French2,PRJEB5900,ERR470101,Saanen goat,FRCH-SA-0001,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR470101_realigned_dups-removed_q30.bam
+EUR,French3,PRJEB5900,ERR470102,Saanen goat,FRCH-SA-0002,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR470102_realigned_dups-removed_q30.bam
+EUR,French4,PRJEB5900,ERR470105,Alpine goat,FRCH-AL-0002,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR470105_realigned_dups-removed_q30.bam
+EUR,OldIrishGoat,PRJEB26011,ERS2429989,Old Irish goat,IOG,,PAIRED,Daly_et_al_2018,/home/trinity/inbox/goats/modern/IOG_q30_realigned_dups-removed.bam
+EUR,Italian1,PRJEB5166,ERR405774,Italian goat,ITCH-SA-0001,,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR405774_q30_realigned_dups-removed.bam
+EUR,Italian2,PRJEB5166,ERR405775,Italian goat,ITCH-SA-0002,,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR405775_q30_realigned_dups-removed.bam
+EUR,Italian3,PRJEB5166,ERR405777,Italian goat,ITCH-SA-0004,,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR405777_q30_realigned_dups-removed.bam
+EUR,Italian4,PRJEB5166,ERR405776,Italian goat,ITCH-SA-0003,,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR405776_q30_realigned_dups-removed.bam
+EUR,Italian5,PRJEB5166,ERR405778,Italian goat,ITCH-SA-0005,,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR405778_q30_realigned_dups-removed.bam
+EUR,Norwegian,PRJEB31857,ERS3357880,Norwegian goat,TZCH-NRW-0002,female,PAIRED,,
+EUR,Norwegian,PRJEB31858,ERS3357881,Norwegian goat,TZCH-NRW-0009,female,PAIRED,,
+EUR,Norwegian,PRJEB31859,ERS3357882,Norwegian goat,TZCH-NRW-0010,female,PAIRED,,
+EUR,Norwegian,PRJEB31860,ERS3357883,Norwegian goat,TZCH-NRW-0012,female,PAIRED,,
+EUR,Norwegian,PRJEB31861,ERS3357884,Norwegian goat,TZCH-NRW-0015,female,PAIRED,,
+EUR,Norwegian,PRJEB31862,ERS3357885,Norwegian goat,TZCH-NRW-0017,female,PAIRED,,
+EUR,Norwegian,PRJEB31863,ERS3357886,Norwegian goat,TZCH-NRW-0018,female,PAIRED,,
+EUR,Spainish1,PRJNA387635,SRS2230740,Spanish goat,SP1,female,PAIRED,,
+EUR,Spainish4,PRJNA387635,SRS2230744,Spanish goat,SP4,female,PAIRED,,
+IRN,Iranian1,PRJEB3135,ERR313200,Iranian goat,IRCH-C3-5039,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313200_realigned_dups-removed_q30.bam
+IRN,Iranian10,PRJEB3135,ERR313215,Iranian goat,IRCH-F5-5133,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313215_realigned_dups-removed_q30.bam
+IRN,Iranian11,PRJEB3135,ERR297229,Iranian goat,IRCH-F4-5093,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR297229_realigned_dups-removed_q30.bam
+IRN,Iranian12,PRJEB3135,ERR313206,Iranian goat,IRCH-G5-5185,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313206_realigned_dups-removed_q30.bam
+IRN,Iranian13,PRJEB3135,ERR299449,Iranian goat,IRCH-D6-5189,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR299449_realigned_dups-removed_q30.bam
+IRN,Iranian14,PRJEB3135,ERR313197,Iranian goat,IRCH-E7-5193,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313197_realigned_dups-removed_q30.bam
+IRN,Iranian15,PRJEB3135,ERR313198,Iranian goat,IRCH-C6-5204,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313198_realigned_dups-removed_q30.bam
+IRN,Iranian16,PRJEB3135,ERR313199,Iranian goat,IRCH-D7-5132,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313199_realigned_dups-removed_q30.bam
+IRN,Iranian17,PRJEB3135,ERR313202,Iranian goat,IRCH-E5-5053,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313202_realigned_dups-removed_q30.bam
+IRN,Iranian18,PRJEB3135,ERR313204,Iranian goat,IRCH-F3-5044,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313204_realigned_dups-removed_q30.bam
+IRN,Iranian19,PRJEB3135,ERR313207,Iranian goat,IRCH-D5-5240,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313207_realigned_dups-removed_q30.bam
+IRN,Iranian2,PRJEB3135,ERR313209,Iranian goat,IRCH-E6-5087,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313209_realigned_dups-removed_q30.bam
+IRN,Iranian20,PRJEB3135,ERR313212,Iranian goat,IRCH-B3-5031,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313212_realigned_dups-removed_q30.bam
+IRN,Iranian3,PRJEB3135,ERR313211,Iranian goat,IRCH-C5-5206,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313211_realigned_dups-removed_q30.bam
+IRN,Iranian4,PRJEB3135,ERR313213,Iranian goat,IRCH-B5-5032,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313213_realigned_dups-removed_q30.bam
+IRN,Iranian5,PRJEB3135,ERR340339,Iranian goat,IRCH-C7-5144,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340339_realigned_dups-removed_q30.bam
+IRN,Iranian6,PRJEB3135,ERR299456,Iranian goat,IRCH-B4-5209,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR299456_realigned_dups-removed_q30.bam
+IRN,Iranian7,PRJEB3135,ERR313210,Iranian goat,IRCH-F11-5140,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR313210_realigned_dups-removed_q30.bam
+IRN,Iranian8,PRJEB3135,ERR340332,Iranian goat,IRCH-G4-5194,female,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340332_realigned_dups-removed_q30.bam
+IRN,Iranian9,PRJEB3135,ERR340337,Iranian goat,IRCH-G3-5210,male,PAIRED,Alberto_et_al_2018,/home/trinity/inbox/goats/modern/ERR340337_realigned_dups-removed_q30.bam
+OUT,Ovisaries,PRJNA169880,SRR1217905; SRR1217906; SRR1217907; SRR1217908; SRR1217909; SRR1217910; SRR1217911; SRR1217912; SRR1217913; SRR1217914; SRR1217915; SRR1217916; SRR1217917; SRR1217918; SRR1217919; SRR1217920; SRR1217921; SRR1217922; SRR1217923; SRR1217924; SRR1217925; SRR1217926; SRR1217927; SRR1217928; SRR1217929; SRR1217930; SRR1217931; SRR1217932; SRR1217933; SRR1217934; SRR1217935; SRR1217936; SRR1217937; SRR1217938; SRR1217939; SRR1217940; SRR1217941; SRR1217942; SRR1217943; SRR1217944; SRR1217945; SRR1217946; SRR1217947; SRR1217948; SRR1217949; SRR1217950; SRR1217951; SRR1217952; SRR1217953; SRR1217954; SRR1217955; SRR1217956; ,Texel sheep,BGI_Ovis_aries,,PAIRED,Jiang_et_al_2014,/home/trinity/inbox/goats/modern/sheep_ARS1_q20_merged.bam

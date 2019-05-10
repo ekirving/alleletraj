@@ -42,7 +42,7 @@ class ValidateBamFile(utils.PipelineTask):
     population = luigi.Parameter()
     sample = luigi.Parameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 6}
+    resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0

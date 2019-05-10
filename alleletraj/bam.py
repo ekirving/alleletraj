@@ -57,7 +57,7 @@ class ValidateBamFile(utils.PipelineTask):
 
     def run(self):
         bam_file, _ = self.input()
-        log_file, err_file = self.output()
+        _, _, log_file, err_file = self.output()
 
         # validate the BAM file
         with log_file.temporary_path() as log_path:
@@ -121,6 +121,10 @@ class AlignedBAM(utils.PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     sample = luigi.Parameter()
+
+    def complete(self):
+        # this task is complete if our input task is complete
+        return self.requires().complete()
 
     def requires(self):
         # is there a path defined in the CSV file

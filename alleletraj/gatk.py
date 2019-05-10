@@ -69,7 +69,7 @@ class GATKRealignerTargetCreator(utils.PipelineTask):
 
         with itv_file.temporary_path() as itv_path, open(log_file.path, 'w') as log_fout:
             utils.run_cmd(['java', self.java_mem,
-                           '-jar', 'GenomeAnalysisTK.jar',
+                           '-jar', 'jar/GenomeAnalysisTK.jar',
                            '--analysis_type', 'RealignerTargetCreator',
                            '--reference_sequence', ref_file.path,
                            '--input_file', bam_in.path,
@@ -107,7 +107,7 @@ class GATKIndelRealigner(utils.PipelineTask):
 
         with bam_out.temporary_path() as bam_path, open(log_file.path, 'w') as log_fout:
             utils.run_cmd(['java', self.java_mem,
-                           '-jar', 'GenomeAnalysisTK.jar',
+                           '-jar', 'jar/GenomeAnalysisTK.jar',
                            '--analysis_type', 'IndelRealigner',
                            '--reference_sequence', ref_file.path,
                            '--input_file', bam_in.path,

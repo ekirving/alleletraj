@@ -143,7 +143,7 @@ class PicardMarkDuplicates(utils.PipelineTask):
 
         with bam_out.temporary_path() as bam_path:
             utils.run_cmd(['java', self.java_mem,
-                           '-jar', 'picard.jar',
+                           '-jar', 'jar/picard.jar',
                            'MarkDuplicates',
                            'INPUT=' + bam_in.path,
                            'OUTPUT=' + bam_path,

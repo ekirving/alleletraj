@@ -15,6 +15,7 @@ import luigi
 # local modules
 from alleletraj import utils
 from alleletraj.ancient.call import CallAncientGenotypes
+from alleletraj.const import GROUP_BY_SMPL
 from alleletraj.modern.vcf import WholeGenomeSNPsVCF
 
 # minimum genotype call rate
@@ -380,6 +381,47 @@ class PlinkHighGeno(PlinkTask):
                        '--geno',  plink_geno,
                        '--bfile', utils.trim_ext(bed_input.path),
                        '--out',   utils.trim_ext(bed_output.path)])
+
+
+class PlinkBedToFreq(PlinkTask):
+    """
+    Convert a BED file into a minor allele frequency report, needed for input into Treemix.
+
+    :type species: str
+    :type groupby: str
+    """
+    species = luigi.Parameter()
+    groupby = luigi.Parameter()
+
+    def requires(self):
+        return PlinkHighGeno(self.species)
+
+    def output(self):
+        return [luigi.LocalTarget('data/plink/{}.{}'.format(self.basename, ext)) for ext in ['frq.strat.gz', 'log']]
+
+    def run(self):
+        # unpack the inputs/outputs
+        bed_path, bim_path, fam_path, _ = [in_file.path for in_file in self.input()]
+        _, log_file = self.output()
+
+        # to group by samples, we need to reassign them to their own families
+        if self.groupby == GROUP_BY_SMPL:
+            # replace family with sample code
+            fam = utils.run_cmd(["awk '{$1=$2}$0' " + fam_path.path], shell=True)
+
+            # make a new fam file
+            fam_path = utils.insert_suffix(fam_path, GROUP_BY_SMPL)
+            with open(fam_path, 'w') as fout:
+                fout.write(fam)
+
+        utils.run_cmd(['plink',
+                       '--chr-set', self.chrset,
+                       '--freq', 'gz',  # make a gzipped MAF report
+                       '--family',      # group by population
+                       '--bed', bed_path,
+                       '--bim', bim_path,
+                       '--fam', fam_path,
+                       '--out', utils.trim_ext(log_file.path)])
 
 
 if __name__ == '__main__':

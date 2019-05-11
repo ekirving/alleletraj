@@ -6,58 +6,14 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.plink import PlinkTask, PlinkHighGeno
+from alleletraj.const import GROUP_BY_SMPL
+from alleletraj.plink import PlinkBedToFreq
 
 # the maximum number of migration events in Treemix
 TREEMIX_MAX_M = 5
 
 # number of SNPs to group for LD
 TREEMIX_K = 1000
-
-# what level should Treemix group by, pops OR samples
-GROUP_BY_POPS = 'grp-pops'
-GROUP_BY_SMPL = 'grp-smpl'
-
-
-class PlinkBedToFreq(PlinkTask):
-    """
-    Convert a BED file into a minor allele frequency report, needed for input into Treemix.
-
-    :type species: str
-    :type groupby: str
-    """
-    species = luigi.Parameter()
-    groupby = luigi.Parameter()
-
-    def requires(self):
-        return PlinkHighGeno(self.species)
-
-    def output(self):
-        return [luigi.LocalTarget('data/plink/{}.{}'.format(self.basename, ext)) for ext in ['frq.strat.gz', 'log']]
-
-    def run(self):
-        # unpack the inputs/outputs
-        bed_path, bim_path, fam_path, _ = [in_file.path for in_file in self.input()]
-        _, log_file = self.output()
-
-        # to group by samples, we need to reassign them to their own families
-        if self.groupby == GROUP_BY_SMPL:
-            # replace family with sample code
-            fam = utils.run_cmd(["awk '{$1=$2}$0' " + fam_path.path], shell=True)
-
-            # make a new fam file
-            fam_path = utils.insert_suffix(fam_path, GROUP_BY_SMPL)
-            with open(fam_path, 'w') as fout:
-                fout.write(fam)
-
-        utils.run_cmd(['plink',
-                       '--chr-set', self.chrset,
-                       '--freq', 'gz',  # make a gzipped MAF report
-                       '--family',      # group by population
-                       '--bed', bed_path,
-                       '--bim', bim_path,
-                       '--fam', fam_path,
-                       '--out', utils.trim_ext(log_file.path)])
 
 
 class TreemixPlinkFreq(utils.PipelineTask):
@@ -74,7 +30,7 @@ class TreemixPlinkFreq(utils.PipelineTask):
         return PlinkBedToFreq(self.species, self.groupby)
 
     def output(self):
-        return luigi.LocalTarget('treemix/{}.frq.gz'.format(self.basename))
+        return luigi.LocalTarget('data/treemix/{}.frq.gz'.format(self.basename))
 
     def run(self):
         # unpack the inputs/outputs
@@ -105,7 +61,7 @@ class TreemixM(utils.PipelineTask):
         return TreemixPlinkFreq(self.species, self.groupby)
 
     def output(self):
-        return [luigi.LocalTarget('treemix/{}.{}'.format(self.basename, ext)) for ext in ['cov.gz', 'log']]
+        return [luigi.LocalTarget('data/treemix/{}.{}'.format(self.basename, ext)) for ext in ['cov.gz', 'log']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -146,8 +102,8 @@ class TreemixPlotM(utils.PipelineTask):
         return TreemixM(self.species, self.groupby, self.m)
 
     def output(self):
-        yield luigi.LocalTarget('treemix/{}.tips'.format(self.basename))
-        yield luigi.LocalTarget('pdf/treemix/{}.treemix.pdf'.format(self.basename))
+        yield luigi.LocalTarget('data/treemix/{}.tips'.format(self.basename))
+        yield luigi.LocalTarget('data/pdf/treemix/{}.treemix.pdf'.format(self.basename))
 
     def run(self):
         # unpack the inputs/outputs

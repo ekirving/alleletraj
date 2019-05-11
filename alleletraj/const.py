@@ -87,3 +87,7 @@ CPU_CORES_LOW = int(TOTAL_CORES * 0.1)   # 10%
 CPU_CORES_MED = int(TOTAL_CORES * 0.25)  # 25%
 CPU_CORES_HIGH = int(TOTAL_CORES * 0.5)  # 50%
 CPU_CORES_MAX = int(TOTAL_CORES * 0.9)   # 90%
+
+# what level should Treemix group by, pops OR samples
+GROUP_BY_POPS = 'grp-pops'
+GROUP_BY_SMPL = 'grp-smpl'

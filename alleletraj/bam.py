@@ -142,5 +142,19 @@ class AlignedBAM(utils.PipelineTask):
         return self.input()[:2]
 
 
+class ValidateModernBAMs(utils.PipelineWrapperTask):
+    """
+    Wrapper taks to validate all the external BAM files.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        for pop, sample in self.all_samples:
+            if self.all_populations[pop][sample].get('path') is not None:
+                yield ValidateBamFile(self.species, self.population, self.sample)
+
+
 if __name__ == '__main__':
     luigi.run()

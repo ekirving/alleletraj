@@ -6,8 +6,8 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.gatk import GATKIndelRealigner
 from alleletraj.ancient.rescale import MapDamageRescale
+from alleletraj.gatk import GATKIndelRealigner
 
 
 class ExternalBAM(utils.PipelineExternalTask):
@@ -127,13 +127,15 @@ class AlignedBAM(utils.PipelineTask):
         return self.requires().complete()
 
     def requires(self):
-        # is there a path defined in the CSV file
         if self.all_populations[self.population][self.sample].get('path') is not None:
-            # we need to check that the provided file is valid
+            # we need to validate any external BAM files before using them
             return ValidateBamFile(self.species, self.population, self.sample)
         else:
-            # if not, then we need to align our own BAM file
-            return SAMToolsMerge(self.species, self.population, self.sample)
+            if self.ancient and self.species == 'goat':
+                # TODO ancient goat libraries were built from the same PCR reactions, so they need deduping after merge
+                pass
+            else:
+                return SAMToolsMerge(self.species, self.population, self.sample)
 
     def output(self):
         # only pass on the bam and bai files (i.e. trim off any .log and .err files from ValidateBamFile)

@@ -127,7 +127,7 @@ class AlignedBAM(utils.PipelineTask):
         return self.requires().complete()
 
     def requires(self):
-        if self.all_populations[self.population][self.sample].get('path') is not None:
+        if self.all_populations[self.population][self.sample].get('path', '') != '':
             # we need to validate any external BAM files before using them
             return ValidateBamFile(self.species, self.population, self.sample)
         else:
@@ -152,7 +152,7 @@ class ValidateModernBAMs(utils.PipelineWrapperTask):
 
     def requires(self):
         for pop, sample in self.all_samples:
-            if self.all_populations[pop][sample].get('path') is not None:
+            if self.all_populations[pop][sample].get('path', '') != '':
                 yield ValidateBamFile(self.species, pop, sample)
 
 

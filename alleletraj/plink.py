@@ -383,6 +383,51 @@ class PlinkHighGeno(PlinkTask):
                        '--out',   utils.trim_ext(bed_output.path)])
 
 
+class PlinkDistMatrix(PlinkTask):
+    """
+    Compute a distance matrix using IBS
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        return PlinkHighGeno(self.species)
+
+    def output(self):
+        return [luigi.LocalTarget('data/njtree/{}.{}'.format(self.basename, ext)) for ext in ['data', 'mdist']]
+
+    def run(self):
+        # unpack the inputs/outputs
+        bed_file, _, fam_file, _ = self.input()
+        data_file, mdist_file = self.output()
+
+        # TODO what about bootstrapping?
+        # make the distance matrix
+        utils.run_cmd(['plink',
+                       '--chr-set', self.chrset,
+                       '--distance', 'square', '1-ibs',
+                       '--bfile',    utils.trim_ext(bed_file.path),
+                       '--out',      utils.trim_ext(mdist_file.path)])
+
+        # use awk to extract the sample names
+        awk = "awk '{print $2}' " + fam_file.path
+
+        # transpose them into a row
+        head = utils.run_cmd([awk + ' | xargs'], shell=True)
+
+        # use awk to extract the sample and population names
+        awk = "awk '{print $1\"\\t\"$2}' " + fam_file.path
+
+        # add the samples names as a column to the mdist data
+        data = utils.run_cmd([awk + ' | paste - {}'.format(mdist_file.path)], shell=True)
+
+        # save the labeled file
+        with data_file.open('w') as fout:
+            fout.write('Population\tSample\t' + head)
+            fout.write(data)
+
+
 class PlinkBedToFreq(PlinkTask):
     """
     Convert a BED file into a minor allele frequency report, needed for input into Treemix.

@@ -17,6 +17,9 @@ from alleletraj import utils
 from alleletraj.ancient.call import CallAncientGenotypes
 from alleletraj.modern.vcf import WholeGenomeSNPsVCF
 
+# minimum genotype call rate
+PLINK_MIN_GENO = 0.9
+
 
 def plink_extract_sps(input_prefix, bim_file, output_prefix):
     """
@@ -241,6 +244,142 @@ class PlinkMergeBeds(PlinkTask):
         # tidy up all the temporary files
         for tmp in glob.glob('data/plink/*{}*'.format(suffix)):
             os.remove(tmp)
+
+
+class PlinkIndepPairwise(PlinkTask):
+    """
+    Produce a list of SNPs with high discriminating power.
+
+    Filter out sites with low minor allele frequency and high linkage disequilibrium.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        return PlinkMergeBeds(self.species)
+
+    def output(self):
+        return [luigi.LocalTarget('data/plink/{}.prune.{}'.format(self.basename, ext)) for ext in ['in', 'out', 'log']]
+
+    def run(self):
+        # unpack the inputs/outputs
+        bed_input, _, _, _ = self.input()
+        _, _, log_file = self.output()
+
+        # calculate the prune list (prune.in / prune.out)
+        cmd = ['plink',
+               '--chr-set', self.chrset,
+               '--indep-pairwise', 50, 10, 0.5,  # accept R^2 coefficient of up to 0.5
+               '--bfile', utils.trim_ext(bed_input.path),
+               '--out',   utils.trim_ext(bed_input.path)]
+
+        log = utils.run_cmd(cmd)
+
+        # write the log file
+        with log_file.open('w') as fout:
+            fout.write(log)
+
+
+class PlinkPruneBed(PlinkTask):
+    """
+    Prune the merged group BED file using the prune.in list from PlinkIndepPairwise()
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        yield PlinkMergeBeds(self.species)
+        yield PlinkIndepPairwise(self.species)
+
+    def output(self):
+        return [luigi.LocalTarget('data/plink/{}.pruned.{}'.format(self.basename, ext)) for ext
+                in ['bed', 'bim', 'fam', 'log']]
+
+    def run(self):
+        # unpack the inputs/outputs
+        (bed_input, _, _, _), (prune_in, _, _) = self.input()
+        bed_output, _, _, _ = self.output()
+
+        # apply the prune list
+        utils.run_cmd(['plink',
+                       '--chr-set', self.chrset,
+                       '--make-bed',
+                       '--extract', prune_in.path,
+                       '--bfile',   utils.trim_ext(bed_input.path),
+                       '--out',     utils.trim_ext(bed_output.path)])
+
+
+class PlinkExtractPop(PlinkTask):
+    """
+    Extract a single population from a larger BED file
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def requires(self):
+        return PlinkMergeBeds(self.species)
+
+    def output(self):
+        return [luigi.LocalTarget('data/plink/{}.{}'.format(self.basename, ext)) for ext in
+                ['bed', 'bim', 'fam', 'log']]
+
+    def run(self):
+        # unpack the inputs/outputs
+        bed_input, _, _, _ = self.input()
+        bed_output, _, _, _ = self.output()
+
+        pop_list = 'data/plink/{}.poplist'.format(self.basename)
+
+        # write the population IDs to disk so we can filter out any unwanted "families"
+        with open(pop_list, 'w') as fout:
+            fout.write(self.population)
+
+        # apply the prune list
+        utils.run_cmd(['plink',
+                       '--chr-set', self.chrset,
+                       '--make-bed',
+                       '--geno',     '0.999',  # drop sites with no coverage, or rather, where less than 0.1% is missing
+                       '--keep-fam', pop_list,
+                       '--bfile',    utils.trim_ext(bed_input.path),
+                       '--out',      utils.trim_ext(bed_output.path)])
+
+
+class PlinkHighGeno(PlinkTask):
+    """
+    Drop all sites with a genotyping call rate below the given threshold.
+
+    :type species: str
+    :type geno: int
+    """
+    species = luigi.Parameter()
+    geno = luigi.IntParameter(default=PLINK_MIN_GENO)
+
+    def requires(self):
+        return PlinkMergeBeds(self.species)
+
+    def output(self):
+        return [luigi.LocalTarget('data/plink/{}.{}'.format(self.basename, ext)) for ext in
+                ['bed', 'bim', 'fam', 'log']]
+
+    def run(self):
+        # unpack the inputs/outputs
+        bed_input, _, _, _ = self.input()
+        bed_output, _, _, _ = self.output()
+
+        # plink requires the genotyping rate to be expressed as the missing threshold (i.e. 90% = 0.1)
+        plink_geno = 1 - self.geno
+
+        utils.run_cmd(['plink',
+                       '--chr-set', self.chrset,
+                       '--make-bed',
+                       '--geno',  plink_geno,
+                       '--bfile', utils.trim_ext(bed_input.path),
+                       '--out',   utils.trim_ext(bed_output.path)])
 
 
 if __name__ == '__main__':

@@ -2,63 +2,122 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
+import glob
 import os
+import random
+import shutil
 
 # third party modules
+import struct
+
 import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.modern.vcf import BiallelicSNPsVCF
-
-# the species flag for plink telling it how many chromosomes to expect
-PLINK_TAXA = '--dog'
-
-# column delimiter for PED files
-PLINK_COL_DELIM = ' '
-
-# status codes for PED files
-PLINK_UNKNOWN = 0
-PLINK_MISSING_PHENO = -9
-PLINK_MISSING_GENO = 0
-
-# min genotyping rate
-PLINK_MIN_GENO = 90
+from alleletraj.ancient.call import CallAncientGenotypes
+from alleletraj.modern.vcf import WholeGenomeSNPsVCF
 
 
-class PlinkVCFtoBED(utils.PipelineTask):
+def plink_extract_sps(input_prefix, bim_file, output_prefix):
+    """
+    Extracts the positions given by the bim file.
+
+    :param input_prefix:
+    :param bim_file:
+    :param output_prefix:
+    :return:
+    """
+
+    # copy the FAM file
+    shutil.copyfile(input_prefix + '.fam', output_prefix + '.fam')
+
+    # extract the list of sites from the BIM file
+    sites = set()
+
+    # extract the list of sites from the SNP array using the supplied BIM file
+    with open(bim_file, 'r') as infile:
+        for line in infile:
+            # get the chromosome and position of each site
+            chrom, _, _, pos, _, _ = line.split()
+
+            # add the locus to the set
+            sites.add((chrom, pos))
+
+    # open the output files for writing
+    with open(output_prefix + '.bed', 'wb') as bed_fout, open(output_prefix + '.bim', 'w') as bim_fout:
+
+        # initialise the new BED file (see https://www.cog-genomics.org/plink2/formats#bed)
+        bed_fout.write(struct.pack('b', 0x6c))
+        bed_fout.write(struct.pack('b', 0x1b))
+        bed_fout.write(struct.pack('b', 0x01))
+
+        # and the input files for reading
+        with open(input_prefix + '.bim', 'r') as bim_fin:
+
+            for line in bim_fin:
+                # get the chromosome and position of each site
+                chrom, _, _, pos, _, _ = line.split()
+
+                # skip any sites not found in the SNP array
+                if (chrom, pos) not in sites:
+                    continue
+
+                # otherwise add this locus to the output files
+                bim_fout.write(line)
+
+                # TODO read the input BED rather than assume a genotype of b11
+                bed_fout.write(struct.pack('b', 3))
+
+
+class PlinkTask(utils.PipelineTask):
+    """
+    Luigi class for running plink tasks
+
+    see https://www.cog-genomics.org/plink/1.9/index
+    """
+
+    @property
+    def chrset(self):
+        """
+        Tell plink know which chromosomes to expect.
+        """
+        chrset = max([chrom for chrom in self.chromosomes if chrom.isdigit()])
+        for chrom in ['X', 'Y', 'MT']:
+            if chrom not in self.chromosomes:
+                chrset += ' no-{}'.format(chrom.lower())
+
+        return chrset
+
+
+class PlinkVCFtoBED(PlinkTask):
     """
     Convert a VCF to binary plink format (i.e. BED, BIM, FAM)
 
     :type species: str
-    :type chrom: str
     """
     species = luigi.Parameter()
-    chrom = luigi.Parameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 80}  # TODO make this smaller now we're splitting on chrom
+    resources = {'cpu-cores': 1, 'ram-gb': 80}
 
     def requires(self):
-        return BiallelicSNPsVCF(self.species, self.chrom)
+        return WholeGenomeSNPsVCF(self.species)
 
     def output(self):
         return [luigi.LocalTarget('data/plink/{}.{}'.format(self.basename, ext)) for ext in
                 ['bed', 'bim', 'fam', 'log']]
 
     def run(self):
-        # unpack the inputs/outputs
+        # unpack the params
         vcf_file = self.input()
-        bed_file, bim_file, _, log_file = self.output()
+        bed_file, _, _, _ = self.output()
 
         # convert GB into MB
         mem_mb = self.resources['ram-gb'] * 1000
 
-        # setup the base query
         cmd = ['plink',
-               PLINK_TAXA,
+               '--chr-set', self.chrset,
                '--make-bed',
                '--double-id',
-               '--allow-extra-chr',
                '--biallelic-only', 'strict', 'list',
                '--set-missing-var-ids', '@-#',
                '--vcf-require-gt',
@@ -67,40 +126,32 @@ class PlinkVCFtoBED(utils.PipelineTask):
                '--vcf', vcf_file.path,
                '--out', utils.trim_ext(bed_file.path)]
 
-        if self.dataset == 'NHGRI_722g_hq':
-            # drop all filtered sites
-            cmd.append('--vcf-filter')
-
-        # convert the VCF
         utils.run_cmd(cmd)
 
-        # if the VCF had named variants (e.g. rsnumbers) then they will clash with our chrom-pos notation
-        utils.run_cmd(['mv {bim} {bim}.bak'.format(bim=bim_file.path)], shell=True)
-        utils.run_cmd(["awk '{{$2=$1\"-\"$4; print $0}}' {bim}.bak > {bim}".format(bim=bim_file.path)], shell=True)
-        os.remove('{bim}.bak'.format(bim=bim_file.path))
+        # TODO set sex of modern samples (--update-sex) https://www.cog-genomics.org/plink/1.9/data#update_indiv
 
 
-class PlinkExtractSNPs(utils.PipelineTask):
+class PlinkExtractSNPs(PlinkTask):
     """
-    Extract only those SNPs which appear in the reference dataset.
+    Extract only those SNPs which appear in the modern dataset.
 
-    :type dataset: str
+    :type species: str
     :type population: str
     :type sample: str
     """
-    dataset = luigi.Parameter()
+    species = luigi.Parameter()
     population = luigi.Parameter()
     sample = luigi.Parameter()
 
     def requires(self):
-        yield PlinkVCFtoBED(self.dataset)
+        yield PlinkVCFtoBED(self.species)
         yield CallAncientGenotypes(self.population, self.sample)
 
     def output(self):
-        return [luigi.LocalTarget('plink/{}.{}'.format(self.basename, ext)) for ext in ['bed', 'bim', 'fam', 'log']]
+        return [luigi.LocalTarget('data/plink/{}.{}'.format(self.basename, ext)) for ext in
+                ['bed', 'bim', 'fam', 'log']]
 
     def run(self):
-
         # unpack the inputs/outputs
         (_, ref_bim, _, _), (bed_input, _, _, _) = self.input()
         bed_output, _, _, log_file = self.output()
@@ -113,38 +164,29 @@ class PlinkExtractSNPs(utils.PipelineTask):
             log_fout.write('Done!')
 
 
-class PlinkMergeBeds(utils.PipelineTask):
+class PlinkMergeBeds(PlinkTask):
     """
-    Merge multiple BED files into one
+    Merge all the ancient samples into into the modern dataset
 
-    :type dataset: str
+    :type species: str
     """
-    dataset = luigi.Parameter()
+    species = luigi.Parameter()
 
     def requires(self):
+        yield PlinkVCFtoBED(self.species)
 
-        if self.dataset in ['NHGRI_722g', 'NHGRI_722g_hq']:
-            # convert the VCF of modern data
-            yield PlinkVCFtoBED(self.dataset)
-        else:
-            # get the modern reference data
-            yield ModernReferencePanel(self.dataset)
-
-        # and merge it with all the ancient samples
-        for population in ANCIENT_POPS:
-            for sample in ANCIENT_POPS[population]:
-                yield PlinkExtractSNPs(self.dataset, population, sample)
+        for population, sample in self.all_samples:
+            yield PlinkExtractSNPs(self.species, population, sample)
 
     def output(self):
-        return [luigi.LocalTarget('plink/{0}.merged.{1}'.format(self.dataset, ext)) for ext
-                in ['bed', 'bim', 'fam', 'log']]
+        return [luigi.LocalTarget('data/plink/{}.merged.{}'.format(self.basename, ext)) for ext in
+                ['bed', 'bim', 'fam', 'log']]
 
     def run(self):
+        bed_files = []
 
         # generate a unique suffix for temporary files
-        suffix = 'tmp' + str(random.getrandbits(100))
-
-        bed_files = []
+        suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
 
         # compose the list of files to merge
         for inputs in self.input():
@@ -152,32 +194,31 @@ class PlinkMergeBeds(utils.PipelineTask):
 
             for plink_file in inputs:
                 # make a copy of the BED/BIM/FAM files because we'll need to filter them
-                shutil.copyfile(plink_file.path, insert_suffix(plink_file.path, suffix))
+                shutil.copyfile(plink_file.path, utils.insert_suffix(plink_file.path, suffix))
 
-        # use the first input as the named BED file for the merge command
-        bed_snparray = bed_files[0]
+        merge_list = 'data/plink/{}.merged.list'.format(self.basename)
 
-        merge_list = 'plink/{}.merged.list'.format(self.dataset)
+        # plink requires the name of the first bed file to be given in the command
+        bed_first = bed_files[0]
 
-        # save the merge-list
+        # and the rest of the bed files to be listed in a merge file
         with open(merge_list, 'w') as fout:
             fout.write('\n'.join(bed_files[1:]))
 
         # compose the merge command, because we are going to need it twice
         merge = ['plink',
-                 PLINK_TAXA,
+                 '--chr-set', self.chrset,
                  '--make-bed',
-                 '--allow-extra-chr',  # prevent errors with X, MT and unplaced scaffolds
-                 '--bfile', bed_snparray,
+                 '--bfile', bed_first,
                  '--merge-list', merge_list,
-                 '--out', 'plink/{}.merged'.format(self.dataset)]
+                 '--out', 'data/plink/{}.merged'.format(self.basename)]
 
         try:
             # attempt the merge
             utils.run_cmd(merge)
 
         except Exception as e:
-            missnp_file = 'plink/{}.merged-merge.missnp'.format(self.dataset)
+            missnp_file = 'data/plink/{}.merged-merge.missnp'.format(self.basename)
 
             # handle merge errors
             if os.path.isfile(missnp_file):
@@ -185,9 +226,8 @@ class PlinkMergeBeds(utils.PipelineTask):
                 # filter all the BED files, using the missnp file created by the failed merge
                 for bed_file in bed_files:
                     utils.run_cmd(['plink',
-                                   PLINK_TAXA,
+                                   '--chr-set', self.chrset,
                                    '--make-bed',
-                                   '--allow-extra-chr',  # prevent errors with X, MT and unplaced scaffolds
                                    '--exclude', missnp_file,
                                    '--bfile', bed_file,
                                    '--out', bed_file])
@@ -198,24 +238,9 @@ class PlinkMergeBeds(utils.PipelineTask):
             else:
                 raise Exception(e)
 
-        # tidy up all the temporary intermediate files
-        for tmp in glob.glob('./plink/*{}*'.format(suffix)):
+        # tidy up all the temporary files
+        for tmp in glob.glob('data/plink/*{}*'.format(suffix)):
             os.remove(tmp)
-        for tmp in glob.glob('./data/*{}*'.format(suffix)):
-            os.remove(tmp)
-
-
-class MesoMergeBeds(luigi.WrapperTask):
-    """
-    Merge all the meso-dogs datasets
-    """
-
-    def requires(self):
-        for dataset in DATASETS:
-            yield PlinkMergeBeds(dataset)
-
-            # TODO rename populations
-            # TODO merge sex
 
 
 if __name__ == '__main__':

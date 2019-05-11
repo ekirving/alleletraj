@@ -153,7 +153,7 @@ class ValidateModernBAMs(utils.PipelineWrapperTask):
     def requires(self):
         for pop, sample in self.all_samples:
             if self.all_populations[pop][sample].get('path') is not None:
-                yield ValidateBamFile(self.species, self.population, self.sample)
+                yield ValidateBamFile(self.species, pop, sample)
 
 
 if __name__ == '__main__':

@@ -6,10 +6,9 @@ import glob
 import os
 import random
 import shutil
-
-# third party modules
 import struct
 
+# third party modules
 import luigi
 
 # local modules
@@ -18,7 +17,20 @@ from alleletraj.ancient.call import CallAncientGenotypes
 from alleletraj.const import GROUP_BY_SMPL
 from alleletraj.modern.vcf import WholeGenomeSNPsVCF
 
-# minimum genotype call rate
+# PLINK fam file columns (see https://www.cog-genomics.org/plink2/formats#fam)
+PLINK_COL_FID = 0
+PLINK_COL_IID = 1
+PLINK_COL_FATHER = 2
+PLINK_COL_MOTHER = 3
+PLINK_COL_SEX = 4
+PLINK_COL_PHENO = 5
+
+# sex codes for PLINK
+PLINK_SEX_UNKNOWN = 0
+PLINK_SEX_MALE = 1
+PLINK_SEX_FEMALE = 2
+
+# minimum genotyping call rate
 PLINK_MIN_GENO = 0.9
 
 
@@ -101,38 +113,65 @@ class PlinkVCFtoBED(PlinkTask):
     """
     species = luigi.Parameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 80}
+    # resources = {'cpu-cores': 1, 'ram-gb': 80}  # TODO what do we actually need here?
 
     def requires(self):
         return WholeGenomeSNPsVCF(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('data/plink/{}.{}'.format(self.basename, ext)) for ext in
+        return [luigi.LocalTarget('data/plink/{}-modern.{}'.format(self.basename, ext)) for ext in
                 ['bed', 'bim', 'fam', 'log']]
 
     def run(self):
         # unpack the params
         vcf_file = self.input()
-        bed_file, _, _, _ = self.output()
+        bed_file, _, fam_file, _ = self.output()
 
         # convert GB into MB
-        mem_mb = self.resources['ram-gb'] * 1000
+        # mem_mb = self.resources['ram-gb'] * 1000
 
         cmd = ['plink',
                '--chr-set', self.chrset,
                '--make-bed',
                '--double-id',
                '--biallelic-only', 'strict', 'list',
-               '--set-missing-var-ids', '@-#',
+               '--set-missing-var-ids', '@_#',  # NOTE use `CHR_POS` to match how angsd encodes variant IDs
                '--vcf-require-gt',
                '--vcf-half-call', 'missing',
-               '--memory', mem_mb,
+               # '--memory', mem_mb,
                '--vcf', vcf_file.path,
                '--out', utils.trim_ext(bed_file.path)]
 
         utils.run_cmd(cmd)
 
-        # TODO set sex of modern samples (--update-sex) https://www.cog-genomics.org/plink/1.9/data#update_indiv
+        # load the fam file
+        with fam_file.open('r') as fin:
+            fam_data = fin.readlines()
+
+        # get all the sample records, indexed by sample name
+        samples = dict([(sample, self.all_populations[pop][sample]) for pop, sample in self.all_samples])
+
+        # set the correct population and sex codes
+        with fam_file.open('w') as fout:
+            for line in fam_data:
+                fam = line.split()
+
+                sample = fam[PLINK_COL_IID]
+
+                # set the population code
+                fam[PLINK_COL_FID] = samples[sample]['population']
+
+                # set the sex code
+                sex = samples[sample]['sex'][0].upper()
+                if sex == 'M':
+                    fam[PLINK_COL_SEX] = PLINK_SEX_MALE
+                elif sex == 'F':
+                    fam[PLINK_COL_SEX] = PLINK_SEX_FEMALE
+
+                fout.write(' '.join(map(str, fam)) + '\n')
+
+        # remove the .nosex file
+        os.remove('{}.nosex'.format(utils.trim_ext(fam_file.path)))
 
 
 class PlinkExtractSNPs(PlinkTask):

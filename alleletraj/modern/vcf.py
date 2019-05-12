@@ -344,7 +344,7 @@ class WholeGenomeSNPsVCF(utils.PipelineTask):
             yield BiallelicSNPsVCF(self.species, chrom)
 
     def output(self):
-        return luigi.LocalTarget('data/vcf/{}-chrAll-filtered-polar-SNPs.vcf.gz'.format(self.species))
+        return luigi.LocalTarget('data/vcf/{}-chrAll-quant-polar-polar-SNPs.vcf.gz'.format(self.species))
 
     def run(self):
         # get all the vcf files to concatenate

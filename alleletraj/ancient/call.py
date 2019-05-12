@@ -46,7 +46,6 @@ class CallAncientGenotypes(utils.PipelineTask):
         _, _, pos_file, list_file = self.output()
 
         # extract the list of sites from the modern VCF
-        # NOTE using a regions file is ~15x slower, but we only want the sites that overlap with VCF (inc. non-variant)
         utils.run_cmd(['bcftools query -f "%CHROM:%POS-%POS\\n" {} > {}'.format(vcf_file.path, pos_file.path)],
                       shell=True)
 
@@ -55,7 +54,7 @@ class CallAncientGenotypes(utils.PipelineTask):
             for bam_file, _ in bam_files:
                 fout.write(bam_file.path + '\n')
 
-        # call a random allele with angsd
+        # NOTE using a regions file is ~15x slower, but we only want the sites that overlap with VCF (inc. non-variant)
         cmd = ['angsd',
                '-nThreads',    self.resources['cpu-cores'],
                '-out',         utils.trim_ext(pos_file),

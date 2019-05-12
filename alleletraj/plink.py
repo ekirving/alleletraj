@@ -218,7 +218,7 @@ class PlinkMergeBeds(PlinkTask):
     def requires(self):
         yield PlinkVCFtoBED(self.species)
 
-        for pop, sample in self.all_modern_samples:
+        for pop, sample in self.all_ancient_samples:
             yield PlinkExtractSNPs(self.species, pop, sample)
 
     def output(self):

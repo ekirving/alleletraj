@@ -346,7 +346,7 @@ class PipelineTask(luigi.Task):
         """
         Get all the samples from all the populations (including the outgroup)
         """
-        return [(pop, sample) for pop in self.all_ancient_pops for sample in self.all_ancient_pops[pop]]
+        return [(pop, sample) for pop in self.all_ancient_data for sample in self.all_ancient_data[pop]]
 
     @property
     def ancient_samples(self):

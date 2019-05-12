@@ -34,55 +34,16 @@ PLINK_SEX_FEMALE = 2
 PLINK_MIN_GENO = 0.9
 
 
-def plink_extract_sps(input_prefix, bim_file, output_prefix):
+def plink_sex_code(sex):
     """
-    Extracts the positions given by the bim file.
-
-    :param input_prefix:
-    :param bim_file:
-    :param output_prefix:
-    :return:
+    Return the plink sex code for the given string.
     """
-
-    # copy the FAM file
-    shutil.copyfile(input_prefix + '.fam', output_prefix + '.fam')
-
-    # extract the list of sites from the BIM file
-    sites = set()
-
-    # extract the list of sites from the SNP array using the supplied BIM file
-    with open(bim_file, 'r') as infile:
-        for line in infile:
-            # get the chromosome and position of each site
-            chrom, _, _, pos, _, _ = line.split()
-
-            # add the locus to the set
-            sites.add((chrom, pos))
-
-    # open the output files for writing
-    with open(output_prefix + '.bed', 'wb') as bed_fout, open(output_prefix + '.bim', 'w') as bim_fout:
-
-        # initialise the new BED file (see https://www.cog-genomics.org/plink2/formats#bed)
-        bed_fout.write(struct.pack('b', 0x6c))
-        bed_fout.write(struct.pack('b', 0x1b))
-        bed_fout.write(struct.pack('b', 0x01))
-
-        # and the input files for reading
-        with open(input_prefix + '.bim', 'r') as bim_fin:
-
-            for line in bim_fin:
-                # get the chromosome and position of each site
-                chrom, _, _, pos, _, _ = line.split()
-
-                # skip any sites not found in the SNP array
-                if (chrom, pos) not in sites:
-                    continue
-
-                # otherwise add this locus to the output files
-                bim_fout.write(line)
-
-                # TODO read the input BED rather than assume a genotype of b11
-                bed_fout.write(struct.pack('b', 3))
+    if sex.upper().startswith('M'):
+        return PLINK_SEX_MALE
+    elif sex.upper().startswith('F'):
+        return PLINK_SEX_FEMALE
+    else:
+        return PLINK_SEX_UNKNOWN
 
 
 class PlinkTask(utils.PipelineTask):
@@ -107,7 +68,7 @@ class PlinkTask(utils.PipelineTask):
 
 class PlinkVCFtoBED(PlinkTask):
     """
-    Convert a VCF to binary plink format (i.e. BED, BIM, FAM)
+    Convert a VCF to binary plink format (i.e. bed, bim, fam)
 
     :type species: str
     """
@@ -156,17 +117,12 @@ class PlinkVCFtoBED(PlinkTask):
             for line in fam_data:
                 fam = line.split()
 
+                # get the sample code
                 sample = fam[PLINK_COL_IID]
 
-                # set the population code
+                # set the population and sex codes
                 fam[PLINK_COL_FID] = samples[sample]['population']
-
-                # set the sex code
-                sex = samples[sample]['sex'][0].upper()
-                if sex == 'M':
-                    fam[PLINK_COL_SEX] = PLINK_SEX_MALE
-                elif sex == 'F':
-                    fam[PLINK_COL_SEX] = PLINK_SEX_FEMALE
+                fam[PLINK_COL_SEX] = plink_sex_code(samples[sample]['sex'])
 
                 fout.write(' '.join(map(str, fam)) + '\n')
 
@@ -174,37 +130,38 @@ class PlinkVCFtoBED(PlinkTask):
         os.remove('{}.nosex'.format(utils.trim_ext(fam_file.path)))
 
 
-class PlinkExtractSNPs(PlinkTask):
+class PlinkANGSDtoBED(PlinkTask):
     """
-    Extract only those SNPs which appear in the modern dataset.
+    Convert angsd haplotype file (i.e. haplo.gz) to binary plink format (i.e. bed, bim, fam)
 
     :type species: str
-    :type population: str
-    :type sample: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
-    sample = luigi.Parameter()
 
     def requires(self):
-        yield PlinkVCFtoBED(self.species)
-        yield CallAncientGenotypes(self.population, self.sample)
+        return CallAncientGenotypes(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('data/plink/{}.{}'.format(self.basename, ext)) for ext in
-                ['bed', 'bim', 'fam', 'log']]
+        return [luigi.LocalTarget('data/plink/{}-ancient.{}'.format(self.basename, ext)) for ext in
+                ['tped', 'tfam']]
 
     def run(self):
-        # unpack the inputs/outputs
-        (_, ref_bim, _, _), (bed_input, _, _, _) = self.input()
-        bed_output, _, _, log_file = self.output()
+        # unpack the params
+        hap_file, _, _, _ = self.input()
+        _, fam_file = self.output()
 
-        # random call the ancient genotypes
-        plink_extract_sps(utils.trim_ext(bed_input.path), ref_bim.path, utils.trim_ext(bed_output.path))
+        utils.run_cmd(['haploToPlink', hap_file.path, utils.trim_ext(fam_file.path)])
 
-        # write a log file to show this task finished
-        with log_file.open('w') as log_fout:
-            log_fout.write('Done!')
+        # angst converts all the names to ind[0-9]+, so we need to restore the real population and sample codes
+        with fam_file.open('w') as fout:
+            for pop, sample in self.all_ancient_samples:
+                fam = [0 for _ in range(6)]
+                fam[PLINK_COL_FID] = pop
+                fam[PLINK_COL_IID] = sample
+                fam[PLINK_COL_SEX] = plink_sex_code(self.all_ancient_data[pop][sample]['sex'])
+                fam[PLINK_COL_PHENO] = -9
+
+                fout.write(' '.join(map(str, fam)) + '\n')
 
 
 class PlinkMergeBeds(PlinkTask):

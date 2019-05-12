@@ -43,7 +43,7 @@ class SmartPCA(utils.PipelineTask):
 
         # tell smartpca which pops to use for calculating the eigenvectors, and by inference, which to project
         with pop_list.open('w') as fout:
-            fout.write('\n'.join([pop for pop in self.populations if pop not in project]))
+            fout.write('\n'.join([pop for pop in self.modern_pops if pop not in project]))
 
         # compose the config settings for smartpca
         config = [

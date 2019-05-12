@@ -72,12 +72,12 @@ class LoadModernSNPs(utils.PipelineTask):
             num_snps += 1
 
             # resolve the genotypes of the samples in one population at a time
-            for pop in self.populations:
+            for pop in self.modern_pops:
 
                 # lets collate all the haploid observations for the two alleles
                 haploids = []
 
-                for sample in self.populations[pop]:
+                for sample in self.modern_pops[pop]:
                     # get the alleles, but skip any missing genotypes
                     haploids += [alleles for alleles in rec.samples[sample].alleles if alleles is not None]
 

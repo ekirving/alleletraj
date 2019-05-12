@@ -79,7 +79,7 @@ class BCFToolsSamplesFile(utils.PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop, sample in self.all_samples:
+        for pop, sample in self.all_modern_samples:
             yield AlignedBAM(self.species, pop, sample)
 
     def output(self):
@@ -92,13 +92,13 @@ class BCFToolsSamplesFile(utils.PipelineTask):
 
         # bcftools needs the sex specified in a separate file
         with sex_file.open('w') as fout:
-            for pop, sample in self.all_samples:
-                sex = self.all_populations[pop][sample]['sex']
+            for pop, sample in self.all_modern_samples:
+                sex = self.all_modern_data[pop][sample]['sex']
                 fout.write('{}\t{}\n'.format(sample, sex[0].upper() if sex else ''))  # use single letter uppercase
 
         # sample names in the BAM file(s) may not be consistent, so override the @SM code
         with rgs_file.open('w') as fout:
-            for idx, (pop, sample) in enumerate(self.all_samples):
+            for idx, (pop, sample) in enumerate(self.all_modern_samples):
                 fout.write('*\t{}\t{}\n'.format(bam_files[idx].path, sample))
 
 
@@ -117,7 +117,7 @@ class BCFToolsCall(utils.PipelineTask):
         yield ReferencePloidy(self.species)
         yield BCFToolsSamplesFile(self.species)
 
-        for pop, sample in self.all_samples:
+        for pop, sample in self.all_modern_samples:
             yield AlignedBAM(self.species, pop, sample)
 
     def output(self):

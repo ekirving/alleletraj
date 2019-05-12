@@ -149,7 +149,7 @@ class PlinkVCFtoBED(PlinkTask):
             fam_data = fin.readlines()
 
         # get all the sample records, indexed by sample name
-        samples = dict([(sample, self.all_populations[pop][sample]) for pop, sample in self.all_samples])
+        samples = dict([(sample, self.all_modern_data[pop][sample]) for pop, sample in self.all_modern_samples])
 
         # set the correct population and sex codes
         with fam_file.open('w') as fout:
@@ -218,8 +218,8 @@ class PlinkMergeBeds(PlinkTask):
     def requires(self):
         yield PlinkVCFtoBED(self.species)
 
-        for population, sample in self.all_samples:
-            yield PlinkExtractSNPs(self.species, population, sample)
+        for pop, sample in self.all_modern_samples:
+            yield PlinkExtractSNPs(self.species, pop, sample)
 
     def output(self):
         return [luigi.LocalTarget('data/plink/{}.merged.{}'.format(self.basename, ext)) for ext in

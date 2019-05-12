@@ -33,8 +33,8 @@ class CallAncientGenotypes(utils.PipelineTask):
     def requires(self):
         yield WholeGenomeSNPsVCF(self.species)
 
-        for population, sample in self.all_samples:
-            yield AlignedBAM(self.species, population, sample)
+        for pop, sample in self.all_modern_samples:
+            yield AlignedBAM(self.species, pop, sample)
 
     def output(self):
         return [luigi.LocalTarget('data/angsd/{}-ancient.{}'.format(self.basename, ext)) for ext in

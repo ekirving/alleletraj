@@ -176,9 +176,12 @@ class PipelineTask(luigi.Task):
     PrioritisedTask that implements several dynamic attributes
     """
 
-    _all_data = None
+    _all_modern_data = None
     _modern_data = None
     _outgroup = None
+
+    _all_ancient_data = None
+    _ancient_data = None
 
     @property
     def resources(self):
@@ -285,17 +288,24 @@ class PipelineTask(luigi.Task):
         return "-Xmx{}G".format(self.resources['ram-gb'])
 
     @property
-    def all_populations(self):
+    def all_modern_data(self):
         """
         List of the populations for the species
         """
-        if self._all_data is None:
+        if self._all_modern_data is None:
             self._load_modern_data()
 
-        return self._all_data
+        return self._all_modern_data
 
     @property
-    def populations(self):
+    def all_modern_samples(self):
+        """
+        Get all the samples from all the populations (including the outgroup)
+        """
+        return [(pop, sample) for pop in self.all_modern_data for sample in self.all_modern_data[pop]]
+
+    @property
+    def modern_pops(self):
         """
         List of the populations for the species
         """
@@ -305,18 +315,11 @@ class PipelineTask(luigi.Task):
         return self._modern_data
 
     @property
-    def all_samples(self):
-        """
-        Get all the samples from all the populations (including the outgroup)
-        """
-        return [(pop, sample) for pop in self.all_populations for sample in self.all_populations[pop]]
-
-    @property
-    def samples(self):
+    def modern_samples(self):
         """
         List of the modern samples for this population
         """
-        return self.populations[self.population]
+        return self.modern_pops[self.population]
 
     @property
     def outgroup(self):
@@ -328,6 +331,30 @@ class PipelineTask(luigi.Task):
 
         return self._outgroup.keys().pop()
 
+    @property
+    def all_ancient_data(self):
+        """
+        List of the populations for the species
+        """
+        if self._ancient_data is None:
+            self._load_ancient_data()
+
+        return self._all_ancient_data
+
+    @property
+    def all_ancient_samples(self):
+        """
+        Get all the samples from all the populations (including the outgroup)
+        """
+        return [(pop, sample) for pop in self.all_ancient_pops for sample in self.all_ancient_pops[pop]]
+
+    @property
+    def ancient_samples(self):
+        """
+        List of the ancient samples for this population
+        """
+        return self.all_ancient_data[self.population]
+
     def _all_params(self):
         """
         Get all the params as a (name, value) tuple
@@ -338,12 +365,18 @@ class PipelineTask(luigi.Task):
         """
         Initialise the modern data dictionary and outgroup sample
         """
-        self._all_data = load_samples_csv('data/modern_samples_{}.csv'.format(self.species))
-        self._modern_data = dict(self._all_data)
+        self._all_modern_data = load_samples_csv('data/modern_samples_{}.csv'.format(self.species))
+        self._modern_data = dict(self._all_modern_data)
         self._outgroup = self._modern_data.pop('OUT')
 
         # there must be exactly one outgroup
         assert len(self._outgroup) == 1
+
+    def _load_ancient_data(self):
+        """
+        Initialise the ancient data dictionary and outgroup sample
+        """
+        self._all_ancient_data = load_samples_csv('data/ancient_samples_{}.csv'.format(self.species))
 
     def db_conn(self):
         """

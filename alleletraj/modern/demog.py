@@ -88,7 +88,7 @@ class EasySFS(utils.PipelineTask):
         sfs_file, log_file = self.output()
 
         # get all the samples to use (excluding those not explicitly flagged for the SFS calculation)
-        samples = [sample for sample in self.samples if self.samples[sample]['sfs'] == '1']
+        samples = [sample for sample in self.modern_samples if self.modern_samples[sample]['sfs'] == '1']
 
         # make a sample/population file
         pop_file = 'data/sfs/{}.pops'.format(self.basename)
@@ -393,7 +393,7 @@ class DadiPipeline(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop in self.populations:
+        for pop in self.modern_pops:
             yield DadiDemography(self.species, pop)
 
 

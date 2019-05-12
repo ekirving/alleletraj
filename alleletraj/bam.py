@@ -48,7 +48,7 @@ class ValidateBamFile(utils.PipelineTask):
     retry_count = 0
 
     def requires(self):
-        return ExternalBAM(self.all_populations[self.population][self.sample]['path'])
+        return ExternalBAM(self.all_modern_data[self.population][self.sample]['path'])
 
     def output(self):
         # included the bam and bai files in the output
@@ -85,7 +85,7 @@ class SAMToolsMerge(utils.PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
-        for accession in self.all_populations[self.population][self.sample]['accessions']:
+        for accession in self.all_modern_data[self.population][self.sample]['accessions']:
             if self.ancient:
                 yield MapDamageRescale(self.species, self.sample, accession)
             else:
@@ -127,7 +127,7 @@ class AlignedBAM(utils.PipelineTask):
         return self.requires().complete()
 
     def requires(self):
-        if self.all_populations[self.population][self.sample].get('path', '') != '':
+        if self.all_modern_data[self.population][self.sample].get('path', '') != '':
             # we need to validate any external BAM files before using them
             return ValidateBamFile(self.species, self.population, self.sample)
         else:
@@ -151,8 +151,8 @@ class ValidateModernBAMs(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop, sample in self.all_samples:
-            if self.all_populations[pop][sample].get('path', '') != '':
+        for pop, sample in self.all_modern_samples:
+            if self.all_modern_data[pop][sample].get('path', '') != '':
                 yield ValidateBamFile(self.species, pop, sample)
 
 

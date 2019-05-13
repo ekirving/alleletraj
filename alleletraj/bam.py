@@ -59,15 +59,20 @@ class ValidateBamFile(utils.PipelineTask):
         bam_file, _ = self.input()
         _, _, log_file, err_file = self.output()
 
+        # ValidateSamFile is super pedantic and there are many error types we don't really care about
+        ignore = ['IGNORE=' + error for error in
+                  ['MATE_NOT_FOUND', 'INVALID_FLAG_FIRST_OF_PAIR', 'INVALID_FLAG_MATE_UNMAPPED',
+                   'INVALID_FLAG_SECOND_OF_PAIR', 'MISSING_PLATFORM_VALUE']]
+
         # validate the BAM file
         with log_file.temporary_path() as log_path:
             utils.run_cmd(['java', self.java_mem,
                            '-jar', 'jar/picard.jar',
                            'ValidateSamFile',
                            'MODE=SUMMARY',
-                           'IGNORE=MATE_NOT_FOUND',
                            'INPUT=' + bam_file.path,
-                           'OUTPUT=' + err_file.path], stderr=open(log_path, 'w'))
+                           'OUTPUT=' + err_file.path
+                           ] + ignore, stderr=open(log_path, 'w'))
 
 
 class SAMToolsMerge(utils.PipelineTask):

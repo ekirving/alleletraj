@@ -17,18 +17,17 @@ class NeighborJoiningTree(utils.PipelineTask):
     """
     Create a neighbor joining phylogenetic tree from a distance matrix
 
-    :type dataset: str
-    :type treetype: str
+    :type species: str
+    :type tree: str
     """
-    dataset = luigi.Parameter()
-    treetype = luigi.Parameter()
+    species = luigi.Parameter()
+    tree = luigi.Parameter(default=NJTREE_PHYLO)
 
     def requires(self):
-        return PlinkDistMatrix(self.dataset)
+        return PlinkDistMatrix(self.species)
 
     def output(self):
-        yield luigi.LocalTarget('data/njtree/{}.tree'.format(self.basename))
-        yield luigi.LocalTarget('data/pdf/njtree/{}.njtree.pdf'.format(self.basename))
+        return [luigi.LocalTarget('data/njtree/{}.{}'.format(self.basename, ext)) for ext in ['tree', 'pdf']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -38,9 +37,9 @@ class NeighborJoiningTree(utils.PipelineTask):
         with pdf_file.temporary_path() as pdf_path:
             # generate a tree from the labeled data
             utils.run_cmd(['Rscript',
-                           'rscript/plot-phylo-tree.R',
+                           'rscript/plot_njtree.R',
                            data_file.path,
-                           self.treetype,
+                           self.tree,
                            self.outgroup,
                            tree_file.path,
                            pdf_path])

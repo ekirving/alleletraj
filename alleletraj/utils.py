@@ -60,7 +60,8 @@ def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None, verbos
 
             raise RuntimeError(err)
 
-        return out
+        # some commands log progress to stderr
+        return out if out else err
 
 
 def merge_intervals(ranges, capped=True):

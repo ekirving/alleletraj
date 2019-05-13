@@ -13,7 +13,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.ancient.call import CallAncientGenotypes
+from alleletraj.ancient.angsd import CallAncientGenotypes
 from alleletraj.const import GROUP_BY_SMPL
 from alleletraj.modern.vcf import WholeGenomeSNPsVCF
 
@@ -30,8 +30,8 @@ PLINK_SEX_UNKNOWN = 0
 PLINK_SEX_MALE = 1
 PLINK_SEX_FEMALE = 2
 
-# minimum genotyping call rate
-PLINK_MIN_GENO = 0.9
+# minimum genotyping call rate (%)
+PLINK_MIN_GENO = 90
 
 
 def plink_sex_code(sex):
@@ -58,7 +58,7 @@ class PlinkTask(utils.PipelineTask):
         """
         Tell plink know which chromosomes to expect.
         """
-        chrset = max([chrom for chrom in self.chromosomes if chrom.isdigit()])
+        chrset = str(max([int(chrom) for chrom in self.chromosomes if chrom.isdigit()]))
         for chrom in ['X', 'Y', 'MT']:
             if chrom not in self.chromosomes:
                 chrset += ' no-{}'.format(chrom.lower())
@@ -68,7 +68,7 @@ class PlinkTask(utils.PipelineTask):
 
 class PlinkVCFtoBED(PlinkTask):
     """
-    Convert a VCF to binary plink format (i.e. bed, bim, fam)
+    Convert a VCF to binary PLINK binary format (i.e. bed, bim, fam)
 
     :type species: str
     """
@@ -130,9 +130,9 @@ class PlinkVCFtoBED(PlinkTask):
         os.remove('{}.nosex'.format(utils.trim_ext(fam_file.path)))
 
 
-class PlinkANGSDtoBED(PlinkTask):
+class HaploToPlink(PlinkTask):
     """
-    Convert angsd haplotype file (i.e. haplo.gz) to binary plink format (i.e. bed, bim, fam)
+    Convert an angsd haplo.gz file to PLINK transposed text format (tped)
 
     :type species: str
     """
@@ -143,17 +143,17 @@ class PlinkANGSDtoBED(PlinkTask):
 
     def output(self):
         return [luigi.LocalTarget('data/plink/{}-ancient.{}'.format(self.basename, ext)) for ext in
-                ['tped', 'tfam']]
+                ['tped', 'tfam', 'log']]
 
     def run(self):
         # unpack the params
         hap_file, _, _, _ = self.input()
-        _, fam_file = self.output()
+        tped_file, tfam_file, log_file = self.output()
 
-        utils.run_cmd(['haploToPlink', hap_file.path, utils.trim_ext(fam_file.path)])
+        log = utils.run_cmd(['haploToPlink', hap_file.path, utils.trim_ext(tfam_file.path)])
 
         # angst converts all the names to ind[0-9]+, so we need to restore the real population and sample codes
-        with fam_file.open('w') as fout:
+        with tfam_file.open('w') as fout:
             for pop, sample in self.all_ancient_samples:
                 fam = [0 for _ in range(6)]
                 fam[PLINK_COL_FID] = pop
@@ -162,6 +162,42 @@ class PlinkANGSDtoBED(PlinkTask):
                 fam[PLINK_COL_PHENO] = -9
 
                 fout.write(' '.join(map(str, fam)) + '\n')
+
+        with log_file.open('w') as fout:
+            fout.write(log)
+
+
+class PlinkTpedToBed(PlinkTask):
+    """
+    Convert PLINK tped format to binary (bed).
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        return HaploToPlink(self.species)
+
+    def output(self):
+        return [luigi.LocalTarget('data/plink/{}-ancient.{}'.format(self.basename, ext)) for ext in
+                ['bed', 'bim', 'fam', 'log']]
+
+    def run(self):
+        # unpack the params
+        tped_file, tfam_file, _ = self.input()
+        _, _, _, log_file = self.output()
+
+        # NOTE angst encodes missing genotypes as N when 0 is the default in plink
+        cmd = ['plink',
+               '--chr-set', self.chrset,
+               '--make-bed',
+               '--missing-genotype', 'N',
+               '--output-missing-genotype', '0',
+               '--tped', tped_file.path,
+               '--tfam', tfam_file.path,
+               '--out',  utils.trim_ext(log_file.path)]
+
+        utils.run_cmd(cmd)
 
 
 class PlinkMergeBeds(PlinkTask):
@@ -174,12 +210,10 @@ class PlinkMergeBeds(PlinkTask):
 
     def requires(self):
         yield PlinkVCFtoBED(self.species)
-
-        for pop, sample in self.all_ancient_samples:
-            yield PlinkExtractSNPs(self.species, pop, sample)
+        yield PlinkTpedToBed(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('data/plink/{}.merged.{}'.format(self.basename, ext)) for ext in
+        return [luigi.LocalTarget('data/plink/{}-merged.{}'.format(self.basename, ext)) for ext in
                 ['bed', 'bim', 'fam', 'log']]
 
     def run(self):
@@ -196,7 +230,7 @@ class PlinkMergeBeds(PlinkTask):
                 # make a copy of the BED/BIM/FAM files because we'll need to filter them
                 shutil.copyfile(plink_file.path, utils.insert_suffix(plink_file.path, suffix))
 
-        merge_list = 'data/plink/{}.merged.list'.format(self.basename)
+        merge_list = 'data/plink/{}-merged-{}.list'.format(self.basename, suffix)
 
         # plink requires the name of the first bed file to be given in the command
         bed_first = bed_files[0]
@@ -211,14 +245,15 @@ class PlinkMergeBeds(PlinkTask):
                  '--make-bed',
                  '--bfile', bed_first,
                  '--merge-list', merge_list,
-                 '--out', 'data/plink/{}.merged'.format(self.basename)]
+                 '--out', 'data/plink/{}-merged'.format(self.basename)]
 
         try:
             # attempt the merge
             utils.run_cmd(merge)
 
         except Exception as e:
-            missnp_file = 'data/plink/{}.merged-merge.missnp'.format(self.basename)
+            # TODO a nicer solution than simply dumping all polyallelic variants would be to
+            missnp_file = 'data/plink/{}-merged-merge.missnp'.format(self.basename)
 
             # handle merge errors
             if os.path.isfile(missnp_file):
@@ -257,7 +292,7 @@ class PlinkIndepPairwise(PlinkTask):
         return PlinkMergeBeds(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('data/plink/{}.prune.{}'.format(self.basename, ext)) for ext in ['in', 'out', 'log']]
+        return [luigi.LocalTarget('data/plink/{}-prune.{}'.format(self.basename, ext)) for ext in ['in', 'out', 'log']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -291,7 +326,7 @@ class PlinkPruneBed(PlinkTask):
         yield PlinkIndepPairwise(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('data/plink/{}.pruned.{}'.format(self.basename, ext)) for ext
+        return [luigi.LocalTarget('data/plink/{}-pruned.{}'.format(self.basename, ext)) for ext
                 in ['bed', 'bim', 'fam', 'log']]
 
     def run(self):
@@ -369,7 +404,7 @@ class PlinkHighGeno(PlinkTask):
         bed_output, _, _, _ = self.output()
 
         # plink requires the genotyping rate to be expressed as the missing threshold (i.e. 90% = 0.1)
-        plink_geno = 1 - self.geno
+        plink_geno = 1 - (self.geno / 100)
 
         utils.run_cmd(['plink',
                        '--chr-set', self.chrset,

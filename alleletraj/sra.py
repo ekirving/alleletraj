@@ -32,6 +32,7 @@ class SraToolsFastqDump(utils.PipelineTask):
         utils.run_cmd(['fasterq-dump',
                        '--threads', self.resources['cpu-cores'],
                        '--outdir', 'data/fastq',
+                       '--temp', 'data/fastq',
                        self.accession])
 
         # fasterq-dump does not support the old --gzip flag, so we need to do it manually

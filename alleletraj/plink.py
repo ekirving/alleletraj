@@ -31,7 +31,7 @@ PLINK_SEX_MALE = 1
 PLINK_SEX_FEMALE = 2
 
 # minimum genotyping call rate (%)
-PLINK_MIN_GENO = 90
+PLINK_MIN_GENO = 60  # TODO will need to make this smaller to accommodate such a large ratio of ancient to modern
 
 
 def plink_sex_code(sex):
@@ -252,7 +252,7 @@ class PlinkMergeBeds(PlinkTask):
             utils.run_cmd(merge)
 
         except Exception as e:
-            # TODO a nicer solution than simply dumping all polyallelic variants would be to
+            # TODO rather than dumping all polyallelic sites, we could do the merge iteratively per ancient sample
             missnp_file = 'data/plink/{}-merged-merge.missnp'.format(self.basename)
 
             # handle merge errors
@@ -280,9 +280,7 @@ class PlinkMergeBeds(PlinkTask):
 
 class PlinkIndepPairwise(PlinkTask):
     """
-    Produce a list of SNPs with high discriminating power.
-
-    Filter out sites with low minor allele frequency and high linkage disequilibrium.
+    Produce a list of SNPs in LD with each other to remove from downstream analyses.
 
     :type species: str
     """
@@ -292,7 +290,8 @@ class PlinkIndepPairwise(PlinkTask):
         return PlinkMergeBeds(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('data/plink/{}-prune.{}'.format(self.basename, ext)) for ext in ['in', 'out', 'log']]
+        return [luigi.LocalTarget('data/plink/{}-merged-indep.{}'.format(self.basename, ext)) for ext in
+                ['prune.in', 'prune.out', 'log']]
 
     def run(self):
         # unpack the inputs/outputs
@@ -302,15 +301,11 @@ class PlinkIndepPairwise(PlinkTask):
         # calculate the prune list (prune.in / prune.out)
         cmd = ['plink',
                '--chr-set', self.chrset,
-               '--indep-pairwise', 50, 10, 0.5,  # accept R^2 coefficient of up to 0.5
+               '--indep-pairwise', 50, 10, 0.3,  # TODO ADMIXTURE manual (chapter 2.3) suggests R^2 of 0.1
                '--bfile', utils.trim_ext(bed_input.path),
-               '--out',   utils.trim_ext(bed_input.path)]
+               '--out',   utils.trim_ext(log_file.path)]
 
-        log = utils.run_cmd(cmd)
-
-        # write the log file
-        with log_file.open('w') as fout:
-            fout.write(log)
+        utils.run_cmd(cmd)
 
 
 class PlinkPruneBed(PlinkTask):
@@ -326,7 +321,7 @@ class PlinkPruneBed(PlinkTask):
         yield PlinkIndepPairwise(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('data/plink/{}-pruned.{}'.format(self.basename, ext)) for ext
+        return [luigi.LocalTarget('data/plink/{}-merged-pruned.{}'.format(self.basename, ext)) for ext
                 in ['bed', 'bim', 'fam', 'log']]
 
     def run(self):
@@ -375,7 +370,7 @@ class PlinkExtractPop(PlinkTask):
         utils.run_cmd(['plink',
                        '--chr-set', self.chrset,
                        '--make-bed',
-                       '--geno',     '0.999',  # drop sites with no coverage, or rather, where less than 0.1% is missing
+                       '--geno',     '0.9999',  # drop sites with no coverage (i.e. less than 0.01% missing)
                        '--keep-fam', pop_list,
                        '--bfile',    utils.trim_ext(bed_input.path),
                        '--out',      utils.trim_ext(bed_output.path)])
@@ -404,7 +399,7 @@ class PlinkHighGeno(PlinkTask):
         bed_output, _, _, _ = self.output()
 
         # plink requires the genotyping rate to be expressed as the missing threshold (i.e. 90% = 0.1)
-        plink_geno = 1 - (self.geno / 100)
+        plink_geno = 1 - (self.geno / 100.0)
 
         utils.run_cmd(['plink',
                        '--chr-set', self.chrset,

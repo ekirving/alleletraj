@@ -9,6 +9,18 @@ from alleletraj import utils
 from alleletraj.ancient.rescale import MapDamageRescale
 from alleletraj.gatk import GATKIndelRealigner
 
+# ignore these inconsequential errors when running ValidateSamFile
+VALIDATE_BAM_IGNORE = [
+    'MISSING_PLATFORM_VALUE',         # The read group is missing its PL (platform unit) field
+    'MATE_NOT_FOUND',                 # Read is marked as paired, but its pair was not found
+    'INVALID_FLAG_FIRST_OF_PAIR',     # First of pair flag set for unpaired read
+    'INVALID_FLAG_MATE_UNMAPPED',     # Mate unmapped flag is incorrectly set
+    'INVALID_FLAG_SECOND_OF_PAIR',    # Second of pair flag set for unpaired read
+    'INVALID_MATE_REF_INDEX',         # Mate reference index (MRNM) set for unpaired read
+    'MISMATCH_MATE_ALIGNMENT_START',  # Mate alignment does not match alignment start of mate
+    'MISMATCH_MATE_CIGAR_STRING',     # The mate cigar tag does not match its mate's cigar string
+]
+
 
 class ExternalBAM(utils.PipelineExternalTask):
     """
@@ -60,9 +72,7 @@ class ValidateBamFile(utils.PipelineTask):
         _, _, log_file, err_file = self.output()
 
         # ValidateSamFile is super pedantic and there are many error types we don't really care about
-        ignore = ['IGNORE=' + error for error in
-                  ['MATE_NOT_FOUND', 'INVALID_FLAG_FIRST_OF_PAIR', 'INVALID_FLAG_MATE_UNMAPPED',
-                   'INVALID_FLAG_SECOND_OF_PAIR', 'MISSING_PLATFORM_VALUE']]
+        ignore = ['IGNORE=' + error for error in VALIDATE_BAM_IGNORE]
 
         # validate the BAM file
         with log_file.temporary_path() as log_path:

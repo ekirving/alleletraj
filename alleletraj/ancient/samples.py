@@ -486,8 +486,8 @@ class CreateSampleBins(utils.PipelineTask):
 
         # get the maximum date
         max_age = dbc.get_records_sql("""
-                    SELECT MAX(age_int) max_age
-                      FROM samples
+                    SELECT MAX(a.age_int) max_age
+                      FROM ancient a
                        """, key=None)[0].pop('max_age')
 
         # round to nearest multiple of BIN_WIDTH
@@ -534,13 +534,13 @@ class BinSamples(utils.PipelineTask):
 
         # reset sample bins
         dbc.execute_sql("""
-            UPDATE samples
-              SET bin_id = NULL""")
+            UPDATE ancient a
+               SET a.bin_id = NULL""")
 
         # assign sample bins
         dbc.execute_sql("""
             UPDATE ancient a
-              JOIN ancient_bins AS sb
+              JOIN ancient_bins ab
                 ON a.age_int BETWEEN ab.upper AND ab.lower
                SET a.bin_id = ab.id""")
 

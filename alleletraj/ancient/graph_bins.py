@@ -40,8 +40,8 @@ with open("data/tsv/all-bins.tsv", "wb") as tsv_file:
                       SELECT a.accession,
                             ad.map_prcnt,
                              CASE
-                                 WHEN COALESCE(a.gmm_status, a.status) LIKE '%wild%'     THEN 'Wild'
-                                 WHEN COALESCE(a.gmm_status, a.status) LIKE '%domestic%' THEN 'Domestic'
+                                 WHEN COALESCE(a.gmm_status, a.population) LIKE '%wild%'     THEN 'Wild'
+                                 WHEN COALESCE(a.gmm_status, a.population) LIKE '%domestic%' THEN 'Domestic'
                                  WHEN SUBSTR(`group`, 3, 1) = 'W' THEN 'Wild'
                                  WHEN SUBSTR(`group`, 3, 1) = 'D' THEN 'Domestic'
                                  WHEN haplogroup = 'Y1' THEN 'Domestic'

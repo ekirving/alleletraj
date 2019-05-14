@@ -25,11 +25,11 @@ def generate_mc1r_snp_input(species, population):
                        ELSE 0 
                    END) AS derived_count,
                count(a.id)*2 AS sample_size,
-               -CAST(SUBSTRING_INDEX(ab.bin, ' - ',  1) AS SIGNED INTEGER) AS bin_high,
-               -CAST(SUBSTRING_INDEX(ab.bin, ' - ', -1) AS SIGNED INTEGER) - 1 AS bin_low
+               -CAST(SUBSTRING_INDEX(ab.name, ' - ',  1) AS SIGNED INTEGER) AS bin_high,
+               -CAST(SUBSTRING_INDEX(ab.name, ' - ', -1) AS SIGNED INTEGER) - 1 AS bin_low
           FROM ancient a
           JOIN ancient_bins ab
-            ON ab.ancient_id = a.id
+            ON a.ancient_id = ab.id
           WHERE a.valid = 1 
             AND a.population IN ('Domestic')  # TODO fix me
             AND a.mc1r_snp IS NOT NULL 

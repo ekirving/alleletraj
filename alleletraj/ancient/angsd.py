@@ -46,7 +46,7 @@ class CallAncientGenotypes(utils.PipelineTask):
         _, _, pos_file, list_file = self.output()
 
         # extract the list of sites from the modern VCF
-        utils.run_cmd(['bcftools query -f "%CHROM:%POS-%POS\\n" {} > {}'.format(vcf_file.path, pos_file.path)],
+        utils.run_cmd(['bcftools query --format "%CHROM:%POS-%POS\\n" {} > {}'.format(vcf_file.path, pos_file.path)],
                       shell=True)
 
         # make a list of all the BAM files

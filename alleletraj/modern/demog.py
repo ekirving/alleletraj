@@ -310,7 +310,7 @@ class CountCallableSites(utils.PipelineTask):
 
         # count all unique sites
         for vcf_file in self.input():
-            size = utils.run_cmd(["bcftools query -f '%CHROM %POS\\n' {} | uniq | wc -l"
+            size = utils.run_cmd(["bcftools query --format '%CHROM %POS\\n' {} | uniq | wc -l"
                                  .format(vcf_file.path)], shell=True)
             total += int(size)
 

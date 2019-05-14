@@ -45,7 +45,7 @@ class BwaIndexBWTSW(utils.PipelineTask):
 
     def output(self):
         ref_file, _ = self.input()
-        return [luigi.LocalTarget('data/{}.{}'.format(ref_file.path, ext)) for ext in
+        return [luigi.LocalTarget('data/ensembl/{}.{}'.format(ref_file.path, ext)) for ext in
                 ['amb', 'ann', 'bwt', 'pac', 'sa']]
 
     def run(self):

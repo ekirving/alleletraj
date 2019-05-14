@@ -8,7 +8,6 @@ import luigi
 from alleletraj import utils
 from alleletraj.ancient.graphs import GraphsPipeline
 from alleletraj.ancient.samples import AncientSamplesPipeline
-from alleletraj.ancient.selection import SelectionBestQTLSNPs
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.ascertain import AscertainmentPipeline
 from alleletraj.db.load import CreateDatabase

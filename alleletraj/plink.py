@@ -6,7 +6,6 @@ import glob
 import os
 import random
 import shutil
-import struct
 
 # third party modules
 import luigi

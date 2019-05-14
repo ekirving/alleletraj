@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
-import itertools
 from collections import Counter
 
 # third party modules

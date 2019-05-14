@@ -21,12 +21,12 @@ class DeduplicatedBAM(utils.PipelineTask):
     We use different trimming, alignment and deduplication methods depending on ancient/modern status of sample.
 
     :type species: str
-    :type population: str
     :type sample: str
+    :type accession: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     sample = luigi.Parameter()
+    accession = luigi.Parameter()
 
     def requires(self):
         if self.ancient:

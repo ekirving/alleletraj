@@ -115,8 +115,8 @@ class LoadAncientSNPs(utils.PipelineTask):
         # get all the samples and their BAM files
         samples = dbc.get_records_sql("""
             SELECT s.*, GROUP_CONCAT(sf.path) paths
-             FROM samples s
-             JOIN sample_files sf
+             FROM ancient_samples s
+             JOIN ancient_sample_files sf
                ON sf.sample_id = s.id
             WHERE s.valid = 1
          GROUP BY s.id""")
@@ -336,7 +336,7 @@ class LoadAncientSNPs(utils.PipelineTask):
                                     'base': allele
                                 }
 
-                                dbc.save_record('sample_reads', read)
+                                dbc.save_record('ancient_sample_reads', read)
 
                     # delete the temp files
                     for tmp in glob.glob("data/vcf/*{}*".format(suffix)):
@@ -360,7 +360,7 @@ class LoadAncientSNPs(utils.PipelineTask):
 
                 # bulk insert all the reads for this sample
                 if randcall:
-                    dbc.save_records('sample_reads', fields, randcall)
+                    dbc.save_records('ancient_sample_reads', fields, randcall)
 
             log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end))
 

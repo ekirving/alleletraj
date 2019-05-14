@@ -27,8 +27,8 @@ def generate_mc1r_snp_input(species, population):
                count(s.id)*2 AS sample_size,
                -CAST(SUBSTRING_INDEX(sb.bin, ' - ',  1) AS SIGNED INTEGER) AS bin_high,
                -CAST(SUBSTRING_INDEX(sb.bin, ' - ', -1) AS SIGNED INTEGER) - 1 AS bin_low
-          FROM samples s
-          JOIN sample_bins sb
+          FROM ancient_samples s
+          JOIN ancient_sample_bins sb
             ON sb.sample_id = s.id
           WHERE s.valid = 1 
             AND s.population IN ('Domestic')  # TODO fix me

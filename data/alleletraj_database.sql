@@ -6,8 +6,8 @@
 # https://github.com/sequelpro/sequelpro
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
-# Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-05-07 12:17:15 +0000
+# Database: alleletraj_pig_sscrofa10.2_rel37
+# Generation Time: 2019-05-14 13:57:38 +0000
 # ************************************************************
 
 
@@ -301,10 +301,10 @@ CREATE TABLE `qtls` (
 
 
 
-# Dump of table sample_bins
+# Dump of table ancient_sample_bins
 # ------------------------------------------------------------
 
-CREATE TABLE `sample_bins` (
+CREATE TABLE `ancient_sample_bins` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `lower` int(11) NOT NULL,
@@ -315,10 +315,10 @@ CREATE TABLE `sample_bins` (
 
 
 
-# Dump of table sample_dates
+# Dump of table ancient_sample_dates
 # ------------------------------------------------------------
 
-CREATE TABLE `sample_dates` (
+CREATE TABLE `ancient_sample_dates` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `age` varchar(255) DEFAULT '',
   `confident` varchar(100) DEFAULT '',
@@ -331,10 +331,10 @@ CREATE TABLE `sample_dates` (
 
 
 
-# Dump of table sample_dates_c14
+# Dump of table ancient_sample_dates_c14
 # ------------------------------------------------------------
 
-CREATE TABLE `sample_dates_c14` (
+CREATE TABLE `ancient_sample_dates_c14` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `accession` varchar(255) DEFAULT '',
   `confident` varchar(100) DEFAULT '',
@@ -347,10 +347,10 @@ CREATE TABLE `sample_dates_c14` (
 
 
 
-# Dump of table sample_files
+# Dump of table ancient_sample_files
 # ------------------------------------------------------------
 
-CREATE TABLE `sample_files` (
+CREATE TABLE `ancient_sample_files` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `sample_id` int(11) unsigned DEFAULT NULL,
   `path` varchar(255) DEFAULT NULL,
@@ -360,10 +360,10 @@ CREATE TABLE `sample_files` (
 
 
 
-# Dump of table sample_quality
+# Dump of table ancient_sample_quality
 # ------------------------------------------------------------
 
-CREATE TABLE `sample_quality` (
+CREATE TABLE `ancient_sample_quality` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `accession` varchar(255) DEFAULT NULL,
   `mapped_reads` int(11) DEFAULT NULL,
@@ -386,10 +386,10 @@ CREATE TABLE `sample_quality` (
 
 
 
-# Dump of table sample_reads
+# Dump of table ancient_sample_reads
 # ------------------------------------------------------------
 
-CREATE TABLE `sample_reads` (
+CREATE TABLE `ancient_sample_reads` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `sample_id` int(11) unsigned NOT NULL,
   `chrom` varchar(2) NOT NULL,
@@ -441,10 +441,10 @@ CREATE TABLE `sample_reads` (
 
 
 
-# Dump of table samples
+# Dump of table ancient_samples
 # ------------------------------------------------------------
 
-CREATE TABLE `samples` (
+CREATE TABLE `ancient_samples` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `accession` varchar(255) NOT NULL,
   `population` varchar(255) NOT NULL,

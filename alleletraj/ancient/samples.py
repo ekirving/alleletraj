@@ -223,8 +223,8 @@ class PopulatePigSamples(utils.PipelineTask):
                 bam_file['sample_id'] = sample['id']
                 bam_file['path'] = path
 
-                if not dbc.exists_record('sample_files', bam_file):
-                    dbc.save_record('sample_files', bam_file)
+                if not dbc.exists_record('ancient_sample_files', bam_file):
+                    dbc.save_record('ancient_sample_files', bam_file)
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
@@ -255,11 +255,11 @@ class SyncRadiocarbonDates(utils.PipelineTask):
         # fetch all the manual age mappings
         records = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
 
-        # update the `sample_dates` table
+        # update the `ancient_sample_dates` table
         for record in records:
             if record['accession'] is not None:
                 record['confident'] = 'Yes'
-                dbc.save_record('sample_dates_c14', record)
+                dbc.save_record('ancient_sample_dates_c14', record)
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
@@ -290,16 +290,16 @@ class ConfirmAgeMapping(utils.PipelineTask):
         # fetch all the manual age mappings
         records = fetch_google_sheet(sheet['id'], sheet['tabs'], sheet['cols'])
 
-        # update the `sample_dates` table
+        # update the `ancient_sample_dates` table
         for record in records:
             if record['age'] is not None:
-                dbc.save_record('sample_dates', record)
+                dbc.save_record('ancient_sample_dates', record)
 
         # check if any samples have an age which is unmapped
         missing = dbc.get_records_sql("""
             SELECT DISTINCT s.age
-              FROM samples s
-         LEFT JOIN sample_dates sd
+              FROM ancient_samples s
+         LEFT JOIN ancient_sample_dates sd
                 ON s.age = sd.age
              WHERE s.age IS NOT NULL
                AND sd.id IS NULL
@@ -337,7 +337,7 @@ class ConfirmCountryMapping(utils.PipelineTask):
 
         missing = dbc.get_records_sql("""
             SELECT DISTINCT s.country
-              FROM samples s
+              FROM ancient_samples s
              WHERE s.country NOT IN ('{world}')
                """.format(world=world), key=None)
 
@@ -378,8 +378,8 @@ class MarkValidPigs(utils.PipelineTask):
         europe = "','".join(EUROPE)
 
         exec_time = dbc.execute_sql("""
-            UPDATE samples s
-         LEFT JOIN sample_files sf
+            UPDATE ancient_samples s
+         LEFT JOIN ancient_sample_files sf
                 ON sf.sample_id = s.id
                SET s.valid = 1
              WHERE s.country IN ('{europe}')
@@ -439,8 +439,8 @@ class PopulateHorseSamples(utils.PipelineTask):
             bam_file['sample_id'] = sample['id']
             bam_file['path'] = ANCIENT_PATH + os.path.basename(path)
 
-            if not dbc.exists_record('sample_files', bam_file):
-                dbc.save_record('sample_files', bam_file)
+            if not dbc.exists_record('ancient_sample_files', bam_file):
+                dbc.save_record('ancient_sample_files', bam_file)
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
@@ -481,8 +481,8 @@ class CreateSampleBins(utils.PipelineTask):
 
         start = time()
 
-        # sample_bins
-        dbc.execute_sql("TRUNCATE TABLE sample_bins")
+        # ancient_sample_bins
+        dbc.execute_sql("TRUNCATE TABLE ancient_sample_bins")
 
         # get the maximum date
         max_age = dbc.get_records_sql("""
@@ -504,7 +504,7 @@ class CreateSampleBins(utils.PipelineTask):
             }
 
             # get all the samples which overlap this bin by >= BIN_OVERLAP
-            dbc.save_record('sample_bins', sample_bin)
+            dbc.save_record('ancient_sample_bins', sample_bin)
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
@@ -539,22 +539,22 @@ class BinSamples(utils.PipelineTask):
 
         # assign sample bins
         dbc.execute_sql("""
-            UPDATE samples s
-              JOIN sample_bins AS sb
+            UPDATE ancient_samples s
+              JOIN ancient_sample_bins AS sb
                 ON s.age_int BETWEEN sb.upper AND sb.lower
                SET s.bin_id = sb.id""")
 
         # reset sample counts
         dbc.execute_sql("""
-            UPDATE sample_bins
+            UPDATE ancient_sample_bins
               SET num_samples = NULL""")
 
         # update the the sample count for the bins
         dbc.execute_sql("""
-            UPDATE sample_bins sb
+            UPDATE ancient_sample_bins sb
               JOIN (  SELECT sb.id, COUNT(*) AS cnt
-                        FROM samples s
-                        JOIN sample_bins sb
+                        FROM ancient_samples s
+                        JOIN ancient_sample_bins sb
                           ON sb.id = s.bin_id
                     GROUP BY sb.id
                    ) AS num

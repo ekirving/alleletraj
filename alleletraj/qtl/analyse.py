@@ -61,7 +61,7 @@ class CountSNPCoverage(utils.PipelineTask):
                           ON qs.qtl_id = q.id
                         JOIN modern_snps ms
                           ON ms.id = qs.modsnp_id
-                        JOIN sample_reads sr
+                        JOIN ancient_sample_reads sr
                           ON sr.chrom = ms.chrom
                          AND sr.site = ms.site
                        WHERE q.chrom = '{chrom}'
@@ -189,7 +189,7 @@ class CalculateSummaryStats(utils.PipelineTask):
                               ON qs.qtl_id = q.id
                             JOIN modern_snps ms
                               ON ms.id = qs.modsnp_id
-                            JOIN sample_reads sr
+                            JOIN ancient_sample_reads sr
                               ON sr.chrom = ms.chrom
                              AND sr.site = ms.site
                            WHERE q.chrom = '{chrom}'

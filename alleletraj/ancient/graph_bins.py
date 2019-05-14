@@ -51,10 +51,10 @@ with open("data/tsv/all-bins.tsv", "wb") as tsv_file:
                              COALESCE(c14.confident, sd.confident) confident,
                              COALESCE(c14.lower, sd.lower, sd.median + {uncert}) lower,
                              COALESCE(c14.upper, sd.upper, sd.median - {uncert}) upper
-                        FROM samples s
-                   LEFT JOIN sample_dates sd
+                        FROM ancient_samples s
+                   LEFT JOIN ancient_sample_dates sd
                           ON s.age = sd.age
-                   LEFT JOIN sample_dates_c14 c14
+                   LEFT JOIN ancient_sample_dates_c14 c14
                           ON c14.accession = s.accession
                        WHERE s.valid = 1
     

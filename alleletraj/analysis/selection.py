@@ -95,10 +95,10 @@ class SelectionInputFile(utils.PipelineTask):
                    -(age - (age % 500) + 500) / (2 * {pop_size} * {gen_time}) AS bin_high,
                    -(age - (age % 500) + 1) / (2 * {pop_size} * {gen_time}) AS bin_low
               FROM modern_snps ms
-              JOIN sample_reads sr
+              JOIN ancient_sample_reads sr
                 ON sr.chrom = ms.chrom
                AND sr.site = ms.site
-              JOIN samples s
+              JOIN ancient_samples s
                 ON s.id = sr.sample_id
              WHERE ms.id = {modsnp_id}
                AND s.age IS NOT NULL

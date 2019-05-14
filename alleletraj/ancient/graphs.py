@@ -50,14 +50,14 @@ class GraphDerivedVersusAge(utils.PipelineTask):
                  ON q.id = qs.qtl_id
                JOIN modern_snps ms
                  ON ms.id = qs.modsnp_id
-               JOIN sample_reads sr
+               JOIN ancient_sample_reads sr
                  ON sr.chrom = ms.chrom
                 AND sr.site = ms.site
-               JOIN samples s
+               JOIN ancient_samples s
                  ON s.id = sr.sample_id
-          LEFT JOIN sample_dates sd
+          LEFT JOIN ancient_sample_dates sd
                  ON s.age = sd.age
-          LEFT JOIN sample_dates_c14 c14
+          LEFT JOIN ancient_sample_dates_c14 c14
                  ON c14.accession = s.accession
             HAVING median IS NOT NULL""".format(median=median), key=None)
 
@@ -94,14 +94,14 @@ class GraphDerivedVersusAge(utils.PipelineTask):
                  ON t.id = q.trait_id
                JOIN modern_snps ms
                  ON ms.id = qs.modsnp_id
-               JOIN sample_reads sr
+               JOIN ancient_sample_reads sr
                  ON sr.chrom = ms.chrom
                 AND sr.site = ms.site
-               JOIN samples s
+               JOIN ancient_samples s
                  ON s.id = sr.sample_id
-          LEFT JOIN sample_dates sd
+          LEFT JOIN ancient_sample_dates sd
                  ON s.age = sd.age
-          LEFT JOIN sample_dates_c14 c14
+          LEFT JOIN ancient_sample_dates_c14 c14
                  ON c14.accession = s.accession
               WHERE qs.num_reads IS NOT NULL
            GROUP BY qs.modsnp_id""".format(median=median), key=None)

@@ -118,8 +118,7 @@ class Database:
         cnx = mysql.connector.connect(**Database.db_config)
         cursor = cnx.cursor()
         name = Database.__get_name(species)
-
-        cursor.execute(u"CREATE DATABASE `{}`".format(name))
+        cursor.execute(u"CREATE DATABASE `{}` DEFAULT CHARACTER SET = `utf8`".format(name))
 
         return name
 

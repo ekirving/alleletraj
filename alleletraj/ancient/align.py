@@ -36,31 +36,38 @@ class AdapterRemoval(utils.PipelineTask):
         return SraToolsFastqDump(self.accession, self.paired)
 
     def output(self):
-        return luigi.LocalTarget('data/fastq/{}-trim.fq.gz'.format(self.accession))
+        yield luigi.LocalTarget('data/fastq/{}-trim.fq.gz'.format(self.accession))
+        yield luigi.LocalTarget('data/fastq/{}-trim-discard.fq.gz'.format(self.accession))
+        yield luigi.LocalTarget('data/fastq/{}-trim.log'.format(self.accession))
 
     def run(self):
         fastq_files = self.input()
+        fastq_keep, fastq_drop, log_file = self.output()
 
         cmd = [
             'AdapterRemoval',
+            '--discarded',  fastq_drop.path,
+            '--settings',   log_file.path,
             '--trimns',                       # trim ambiguous bases (N) at both 5'/3' termini
-            '--trimqualities,'                # trim bases at both 5'/3' termini with quality scores... 
+            '--trimqualities',                # trim bases at both 5'/3' termini with quality scores...
             '--minquality', TRIM_MIN_BASEQ,   # below this value
             '--minlength',  TRIM_MIN_LENGTH,  # discard reads shorter than this length following trimming
-            '--gzip',
+            '--gzip'
         ]
 
         if self.paired:
             cmd += [
                 '--file1', fastq_files[0].path,
                 '--file2', fastq_files[1].path,
-                '--collapse'
-                '--outputcollapsed', self.output().path
+                '--collapse',
+                '--outputcollapsed', fastq_keep.path
             ]
         else:
+            # TODO still need to test paired end mode works correctly
             cmd += [
-                '--file1', fastq_files[0].path,
-                '--basename', self.output().path
+                '--basename', utils.trim_ext(log_file.path),
+                '--file1',    fastq_files[0].path,
+                '--output1',  fastq_keep.path
             ]
 
         # perform the trimming
@@ -99,7 +106,7 @@ class BwaAln(utils.PipelineTask):
 
     def run(self):
         # unpack the params
-        fastq_file, (ref_file, _), _ = self.input()
+        (fastq_file, _, _), (ref_file, _), _ = self.input()
         sai_out = self.output()
 
         params = {
@@ -151,7 +158,7 @@ class BwaSamSe(utils.PipelineTask):
 
     def run(self):
         # unpack the params
-        fastq_file, sai_file, (ref_file, _) = self.input()
+        (fastq_file, _, _), sai_file, (ref_file, _) = self.input()
         bam_out, _ = self.output()
 
         params = {

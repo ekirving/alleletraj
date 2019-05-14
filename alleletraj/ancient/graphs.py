@@ -31,11 +31,11 @@ class GraphDerivedVersusAge(utils.PipelineTask):
         dbc = self.db_conn()
 
         # sql fragment to calculate the median age of each sample
-        median = "COALESCE(sd.median, (COALESCE(c14.lower, sd.lower)+COALESCE(c14.upper, sd.upper))/2)"
+        median = "COALESCE( ad.median, (COALESCE(c14.lower, ad.lower)+COALESCE(c14.upper, ad.upper))/2)"
 
         # get the age of every covered snp
         reads = dbc.get_records_sql("""
-            SELECT sr.id AS read_id,
+            SELECT ar.id AS read_id,
                    {median} AS median
                FROM (
                         # get a unique list of GWAS peaks
@@ -50,15 +50,15 @@ class GraphDerivedVersusAge(utils.PipelineTask):
                  ON q.id = qs.qtl_id
                JOIN modern_snps ms
                  ON ms.id = qs.modsnp_id
-               JOIN ancient_sample_reads sr
-                 ON sr.chrom = ms.chrom
-                AND sr.site = ms.site
-               JOIN ancient_samples s
-                 ON s.id = sr.sample_id
-          LEFT JOIN ancient_sample_dates sd
-                 ON s.age = sd.age
-          LEFT JOIN ancient_sample_dates_c14 c14
-                 ON c14.accession = s.accession
+               JOIN ancient_reads ar
+                 ON ar.chrom = ms.chrom
+                AND ar.site = ms.site
+               JOIN ancient a
+                 ON a.id = ar.ancient_id
+          LEFT JOIN ancient_dates ad
+                 ON a.age = ad.age
+          LEFT JOIN ancient_dates_c14 c14
+                 ON c14.accession = a.accession
             HAVING median IS NOT NULL""".format(median=median), key=None)
 
         with open("data/tsv/{}-snps-counts.tsv".format(self.species), "wb") as tsv_file:
@@ -78,7 +78,7 @@ class GraphDerivedVersusAge(utils.PipelineTask):
                     ms.ancestral,
                     ms.derived,
                     MAX({median}) AS oldest_sample,
-                    MAX(IF(sr.base = ms.derived, {median}, NULL)) AS oldest_derived
+                    MAX(IF(ar.base = ms.derived, {median}, NULL)) AS oldest_derived
                FROM (
                         # get a unique list of GWAS peaks
                         SELECT min(id) AS id, trait_id
@@ -94,15 +94,15 @@ class GraphDerivedVersusAge(utils.PipelineTask):
                  ON t.id = q.trait_id
                JOIN modern_snps ms
                  ON ms.id = qs.modsnp_id
-               JOIN ancient_sample_reads sr
-                 ON sr.chrom = ms.chrom
-                AND sr.site = ms.site
-               JOIN ancient_samples s
-                 ON s.id = sr.sample_id
-          LEFT JOIN ancient_sample_dates sd
-                 ON s.age = sd.age
-          LEFT JOIN ancient_sample_dates_c14 c14
-                 ON c14.accession = s.accession
+               JOIN ancient_reads ar
+                 ON ar.chrom = ms.chrom
+                AND ar.site = ms.site
+               JOIN ancient a
+                 ON a.id = ar.ancient_id
+          LEFT JOIN ancient_dates ad
+                 ON a.age = ad.age
+          LEFT JOIN ancient_dates_c14 c14
+                 ON c14.accession = a.accession
               WHERE qs.num_reads IS NOT NULL
            GROUP BY qs.modsnp_id""".format(median=median), key=None)
 

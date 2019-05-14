@@ -19,21 +19,21 @@ def generate_mc1r_snp_input(species, population):
 
     samples = dbc.get_records_sql("""
         # get the ancient frequencies in each bin
-        SELECT SUM(CASE s.mc1r_snp 
+        SELECT SUM(CASE a.mc1r_snp 
                        WHEN 'A/A' THEN 2 
                        WHEN 'G/A' THEN 1 
                        ELSE 0 
                    END) AS derived_count,
-               count(s.id)*2 AS sample_size,
-               -CAST(SUBSTRING_INDEX(sb.bin, ' - ',  1) AS SIGNED INTEGER) AS bin_high,
-               -CAST(SUBSTRING_INDEX(sb.bin, ' - ', -1) AS SIGNED INTEGER) - 1 AS bin_low
-          FROM ancient_samples s
-          JOIN ancient_sample_bins sb
-            ON sb.sample_id = s.id
-          WHERE s.valid = 1 
-            AND s.population IN ('Domestic')  # TODO fix me
-            AND s.mc1r_snp IS NOT NULL 
-       GROUP BY sb.bin
+               count(a.id)*2 AS sample_size,
+               -CAST(SUBSTRING_INDEX(ab.bin, ' - ',  1) AS SIGNED INTEGER) AS bin_high,
+               -CAST(SUBSTRING_INDEX(ab.bin, ' - ', -1) AS SIGNED INTEGER) - 1 AS bin_low
+          FROM ancient a
+          JOIN ancient_bins ab
+            ON ab.ancient_id = a.id
+          WHERE a.valid = 1 
+            AND a.population IN ('Domestic')  # TODO fix me
+            AND a.mc1r_snp IS NOT NULL 
+       GROUP BY ab.bin
 
           UNION
 

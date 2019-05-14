@@ -114,12 +114,12 @@ class LoadAncientSNPs(utils.PipelineTask):
 
         # get all the samples and their BAM files
         samples = dbc.get_records_sql("""
-            SELECT s.*, GROUP_CONCAT(sf.path) paths
-             FROM ancient_samples s
-             JOIN ancient_sample_files sf
-               ON sf.sample_id = s.id
-            WHERE s.valid = 1
-         GROUP BY s.id""")
+            SELECT a.*, GROUP_CONCAT(af.path) paths
+             FROM ancient a
+             JOIN ancient_files af
+               ON af.ancient_id = a.id
+            WHERE a.valid = 1
+         GROUP BY a.id""")
 
         # fix issue with weird chars in accession code
         for sid in samples:
@@ -170,19 +170,19 @@ class LoadAncientSNPs(utils.PipelineTask):
                         snps[site]['alt'] = snp_alleles.pop()
 
             # the column headers for batch inserting into the db
-            fields = ('sample_id', 'chrom', 'site', 'base', 'mapq', 'baseq', 'dist')
+            fields = ('ancient_id', 'chrom', 'site', 'base', 'mapq', 'baseq', 'dist')
 
             num_reads = 0
 
             # randomise the order of samples to reduce disk I/O for parallel jobs
-            sample_ids = samples.keys()
-            random.shuffle(sample_ids)
+            ancient_ids = samples.keys()
+            random.shuffle(ancient_ids)
 
             # check all the samples for coverage in this locus
-            for sample_id in sample_ids:
+            for ancient_id in ancient_ids:
 
                 # get the sample record
-                sample = samples[sample_id]
+                sample = samples[ancient_id]
 
                 log.write("INFO: Scanning locus chr{}:{}-{} in sample {}"
                           .format(chrom, start, end, sample['accession']))
@@ -240,7 +240,7 @@ class LoadAncientSNPs(utils.PipelineTask):
                                 dist = min(read_pos, read_length - read_pos)
 
                                 # setup the record to insert, in this order
-                                read = (sample_id, chrom, site, base, mapq, baseq, dist)
+                                read = (ancient_id, chrom, site, base, mapq, baseq, dist)
 
                                 # store the read so we can batch insert later
                                 reads[(chrom, site)].append(read)
@@ -251,13 +251,13 @@ class LoadAncientSNPs(utils.PipelineTask):
 
                 if diploid:
                     log.write("INFO: Calling diploid bases in {:,} sites for sample {}"
-                              .format(len(diploid), sample_id))
+                              .format(len(diploid), ancient_id))
 
                     suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
 
                     # make some temp files
                     vcf_file, sex_file, tsv_file, tgz_file, rgs_file = [
-                        'data/vcf/diploid-sample{}-{}.{}'.format(sample_id, suffix, ext) for ext in
+                        'data/vcf/diploid-sample{}-{}.{}'.format(ancient_id, suffix, ext) for ext in
                         ['vcf', 'sex', 'tsv', 'tsv.gz', 'rgs']]
 
                     # sort the diploid positions
@@ -329,14 +329,14 @@ class LoadAncientSNPs(utils.PipelineTask):
                             for allele in alleles:
                                 # compose the read records
                                 read = {
-                                    'sample_id': sample_id,
+                                    'ancient_id': ancient_id,
                                     'chrom': chrom,
                                     'site': site,
                                     'genoq': genoq,
                                     'base': allele
                                 }
 
-                                dbc.save_record('ancient_sample_reads', read)
+                                dbc.save_record('ancient_reads', read)
 
                     # delete the temp files
                     for tmp in glob.glob("data/vcf/*{}*".format(suffix)):
@@ -360,7 +360,7 @@ class LoadAncientSNPs(utils.PipelineTask):
 
                 # bulk insert all the reads for this sample
                 if randcall:
-                    dbc.save_records('ancient_sample_reads', fields, randcall)
+                    dbc.save_records('ancient_reads', fields, randcall)
 
             log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end))
 

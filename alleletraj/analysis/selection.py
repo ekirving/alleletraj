@@ -90,19 +90,19 @@ class SelectionInputFile(utils.PipelineTask):
         # noinspection SqlResolve
         bins = dbc.get_records_sql("""
             # get the ancient frequencies in each bin
-            SELECT SUM(sr.base = ms.derived) AS derived_count,
-                   COUNT(sr.id) AS sample_size,
+            SELECT SUM(ar.base = ms.derived) AS derived_count,
+                   COUNT(ar.id) AS sample_size,
                    -(age - (age % 500) + 500) / (2 * {pop_size} * {gen_time}) AS bin_high,
                    -(age - (age % 500) + 1) / (2 * {pop_size} * {gen_time}) AS bin_low
               FROM modern_snps ms
-              JOIN ancient_sample_reads sr
-                ON sr.chrom = ms.chrom
-               AND sr.site = ms.site
-              JOIN ancient_samples s
-                ON s.id = sr.sample_id
+              JOIN ancient_reads ar
+                ON ar.chrom = ms.chrom
+               AND ar.site = ms.site
+              JOIN ancient a
+                ON a.id = ar.ancient_id
              WHERE ms.id = {modsnp_id}
-               AND s.age IS NOT NULL
-               AND s.population IN ('{pop_sql}')
+               AND a.age IS NOT NULL
+               AND a.population IN ('{pop_sql}')
           GROUP BY bin_high
 
              UNION

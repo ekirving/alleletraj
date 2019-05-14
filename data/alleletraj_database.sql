@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_pig_sscrofa10.2_rel37
-# Generation Time: 2019-05-14 13:57:38 +0000
+# Generation Time: 2019-05-14 15:21:38 +0000
 # ************************************************************
 
 
@@ -18,6 +18,147 @@
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+
+# Dump of table ancient
+# ------------------------------------------------------------
+
+CREATE TABLE `ancient` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `accession` varchar(255) NOT NULL,
+  `population` varchar(255) NOT NULL,
+  `sex` char(1) NOT NULL,
+  `map_reads` int(11) unsigned DEFAULT NULL,
+  `map_prcnt` float DEFAULT NULL,
+  `age` varchar(255) DEFAULT NULL,
+  `age_int` int(11) DEFAULT NULL,
+  `bin_id` int(11) DEFAULT NULL,
+  `period` varchar(255) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `country` varchar(255) DEFAULT NULL,
+  `gmm_status` varchar(255) DEFAULT NULL,
+  `group` varchar(255) DEFAULT NULL,
+  `haplogroup` varchar(255) DEFAULT NULL,
+  `mc1r_snp` varchar(3) DEFAULT NULL,
+  `valid` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `accession` (`accession`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table ancient_bins
+# ------------------------------------------------------------
+
+CREATE TABLE `ancient_bins` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `lower` int(11) NOT NULL,
+  `upper` int(11) NOT NULL,
+  `num_samples` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table ancient_dates
+# ------------------------------------------------------------
+
+CREATE TABLE `ancient_dates` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `age` varchar(255) DEFAULT '',
+  `confident` varchar(100) DEFAULT '',
+  `lower` int(11) DEFAULT NULL,
+  `upper` int(11) DEFAULT NULL,
+  `median` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `age` (`age`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table ancient_dates_c14
+# ------------------------------------------------------------
+
+CREATE TABLE `ancient_dates_c14` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `accession` varchar(255) DEFAULT '',
+  `confident` varchar(100) DEFAULT '',
+  `lower` int(11) DEFAULT NULL,
+  `upper` int(11) DEFAULT NULL,
+  `median` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `accession` (`accession`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table ancient_files
+# ------------------------------------------------------------
+
+CREATE TABLE `ancient_files` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `ancient_id` int(11) unsigned DEFAULT NULL,
+  `path` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `sample_path` (`ancient_id`,`path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table ancient_reads
+# ------------------------------------------------------------
+
+CREATE TABLE `ancient_reads` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `ancient_id` int(11) unsigned NOT NULL,
+  `chrom` varchar(2) NOT NULL,
+  `site` int(11) NOT NULL,
+  `base` varchar(1) NOT NULL,
+  `dist` int(11) DEFAULT NULL,
+  `mapq` int(11) DEFAULT NULL,
+  `baseq` int(11) DEFAULT NULL,
+  `genoq` int(11) DEFAULT NULL,
+  KEY `id` (`id`),
+  KEY `sampleID` (`ancient_id`),
+  KEY `chrom_site` (`chrom`,`site`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
+/*!50500 PARTITION BY LIST  COLUMNS(chrom)
+(PARTITION p1 VALUES IN ('1') ENGINE = InnoDB,
+ PARTITION p2 VALUES IN ('2') ENGINE = InnoDB,
+ PARTITION p3 VALUES IN ('3') ENGINE = InnoDB,
+ PARTITION p4 VALUES IN ('4') ENGINE = InnoDB,
+ PARTITION p5 VALUES IN ('5') ENGINE = InnoDB,
+ PARTITION p6 VALUES IN ('6') ENGINE = InnoDB,
+ PARTITION p7 VALUES IN ('7') ENGINE = InnoDB,
+ PARTITION p8 VALUES IN ('8') ENGINE = InnoDB,
+ PARTITION p9 VALUES IN ('9') ENGINE = InnoDB,
+ PARTITION p10 VALUES IN ('10') ENGINE = InnoDB,
+ PARTITION p11 VALUES IN ('11') ENGINE = InnoDB,
+ PARTITION p12 VALUES IN ('12') ENGINE = InnoDB,
+ PARTITION p13 VALUES IN ('13') ENGINE = InnoDB,
+ PARTITION p14 VALUES IN ('14') ENGINE = InnoDB,
+ PARTITION p15 VALUES IN ('15') ENGINE = InnoDB,
+ PARTITION p16 VALUES IN ('16') ENGINE = InnoDB,
+ PARTITION p17 VALUES IN ('17') ENGINE = InnoDB,
+ PARTITION p18 VALUES IN ('18') ENGINE = InnoDB,
+ PARTITION p19 VALUES IN ('19') ENGINE = InnoDB,
+ PARTITION p20 VALUES IN ('20') ENGINE = InnoDB,
+ PARTITION p21 VALUES IN ('21') ENGINE = InnoDB,
+ PARTITION p22 VALUES IN ('22') ENGINE = InnoDB,
+ PARTITION p23 VALUES IN ('23') ENGINE = InnoDB,
+ PARTITION p24 VALUES IN ('24') ENGINE = InnoDB,
+ PARTITION p25 VALUES IN ('25') ENGINE = InnoDB,
+ PARTITION p26 VALUES IN ('26') ENGINE = InnoDB,
+ PARTITION p27 VALUES IN ('27') ENGINE = InnoDB,
+ PARTITION p28 VALUES IN ('28') ENGINE = InnoDB,
+ PARTITION p29 VALUES IN ('29') ENGINE = InnoDB,
+ PARTITION p30 VALUES IN ('30') ENGINE = InnoDB,
+ PARTITION p31 VALUES IN ('31') ENGINE = InnoDB,
+ PARTITION pX VALUES IN ('X') ENGINE = InnoDB,
+ PARTITION pY VALUES IN ('Y') ENGINE = InnoDB,
+ PARTITION pMT VALUES IN ('MT') ENGINE = InnoDB) */;
+
 
 
 # Dump of table ascertainment
@@ -117,6 +258,34 @@ CREATE TABLE `ensembl_variants` (
  PARTITION pX VALUES IN ('X') ENGINE = InnoDB,
  PARTITION pY VALUES IN ('Y') ENGINE = InnoDB,
  PARTITION pMT VALUES IN ('MT') ENGINE = InnoDB) */;
+
+
+
+# Dump of table modern
+# ------------------------------------------------------------
+
+CREATE TABLE `modern` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(255) NOT NULL,
+  `population` varchar(255) NOT NULL,
+  `breed` varchar(255) DEFAULT NULL,
+  `sex` char(1) DEFAULT '',
+  `paired` tinyint(1) NOT NULL,
+  `sfs` tinyint(1) NOT NULL DEFAULT '1',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `accession` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table modern_accessions
+# ------------------------------------------------------------
+
+CREATE TABLE `modern_accessions` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `run` varchar(255) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
@@ -297,173 +466,6 @@ CREATE TABLE `qtls` (
   KEY `chrom_start_end` (`chrom`,`start`,`end`),
   KEY `valid` (`valid`),
   KEY `associationtype_valid` (`associationType`,`valid`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table ancient_sample_bins
-# ------------------------------------------------------------
-
-CREATE TABLE `ancient_sample_bins` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(255) NOT NULL,
-  `lower` int(11) NOT NULL,
-  `upper` int(11) NOT NULL,
-  `num_samples` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table ancient_sample_dates
-# ------------------------------------------------------------
-
-CREATE TABLE `ancient_sample_dates` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `age` varchar(255) DEFAULT '',
-  `confident` varchar(100) DEFAULT '',
-  `lower` int(11) DEFAULT NULL,
-  `upper` int(11) DEFAULT NULL,
-  `median` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `age` (`age`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table ancient_sample_dates_c14
-# ------------------------------------------------------------
-
-CREATE TABLE `ancient_sample_dates_c14` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `accession` varchar(255) DEFAULT '',
-  `confident` varchar(100) DEFAULT '',
-  `lower` int(11) DEFAULT NULL,
-  `upper` int(11) DEFAULT NULL,
-  `median` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `accession` (`accession`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table ancient_sample_files
-# ------------------------------------------------------------
-
-CREATE TABLE `ancient_sample_files` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `sample_id` int(11) unsigned DEFAULT NULL,
-  `path` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `sample_path` (`sample_id`,`path`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table ancient_sample_quality
-# ------------------------------------------------------------
-
-CREATE TABLE `ancient_sample_quality` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `accession` varchar(255) DEFAULT NULL,
-  `mapped_reads` int(11) DEFAULT NULL,
-  `total_reads` int(11) DEFAULT NULL,
-  `mapped` float DEFAULT NULL,
-  `mapped_q30` float DEFAULT NULL,
-  `mt_reads` int(11) DEFAULT NULL,
-  `duplicates` float DEFAULT NULL,
-  `readlen_mapped` float DEFAULT NULL,
-  `sd_readlen_mapped` float DEFAULT NULL,
-  `readlen_all` float DEFAULT NULL,
-  `sd_readlen_all` float DEFAULT NULL,
-  `internal` varchar(255) DEFAULT NULL,
-  `external` varchar(255) DEFAULT NULL,
-  `pool` varchar(255) DEFAULT NULL,
-  `species` varchar(255) DEFAULT NULL,
-  `read_file` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table ancient_sample_reads
-# ------------------------------------------------------------
-
-CREATE TABLE `ancient_sample_reads` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `sample_id` int(11) unsigned NOT NULL,
-  `chrom` varchar(2) NOT NULL,
-  `site` int(11) NOT NULL,
-  `base` varchar(1) NOT NULL,
-  `dist` int(11) DEFAULT NULL,
-  `mapq` int(11) DEFAULT NULL,
-  `baseq` int(11) DEFAULT NULL,
-  `genoq` int(11) DEFAULT NULL,
-  KEY `id` (`id`),
-  KEY `sampleID` (`sample_id`),
-  KEY `chrom_site` (`chrom`,`site`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
-/*!50500 PARTITION BY LIST  COLUMNS(chrom)
-(PARTITION p1 VALUES IN ('1') ENGINE = InnoDB,
- PARTITION p2 VALUES IN ('2') ENGINE = InnoDB,
- PARTITION p3 VALUES IN ('3') ENGINE = InnoDB,
- PARTITION p4 VALUES IN ('4') ENGINE = InnoDB,
- PARTITION p5 VALUES IN ('5') ENGINE = InnoDB,
- PARTITION p6 VALUES IN ('6') ENGINE = InnoDB,
- PARTITION p7 VALUES IN ('7') ENGINE = InnoDB,
- PARTITION p8 VALUES IN ('8') ENGINE = InnoDB,
- PARTITION p9 VALUES IN ('9') ENGINE = InnoDB,
- PARTITION p10 VALUES IN ('10') ENGINE = InnoDB,
- PARTITION p11 VALUES IN ('11') ENGINE = InnoDB,
- PARTITION p12 VALUES IN ('12') ENGINE = InnoDB,
- PARTITION p13 VALUES IN ('13') ENGINE = InnoDB,
- PARTITION p14 VALUES IN ('14') ENGINE = InnoDB,
- PARTITION p15 VALUES IN ('15') ENGINE = InnoDB,
- PARTITION p16 VALUES IN ('16') ENGINE = InnoDB,
- PARTITION p17 VALUES IN ('17') ENGINE = InnoDB,
- PARTITION p18 VALUES IN ('18') ENGINE = InnoDB,
- PARTITION p19 VALUES IN ('19') ENGINE = InnoDB,
- PARTITION p20 VALUES IN ('20') ENGINE = InnoDB,
- PARTITION p21 VALUES IN ('21') ENGINE = InnoDB,
- PARTITION p22 VALUES IN ('22') ENGINE = InnoDB,
- PARTITION p23 VALUES IN ('23') ENGINE = InnoDB,
- PARTITION p24 VALUES IN ('24') ENGINE = InnoDB,
- PARTITION p25 VALUES IN ('25') ENGINE = InnoDB,
- PARTITION p26 VALUES IN ('26') ENGINE = InnoDB,
- PARTITION p27 VALUES IN ('27') ENGINE = InnoDB,
- PARTITION p28 VALUES IN ('28') ENGINE = InnoDB,
- PARTITION p29 VALUES IN ('29') ENGINE = InnoDB,
- PARTITION p30 VALUES IN ('30') ENGINE = InnoDB,
- PARTITION p31 VALUES IN ('31') ENGINE = InnoDB,
- PARTITION pX VALUES IN ('X') ENGINE = InnoDB,
- PARTITION pY VALUES IN ('Y') ENGINE = InnoDB,
- PARTITION pMT VALUES IN ('MT') ENGINE = InnoDB) */;
-
-
-
-# Dump of table ancient_samples
-# ------------------------------------------------------------
-
-CREATE TABLE `ancient_samples` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `accession` varchar(255) NOT NULL,
-  `population` varchar(255) NOT NULL,
-  `sex` char(1) NOT NULL,
-  `map_reads` int(11) unsigned DEFAULT NULL,
-  `map_prcnt` float DEFAULT NULL,
-  `age` varchar(255) DEFAULT NULL,
-  `age_int` int(11) DEFAULT NULL,
-  `bin_id` int(11) DEFAULT NULL,
-  `period` varchar(255) DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `country` varchar(255) DEFAULT NULL,
-  `gmm_status` varchar(255) DEFAULT NULL,
-  `group` varchar(255) DEFAULT NULL,
-  `haplogroup` varchar(255) DEFAULT NULL,
-  `mc1r_snp` varchar(3) DEFAULT NULL,
-  `valid` tinyint(1) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `accession` (`accession`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

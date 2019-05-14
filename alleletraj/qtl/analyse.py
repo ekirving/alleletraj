@@ -55,15 +55,15 @@ class CountSNPCoverage(utils.PipelineTask):
             UPDATE qtl_snps
               JOIN (
                       SELECT qs.id,
-                             COUNT(sr.id) num_reads
+                             COUNT(ar.id) num_reads
                         FROM qtls q
                         JOIN qtl_snps qs
                           ON qs.qtl_id = q.id
                         JOIN modern_snps ms
                           ON ms.id = qs.modsnp_id
-                        JOIN ancient_sample_reads sr
-                          ON sr.chrom = ms.chrom
-                         AND sr.site = ms.site
+                        JOIN ancient_reads ar
+                          ON ar.chrom = ms.chrom
+                         AND ar.site = ms.site
                        WHERE q.chrom = '{chrom}'
                          AND q.valid = 1
                     GROUP BY qs.id
@@ -179,9 +179,9 @@ class CalculateSummaryStats(utils.PipelineTask):
                    FROM (
                           SELECT q.id AS qtl_id, q.pubmed_id, q.Pvalue, q.significance,
                                  t.class, t.type, t.name,
-                                 sr.chrom, sr.site,
-                                 COUNT(DISTINCT sr.sample_id) num_samples,
-                                 COUNT(sr.id) num_reads
+                                 ar.chrom, ar.site,
+                                 COUNT(DISTINCT ar.ancient_id) num_samples,
+                                 COUNT(ar.id) num_reads
                             FROM qtls q
                             JOIN traits t
                               ON t.id = q.trait_id
@@ -189,9 +189,9 @@ class CalculateSummaryStats(utils.PipelineTask):
                               ON qs.qtl_id = q.id
                             JOIN modern_snps ms
                               ON ms.id = qs.modsnp_id
-                            JOIN ancient_sample_reads sr
-                              ON sr.chrom = ms.chrom
-                             AND sr.site = ms.site
+                            JOIN ancient_reads ar
+                              ON ar.chrom = ms.chrom
+                             AND ar.site = ms.site
                            WHERE q.chrom = '{chrom}'
                              AND q.valid = 1
                         GROUP BY qs.id

@@ -37,26 +37,26 @@ with open("data/tsv/all-bins.tsv", "wb") as tsv_file:
                     @overlap / @width AS perct_overlap
                FROM (
                       # get the most precise dates for each sample, and the normalised wild/dom status
-                      SELECT s.accession,
-                             s.map_prcnt,
+                      SELECT a.accession,
+                            ad.map_prcnt,
                              CASE
-                                 WHEN COALESCE(s.gmm_status, s.status) LIKE '%wild%'     THEN 'Wild'
-                                 WHEN COALESCE(s.gmm_status, s.status) LIKE '%domestic%' THEN 'Domestic'
+                                 WHEN COALESCE(a.gmm_status, a.status) LIKE '%wild%'     THEN 'Wild'
+                                 WHEN COALESCE(a.gmm_status, a.status) LIKE '%domestic%' THEN 'Domestic'
                                  WHEN SUBSTR(`group`, 3, 1) = 'W' THEN 'Wild'
                                  WHEN SUBSTR(`group`, 3, 1) = 'D' THEN 'Domestic'
                                  WHEN haplogroup = 'Y1' THEN 'Domestic'
                                  ELSE 'NA'
                              END AS population,
-                             s.age,
-                             COALESCE(c14.confident, sd.confident) confident,
-                             COALESCE(c14.lower, sd.lower, sd.median + {uncert}) lower,
-                             COALESCE(c14.upper, sd.upper, sd.median - {uncert}) upper
-                        FROM ancient_samples s
-                   LEFT JOIN ancient_sample_dates sd
-                          ON s.age = sd.age
-                   LEFT JOIN ancient_sample_dates_c14 c14
-                          ON c14.accession = s.accession
-                       WHERE s.valid = 1
+                            a.age,
+                             COALESCE(c14.confident, ad.confident) confident,
+                             COALESCE(c14.lower, ad.lower, ad.median + {uncert}) lower,
+                             COALESCE(c14.upper, ad.upper, ad.median - {uncert}) upper
+                        FROM ancient a
+                   LEFT JOIN ancient_dates ad
+                          ON a.age = ad.age
+                   LEFT JOIN ancient_dates_c14 c14
+                          ON c14.accession = a.accession
+                       WHERE a.valid = 1
     
                     ) as age
     

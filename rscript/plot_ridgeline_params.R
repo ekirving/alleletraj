@@ -296,5 +296,5 @@ mcmc.params$s2 <- mcmc.params$alpha2 / (2 * pop_size)
 # add a dashed vertical line at 0
 vline <- geom_vline(xintercept = 0, linetype = "dashed", colour = '#c94904')
 
-plot_ridgeline(param = 's1', xlab = expression(paste("s"[1])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)
-plot_ridgeline(param = 's2', xlab = expression(paste("s"[2])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)
+plot_ridgeline(param = 's1', xlab = expression(paste("s"[1])), min_x = -0.005, max_x  = 0.015, brk_w = 0.005, vline = vline)
+plot_ridgeline(param = 's2', xlab = expression(paste("s"[2])), min_x = -0.005, max_x  = 0.015, brk_w = 0.005, vline = vline)

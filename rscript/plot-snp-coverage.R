@@ -31,36 +31,36 @@ modsnp <- fetch(rs, n=-1)
 
 # get the data and all the reads for this SNP
 rs = dbSendQuery(mydb, paste0(
-     "SELECT s.accession,
+     "SELECT a.accession,
              CASE
-                 WHEN COALESCE(s.gmm_status, s.status) LIKE '%wild%'     THEN 'Wild'
-                 WHEN COALESCE(s.gmm_status, s.status) LIKE '%domestic%' THEN 'Domestic'
+                 WHEN COALESCE(s.gmm_status, a.status) LIKE '%wild%'     THEN 'Wild'
+                 WHEN COALESCE(s.gmm_status, a.status) LIKE '%domestic%' THEN 'Domestic'
                  WHEN SUBSTR(`group`, 3, 1) = 'W' THEN 'Wild'
                  WHEN SUBSTR(`group`, 3, 1) = 'D' THEN 'Domestic'
                  WHEN haplogroup = 'Y1' THEN 'Domestic'
                  ELSE 'NA'
              END AS `status`,
-             sb.bin,
-             COALESCE(c14.confident, sd.confident) confident,
-             COALESCE(c14.lower, sd.lower, sd.median + 100) lower,
-             COALESCE(c14.upper, sd.upper, sd.median - 100) upper,
-             GROUP_CONCAT(sr.base ORDER BY sr.base = ms.ancestral DESC SEPARATOR '/') genotype
+             ab.bin,
+             COALESCE(c14.confident, ad.confident) confident,
+             COALESCE(c14.lower, ad.lower, ad.median + 100) lower,
+             COALESCE(c14.upper, ad.upper, ad.median - 100) upper,
+             GROUP_CONCAT(ar.base ORDER BY ar.base = ms.ancestral DESC SEPARATOR '/') genotype
         FROM modern_snps ms
-        JOIN sample_reads sr
-          ON sr.chrom = ms.chrom
-         AND sr.site = ms.site
-         AND sr.called = 1
+        JOIN sample_reads ar
+          ON ar.chrom = ms.chrom
+         AND ar.site = ms.site
+         AND ar.called = 1
         JOIN samples s
-          ON s.id = sr.sample_id
+          ON a.id = ar.ancient_id
    LEFT JOIN sample_bins sb
-          ON sb.sample_id = s.id
+          ON ab.ancient_id = a.id
    LEFT JOIN sample_dates sd
-          ON s.age = sd.age
+          ON a.age = ad.age
    LEFT JOIN sample_dates_c14 c14
-          ON c14.accession = s.accession
+          ON c14.accession = a.accession
        WHERE ms.id = ", modsnp_id, "
-         AND s.valid = 1
-    GROUP BY s.id"
+         AND a.valid = 1
+    GROUP BY a.id"
 ))
 
 # fetch the resultset from the DB

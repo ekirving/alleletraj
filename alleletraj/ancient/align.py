@@ -223,5 +223,18 @@ class FilterUniqueSAMCons(utils.PipelineTask):
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
+class AncientAlignPipeline(utils.PipelineWrapperTask):
+    """
+    Test the ancient alignment pipeline.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        for accession in ['ERR2528430', 'ERR2528431', 'ERR2528432']:
+            yield BwaSamSe('horse', 'Blagotin2', accession, paired=False)
+
+
 if __name__ == '__main__':
     luigi.run()

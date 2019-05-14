@@ -60,6 +60,7 @@ class ValidateBamFile(utils.PipelineTask):
     retry_count = 0
 
     def requires(self):
+        # TODO needs to support ancient data
         return ExternalBAM(self.all_modern_data[self.population][self.sample]['path'])
 
     def output(self):
@@ -100,6 +101,7 @@ class SAMToolsMerge(utils.PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
+        # TODO this needs to handle ancient samples as well
         for accession in self.all_modern_data[self.population][self.sample]['accessions']:
             if self.ancient:
                 yield MapDamageRescale(self.species, self.sample, accession)
@@ -142,12 +144,13 @@ class AlignedBAM(utils.PipelineTask):
         return self.requires().complete()
 
     def requires(self):
+        # TODO needs to support ancient samples
         if self.all_modern_data[self.population][self.sample].get('path', '') != '':
             # we need to validate any external BAM files before using them
             return ValidateBamFile(self.species, self.population, self.sample)
         else:
             if self.ancient and self.species == 'goat':
-                # TODO ancient goat libraries were built from the same PCR reactions, so they need deduping after merge
+                # TODO if more than one accession then we need to dedupe again!
                 pass
             else:
                 return SAMToolsMerge(self.species, self.population, self.sample)

@@ -243,7 +243,7 @@ class PipelineTask(luigi.Task):
         """
         Boolean flag for ancient/modern status of sample
         """
-        # TODO implement me
+        # TODO implement this feature
         return False
 
     @property

@@ -162,6 +162,8 @@ class QuantilesOfCoverageVCF(utils.PipelineTask):
     chrom = luigi.Parameter()
     qual = luigi.IntParameter()
 
+    resources = {'cpu-cores': 1, 'ram-gb': 4}
+
     def requires(self):
         return BCFToolsCall(self.species, self.chrom)
 
@@ -169,23 +171,22 @@ class QuantilesOfCoverageVCF(utils.PipelineTask):
         return luigi.LocalTarget('data/vcf/{}.quant'.format(self.basename))
 
     def run(self):
-        depth = []
+        vcf_file = self.input()
+        quant_file = self.output()
 
-        # iterate over the VCF and extract the depth of coverage at each site
-        for rec in pysam.VariantFile(self.input().path).fetch():
-            try:
-                # only count depth at sites which pass the genotype quality filter
-                if int(rec.qual) >= self.qual:
-                    depth.append(rec.info['DP'])
-            except KeyError:
-                pass
+        # make a self destructing temp file
+        tmp_file = luigi.LocalTarget(is_tmp=True)
+
+        # extract the depth of coverage at each site in the VCF that passes the quality filter
+        utils.run_cmd(["bcftools query --format '%DP\\n' --exclude 'QUAL<{qual}' {vcf} > {tmp}"
+                      .format(qual=self.qual, vcf=vcf_file.path, tmp=tmp_file.path)], shell=True)
 
         # calculate the quantiles
-        quants = numpy.quantile(depth, [QUANTILE_LOW, QUANTILE_HIGH])
+        depth = numpy.loadtxt(tmp_file.path, dtype=int, delimiter='\n')
+        quant = numpy.quantile(depth, [QUANTILE_LOW, QUANTILE_HIGH])
 
-        # save them to disk
-        with self.output().open('w') as fout:
-            fout.write('{} {}'.format(int(quants[0]), int(quants[1])))
+        with quant_file.open('w') as fout:
+            fout.write('{} {}'.format(int(quant[0]), int(quant[1])))
 
 
 class FilterVCF(utils.PipelineTask):

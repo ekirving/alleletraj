@@ -54,6 +54,8 @@ class RunAll(utils.PipelineWrapperTask):
         # make all the plots
         yield GraphsPipeline(self.species)
 
+        # TODO add analysis modules
+
 
 if __name__ == '__main__':
     luigi.run()

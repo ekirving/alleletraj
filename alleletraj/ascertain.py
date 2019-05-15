@@ -16,7 +16,7 @@ from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.ensembl.load import LoadEnsemblGenes, LoadEnsemblVariants, FlagSNPsNearIndels
 from alleletraj.qtl.load import MC1R_GENE
 from alleletraj.ref import ReferenceFASTA
-from alleletraj.snpchip import LoadSNPChipVariants
+from alleletraj.snpchip.load import LoadSNPChipVariants
 
 # the number of flanking SNPs (on either side) to include
 QTL_FLANK_NUM_SNPS = 3

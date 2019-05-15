@@ -12,7 +12,6 @@ import luigi
 from alleletraj import utils
 from alleletraj.db.load import CreateDatabase
 from alleletraj.ensembl.load import LoadEnsemblVariants
-from alleletraj.modern.snps import LoadModernSNPs
 
 AXIOM_URL = 'http://media.affymetrix.com/analysis/downloads/lf/genotyping/Axiom_MNEc670/r2/' \
             'Axiom_MNEc670_Annotation.r2.csv.zip'
@@ -165,17 +164,13 @@ class LoadAxiomEquineHD(utils.PipelineTask):
             fout.write('Loaded Axiom EquineHD records')
 
 
-class LinkSNPChipVariants(utils.PipelineTask):
+class SNPChipLoadPipeline(utils.PipelineWrapperTask):
     """
-    Link modern SNPs to their SNPchip variants
+    Populate the snpchip tables.
 
     :type species: str
-    :type chrom: str
     """
     species = luigi.Parameter()
-    chrom = luigi.Parameter()
-
-    db_lock_tables = ['modern_snps_{chrom}']
 
     def requires(self):
         yield LoadSNPChipVariants(self.species)
@@ -183,39 +178,6 @@ class LinkSNPChipVariants(utils.PipelineTask):
         if self.species == 'horse':
             # handle special case for horse data
             yield LoadAxiomEquineHD(self.species)
-
-        yield LoadModernSNPs(self.species, self.chrom)
-
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        dbc = self.db_conn()
-
-        exec_time = dbc.execute_sql("""
-            UPDATE modern_snps ms
-              JOIN ensembl_variants ev
-                ON ev.id = ms.variant_id
-              JOIN snpchip sc
-                ON sc.rsnumber = ev.rsnumber 
-               SET ms.snpchip_id = sc.id
-             WHERE ms.chrom = '{chrom}'""".format(chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
-
-
-class SNPChipPipeline(utils.PipelineWrapperTask):
-    """
-    Populate the snpchip_* tables and link modern_snps records to their snpchip variants.
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    def requires(self):
-        for chrom in self.chromosomes:
-            yield LinkSNPChipVariants(self.species, chrom)
 
 
 if __name__ == '__main__':

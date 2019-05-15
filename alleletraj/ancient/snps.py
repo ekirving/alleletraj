@@ -13,7 +13,7 @@ import pysam
 
 # local modules
 from alleletraj import utils
-from alleletraj.ancient.samples import LoadSamples
+from alleletraj.ancient.samples import LoadAncientSamples
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
 from alleletraj.modern.vcf import ReferencePloidy, MIN_GENO_QUAL
@@ -96,7 +96,7 @@ class LoadAncientSNPs(utils.PipelineTask):
         yield ReferenceFASTA(self.species)
         yield ReferencePloidy(self.species)
         yield MergeAllLoci(self.species, self.chrom)
-        yield LoadSamples(self.species)
+        yield LoadAncientSamples(self.species)
         yield ModernSNPsPipeline(self.species)
         yield EnsemblLinkPipeline(self.species)
 

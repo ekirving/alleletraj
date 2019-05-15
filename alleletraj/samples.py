@@ -67,14 +67,15 @@ class LoadSamples(utils.PipelineTask):
                     'name':       row['sample'],
                     'population': row['population'],
                     'ancient':    1 if self.ancient else 0,
-                    'breed':      row.get('breed'),
-                    'site':       row.get('site'),
+                    'alias':      row.get('alias'),
+                    'type':       row.get('site') if self.ancient else row.get('breed'),
                     'age_int':    row.get('bp'),
                     'age':        row.get('age'),
                     'period':     row.get('period'),
                     'lat':        row.get('lat'),
                     'long':       row.get('lat'),
-                    'sex':        row['sex'][0].upper() if row.get('sex') else None,  # first letter capital
+                    'sex':        row.get('sex')[0].upper() if row.get('sex') else None,  # first letter capital
+                    'sfs':        row.get('sfs'),
                     'path':       row.get('path')
                 }
 
@@ -121,6 +122,7 @@ class CreateSampleBins(utils.PipelineTask):
         # round to nearest multiple of BIN_WIDTH
         bin_max = int(math.ceil(float(max_age) / BIN_WIDTH) * BIN_WIDTH)
 
+        # TODO improve binning with a clustering algorithm
         # iterate over each temporal bin
         for bin_upper in range(0, bin_max, BIN_WIDTH):
             bin_lower = bin_upper + BIN_WIDTH
@@ -190,7 +192,7 @@ class BinSamples(utils.PipelineTask):
             fout.write('Done!')
 
 
-class LoadSamplesPipeline(utils.PipelineWrapperTask):
+class LoadAllSamples(utils.PipelineWrapperTask):
     """
     Load both modern and ancient samples, and group ancient samples into temporal bins
 

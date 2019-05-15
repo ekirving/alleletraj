@@ -6,8 +6,8 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.samples import LoadSamplesPipeline
 from alleletraj.db.load import CreateDatabase
+from alleletraj.samples import LoadAllSamples
 
 
 class Setup(utils.PipelineWrapperTask):
@@ -22,10 +22,8 @@ class Setup(utils.PipelineWrapperTask):
         # create a new db and add all the empty tables
         yield CreateDatabase(self.species)
 
-        # TODO load the modern samples
-
-        # load all the ancient samples
-        yield LoadSamplesPipeline(self.species)
+        # load all samples
+        yield LoadAllSamples(self.species)
 
 
 if __name__ == '__main__':

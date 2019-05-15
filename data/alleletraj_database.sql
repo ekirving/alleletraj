@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-05-15 13:46:26 +0000
+# Generation Time: 2019-05-15 14:07:44 +0000
 # ************************************************************
 
 
@@ -315,64 +315,6 @@ CREATE TABLE `sample_bins` (
 
 
 
-# Dump of table sample_dates
-# ------------------------------------------------------------
-
-CREATE TABLE `sample_dates` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `age` varchar(255) DEFAULT '',
-  `confident` varchar(100) DEFAULT '',
-  `lower` int(11) DEFAULT NULL,
-  `upper` int(11) DEFAULT NULL,
-  `median` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `age` (`age`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table sample_dates_c14
-# ------------------------------------------------------------
-
-CREATE TABLE `sample_dates_c14` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `accession` varchar(255) DEFAULT '',
-  `confident` varchar(100) DEFAULT '',
-  `lower` int(11) DEFAULT NULL,
-  `upper` int(11) DEFAULT NULL,
-  `median` int(11) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `accession` (`accession`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
-# Dump of table sample_quality
-# ------------------------------------------------------------
-
-CREATE TABLE `sample_quality` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `accession` varchar(255) DEFAULT NULL,
-  `mapped_reads` int(11) DEFAULT NULL,
-  `total_reads` int(11) DEFAULT NULL,
-  `mapped` float DEFAULT NULL,
-  `mapped_q30` float DEFAULT NULL,
-  `mt_reads` int(11) DEFAULT NULL,
-  `duplicates` float DEFAULT NULL,
-  `readlen_mapped` float DEFAULT NULL,
-  `sd_readlen_mapped` float DEFAULT NULL,
-  `readlen_all` float DEFAULT NULL,
-  `sd_readlen_all` float DEFAULT NULL,
-  `internal` varchar(255) DEFAULT NULL,
-  `external` varchar(255) DEFAULT NULL,
-  `pool` varchar(255) DEFAULT NULL,
-  `species` varchar(255) DEFAULT NULL,
-  `read_file` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
 # Dump of table sample_reads
 # ------------------------------------------------------------
 
@@ -450,8 +392,7 @@ CREATE TABLE `samples` (
   `population` varchar(255) NOT NULL,
   `alias` varchar(255) DEFAULT '',
   `ancient` tinyint(1) NOT NULL,
-  `breed` varchar(255) DEFAULT NULL,
-  `site` varchar(255) DEFAULT NULL,
+  `type` varchar(255) DEFAULT NULL,
   `bin_id` int(11) DEFAULT NULL,
   `age_int` int(11) DEFAULT NULL,
   `age` varchar(255) DEFAULT NULL,

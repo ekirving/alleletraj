@@ -71,7 +71,7 @@ DOM2,Chartres_GVA112,,,Chartres,GVA112,1850,,48.442396,1.494154,male,,,data/bam/
 DOM2,Belkaragay_NB13,,,Belkaragay,NB13,,CopperAge,51.52,62.55,male,,,data/bam/NewBotai_13_CGG_1_017005.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p1.bam
 DOM2,Krasnokamenka_NB10,,,Krasnokamenka,NB10,4433,IIIrd BC,54.35,60.15,male,,,data/bam/NewBotai10.Horse_nuc_wY.realigned.r.t.s.m.bam
 DOM2,TepeHasanlu_1140,,,TepeHasanlu,1140,2615,,37.004486,45.458817,female,,,data/bam/Hasanlu1140_CGG_1_019998_i4_TGACCA_U.r.t.5p2.3p2.bam
-DOM2,Museum_Earb5,,,Museum,Earb5,38,1912,N/A,N/A,male,,,data/bam/Earb5_CGG_1_018497_i80_TTTTGG_U.r.t.3p1.bam
+DOM2,Museum_Earb5,,,Museum,Earb5,38,1912,,,male,,,data/bam/Earb5_CGG_1_018497_i80_TTTTGG_U.r.t.3p1.bam
 DOM2,ArzhanII_Arz15,,,ArzhanII,Arz15,2575,late 7. century BC,52.0588889,93.6038889,male,,,data/bam/Arz15_CGG_1_017084_U_i4_TGACCA.r.t.3p1.bam
 DOM2,Otok_OTOK16,,,Otok,OTOK16,1241,,45.1464084,18.8838649,female,,,data/bam/OTOK16_unregistered_i62_CAAAAT_U.r.t.bam
 DOM2,Chartres_GVA115,,,Chartres,GVA115,1850,,48.442396,1.494154,male,,,data/bam/GVA115_CGG_1_019373_i13_CTATCA_U.r.t.5p1.3p1.bam
@@ -95,7 +95,7 @@ DOM2,WitterPlace_UK19,,,WitterPlace,UK19,200,,53.193018,-2.882844,male,,,data/ba
 DOM2,Quoygrew_VHR017,,,Quoygrew,VHR017,1000,,59.337156,-2.97,male,,,data/bam/VHR017_CGG_1_020952_i62_CAAAAT_U.r.t.s.3p1.bam
 DOM2,Evreux_GVA135,,,Evreux,GVA135,1750,II-IIIe AD,49.0196385,1.1589729,male,,,data/bam/GVA135_CGG_1_019709.Horse_nuc_wY.realigned.r.t.m.5p2.31p.bam
 DOM2,Vermand_GVA199,,,Vermand,GVA199,1675,,49.87749,3.145772,female,,,data/bam/GVA199_CGG_1_019773.Horse_nuc_wY.realigned.r.t.m.5p2.3p2.bam
-DOM2,Museum_Earb6,,,Museum,Earb6,22,1928 AD,N/A,N/A,male,,,data/bam/Earb6_CGG_1_018495.Horse_nuc_wY.realigned.r.t.s.m.3p1.bam
+DOM2,Museum_Earb6,,,Museum,Earb6,22,1928 AD,,,male,,,data/bam/Earb6_CGG_1_018495.Horse_nuc_wY.realigned.r.t.s.m.3p1.bam
 DOM2,Khatuu_Kha2_t1,,,Khatuu,Kha2_t1,2245,,48.583056,88.393528,male,,,data/bam/Kha2_t1_CGG_1_018909.Horse_nuc_wY.realigned.r.t.m.bam
 DOM2,Sayangorsk_Rus41,,,Sayangorsk,Rus41,2610,,53.0966188,91.4164518,female,,,data/bam/Rus41_CGG_1_019189.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
 DOM2,Yerqorqan_YER28,,,Yerqorqan,YER28,2786,,38.867278,65.800161,male,,,data/bam/YER28_CGG_1_020254.Horse_nuc_wY.realigned.r.t.m.1.3p.s.bam
@@ -180,7 +180,7 @@ DOM2,Actiparc_GVA308,,,Actiparc,GVA308,2245,,50.31503,2.821797,female,,,data/bam
 DOM2,CaminoDeLasYeseras_CdY2,,,CaminoDeLasYeseras,CdY2,4611,4496-4861,40.4421,-3.49408,male,,,data/bam/CdY2_CGG_1_018391.Horse_nuc_wY.realigned.r.t.m.bam
 DOM2,UushgiinUvur_Mon87,,,UushgiinUvur,Mon87,3050,,49.6561667,99.9122056,female,,,data/bam/Mon87_CGG_1_018123.Horse_nuc_wY.realigned.r.t.m.bam
 DOM2,BozAdyr_KYRH8,,,BozAdyr,KYRH8,1200,,39.9983333,71.0733333,male,,,data/bam/KYRH8_CGG_1_018029.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-PRZ,Przewalski_Paratype,,,Przewalski,Paratype,51,,N/A,N/A,female,,,data/bam/Prze_0213A_Paratype.Horse_nuc_wY.realigned.r.t.m.bam
+PRZ,Przewalski_Paratype,,,Przewalski,Paratype,51,,,,female,,,data/bam/Prze_0213A_Paratype.Horse_nuc_wY.realigned.r.t.m.bam
 DOM2,Marvele_32,,,Marvele,32,1077,,54.89674,23.87248,male,,,data/bam/Marvele32_CGG_1_019419.Horse_nuc_wY.realigned.r.t.m.bam
 DOM2,UushgiinUvur_Mon39,,,UushgiinUvur,Mon39,3018,3039-3130,49.6561667,99.9122056,female,,,data/bam/Mon39.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
 DOM2,GolModII_Mon27,,,GolModII,Mon27,1944,,48.01777778,101.3533333,female,,,data/bam/Mon27_CGG_1_018063.Horse_nuc_wY.realigned.r.t.m.1.3p.bam

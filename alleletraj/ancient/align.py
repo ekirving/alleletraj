@@ -164,8 +164,9 @@ class BwaSamSe(utils.PipelineTask):
         params = {
             'readgroup': r'@RG\tID:{sample}\tSM:{sample}'.format(sample=self.sample),
             'reference': ref_file.path,
-            'fastq': fastq_file.path,
-            'threads': self.resources['cpu-cores'],
+            'sai':       sai_file.path,
+            'fastq':     fastq_file.path,
+            'threads':   self.resources['cpu-cores'],
         }
 
         with bam_out.temporary_path() as bam_path:

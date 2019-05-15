@@ -446,24 +446,22 @@ CREATE TABLE `sample_reads` (
 
 CREATE TABLE `samples` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `accession` varchar(255) NOT NULL,
+  `name` varchar(255) NOT NULL,
   `population` varchar(255) NOT NULL,
-  `sex` char(1) NOT NULL,
-  `map_reads` int(11) unsigned DEFAULT NULL,
-  `map_prcnt` float DEFAULT NULL,
-  `age` varchar(255) DEFAULT NULL,
-  `age_int` int(11) DEFAULT NULL,
+  `breed` varchar(255) DEFAULT NULL,
+  `site` varchar(255) DEFAULT NULL,
   `bin_id` int(11) DEFAULT NULL,
+  `age_int` int(11) DEFAULT NULL,
+  `age` varchar(255) DEFAULT NULL,
   `period` varchar(255) DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `country` varchar(255) DEFAULT NULL,
-  `gmm_status` varchar(255) DEFAULT NULL,
-  `group` varchar(255) DEFAULT NULL,
-  `haplogroup` varchar(255) DEFAULT NULL,
-  `mc1r_snp` varchar(3) DEFAULT NULL,
-  `valid` tinyint(1) DEFAULT NULL,
+  `lat` varchar(255) DEFAULT NULL,
+  `long` varchar(255) DEFAULT NULL,
+  `sex` char(1) NOT NULL,
+  `path` varchar(255) DEFAULT NULL,
+  `paired` tinyint(1) DEFAULT NULL,
+  `sfs` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `accession` (`accession`)
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

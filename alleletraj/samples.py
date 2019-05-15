@@ -4,10 +4,10 @@
 # standard modules
 import math
 import re
-import csv
 
 # third party modules
 import luigi
+import unicodecsv as csv
 
 # local modules
 from alleletraj import utils
@@ -19,29 +19,34 @@ BIN_WIDTH = 500
 
 class ExternalCSV(utils.PipelineExternalTask):
     """
-    We require an ancient samples CSV.
+    We require a CSV contianing all the sample details.
 
     N.B. These have been created outside the workflow of this pipeline.
 
     :type species: str
+    :type ancient: bool
     """
     species = luigi.Parameter()
+    ancient = luigi.BoolParameter()
 
     def output(self):
-        return luigi.LocalTarget('data/ancient_samples_{}.csv'.format(self.species))
+        period = 'ancient' if self.ancient else 'modern'
+        return luigi.LocalTarget('data/{}_samples_{}.csv'.format(period, self.species))
 
 
-class LoadAncientSamples(utils.PipelineTask):
+class LoadSamples(utils.PipelineTask):
     """
-    Load all the ancient samples into the db.
+    Load all the samples into the db.
 
     :type species: str
+    :type ancient: bool
     """
     species = luigi.Parameter()
+    ancient = luigi.BoolParameter(default=False)
 
     def requires(self):
         yield CreateDatabase(self.species)
-        yield ExternalCSV(self.species)
+        yield ExternalCSV(self.species, self.ancient)
 
     def output(self):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
@@ -51,40 +56,37 @@ class LoadAncientSamples(utils.PipelineTask):
 
         dbc = self.db_conn()
 
-        with open(csv_file, 'r') as fin:
+        with csv_file.open('r') as fin:
             data = csv.DictReader(fin)
 
             # strip bad Excel chars and lowercase names
-            data._fieldnames = [re.sub(r'\W+', '', field).lower() for field in data.fieldnames]
+            data.unicode_fieldnames = [re.sub(r'\W+', '', field).lower() for field in data.unicode_fieldnames]
 
             for row in data:
-                # normalise sex naming (e.g. male -> M)
-                sex = row['sex'][0].upper() if row['sex'] else None
-
-                # are the accessions paired end or not
-                paired = True if row['librarylayout'] == 'PAIRED' else False
-
-                record = {
-                    'sample':     row['sample'],
+                sample = {
+                    'name':       row['sample'],
                     'population': row['population'],
-                    'age_int':    row['bp'],
-                    'age':        row.get('age', None),
-                    'site':       row.get('site', None),
-                    'period':     row.get('period', None),
-                    'lat':        row.get('lat', None),
-                    'long':       row.get('lat', None),
-                    'sex':        sex,
-                    'paired':     paired,
-                    'path':       row.get('path', None)
+                    'ancient':    1 if self.ancient else 0,
+                    'age_int':    row.get('bp'),
+                    'age':        row.get('age'),
+                    'site':       row.get('site'),
+                    'period':     row.get('period'),
+                    'lat':        row.get('lat'),
+                    'long':       row.get('lat'),
+                    'sex':        row['sex'][0].upper() if row.get('sex') else None,  # first letter capital
+                    'path':       row.get('path')
                 }
 
-                ancient_id = dbc.save_record('ancient', record)
+                sample_id = dbc.save_record('samples', sample)
+
+                # are the accessions paired end or not
+                paired = 1 if row.get('librarylayout') == 'PAIRED' else 0
 
                 # get the SRA run accessions
-                accessions = row.pop('accessions').split(';')
+                accessions = [acc.strip() for acc in row['accessions'].split(';') if acc.strip() != '']
 
                 for accession in accessions:
-                    dbc.save_record('ancient_runs', {'ancient_id': ancient_id, 'accession': accession})
+                    dbc.save_record('sample_runs', {'sample_id': sample_id, 'accession': accession, 'paired': paired})
 
         with self.output().open('w') as fout:
             fout.write('Done!')
@@ -99,7 +101,7 @@ class CreateSampleBins(utils.PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return LoadAncientSamples(self.species)
+        return LoadSamples(self.species, ancient=True)
 
     def output(self):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
@@ -128,7 +130,7 @@ class CreateSampleBins(utils.PipelineTask):
                 'upper': bin_upper + 1
             }
 
-            dbc.save_record('ancient_bins', sample_bin)
+            dbc.save_record('sample_bins', sample_bin)
 
         with self.output().open('w') as fout:
             fout.write('Done!')
@@ -142,7 +144,7 @@ class BinSamples(utils.PipelineTask):
     """
     species = luigi.Parameter()
 
-    db_lock_tables = ['ancient']
+    db_lock_tables = ['samples']
 
     def requires(self):
         return CreateSampleBins(self.species)
@@ -187,17 +189,21 @@ class BinSamples(utils.PipelineTask):
             fout.write('Done!')
 
 
-class AncientSamplesPipeline(utils.PipelineWrapperTask):
+class LoadSamplesPipeline(utils.PipelineWrapperTask):
     """
-    Load all the ancient samples and group them in temporal bins
+    Load both modern and ancient samples, and group ancient samples into temporal bins
 
     :type species: str
     """
     species = luigi.Parameter()
 
     def requires(self):
-        # assign samples to temporal bins
-        return BinSamples(self.species)
+
+        # load the modern samples
+        yield LoadSamples(self.species)
+
+        # load the ancient samples and assign to temporal bins
+        yield BinSamples(self.species)
 
 
 if __name__ == '__main__':

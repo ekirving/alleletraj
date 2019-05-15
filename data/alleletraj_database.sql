@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-05-07 12:17:15 +0000
+# Generation Time: 2019-05-15 13:16:58 +0000
 # ************************************************************
 
 
@@ -347,19 +347,6 @@ CREATE TABLE `sample_dates_c14` (
 
 
 
-# Dump of table sample_files
-# ------------------------------------------------------------
-
-CREATE TABLE `sample_files` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `sample_id` int(11) unsigned DEFAULT NULL,
-  `path` varchar(255) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `sample_path` (`sample_id`,`path`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
 # Dump of table sample_quality
 # ------------------------------------------------------------
 
@@ -441,6 +428,19 @@ CREATE TABLE `sample_reads` (
 
 
 
+# Dump of table sample_runs
+# ------------------------------------------------------------
+
+CREATE TABLE `sample_runs` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `sample_id` int(11) NOT NULL,
+  `accession` varchar(255) NOT NULL DEFAULT '',
+  `paired` tinyint(1) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
 # Dump of table samples
 # ------------------------------------------------------------
 
@@ -448,6 +448,7 @@ CREATE TABLE `samples` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `population` varchar(255) NOT NULL,
+  `ancient` tinyint(1) NOT NULL,
   `breed` varchar(255) DEFAULT NULL,
   `site` varchar(255) DEFAULT NULL,
   `bin_id` int(11) DEFAULT NULL,
@@ -457,9 +458,8 @@ CREATE TABLE `samples` (
   `lat` varchar(255) DEFAULT NULL,
   `long` varchar(255) DEFAULT NULL,
   `sex` char(1) NOT NULL,
-  `path` varchar(255) DEFAULT NULL,
-  `paired` tinyint(1) DEFAULT NULL,
   `sfs` tinyint(1) DEFAULT NULL,
+  `path` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

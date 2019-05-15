@@ -41,7 +41,7 @@ class TrimGalore(utils.PipelineTask):
                '--quality', TRIM_MIN_BASEQ,   # trim low-quality ends from reads in addition to adapter removal
                '--length',  TRIM_MIN_LENGTH,  # discard reads that became shorter than length because of trimming
                '--fastqc',                    # run FastQC once trimming is complete
-               '--output_dir', 'fastq']
+               '--output_dir', 'data/fastq']
 
         if self.paired:
             cmd.append('--paired')
@@ -54,7 +54,7 @@ class TrimGalore(utils.PipelineTask):
         utils.run_cmd(cmd)
 
         # trim_galore does not let us name the outputs so rename the files
-        utils.run_cmd(["rename 's/_val_[12]/-trim/' fastq/{}_*".format(self.accession)], shell=True)
+        utils.run_cmd(["rename 's/_val_[12]/-trim/' data/fastq/{}_*".format(self.accession)], shell=True)
 
 
 class BwaMem(utils.PipelineTask):

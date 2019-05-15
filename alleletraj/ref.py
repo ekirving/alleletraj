@@ -44,9 +44,8 @@ class BwaIndexBWTSW(utils.PipelineTask):
         return ReferenceFASTA(self.species)
 
     def output(self):
-        ref_file, _ = self.input()
-        return [luigi.LocalTarget('data/ensembl/{}.{}'.format(ref_file.path, ext)) for ext in
-                ['amb', 'ann', 'bwt', 'pac', 'sa']]
+        ref_file, _ = self.input()  # use the full path to the reference genome
+        return [luigi.LocalTarget('{}.{}'.format(ref_file.path, ext)) for ext in ['amb', 'ann', 'bwt', 'pac', 'sa']]
 
     def run(self):
         ref_file, _ = self.input()

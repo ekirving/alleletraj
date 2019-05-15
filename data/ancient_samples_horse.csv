@@ -1,4 +1,4 @@
-﻿Population,Sample,Bioproject,Accessions,Site,Alias,BP,Period,Lat,Long,Sex,LibraryLayout,Reference,Path
+﻿Population,Sample,Bioproject,Accessions,Site,Alias,BP,Age,Lat,Long,Sex,LibraryLayout,Reference,Path
 DOM2,KaiseraugustSchmidmatt_NBxK9279,,,KaiseraugustSchmidmatt,NBxK9279,1650,3rd/4th,47.536085,7.721967,male,,,data/bam/NB_K9279_CGG_1_020505_i65_CGGCAC_U.r.t.5p2.3p2.bam
 DOM,Botai_N,,,Botai,N,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_N_CGG_1_020194_i9_GATCAG_U.r.t.5p1.3p2.bam
 DOM2,Balagansk_Rus19,,,Balagansk,Rus19,1950,200 BC - 200 AD,47.66666667,8.85,male,,,data/bam/Rus19_CGG_1_019169_i3_TTAGGC_U.r.t.5p1.3p2.bam

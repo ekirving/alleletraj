@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-05-15 13:16:58 +0000
+# Generation Time: 2019-05-15 13:46:26 +0000
 # ************************************************************
 
 
@@ -448,6 +448,7 @@ CREATE TABLE `samples` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `population` varchar(255) NOT NULL,
+  `alias` varchar(255) DEFAULT '',
   `ancient` tinyint(1) NOT NULL,
   `breed` varchar(255) DEFAULT NULL,
   `site` varchar(255) DEFAULT NULL,

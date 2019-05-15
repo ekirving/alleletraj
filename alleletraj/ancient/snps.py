@@ -96,7 +96,6 @@ class LoadAncientSNPs(utils.PipelineTask):
         yield ReferenceFASTA(self.species)
         yield ReferencePloidy(self.species)
         yield MergeAllLoci(self.species, self.chrom)
-        yield LoadSamples(self.species, ancient=True)
         yield ModernSNPsPipeline(self.species)
         yield EnsemblLinkPipeline(self.species)
 

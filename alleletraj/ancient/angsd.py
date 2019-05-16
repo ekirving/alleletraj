@@ -6,7 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.bam import AlignedBAM
+from alleletraj.bam import SampleBAM
 from alleletraj.const import CPU_CORES_MED
 from alleletraj.modern.vcf import WholeGenomeSNPsVCF
 
@@ -34,7 +34,7 @@ class CallAncientGenotypes(utils.PipelineTask):
         yield WholeGenomeSNPsVCF(self.species)
 
         for pop, sample in self.all_ancient_samples:
-            yield AlignedBAM(self.species, pop, sample)
+            yield SampleBAM(self.species, pop, sample)
 
     def output(self):
         return [luigi.LocalTarget('data/angsd/{}-ancient.{}'.format(self.basename, ext)) for ext in

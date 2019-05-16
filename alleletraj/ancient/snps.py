@@ -14,7 +14,7 @@ import pysam
 
 # local modules
 from alleletraj import utils
-from alleletraj.bam import AlignedBAM
+from alleletraj.bam import SampleBAM
 from alleletraj.samples import LoadSamples
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
@@ -99,7 +99,7 @@ class LoadAncientSNPs(utils.PipelineTask):
         yield EnsemblLinkPipeline(self.species)
 
         for pop, samples in self.all_ancient_samples:
-            yield AlignedBAM(self.species, pop, samples)
+            yield SampleBAM(self.species, pop, samples)
 
     def output(self):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))

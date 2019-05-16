@@ -10,7 +10,7 @@ import pysam
 
 # local modules
 from alleletraj import utils
-from alleletraj.bam import AlignedBAM
+from alleletraj.bam import SampleBAM
 from alleletraj.ref import ReferenceFASTA
 
 # the minimum phred scaled genotype quality (30 = 99.9%)
@@ -82,7 +82,7 @@ class BCFToolsSamplesFile(utils.PipelineTask):
 
     def requires(self):
         for pop, sample in self.all_modern_samples:
-            yield AlignedBAM(self.species, pop, sample)
+            yield SampleBAM(self.species, pop, sample)
 
     def output(self):
         return [luigi.LocalTarget('data/vcf/{}.{}'.format(self.species, ext)) for ext in ['sex', 'rgs']]
@@ -120,7 +120,7 @@ class BCFToolsCall(utils.PipelineTask):
         yield BCFToolsSamplesFile(self.species)
 
         for pop, sample in self.all_modern_samples:
-            yield AlignedBAM(self.species, pop, sample)
+            yield SampleBAM(self.species, pop, sample)
 
     def output(self):
         return luigi.LocalTarget('data/vcf/{}.vcf.gz'.format(self.basename))

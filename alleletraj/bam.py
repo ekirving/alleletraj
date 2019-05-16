@@ -86,6 +86,30 @@ class ValidateBamFile(utils.PipelineTask):
                            ] + ignore, stderr=open(log_path, 'w'))
 
 
+class AccessionBAM(utils.PipelineTask):
+    """
+    Wrapper taks to return a processed BAM file for a given accession code.
+
+    Pipeline forks depending on ancient/modern status of sample.
+
+    :type species: str
+    :type sample: str
+    :type accession: str
+    """
+    species = luigi.Parameter()
+    sample = luigi.Parameter()
+    accession = luigi.Parameter()
+
+    def requires(self):
+        if self.ancient:  # TODO fix me
+            return MapDamageRescale(self.species, self.sample, self.accession)
+        else:
+            return GATKIndelRealigner(self.species, self.sample, self.accession)
+
+    def output(self):
+        return self.input()
+
+
 class SAMToolsMerge(utils.PipelineTask):
     """
     Merge multiple libraries into a single BAM file
@@ -103,32 +127,29 @@ class SAMToolsMerge(utils.PipelineTask):
     def requires(self):
         # TODO this needs to handle ancient samples as well
         for accession in self.all_modern_data[self.population][self.sample]['accessions']:
-            if self.ancient:
-                yield MapDamageRescale(self.species, self.sample, accession)
-            else:
-                yield GATKIndelRealigner(self.species, self.sample, accession)
+            yield AccessionBAM(self.species, self.sample, accession)
 
     def output(self):
-        suffix = 'sort.rmdup.realign.rescale' if self.ancient else 'sort.rmdup.realign'
-        return [luigi.LocalTarget('data/bam/{}.{}.{}'.format(self.sample, suffix, ext)) for ext in
-                ['bam', 'bam.bai']]
+        return [luigi.LocalTarget('data/bam/{}.merged.{}'.format(self.sample, ext)) for ext in ['bam', 'bam.bai']]
 
     def run(self):
         bam_inputs = [bam_file.path for bam_file, _, _ in self.input()]
         bam_out, _ = self.output()
 
         with bam_out.temporary_path() as bam_path:
-            utils.run_cmd(['samtools',
-                           'merge',
-                           bam_path
-                           ] + bam_inputs)
+            utils.run_cmd(['samtools', 'merge', bam_path] + bam_inputs)
 
         # index the BAM file
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
-class AlignedBAM(utils.PipelineTask):
+# TODO deduplicate a second time
+
+
+class SampleBAM(utils.PipelineTask):
     """
+    Wrapper taks to return a fully processed BAM file for a given sample.
+
     Align raw reads to a reference genome, deduplicate, realign indels, rescale bases, and merge multiple libraries.
 
     :type species: str
@@ -140,7 +161,7 @@ class AlignedBAM(utils.PipelineTask):
     sample = luigi.Parameter()
 
     def complete(self):
-        # this task is complete if our input task is complete
+        # this task is complete if our input task is complete (necessary to force ValidateBamFile to run)
         return self.requires().complete()
 
     def requires(self):
@@ -149,8 +170,8 @@ class AlignedBAM(utils.PipelineTask):
             # we need to validate any external BAM files before using them
             return ValidateBamFile(self.species, self.population, self.sample)
         else:
-            if self.ancient and self.species == 'goat':
-                # TODO if more than one accession then we need to dedupe again!
+            # TODO if more than one accession then we need to merge and dedupe again!
+            if len(self.all_modern_data[self.population][self.sample]['accessions']) > 1:
                 pass
             else:
                 return SAMToolsMerge(self.species, self.population, self.sample)

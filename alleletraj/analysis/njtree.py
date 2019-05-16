@@ -13,7 +13,7 @@ NJTREE_PHYLO = 'phylogram'
 NJTREE_FAN = 'fan'
 
 
-class NeighborJoiningTree(utils.PipelineTask):
+class NeighborJoiningTree(utils.DatabaseTask):
     """
     Create a neighbor joining phylogenetic tree from a distance matrix
 

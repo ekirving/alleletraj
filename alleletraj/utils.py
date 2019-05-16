@@ -12,7 +12,7 @@ from collections import Iterable
 import luigi
 
 # import my libraries
-from alleletraj.const import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME
+from alleletraj.const import CHROMOSOMES, REF_ASSEMBLY, BINOMIAL_NAME, OUTGROUP_POP
 from alleletraj.db.conn import Database
 
 # enforce max interval size of 1 Gb
@@ -174,20 +174,13 @@ def get_chrom_sizes(fai_file, exclude_scaffolds=True):
 
 class PipelineTask(luigi.Task):
     """
-    PrioritisedTask that implements several dynamic attributes
+    Pipeline task that implements several dynamic attributes
     """
-
-    _all_modern_data = None
-    _modern_data = None
-    _outgroup = None
-
-    _all_ancient_data = None
-    _ancient_data = None
 
     @property
     def resources(self):
         """
-        Dynamically set task resource usage.
+        Dynamically set task resource usage
         """
         resources = {'cpu-cores': 1}
 
@@ -203,7 +196,7 @@ class PipelineTask(luigi.Task):
     @property
     def priority(self):
         """
-        Dynamically set task priority.
+        Dynamically set task priority
         """
 
         # deprioritise large values of K, m or n
@@ -214,6 +207,13 @@ class PipelineTask(luigi.Task):
             offset = CHROMOSOMES[self.assembly].index(self.chrom) + 1
 
         return 1000 - offset if offset else 0
+
+    @property
+    def classname(self):
+        """
+        The name of the current class
+        """
+        return type(self).__name__
 
     @property
     def basename(self):
@@ -239,12 +239,11 @@ class PipelineTask(luigi.Task):
         return '-'.join(params)
 
     @property
-    def ancient(self):
+    def binomial(self):
         """
-        Boolean flag for ancient/modern status of sample
+        Scientific binomial name of the species
         """
-        # TODO implement this feature
-        return False
+        return BINOMIAL_NAME[self.species]
 
     @property
     def assembly(self):
@@ -254,20 +253,6 @@ class PipelineTask(luigi.Task):
         return REF_ASSEMBLY[self.species]
 
     @property
-    def autosomes(self):
-        """
-        List of autosomal chromosome names (e.g. 1, 2, ..., 29)
-        """
-        return [chrom for chrom in self.chromosomes if chrom.isdigit()]
-
-    @property
-    def binomial(self):
-        """
-        Scientific binomial name of the species
-        """
-        return BINOMIAL_NAME[self.species]
-
-    @property
     def chromosomes(self):
         """
         List of chromosome names (e.g. 1, 2, ..., X, Y, MT)
@@ -275,11 +260,11 @@ class PipelineTask(luigi.Task):
         return CHROMOSOMES[self.assembly]
 
     @property
-    def classname(self):
+    def autosomes(self):
         """
-        The name of the current class
+        List of autosomal chromosome names (e.g. 1, 2, ..., 29)
         """
-        return type(self).__name__
+        return [chrom for chrom in self.chromosomes if chrom.isdigit()]
 
     @property
     def java_mem(self):
@@ -287,6 +272,20 @@ class PipelineTask(luigi.Task):
         Memory to allocate to java processes
         """
         return "-Xmx{}G".format(self.resources['ram-gb'])
+
+    def _all_params(self):
+        """
+        Get all the params as a (name, value) tuple
+        """
+        return [(name, getattr(self, name)) for name in self.get_param_names()]
+
+    # --------------------------------------------
+
+    _all_modern_data = None
+    _modern_data = None
+
+    _all_ancient_data = None
+    _ancient_data = None
 
     @property
     def all_modern_data(self):
@@ -323,16 +322,6 @@ class PipelineTask(luigi.Task):
         return self.modern_pops[self.population]
 
     @property
-    def outgroup(self):
-        """
-        Identifier of the outgroup sample
-        """
-        if self._outgroup is None:
-            self._load_modern_data()
-
-        return self._outgroup.keys().pop()
-
-    @property
     def all_ancient_data(self):
         """
         List of the populations for the species
@@ -356,19 +345,13 @@ class PipelineTask(luigi.Task):
         """
         return self.all_ancient_data[self.population]
 
-    def _all_params(self):
-        """
-        Get all the params as a (name, value) tuple
-        """
-        return [(name, getattr(self, name)) for name in self.get_param_names()]
-
     def _load_modern_data(self):
         """
         Initialise the modern data dictionary and outgroup sample
         """
         self._all_modern_data = load_samples_csv('data/modern_samples_{}.csv'.format(self.species))
         self._modern_data = dict(self._all_modern_data)
-        self._outgroup = self._modern_data.pop('OUT')
+        self._outgroup = self._modern_data.pop(OUTGROUP_POP)
 
         # there must be exactly one outgroup
         assert len(self._outgroup) == 1
@@ -379,11 +362,39 @@ class PipelineTask(luigi.Task):
         """
         self._all_ancient_data = load_samples_csv('data/ancient_samples_{}.csv'.format(self.species))
 
-    def db_conn(self):
+
+class DatabaseTask(PipelineTask):
+    """
+    Pipeline task with a db connection to retrieve sample metadata
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    _dbc = None
+    _outgroup = None
+
+    @property
+    def db(self):
         """
         Create a private connection to the db
         """
-        return Database(self.species)
+        if self._dbc is None:
+            self._dbc = Database(self.species)
+
+        return self._dbc
+
+    @property
+    def outgroup(self):
+        """
+        Name of the outgroup sample
+        """
+        if self._outgroup is None:
+            self._outgroup = self.db.get_record('samples', {'populaion': OUTGROUP_POP})
+
+        return self._outgroup['name']
+
+
 
 
 class PipelineExternalTask(luigi.ExternalTask, PipelineTask):

@@ -21,7 +21,7 @@ QUANTILE_LOW = 0.05
 QUANTILE_HIGH = 0.95
 
 
-class ReferencePloidy(utils.PipelineExternalTask):
+class ReferencePloidy(utils.PipelineTask):
     """
     Make a ploidy-file file for bcftools which specifies the sex based ploidy of chromosomes in an assembly.
 
@@ -236,7 +236,7 @@ class FilterVCF(utils.PipelineTask):
             utils.run_cmd([cmd], shell=True)
 
 
-class PolarizeVCF(utils.PipelineTask):
+class PolarizeVCF(utils.DatabaseTask):
     """
     Switch the REF allele for the ancestral allele, based on an outgroup present in the VCF.
 

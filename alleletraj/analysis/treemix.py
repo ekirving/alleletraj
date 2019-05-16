@@ -45,7 +45,7 @@ class TreemixPlinkFreq(utils.PipelineTask):
                            frq_path])
 
 
-class TreemixM(utils.PipelineTask):
+class TreemixM(utils.DatabaseTask):
     """
     Run Treemix with the given number of migration events.
 

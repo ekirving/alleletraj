@@ -55,9 +55,9 @@ class PlinkTask(utils.PipelineTask):
     @property
     def chrset(self):
         """
-        Tell plink know which chromosomes to expect.
+        Tell plink which chromosomes to expect
         """
-        chrset = str(max([int(chrom) for chrom in self.chromosomes if chrom.isdigit()]))
+        chrset = str(max(map(int, self.autosomes)))
         for chrom in ['X', 'Y', 'MT']:
             if chrom not in self.chromosomes:
                 chrset += ' no-{}'.format(chrom.lower())

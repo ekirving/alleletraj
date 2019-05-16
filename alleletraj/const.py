@@ -91,3 +91,6 @@ CPU_CORES_MAX = int(TOTAL_CORES * 0.9)
 # what level should Treemix group by, pops OR samples
 GROUP_BY_POPS = 'grp-pops'
 GROUP_BY_SMPL = 'grp-smpl'
+
+# the name of the outgroup population
+OUTGROUP_POP = 'OUT'

@@ -98,28 +98,6 @@ def merge_intervals(ranges, capped=True):
         yield (saved[0], saved[1])
 
 
-def load_samples_csv(csv_file):
-    """
-    Load a samples csv file as a nested dictionary
-    """
-    populations = dict()
-    with open(csv_file, 'r') as fin:
-        data = csv.DictReader(fin)
-        data._fieldnames = [re.sub(r'\W+', '', field).lower() for field in data.fieldnames]  # strip bad Excel chars
-        for row in data:
-            pop = populations.get(row['population'], dict())
-
-            sample = dict()
-            for column in row:
-                sample[column] = row[column] if column != 'accessions' \
-                    else [val for val in row[column].split(';') if val != '']
-
-            pop[row['sample']] = sample
-            populations[row['population']] = pop
-
-    return populations
-
-
 def trim_ext(full_path, n=1):
     return '.'.join(full_path.split('.')[:-n])
 

@@ -15,7 +15,7 @@ class BwaMem(utils.PipelineTask):
     """
     Align the fastq file(s) to the reference genome using the BWA-MEM algorithm.
 
-    see http://www.htslib.org/workflow/#mapping_to_variant
+    http://www.htslib.org/workflow/#mapping_to_variant
 
     :type species: str
     :type sample: str

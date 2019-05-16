@@ -22,9 +22,9 @@ VALIDATE_BAM_IGNORE = [
 ]
 
 
-class ExternalBAM(utils.PipelineExternalTask):
+class ExternalSampleBAM(utils.PipelineExternalTask):
     """
-    External task dependency for an aligned BAM file.
+    External task to return a fully processed BAM file for a given sample.
 
     N.B. These have been created outside the workflow of this pipeline.
 
@@ -61,10 +61,10 @@ class ValidateBamFile(utils.PipelineTask):
 
     def requires(self):
         # TODO needs to support ancient data
-        return ExternalBAM(self.all_modern_data[self.population][self.sample]['path'])
+        return ExternalSampleBAM(self.all_modern_data[self.population][self.sample]['path'])
 
     def output(self):
-        # included the bam and bai files in the output
+        # included the external bam and bai files in the output
         return list(self.input()) + [luigi.LocalTarget('data/bam/{}.{}'.format(self.sample, ext)) for ext in
                                      ['log', 'err']]
 
@@ -143,12 +143,9 @@ class SAMToolsMerge(utils.PipelineTask):
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
-# TODO deduplicate a second time
-
-
 class SampleBAM(utils.PipelineTask):
     """
-    Wrapper taks to return a fully processed BAM file for a given sample.
+    Wrapper task to return a fully processed BAM file for a given sample.
 
     Align raw reads to a reference genome, deduplicate, realign indels, rescale bases, and merge multiple libraries.
 
@@ -170,11 +167,13 @@ class SampleBAM(utils.PipelineTask):
             # we need to validate any external BAM files before using them
             return ValidateBamFile(self.species, self.population, self.sample)
         else:
-            # TODO if more than one accession then we need to merge and dedupe again!
-            if len(self.all_modern_data[self.population][self.sample]['accessions']) > 1:
-                pass
-            else:
+            # TODO fix me
+            accessions = self.all_modern_data[self.population][self.sample]['accessions']
+            if len(accessions) > 1:
+                # TODO if more than one accession then we need to merge them all and dedupe again (just in case)
                 return SAMToolsMerge(self.species, self.population, self.sample)
+            else:
+                return AccessionBAM(self.species, self.sample, accessions.pop())
 
     def output(self):
         # only pass on the bam and bai files (i.e. trim off any .log and .err files from ValidateBamFile)
@@ -183,7 +182,7 @@ class SampleBAM(utils.PipelineTask):
 
 class ValidateModernBAMs(utils.PipelineWrapperTask):
     """
-    Wrapper taks to validate all the external BAM files.
+    Wrapper task to validate all the external BAM files.
 
     :type species: str
     """

@@ -23,7 +23,7 @@ class BwaAln(utils.PipelineTask):
 
             Sets aDNA specific thresholds in the alignment to improve mapping sensitivity.
 
-            See https://www.mdpi.com/2073-4425/9/3/157
+            https://www.mdpi.com/2073-4425/9/3/157
 
     :type species: str
     :type sample: str

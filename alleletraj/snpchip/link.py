@@ -10,7 +10,7 @@ from alleletraj.modern.snps import LoadModernSNPs
 from alleletraj.snpchip.load import SNPChipLoadPipeline
 
 
-class LinkSNPChipVariants(utils.PipelineTask):
+class LinkSNPChipVariants(utils.DatabaseTask):
     """
     Link modern SNPs to their SNPchip variants
 
@@ -30,9 +30,7 @@ class LinkSNPChipVariants(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
-        exec_time = dbc.execute_sql("""
+        exec_time = self.dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN ensembl_variants ev
                 ON ev.id = ms.variant_id

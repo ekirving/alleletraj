@@ -10,7 +10,7 @@ from alleletraj.ensembl.load import LoadEnsemblGenes, LoadEnsemblVariants
 from alleletraj.modern.snps import ModernSNPsPipeline
 
 
-class LinkEnsemblGenes(utils.PipelineTask):
+class LinkEnsemblGenes(utils.DatabaseTask):
     """
     Link modern SNPs to their Ensembl genes
 
@@ -30,9 +30,7 @@ class LinkEnsemblGenes(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
-        exec_time = dbc.execute_sql("""
+        exec_time = self.dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN ensembl_genes eg
                 ON eg.chrom = ms.chrom
@@ -44,7 +42,7 @@ class LinkEnsemblGenes(utils.PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class LinkEnsemblVariants(utils.PipelineTask):
+class LinkEnsemblVariants(utils.DatabaseTask):
     """
     Link modern SNPs to their Ensembl dbsnp variants
 
@@ -64,9 +62,7 @@ class LinkEnsemblVariants(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
-        exec_time = dbc.execute_sql("""
+        exec_time = self.dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN ensembl_variants v
                 ON ms.chrom = v.chrom

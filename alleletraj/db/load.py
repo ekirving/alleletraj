@@ -38,11 +38,8 @@ class CreateDatabase(utils.PipelineTask):
         # create the empty db
         name = Database.create_database(self.species)
 
-        # open a connection to the new db
-        dbc = self.db_conn()
-
         # load the CREATE TABLE sql file
-        dbc.execute_file(sql_file.path)
+        self.dbc.execute_file(sql_file.path)
 
         with self.output().open('w') as fout:
             fout.write('INFO: Created db `{}`'.format(name))

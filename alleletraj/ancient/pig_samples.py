@@ -160,9 +160,9 @@ def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
     return records
 
 
-class PopulatePigSamples(utils.PipelineTask):
+class PopulatePigSamples(utils.DatabaseTask):
     """
-    Load all the ancient pig samples into the db.
+    Load all the ancient pig samples into the database.
 
     :type species: str
     """
@@ -175,8 +175,6 @@ class PopulatePigSamples(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
         start = time()
 
         # get the google sheet details
@@ -208,10 +206,10 @@ class PopulatePigSamples(utils.PipelineTask):
                 sample['age'] = unicode_truncate(sample['age'], 255)
 
             # save the sample record
-            dbc.save_record('samples', sample)
+            self.dbc.save_record('samples', sample)
 
             # fetch the sample record (so we can link the BAM files to the ID)
-            sample = dbc.get_record('samples', {'accession': accession})
+            sample = self.dbc.get_record('samples', {'accession': accession})
 
             # save the BAM file paths
             for path in bam_files[accession]:
@@ -219,14 +217,14 @@ class PopulatePigSamples(utils.PipelineTask):
                 bam_file['ancient_id'] = sample['id']
                 bam_file['path'] = path
 
-                if not dbc.exists_record('ancient_files', bam_file):
-                    dbc.save_record('ancient_files', bam_file)
+                if not self.dbc.exists_record('ancient_files', bam_file):
+                    self.dbc.save_record('ancient_files', bam_file)
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class SyncRadiocarbonDates(utils.PipelineTask):
+class SyncRadiocarbonDates(utils.DatabaseTask):
     """
     Fetch all the radiocarbon dates
 
@@ -241,8 +239,6 @@ class SyncRadiocarbonDates(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
         start = time()
 
         # get the google sheet details
@@ -255,13 +251,13 @@ class SyncRadiocarbonDates(utils.PipelineTask):
         for record in records:
             if record['accession'] is not None:
                 record['confident'] = 'Yes'
-                dbc.save_record('ancient_dates_c14', record)
+                self.dbc.save_record('ancient_dates_c14', record)
 
         with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class ConfirmAgeMapping(utils.PipelineTask):
+class ConfirmAgeMapping(utils.DatabaseTask):
     """
     Make sure that all the free-text dates have proper numeric mappings
 
@@ -276,8 +272,6 @@ class ConfirmAgeMapping(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
         start = time()
 
         # get the google sheet details
@@ -289,10 +283,10 @@ class ConfirmAgeMapping(utils.PipelineTask):
         # update the `ancient_dates` table
         for record in records:
             if record['age'] is not None:
-                dbc.save_record('ancient_dates', record)
+                self.dbc.save_record('ancient_dates', record)
 
         # check if any samples have an age which is unmapped
-        missing = dbc.get_records_sql("""
+        missing = self.dbc.get_records_sql("""
             SELECT DISTINCT a.age
               FROM ancient a
          LEFT JOIN ancient_dates ad
@@ -309,7 +303,7 @@ class ConfirmAgeMapping(utils.PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class ConfirmCountryMapping(utils.PipelineTask):
+class ConfirmCountryMapping(utils.DatabaseTask):
     """
     Make sure that all the free-text countries have been properly mapped to Europe.
 
@@ -324,14 +318,12 @@ class ConfirmCountryMapping(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
         start = time()
 
         # make a list of known countries
         world = "','".join(EUROPE + NON_EUROPE)
 
-        missing = dbc.get_records_sql("""
+        missing = self.dbc.get_records_sql("""
             SELECT DISTINCT a.country
               FROM ancient a
              WHERE a.country NOT IN ('{world}')
@@ -349,7 +341,7 @@ class ConfirmCountryMapping(utils.PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class MarkValidPigs(utils.PipelineTask):
+class MarkValidPigs(utils.DatabaseTask):
     """
     Pig samples are valid if they are from Europe and have a BAM file or MC1R genotype.
 
@@ -368,12 +360,10 @@ class MarkValidPigs(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
         # make a list of permissible countries
         europe = "','".join(EUROPE)
 
-        exec_time = dbc.execute_sql("""
+        exec_time = self.dbc.execute_sql("""
             UPDATE ancient a
          LEFT JOIN ancient_files af
                 ON af.ancient_id = a.id

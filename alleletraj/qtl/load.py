@@ -76,9 +76,9 @@ class ExternalAnimalQTLdb(utils.PipelineExternalTask):
         return luigi.LocalTarget('data/qtldb/{}_cM_{}.txt'.format(self.species, QTLDB_RELEASE))
 
 
-class PopulateQTLs(utils.PipelineTask):
+class PopulateQTLs(utils.DatabaseTask):
     """
-    Fetch all the QTLs from the QTLdb API and populate the local db.
+    Fetch all the QTLs from the QTLdb API and populate the local database.
 
     :type species: str
     """
@@ -95,7 +95,6 @@ class PopulateQTLs(utils.PipelineTask):
         # get the file containing all the QTL IDs
         _, qtl_file = self.input()
 
-        dbc = self.db_conn()
         api = QTLdbAPI()
 
         # get a list of all the QTLDb IDs from the tsv dump
@@ -108,7 +107,7 @@ class PopulateQTLs(utils.PipelineTask):
             fout.write("INFO: Processing {:,} QTLs from '{}'\n".format(len(qtl_ids), qtl_file.path))
 
             # get all the QTLs already in the DB
-            qtls = dbc.get_records_sql("""
+            qtls = self.dbc.get_records_sql("""
                 SELECT qtldb_id 
                   FROM qtls 
                  WHERE qtldb_id IS NOT NULL""", key='qtldb_id')
@@ -139,16 +138,16 @@ class PopulateQTLs(utils.PipelineTask):
                 record['trait_id'] = trait['traitID']
 
                 # does the trait exist
-                if not dbc.exists_record('traits', {'id': record['trait_id']}):
+                if not self.dbc.exists_record('traits', {'id': record['trait_id']}):
                     # setup the trait record
                     trait = dict((field.replace('trait', '').lower(), trait[field]) for field in trait)
                     # TODO this is broken!!
                     trait['type'] = ''  # api.get_trait_type(self.species, trait['id'], trait['name'])
 
-                    dbc.save_record('traits', trait, insert=True)
+                    self.dbc.save_record('traits', trait, insert=True)
 
                 # does the publication exist
-                if not dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
+                if not self.dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
                     # setup the pubmed record
                     pubmed = {}  # api.get_publication(self.species, record['pubmedID'])  # TODO this is broken!!
 
@@ -157,7 +156,7 @@ class PopulateQTLs(utils.PipelineTask):
                         pubmed['year'] = re.search(r'\(([0-9]{4})\)', pubmed['authors']).group(1)
                         pubmed['journal'] = pubmed['journal']['#text'][:-5]
 
-                        dbc.save_record('pubmeds', pubmed, insert=True)
+                        self.dbc.save_record('pubmeds', pubmed, insert=True)
                     else:
                         # TODO some records have a bogus pubmed ID, but these appear to work on the website
                         record['pubmedID'] = None
@@ -197,7 +196,7 @@ class PopulateQTLs(utils.PipelineTask):
                 # filter out any empty values
                 qtl = OrderedDict((key, record[key]) for key in record if record[key] != '-')
 
-                dbc.save_record('qtls', qtl, insert=True)
+                self.dbc.save_record('qtls', qtl, insert=True)
 
                 added += 1
 
@@ -206,7 +205,7 @@ class PopulateQTLs(utils.PipelineTask):
             fout.write('INFO: Finished adding {} new QTLs\n'.format(len(new_ids)))
 
 
-class SetQTLWindows(utils.PipelineTask):
+class SetQTLWindows(utils.DatabaseTask):
     """
     Calculate the QTL window sizes.
 
@@ -226,10 +225,8 @@ class SetQTLWindows(utils.PipelineTask):
         # unpack the inputs
         (_, fai_file), _, _ = self.input()
 
-        dbc = self.db_conn()
-
         # get all the valid QTL windows
-        results = dbc.get_records_sql("""
+        results = self.dbc.get_records_sql("""
             SELECT q.id, v.chrom, v.start AS site
               FROM qtls q
               JOIN ensembl_variants v
@@ -265,13 +262,13 @@ class SetQTLWindows(utils.PipelineTask):
                 'end': end
             }
 
-            dbc.save_record('qtls', qtl)
+            self.dbc.save_record('qtls', qtl)
 
         with self.output().open('w') as fout:
             fout.write('INFO: Set window sizes for {:,} QTLs'.format(len(results)))
 
 
-class PopulateSweepLoci(utils.PipelineTask):
+class PopulateSweepLoci(utils.DatabaseTask):
     """
     Populate the db with any selective sweep regions.
 
@@ -286,8 +283,6 @@ class PopulateSweepLoci(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
         # get the files containing the sweep data
         loci_file = SWEEP_DATA[self.species]['loci']  # TODO make SWEEP_DATA into external dependencies
         snps_file = SWEEP_DATA[self.species]['snps']
@@ -311,7 +306,7 @@ class PopulateSweepLoci(utils.PipelineTask):
                     'end': end,
                 }
 
-                qtl_id = dbc.save_record('qtls', qtl)
+                qtl_id = self.dbc.save_record('qtls', qtl)
 
                 num_loci += 1
 
@@ -334,7 +329,7 @@ class PopulateSweepLoci(utils.PipelineTask):
                         'p': p
                     }
 
-                    dbc.save_record('sweep_snps', sweep_snp)
+                    self.dbc.save_record('sweep_snps', sweep_snp)
 
                     num_snps += 1
 
@@ -342,7 +337,7 @@ class PopulateSweepLoci(utils.PipelineTask):
             fout.write('INFO: Loaded {} selective sweep loci (inc. {} SNPs)'.format(num_loci, num_snps))
 
 
-class PopulateMC1RLocus(utils.PipelineTask):
+class PopulateMC1RLocus(utils.DatabaseTask):
     """
     Populate a dummy QTL for the MC1R gene.
 
@@ -358,10 +353,8 @@ class PopulateMC1RLocus(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
         # get the MC1R gene record
-        mc1r = dbc.get_record('ensembl_genes', {'gene_name': MC1R_GENE})
+        mc1r = self.dbc.get_record('ensembl_genes', {'gene_name': MC1R_GENE})
 
         # setup a dummy QTL record
         qtl = {
@@ -372,13 +365,13 @@ class PopulateMC1RLocus(utils.PipelineTask):
             'end': mc1r['end'],
         }
 
-        dbc.save_record('qtls', qtl)
+        self.dbc.save_record('qtls', qtl)
 
         with self.output().open('w') as fout:
             fout.write('INFO: Added the MC1R gene locus')
 
 
-class PopulatePigMummyLoci(utils.PipelineTask):
+class PopulatePigMummyLoci(utils.DatabaseTask):
     """
     Balancing selection on a recessive lethal deletion with pleiotropic effects on two neighboring genes in the porcine
     genome.
@@ -403,8 +396,6 @@ class PopulatePigMummyLoci(utils.PipelineTask):
         # unpack the inputs
         (_, fai_file), _ = self.input()
 
-        dbc = self.db_conn()
-
         # get the sizes of the chromosomes
         sizes = utils.get_chrom_sizes(fai_file)
 
@@ -412,7 +403,7 @@ class PopulatePigMummyLoci(utils.PipelineTask):
         max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
 
         # get all pig mummy SNPs and turn them into pseudo-loci
-        results = dbc.get_records_sql("""
+        results = self.dbc.get_records_sql("""
             SELECT ev.rsnumber, 
                    ev.chrom, 
                    GREATEST(ev.start - {offset}, 1) AS `start`,
@@ -436,7 +427,7 @@ class PopulatePigMummyLoci(utils.PipelineTask):
                 'end': result['end'],
             }
 
-            dbc.save_record('qtls', qtl)
+            self.dbc.save_record('qtls', qtl)
 
         with self.output().open('w') as fout:
             fout.write('INFO: Added {:,} pig mummy loci'.format(len(results)))
@@ -465,7 +456,7 @@ class PopulateTraitLoci(utils.PipelineWrapperTask):
             yield PopulatePigMummyLoci(self.species)
 
 
-class PopulateNeutralLoci(utils.PipelineTask):
+class PopulateNeutralLoci(utils.DatabaseTask):
     """
     Populate dummy QTLs for all the 'neutral' loci (i.e. regions outside of all QTLs and gene regions +/- a buffer)
 
@@ -485,8 +476,6 @@ class PopulateNeutralLoci(utils.PipelineTask):
         # unpack the inputs
         (_, fai_file), _ = self.input()
 
-        dbc = self.db_conn()
-
         # get the sizes of the chromosomes
         sizes = utils.get_chrom_sizes(fai_file)
 
@@ -494,7 +483,7 @@ class PopulateNeutralLoci(utils.PipelineTask):
         max_chrom = ' '.join(["WHEN '{}' THEN {}".format(chrom, sizes[chrom]) for chrom in sizes])
 
         # get all the non-neutral regions (defined here as all valid QTLs and gene regions +/- offset)
-        results = dbc.get_records_sql("""
+        results = self.dbc.get_records_sql("""
 
             # get all the QTLs with a valid rsnumber
             SELECT ev.chrom,
@@ -566,10 +555,10 @@ class PopulateNeutralLoci(utils.PipelineTask):
             }
 
             # check if this QTL already exists
-            if dbc.get_record('qtls', qtl):
+            if self.dbc.get_record('qtls', qtl):
                 continue
 
-            dbc.save_record('qtls', qtl)
+            self.dbc.save_record('qtls', qtl)
 
             num_loci += 1
 
@@ -595,7 +584,7 @@ class PopulateAllLoci(utils.PipelineWrapperTask):
         yield PopulateNeutralLoci(self.species)
 
 
-class PopulateQTLSNPs(utils.PipelineTask):
+class PopulateQTLSNPs(utils.DatabaseTask):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
 
@@ -613,10 +602,8 @@ class PopulateQTLSNPs(utils.PipelineTask):
 
     # noinspection SqlResolve
     def run(self):
-        dbc = self.db_conn()
-
         # insert linking records to make future queries much quicker
-        exec_time = dbc.execute_sql("""
+        exec_time = self.dbc.execute_sql("""
             INSERT INTO qtl_snps (qtl_id, modsnp_id)
                  SELECT DISTINCT q.id, ms.id
                    FROM qtls q
@@ -634,7 +621,7 @@ class PopulateQTLSNPs(utils.PipelineTask):
             fout.write('INFO: Execution took {}'.format(exec_time))
 
 
-class MarkNeutralSNPs(utils.PipelineTask):
+class MarkNeutralSNPs(utils.DatabaseTask):
     """
     Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
 
@@ -653,9 +640,7 @@ class MarkNeutralSNPs(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
-        exec_time = dbc.execute_sql("""
+        exec_time = self.dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN qtl_snps qs
                 ON qs.modsnp_id = ms.id

@@ -34,9 +34,9 @@ class ExternalCSV(utils.PipelineExternalTask):
         return luigi.LocalTarget('data/{}_samples_{}.csv'.format(period, self.species))
 
 
-class LoadSamples(utils.PipelineTask):
+class LoadSamples(utils.DatabaseTask):
     """
-    Load all the samples into the db.
+    Load all the samples into the database.
 
     :type species: str
     :type ancient: bool
@@ -53,8 +53,6 @@ class LoadSamples(utils.PipelineTask):
 
     def run(self):
         _, csv_file = self.input()
-
-        dbc = self.db_conn()
 
         with csv_file.open('r') as fin:
             data = csv.DictReader(fin)
@@ -79,7 +77,7 @@ class LoadSamples(utils.PipelineTask):
                     'path':       row.get('path')
                 }
 
-                sample_id = dbc.save_record('samples', sample)
+                sample_id = self.dbc.save_record('samples', sample)
 
                 # are the accessions paired end or not
                 paired = 1 if row.get('librarylayout') == 'PAIRED' else 0
@@ -88,13 +86,13 @@ class LoadSamples(utils.PipelineTask):
                 accessions = [acc.strip() for acc in row['accessions'].split(';') if acc.strip() != '']
 
                 for accession in accessions:
-                    dbc.save_record('sample_runs', {'sample_id': sample_id, 'accession': accession, 'paired': paired})
+                    self.dbc.save_record('sample_runs', {'sample_id': sample_id, 'accession': accession, 'paired': paired})
 
         with self.output().open('w') as fout:
             fout.write('Done!')
 
 
-class CreateSampleBins(utils.PipelineTask):
+class CreateSampleBins(utils.DatabaseTask):
     """
     Create the sample bins.
 
@@ -109,12 +107,10 @@ class CreateSampleBins(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
-        dbc.execute_sql("TRUNCATE TABLE sample_bins")
+        self.dbc.execute_sql("TRUNCATE TABLE sample_bins")
 
         # get the maximum date
-        max_age = dbc.get_records_sql("""
+        max_age = self.dbc.get_records_sql("""
             SELECT MAX(s.age_int) max_age
               FROM samples s
                """, key=None)[0].pop('max_age')
@@ -133,13 +129,13 @@ class CreateSampleBins(utils.PipelineTask):
                 'upper': bin_upper + 1
             }
 
-            dbc.save_record('sample_bins', sample_bin)
+            self.dbc.save_record('sample_bins', sample_bin)
 
         with self.output().open('w') as fout:
             fout.write('Done!')
 
 
-class BinSamples(utils.PipelineTask):
+class BinSamples(utils.DatabaseTask):
     """
     Assign samples to temporal bins.
 
@@ -157,27 +153,25 @@ class BinSamples(utils.PipelineTask):
 
     # noinspection SqlWithoutWhere
     def run(self):
-        dbc = self.db_conn()
-
         # reset sample bins (just in case)
-        dbc.execute_sql("""
+        self.dbc.execute_sql("""
             UPDATE samples s
                SET s.bin_id = NULL""")
 
         # assign sample bins
-        dbc.execute_sql("""
+        self.dbc.execute_sql("""
             UPDATE samples s
               JOIN sample_bins sb
                 ON s.age_int BETWEEN sb.upper AND sb.lower
                SET s.bin_id = sb.id""")
 
         # reset sample counts
-        dbc.execute_sql("""
+        self.dbc.execute_sql("""
             UPDATE sample_bins sb
               SET sb.num_samples = NULL""")
 
         # update the the sample count for the bins
-        dbc.execute_sql("""
+        self.dbc.execute_sql("""
             UPDATE sample_bins sb
               JOIN (  SELECT sb.id, COUNT(*) AS cnt
                         FROM samples s

@@ -50,7 +50,7 @@ class DownloadAxiomEquineHD(utils.PipelineTask):
             utils.curl_download(self.url, tmp_path)
 
 
-class LoadSNPChipVariants(utils.PipelineTask):
+class LoadSNPChipVariants(utils.DatabaseTask):
     """
     Load the SNP chip variants from SNPchimp
 
@@ -73,9 +73,6 @@ class LoadSNPChipVariants(utils.PipelineTask):
         # get the input file
         gzip_file, _ = self.input()
 
-        # open a db connection
-        dbc = self.db_conn()
-
         # unzip the archive into a named pipe
         pipe = '{}-luigi-tmp-{:010}'.format(utils.trim_ext(gzip_file.path), random.randrange(0, 1e10))
         utils.run_cmd(['mkfifo -m0666 {pipe}'.format(pipe=pipe)], shell=True)
@@ -83,7 +80,7 @@ class LoadSNPChipVariants(utils.PipelineTask):
                       background=True)
 
         # load the data into the db
-        dbc.execute_sql("""
+        self.dbc.execute_sql("""
             LOAD DATA 
          LOCAL INFILE '{pipe}'
            INTO TABLE snpchip 
@@ -91,7 +88,7 @@ class LoadSNPChipVariants(utils.PipelineTask):
                   """.format(pipe=pipe))
 
         # tidy up NULL values which get imported as the string 'NULL'
-        dbc.execute_sql("""
+        self.dbc.execute_sql("""
             UPDATE snpchip
                SET rsnumber = NULL
              WHERE rsnumber = 'NULL'""")
@@ -103,7 +100,7 @@ class LoadSNPChipVariants(utils.PipelineTask):
             fout.write('Loaded SNPchimp records')
 
 
-class LoadAxiomEquineHD(utils.PipelineTask):
+class LoadAxiomEquineHD(utils.DatabaseTask):
     """
     SNPchimp doesn't have the details for the Affymetrix Axiom EquineHD array, so we have to load the data separately.
 
@@ -126,9 +123,6 @@ class LoadAxiomEquineHD(utils.PipelineTask):
         # get the input file
         axiom_file, _, _ = self.input()
 
-        # open a db connection
-        dbc = self.db_conn()
-
         # just get the relevant columns
         awk = "awk -F ',' 'NR>1 {print $1 \"\\t\" $4 \"\\t\" $5}'"
 
@@ -139,7 +133,7 @@ class LoadAxiomEquineHD(utils.PipelineTask):
                       .format(axiom=axiom_file.path, awk=awk, pipe=pipe)], shell=True, background=True)
 
         # load the data into the db
-        dbc.execute_sql("""
+        self.dbc.execute_sql("""
                 LOAD DATA 
              LOCAL INFILE '{pipe}'
                INTO TABLE snpchip_axiom
@@ -150,7 +144,7 @@ class LoadAxiomEquineHD(utils.PipelineTask):
         utils.run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
 
         # fix the missing rsnumbers
-        dbc.execute_sql("""
+        self.dbc.execute_sql("""
             UPDATE snpchip sc
               JOIN snpchip_axiom sa
                 ON sa.snp_name = sc.snp_name

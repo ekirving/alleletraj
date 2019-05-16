@@ -10,7 +10,7 @@ from alleletraj import utils
 from alleletraj.ancient.snps import AncientSNPsPipeline
 
 
-class GraphDerivedVersusAge(utils.PipelineTask):
+class GraphDerivedVersusAge(utils.DatabaseTask):
     """
     Produce a scatter plot of the oldest observed derived allele vs. the oldest sample at that site.
 
@@ -28,13 +28,11 @@ class GraphDerivedVersusAge(utils.PipelineTask):
     def run(self):
         pdf_file, png_file = self.output()
 
-        dbc = self.db_conn()
-
         # sql fragment to calculate the median age of each sample
         median = "COALESCE(sd.median, (COALESCE(c14.lower, sd.lower)+COALESCE(c14.upper, sd.upper))/2)"
 
         # get the age of every covered snp
-        reads = dbc.get_records_sql("""
+        reads = self.dbc.get_records_sql("""
             SELECT sr.id AS read_id,
                    {median} AS median
                FROM (
@@ -72,7 +70,7 @@ class GraphDerivedVersusAge(utils.PipelineTask):
                 writer.writerow(read)
 
         # get the dates of the oldest sample and oldest observation of the derived allele for every QTL SNP
-        snps = dbc.get_records_sql("""
+        snps = self.dbc.get_records_sql("""
              SELECT qs.modsnp_id,
                     t.class AS trait,
                     ms.ancestral,

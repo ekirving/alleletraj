@@ -21,7 +21,7 @@ def mutation_type(alleles):
     return 'ts' if set(alleles) == {'A', 'G'} or set(alleles) == {'C', 'T'} else 'tv'
 
 
-class LoadModernSNPs(utils.PipelineTask):
+class LoadModernSNPs(utils.DatabaseTask):
     """
     Ascertain moderns SNPs and estimate their allele frequency from a chromosome VCF file.
 
@@ -41,9 +41,6 @@ class LoadModernSNPs(utils.PipelineTask):
     def run(self):
         # unpack the inputs
         _, vcf_file = self.input()
-
-        # open a private connection to the db
-        dbc = self.db_conn()
 
         # count the number of SNPs added
         num_snps = 0
@@ -66,7 +63,7 @@ class LoadModernSNPs(utils.PipelineTask):
                 'type': snp_type,
             }
 
-            modsnp_id = dbc.save_record('modern_snps', modern_snp)
+            modsnp_id = self.dbc.save_record('modern_snps', modern_snp)
 
             num_snps += 1
 
@@ -98,7 +95,7 @@ class LoadModernSNPs(utils.PipelineTask):
                     'daf': daf,
                 }
 
-                dbc.save_record('modern_snp_daf', modern_snp_daf)
+                self.dbc.save_record('modern_snp_daf', modern_snp_daf)
 
         with self.output().open('w') as fout:
             fout.write('Added {:,} SNPs'.format(num_snps))

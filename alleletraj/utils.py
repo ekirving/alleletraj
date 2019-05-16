@@ -390,10 +390,9 @@ class DatabaseTask(PipelineTask):
         Name of the outgroup sample
         """
         if self._outgroup is None:
-            self._outgroup = self.db.get_record('samples', {'populaion': OUTGROUP_POP})
+            self._outgroup = self.dbc.get_record('samples', {'populaion': OUTGROUP_POP})
 
         return self._outgroup['name']
-
 
 
 
@@ -404,7 +403,7 @@ class PipelineExternalTask(luigi.ExternalTask, PipelineTask):
     pass
 
 
-class PipelineWrapperTask(luigi.WrapperTask, PipelineTask):
+class PipelineWrapperTask(luigi.WrapperTask, DatabaseTask):
     """
     Let WrapperTasks access dynamic properties of the PipelineTask
     """

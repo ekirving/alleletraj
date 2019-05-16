@@ -46,7 +46,7 @@ MCMC_RANDOM_SEED = 234395
 MCMC_MIN_BINS = 3
 
 
-class SelectionInputFile(utils.PipelineTask):
+class SelectionInputFile(utils.DatabaseTask):
     """
     Generate the 4-column sample input file for `selection` (Schraiber et al., 2016)
 
@@ -76,8 +76,6 @@ class SelectionInputFile(utils.PipelineTask):
         # unpack the inputs
         (_, nref_file), _ = self.input()
 
-        dbc = self.db_conn()
-
         gen_time = GENERATION_TIME[self.species]
 
         # get the Nref population size
@@ -88,7 +86,7 @@ class SelectionInputFile(utils.PipelineTask):
         pop_sql = self.population if self.population != 'DOM2WLD' else "DOM2', 'WILD"
 
         # noinspection SqlResolve
-        bins = dbc.get_records_sql("""
+        bins = self.dbc.get_records_sql("""
             # get the ancient frequencies in each bin
             SELECT SUM(sr.base = ms.derived) AS derived_count,
                    COUNT(sr.id) AS sample_size,
@@ -257,10 +255,8 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
 
     def requires(self):
 
-        dbc = self.db_conn()
-
         # get the modsnp_id for every GWAS hit
-        modsnps = dbc.get_records_sql("""
+        modsnps = self.dbc.get_records_sql("""
             SELECT DISTINCT ms.id
               FROM qtls q
               JOIN ensembl_variants ev 
@@ -290,10 +286,8 @@ class SelectionBestQTLSNPs(utils.PipelineWrapperTask):
         # mark the best SNPs
         yield AnalyseQTLsPipeline(self.species)
 
-        dbc = self.db_conn()
-
         # get the modsnp_id for every GWAS hit
-        modsnps = dbc.get_records_sql("""
+        modsnps = self.dbc.get_records_sql("""
             SELECT DISTINCT qs.modsnp_id AS id
               FROM qtls q
               JOIN qtl_snps qs

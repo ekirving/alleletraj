@@ -34,7 +34,7 @@ NUM_NEUTRAL_SNPS = 60000
 NUM_ANCESTRAL_SNPS = 30000
 
 
-class FetchGWASPeaks(utils.PipelineTask):
+class FetchGWASPeaks(utils.DatabaseTask):
     """
     Fetch all the GWAS peaks from the QTL db.
 
@@ -49,9 +49,7 @@ class FetchGWASPeaks(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
-        exec_time = dbc.execute_sql("""
+        exec_time = self.dbc.execute_sql("""
             INSERT 
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT q.id, 'peak',
@@ -76,7 +74,7 @@ class FetchGWASPeaks(utils.PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class FetchGWASFlankingSNPs(utils.PipelineTask):
+class FetchGWASFlankingSNPs(utils.DatabaseTask):
     """
     Fetch the best flanking SNPs for each GWAS peak.
 
@@ -92,12 +90,10 @@ class FetchGWASFlankingSNPs(utils.PipelineTask):
 
     # noinspection SqlResolve
     def run(self):
-        dbc = self.db_conn()
-
         start = time()
 
         # get the best flanking SNPs for each QTL
-        qtls = dbc.get_records_sql("""
+        qtls = self.dbc.get_records_sql("""
             SELECT q.id, q.chrom, q.site,
                     
                     SUBSTRING_INDEX(
@@ -134,7 +130,7 @@ class FetchGWASFlankingSNPs(utils.PipelineTask):
             # merge the flanking SNP modsnp_ids
             modsnps = ','.join(flank for flank in [qtl['left_flank'], qtl['right_flank']] if flank)
 
-            dbc.execute_sql("""
+            self.dbc.execute_sql("""
                 INSERT 
                   INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
                 SELECT {qtl_id}, IF(ev.start > {site}, 'right', 'left'),
@@ -152,7 +148,7 @@ class FetchGWASFlankingSNPs(utils.PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class FetchSelectiveSweepSNPs(utils.PipelineTask):
+class FetchSelectiveSweepSNPs(utils.DatabaseTask):
     """
     Fetch the best SNPs from the selective sweep loci.
 
@@ -169,11 +165,9 @@ class FetchSelectiveSweepSNPs(utils.PipelineTask):
 
     # noinspection SqlResolve
     def run(self):
-        dbc = self.db_conn()
-
         start = time()
 
-        qtls = dbc.get_records_sql("""
+        qtls = self.dbc.get_records_sql("""
             SELECT qtl_id AS id,
                    SUBSTRING_INDEX(
                        GROUP_CONCAT(modsnp_id ORDER BY ss.p, ABS(ss.site-near.site)), 
@@ -203,7 +197,7 @@ class FetchSelectiveSweepSNPs(utils.PipelineTask):
 
         # we have to do this iteratively, as FIND_IN_SET() performs terribly
         for qtl in qtls:
-            dbc.execute_sql("""
+            self.dbc.execute_sql("""
                 INSERT 
                   INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
                 SELECT {qtl_id}, 'sweep', 
@@ -222,7 +216,7 @@ class FetchSelectiveSweepSNPs(utils.PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class FetchMC1RSNPs(utils.PipelineTask):
+class FetchMC1RSNPs(utils.DatabaseTask):
     """
     Get all the dnsnp SNPs which fall within the MC1R gene.
 
@@ -245,12 +239,10 @@ class FetchMC1RSNPs(utils.PipelineTask):
 
     # noinspection SqlResolve
     def run(self):
-        dbc = self.db_conn()
-
         # get the MC1R qtl
-        qtl = dbc.get_record('qtls', {'associationType': 'MC1R'})
+        qtl = self.dbc.get_record('qtls', {'associationType': 'MC1R'})
 
-        exec_time = dbc.execute_sql("""
+        exec_time = self.dbc.execute_sql("""
             INSERT 
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT {qtl_id}, 'mc1r', 
@@ -272,7 +264,7 @@ class FetchMC1RSNPs(utils.PipelineTask):
             fout.write('Execution took {}'.format(exec_time))
 
 
-class FetchNeutralSNPs(utils.PipelineTask):
+class FetchNeutralSNPs(utils.DatabaseTask):
     """
     Get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
 
@@ -293,8 +285,6 @@ class FetchNeutralSNPs(utils.PipelineTask):
         # unpack the inputs
         (_, fai_file), _, _ = self.input()
 
-        dbc = self.db_conn()
-
         start = time()
 
         # get the sizes of the chromosomes
@@ -310,7 +300,7 @@ class FetchNeutralSNPs(utils.PipelineTask):
             # get the weighted number of SNPs for this chrom
             num_snps = int(round(NUM_NEUTRAL_SNPS * percent[chrom]))
 
-            dbc.execute_sql("""
+            self.dbc.execute_sql("""
                 INSERT
                   INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
                 SELECT q.id, q.associationType,
@@ -338,7 +328,7 @@ class FetchNeutralSNPs(utils.PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class FetchAncestralSNPs(utils.PipelineTask):
+class FetchAncestralSNPs(utils.DatabaseTask):
     """
     Get ancestral SNPs which are variable in ASD (Asian domestic) and SUM (Sumatran Sus scrofa) populations.
 
@@ -360,8 +350,6 @@ class FetchAncestralSNPs(utils.PipelineTask):
         # unpack the inputs
         (_, fai_file), _ = self.input()
 
-        dbc = self.db_conn()
-
         start = time()
 
         # get the sizes of the chromosomes
@@ -378,7 +366,7 @@ class FetchAncestralSNPs(utils.PipelineTask):
             num_snps = int(round(NUM_ANCESTRAL_SNPS * percent[chrom]))
 
             # TODO doesn't work anymore, because modern_snps doesn't have a population column
-            dbc.execute_sql("""
+            self.dbc.execute_sql("""
                 INSERT
                   INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
                 SELECT NULL, 'Ancestral',
@@ -409,7 +397,7 @@ class FetchAncestralSNPs(utils.PipelineTask):
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
-class FetchRemainingSNPChipSNPs(utils.PipelineTask):
+class FetchRemainingSNPChipSNPs(utils.DatabaseTask):
     """
     Include any SNPchip SNPs which were not already included in a previous ascertainment category.
 
@@ -425,9 +413,7 @@ class FetchRemainingSNPChipSNPs(utils.PipelineTask):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
-        dbc = self.db_conn()
-
-        exec_time = dbc.execute_sql("""
+        exec_time = self.dbc.execute_sql("""
             INSERT
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT NULL, 'snpchip',
@@ -479,7 +465,7 @@ class PerformAscertainment(utils.PipelineWrapperTask):
         yield FetchRemainingSNPChipSNPs(self.species)
 
 
-class ExportAscertainedSNPs(utils.PipelineTask):
+class ExportAscertainedSNPs(utils.DatabaseTask):
     """
     Export all the ascertained SNPs to a TSV.
 
@@ -494,10 +480,8 @@ class ExportAscertainedSNPs(utils.PipelineTask):
         return luigi.LocalTarget('data/tsv/{}.candidate-snps.tsv'.format(self.species))
 
     def run(self):
-        dbc = self.db_conn()
-
         # get all the unique SNPs in the ascertainment
-        reads = dbc.get_records_sql("""
+        reads = self.dbc.get_records_sql("""
             SELECT GROUP_CONCAT(DISTINCT qtl_id ORDER BY qtl_id) AS qtls,
                    GROUP_CONCAT(DISTINCT type ORDER BY type) AS types,
                    rsnumber, chrom, site, ref, alt, chip_name, 

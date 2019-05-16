@@ -87,7 +87,7 @@ class DownloadEnsemblData(utils.PipelineTask):
                               shell=True)
 
 
-class LoadEnsemblGenes(utils.PipelineTask):
+class LoadEnsemblGenes(utils.DatabaseTask):
     """
     Load the GTF (General Transfer Format) data from Ensembl.
 
@@ -109,9 +109,6 @@ class LoadEnsemblGenes(utils.PipelineTask):
     def run(self):
         # unpack the inputs
         _, gtf_file = self.input()
-
-        # open a db connection
-        dbc = self.db_conn()
 
         # the column headers for batch inserting into the db
         fields = ('source', 'gene_id', 'gene_name', 'version', 'biotype', 'chrom', 'start', 'end')
@@ -148,13 +145,13 @@ class LoadEnsemblGenes(utils.PipelineTask):
                         records.append(gene)
 
             # bulk insert all the records
-            dbc.save_records('ensembl_genes', fields, records)
+            self.dbc.save_records('ensembl_genes', fields, records)
 
         with self.output().open('w') as fout:
             fout.write('Inserted {:,} Ensembl gene records'.format(len(records)))
 
 
-class LoadEnsemblVariants(utils.PipelineTask):
+class LoadEnsemblVariants(utils.DatabaseTask):
     """
     Load the GVF (Genome Variation Format) data from Ensembl.
 
@@ -176,9 +173,6 @@ class LoadEnsemblVariants(utils.PipelineTask):
     def run(self):
         # unpack the inputs
         _, gvf_file = self.input()
-
-        # open a db connection
-        dbc = self.db_conn()
 
         # the column headers for batch inserting into the db
         fields = ('dbxref', 'rsnumber', 'type', 'chrom', 'start', 'end', 'ref', 'alt')
@@ -215,19 +209,19 @@ class LoadEnsemblVariants(utils.PipelineTask):
                     records.append(variant)
 
                     # bulk insert in chunks
-                    if num_recs % dbc.max_insert_size == 0:
-                        dbc.save_records('ensembl_variants', fields, records)
+                    if num_recs % self.dbc.max_insert_size == 0:
+                        self.dbc.save_records('ensembl_variants', fields, records)
                         records = []
 
             # insert any remaining records
             if records:
-                dbc.save_records('ensembl_variants', fields, records)
+                self.dbc.save_records('ensembl_variants', fields, records)
 
         with self.output().open('w') as fout:
             fout.write('Inserted {:,} Ensembl variant records'.format(num_recs))
 
 
-class FlagSNPsNearIndels(utils.PipelineTask):
+class FlagSNPsNearIndels(utils.DatabaseTask):
     """
     Flag any dbsnp variants that are within a given range of an INDEL
 
@@ -247,11 +241,9 @@ class FlagSNPsNearIndels(utils.PipelineTask):
 
     # noinspection SqlResolve
     def run(self):
-        dbc = self.db_conn()
-
         start = time()
 
-        indels = dbc.get_records_sql("""
+        indels = self.dbc.get_records_sql("""
             SELECT ev.start, ev.end
               FROM ensembl_variants ev
              WHERE ev.chrom = '{chrom}' 
@@ -267,11 +259,11 @@ class FlagSNPsNearIndels(utils.PipelineTask):
         loci = list(utils.merge_intervals(loci))
 
         # process the INDELs in chunks
-        for i in range(0, len(loci), dbc.max_query_size):
+        for i in range(0, len(loci), self.dbc.max_query_size):
             # convert each locus into sql conditions
-            conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + dbc.max_query_size]]
+            conds = ["start BETWEEN {} AND {}".format(start, end) for start, end in loci[i:i + self.dbc.max_query_size]]
 
-            dbc.execute_sql("""
+            self.dbc.execute_sql("""
                 UPDATE ensembl_variants
                    SET indel = 1
                  WHERE chrom = '{chrom}'

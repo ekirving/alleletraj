@@ -35,7 +35,7 @@ HARD_MAPQ_CUTOFF = 30
 HARD_BASEQ_CUTOFF = 30
 
 
-class MergeAllLoci(utils.PipelineTask):
+class MergeAllLoci(utils.DatabaseTask):
     """
     Merge all the overlapping QTL and pseudo-QTL windows.
 
@@ -51,11 +51,8 @@ class MergeAllLoci(utils.PipelineTask):
         return luigi.LocalTarget('data/bed/{}-loci.bed'.format(self.basename))
 
     def run(self):
-        # open a db connection
-        dbc = self.db_conn()
-
         # get all the unique QTL windows
-        loci = dbc.get_records_sql("""
+        loci = self.dbc.get_records_sql("""
             SELECT DISTINCT q.chrom, q.start, q.end
               FROM qtls q
              WHERE q.chrom = '{chrom}' 
@@ -81,7 +78,7 @@ class MergeAllLoci(utils.PipelineTask):
             fout.write(bed)
 
 
-class LoadAncientSNPs(utils.PipelineTask):
+class LoadAncientSNPs(utils.DatabaseTask):
     """
     Load all the ancient data for SNPs that fall within the loci of interest.
 
@@ -110,9 +107,6 @@ class LoadAncientSNPs(utils.PipelineTask):
         bam_files = [bam_file for bam_file, _ in self.input()[5:]]
         log_file = self.output()
 
-        # open a db connection
-        dbc = self.db_conn()
-
         log = log_file.open('w')
         fin = bed_file.open('r')
 
@@ -121,7 +115,7 @@ class LoadAncientSNPs(utils.PipelineTask):
             chrom, start, end = locus.split()
 
             # get all the modern SNPs in this locus, where the DAF in any population is above the threshold
-            snps = dbc.get_records_sql("""
+            snps = self.dbc.get_records_sql("""
                 SELECT DISTINCT ms.site, ms.ancestral, ms.derived, ev.ref, ev.alt
                   FROM modern_snps ms
                   JOIN modern_snp_daf msd
@@ -308,7 +302,7 @@ class LoadAncientSNPs(utils.PipelineTask):
                                     'base': allele
                                 }
 
-                                dbc.save_record('sample_reads', read)
+                                self.dbc.save_record('sample_reads', read)
 
                     # delete the temp files
                     for tmp in glob.glob("data/vcf/*{}*".format(suffix)):
@@ -332,7 +326,7 @@ class LoadAncientSNPs(utils.PipelineTask):
 
                 # bulk insert all the reads for this sample
                 if randcall:
-                    dbc.save_records('sample_reads', fields, randcall)
+                    self.dbc.save_records('sample_reads', fields, randcall)
 
             log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end))
 

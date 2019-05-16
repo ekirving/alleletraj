@@ -20,7 +20,7 @@ HARD_MAPQ_CUTOFF = 30
 HARD_BASEQ_CUTOFF = 30
 
 
-class CallAncientGenotypes(utils.PipelineTask):
+class CallAncientGenotypes(utils.DatabaseTask):
     """
     Call ancient genotypes with angsd by randomly selecting a base.
 
@@ -33,7 +33,7 @@ class CallAncientGenotypes(utils.PipelineTask):
     def requires(self):
         yield WholeGenomeSNPsVCF(self.species)
 
-        for pop, sample in self.all_ancient_samples:
+        for pop, sample in self.list_samples(ancient=True):
             yield SampleBAM(self.species, pop, sample)
 
     def output(self):

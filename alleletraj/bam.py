@@ -37,7 +37,7 @@ class ExternalSampleBAM(utils.PipelineExternalTask):
         yield luigi.LocalTarget(self.path + '.bai')
 
 
-class ValidateBamFile(utils.PipelineTask):
+class ValidateBamFile(utils.DatabaseTask):
     """
     Validate an external BAM file using Picard.
 
@@ -60,8 +60,7 @@ class ValidateBamFile(utils.PipelineTask):
     retry_count = 0
 
     def requires(self):
-        # TODO needs to support ancient data
-        return ExternalSampleBAM(self.all_modern_data[self.population][self.sample]['path'])
+        return ExternalSampleBAM(self.dbc.get_record('samples', {'name': self.sample}).get('path'))
 
     def output(self):
         # included the external bam and bai files in the output
@@ -110,7 +109,7 @@ class AccessionBAM(utils.PipelineTask):
         return self.input()
 
 
-class SAMToolsMerge(utils.PipelineTask):
+class SAMToolsMerge(utils.DatabaseTask):
     """
     Merge multiple libraries into a single BAM file
 
@@ -125,8 +124,7 @@ class SAMToolsMerge(utils.PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
-        # TODO this needs to handle ancient samples as well
-        for accession in self.all_modern_data[self.population][self.sample]['accessions']:
+        for accession in self.list_accessions(self.sample):
             yield AccessionBAM(self.species, self.sample, accession)
 
     def output(self):
@@ -143,7 +141,7 @@ class SAMToolsMerge(utils.PipelineTask):
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
-class SampleBAM(utils.PipelineTask):
+class SampleBAM(utils.DatabaseTask):
     """
     Wrapper task to return a fully processed BAM file for a given sample.
 
@@ -162,18 +160,16 @@ class SampleBAM(utils.PipelineTask):
         return self.requires().complete()
 
     def requires(self):
-        # TODO needs to support ancient samples
-        if self.all_modern_data[self.population][self.sample].get('path', '') != '':
-            # we need to validate any external BAM files before using them
+        if self.dbc.get_record('samples', {'name': self.sample}).get('path'):
+            # validate external BAM files before using them
             return ValidateBamFile(self.species, self.population, self.sample)
         else:
-            # TODO fix me
-            accessions = self.all_modern_data[self.population][self.sample]['accessions']
+            accessions = self.list_accessions(self.sample)
             if len(accessions) > 1:
-                # TODO if more than one accession then we need to merge them all and dedupe again (just in case)
+                # TODO merge all accessions together, and deduplicate a second time (just in case)
                 return SAMToolsMerge(self.species, self.population, self.sample)
             else:
-                return AccessionBAM(self.species, self.sample, accessions.pop())
+                return AccessionBAM(self.species, self.sample, accessions[0])
 
     def output(self):
         # only pass on the bam and bai files (i.e. trim off any .log and .err files from ValidateBamFile)
@@ -189,8 +185,10 @@ class ValidateModernBAMs(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop, sample in self.all_modern_samples:
-            if self.all_modern_data[pop][sample].get('path', '') != '':
+        samples = self.list_samples(modern=True, outgroup=True)
+
+        for pop, sample in samples:
+            if samples[(pop, sample)].get('path'):
                 yield ValidateBamFile(self.species, pop, sample)
 
 

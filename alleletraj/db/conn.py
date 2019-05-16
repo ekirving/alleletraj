@@ -128,7 +128,10 @@ class Database:
         """
         self.__get_records(table, conds, sort)
 
-        return OrderedDict((item[key], item) for item in self.cursor)
+        if key is None:
+            return list(self.cursor)
+        else:
+            return OrderedDict((item[key], item) for item in self.cursor)
 
     def get_records_sql(self, sql, key='id'):
         """

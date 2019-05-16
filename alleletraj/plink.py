@@ -65,7 +65,7 @@ class PlinkTask(utils.PipelineTask):
         return chrset
 
 
-class PlinkVCFtoBED(PlinkTask):
+class PlinkVCFtoBED(PlinkTask, utils.DatabaseTask):
     """
     Convert a VCF to binary PLINK binary format (i.e. bed, bim, fam)
 
@@ -109,7 +109,8 @@ class PlinkVCFtoBED(PlinkTask):
             fam_data = fin.readlines()
 
         # get all the sample records, indexed by sample name
-        samples = dict([(sample, self.all_modern_data[pop][sample]) for pop, sample in self.all_modern_samples])
+        samples = self.list_samples(modern=True, outgroup=True)
+        samples = dict([(sample, samples[(pop, sample)]) for pop, sample in samples])
 
         # set the correct population and sex codes
         with fam_file.open('w') as fout:
@@ -129,7 +130,7 @@ class PlinkVCFtoBED(PlinkTask):
         os.remove('{}.nosex'.format(utils.trim_ext(fam_file.path)))
 
 
-class HaploToPlink(PlinkTask):
+class HaploToPlink(PlinkTask, utils.DatabaseTask):
     """
     Convert an angsd haplo.gz file to PLINK transposed text format (tped)
 
@@ -153,11 +154,12 @@ class HaploToPlink(PlinkTask):
 
         # angst converts all the names to ind[0-9]+, so we need to restore the real population and sample codes
         with tfam_file.open('w') as fout:
-            for pop, sample in self.all_ancient_samples:
+            samples = self.list_samples(ancient=True)
+            for pop, sample in samples:
                 fam = [0 for _ in range(6)]
                 fam[PLINK_COL_FID] = pop
                 fam[PLINK_COL_IID] = sample
-                fam[PLINK_COL_SEX] = plink_sex_code(self.all_ancient_data[pop][sample]['sex'])
+                fam[PLINK_COL_SEX] = plink_sex_code(samples[(pop, sample)]['sex'])
                 fam[PLINK_COL_PHENO] = -9
 
                 fout.write(' '.join(map(str, fam)) + '\n')

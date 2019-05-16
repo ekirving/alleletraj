@@ -62,7 +62,7 @@ def dadi_n_epoch(params, ns, pts):
     return fs
 
 
-class EasySFS(utils.PipelineTask):
+class EasySFS(utils.DatabaseTask):
     """
     Calculate the Site Frequency Spectrum.
 
@@ -87,8 +87,8 @@ class EasySFS(utils.PipelineTask):
         # unpack the outputs
         sfs_file, log_file = self.output()
 
-        # get all the samples to use (excluding those not explicitly flagged for the SFS calculation)
-        samples = [sample for sample in self.modern_samples if self.modern_samples[sample]['sfs'] == '1']
+        # get the list of samples to use for the SFS calculation
+        samples = self.dbc.get_records('samples', {'population': self.population, 'sfs': 1}, key='name')
 
         # make a sample/population file
         pop_file = 'data/sfs/{}.pops'.format(self.basename)
@@ -393,7 +393,7 @@ class DadiPipeline(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop in self.modern_pops:
+        for pop in self.list_populations(modern=True):
             yield DadiDemography(self.species, pop)
 
 

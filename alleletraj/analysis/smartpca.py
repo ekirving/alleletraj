@@ -13,7 +13,7 @@ from alleletraj.eigenstrat import ConvertfBedToEigenstrat
 PCA_COMPONENTS = [(1, 2), (3, 4), (5, 6)]
 
 
-class SmartPCA(utils.PipelineTask):
+class SmartPCA(utils.DatabaseTask):
     """
     Calculate the eigenvectors for the given dataset
 
@@ -37,13 +37,12 @@ class SmartPCA(utils.PipelineTask):
         geno_file, snp_file, ind_file, _, _ = self.input()
         evec_file, eval_file, pop_list, par_file = self.output()
 
-        # TODO fix this
         # default to all ancient populations
-        project = ANCIENT_POPS if self.project is None else self.project
+        project = self.list_populations(ancient=True) if self.project is None else self.project
 
         # tell smartpca which pops to use for calculating the eigenvectors, and by inference, which to project
         with pop_list.open('w') as fout:
-            fout.write('\n'.join([pop for pop in self.modern_pops if pop not in project]))
+            fout.write('\n'.join([pop for pop in self.list_populations() if pop not in project]))
 
         # compose the config settings for smartpca
         config = [
@@ -66,7 +65,7 @@ class SmartPCA(utils.PipelineTask):
         utils.run_cmd(['smartpca', '-p', par_file.path])
 
 
-class SmartPCAPlot(utils.PipelineTask):
+class SmartPCAPlot(utils.DatabaseTask):
     """
     Use ggplot to plot the PCA
 
@@ -105,7 +104,7 @@ class SmartPCAPlot(utils.PipelineTask):
         awk = "awk 'NR>1 {print $NF $0}' " + evec_file.path
 
         # default to all ancient populations
-        project = ANCIENT_POPS if self.project is None else self.project
+        project = self.list_populations(ancient=True) if self.project is None else self.project
 
         # make a regex to match only the ancient pops
         pop_regex = '|'.join(['^{} '.format(pop) for pop in project])

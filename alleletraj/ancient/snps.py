@@ -95,7 +95,7 @@ class LoadAncientSNPs(utils.DatabaseTask):
         yield ModernSNPsPipeline(self.species)
         yield EnsemblLinkPipeline(self.species)
 
-        for pop, samples in self.all_ancient_samples:
+        for pop, samples in self.list_samples(ancient=True):
             yield SampleBAM(self.species, pop, samples)
 
     def output(self):
@@ -157,13 +157,14 @@ class LoadAncientSNPs(utils.DatabaseTask):
 
             num_reads = 0
 
-            # check every sample for reads in this locus
-            for (pop, sample), bam_file in itertools.izip(self.all_ancient_samples, bam_files):
+            samples = self.list_samples(ancient=True)
 
-                # get the sample record
-                sample_record = self.all_ancient_data[pop][sample]
+            # check every sample for reads in this locus
+            for (pop, sample), bam_file in itertools.izip(samples, bam_files):
 
                 log.write("INFO: Scanning locus chr{}:{}-{} in sample {}".format(chrom, start, end, sample))
+
+                sample_id = samples[(pop, sample)]['id']
 
                 # buffer the reads so we can bulk insert them into the db
                 reads = defaultdict(list)
@@ -207,7 +208,7 @@ class LoadAncientSNPs(utils.DatabaseTask):
                             dist = min(read_pos, read_length - read_pos)
 
                             # setup the record to insert, in this order
-                            read = (sample_record['id'], chrom, site, base, mapq, baseq, dist)
+                            read = (sample_id, chrom, site, base, mapq, baseq, dist)
 
                             # store the read so we can batch insert later
                             reads[(chrom, site)].append(read)
@@ -218,14 +219,14 @@ class LoadAncientSNPs(utils.DatabaseTask):
 
                 if diploid:
                     log.write("INFO: Calling diploid bases in {:,} sites for sample {}"
-                              .format(len(diploid), sample_record['id']))
+                              .format(len(diploid), sample_id))
 
                     suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
 
                     # TODO replace with luigi.LocalTarget(is_tmp=True)
                     # make some temp files
                     vcf_file, sex_file, tsv_file, tgz_file, rgs_file = [
-                        'data/vcf/diploid-sample{}-{}.{}'.format(sample_record['id'], suffix, ext) for ext in
+                        'data/vcf/diploid-sample{}-{}.{}'.format(sample_id, suffix, ext) for ext in
                         ['vcf', 'sex', 'tsv', 'tsv.gz', 'rgs']]
 
                     # sort the diploid positions
@@ -246,7 +247,7 @@ class LoadAncientSNPs(utils.DatabaseTask):
 
                     # bcftools needs the sex specified in a separate file
                     with open(sex_file, 'w') as fout:
-                        fout.write('{}\t{}\n'.format(sample, sample_record['sex']))
+                        fout.write('{}\t{}\n'.format(sample, samples[(pop, sample)]['sex']))
 
                     params = {
                         'ref': ref_file.path,
@@ -295,7 +296,7 @@ class LoadAncientSNPs(utils.DatabaseTask):
                             for allele in alleles:
                                 # compose the read records
                                 read = {
-                                    'sample_id': sample_record['id'],
+                                    'sample_id': sample_id,
                                     'chrom': chrom,
                                     'site': site,
                                     'genoq': genoq,

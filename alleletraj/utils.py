@@ -6,7 +6,7 @@ import csv
 import os
 import re
 import subprocess
-from collections import Iterable
+from collections import Iterable, OrderedDict, defaultdict
 
 # third party modules
 import luigi
@@ -279,89 +279,6 @@ class PipelineTask(luigi.Task):
         """
         return [(name, getattr(self, name)) for name in self.get_param_names()]
 
-    # --------------------------------------------
-
-    _all_modern_data = None
-    _modern_data = None
-
-    _all_ancient_data = None
-    _ancient_data = None
-
-    @property
-    def all_modern_data(self):
-        """
-        List of the populations for the species
-        """
-        if self._all_modern_data is None:
-            self._load_modern_data()
-
-        return self._all_modern_data
-
-    @property
-    def all_modern_samples(self):
-        """
-        Get all the samples from all the populations (including the outgroup)
-        """
-        return [(pop, sample) for pop in self.all_modern_data for sample in self.all_modern_data[pop]]
-
-    @property
-    def modern_pops(self):
-        """
-        List of the populations for the species
-        """
-        if self._modern_data is None:
-            self._load_modern_data()
-
-        return self._modern_data
-
-    @property
-    def modern_samples(self):
-        """
-        List of the modern samples for this population
-        """
-        return self.modern_pops[self.population]
-
-    @property
-    def all_ancient_data(self):
-        """
-        List of the populations for the species
-        """
-        if self._ancient_data is None:
-            self._load_ancient_data()
-
-        return self._all_ancient_data
-
-    @property
-    def all_ancient_samples(self):
-        """
-        Get all the samples from all the populations (including the outgroup)
-        """
-        return [(pop, sample) for pop in self.all_ancient_data for sample in self.all_ancient_data[pop]]
-
-    @property
-    def ancient_samples(self):
-        """
-        List of the ancient samples for this population
-        """
-        return self.all_ancient_data[self.population]
-
-    def _load_modern_data(self):
-        """
-        Initialise the modern data dictionary and outgroup sample
-        """
-        self._all_modern_data = load_samples_csv('data/modern_samples_{}.csv'.format(self.species))
-        self._modern_data = dict(self._all_modern_data)
-        self._outgroup = self._modern_data.pop(OUTGROUP_POP)
-
-        # there must be exactly one outgroup
-        assert len(self._outgroup) == 1
-
-    def _load_ancient_data(self):
-        """
-        Initialise the ancient data dictionary and outgroup sample
-        """
-        self._all_ancient_data = load_samples_csv('data/ancient_samples_{}.csv'.format(self.species))
-
 
 class DatabaseTask(PipelineTask):
     """
@@ -375,7 +292,7 @@ class DatabaseTask(PipelineTask):
     _outgroup = None
 
     @property
-    def db(self):
+    def dbc(self):
         """
         Create a private connection to the db
         """
@@ -394,6 +311,50 @@ class DatabaseTask(PipelineTask):
 
         return self._outgroup['name']
 
+    def list_samples(self, ancient=None, modern=None, outgroup=False):
+        """
+        List all the samples.
+
+        :return: {(pop, sample): record, ...}
+        """
+        conds = {}
+        if ancient or modern:
+            conds['ancient'] = 1 if ancient else 0
+
+        samples = self.dbc.get_records('samples', conds, sort='population, name', key=None)
+
+        return OrderedDict([((sample['population'], sample['name']), sample) for sample in samples
+                            if outgroup or sample['population'] != OUTGROUP_POP])
+
+    def list_populations(self, ancient=None, modern=None, outgroup=False):
+        """
+        List all the populations, and their samples.
+
+        :return: {pop: {sample: record, ...}, ...}
+        """
+        samples = self.list_samples(ancient, modern, outgroup)
+
+        # group the samples by population
+        data = defaultdict(dict)
+
+        for pop, sample in samples:
+            data[pop][sample] = samples[(pop, sample)]
+
+        return data
+
+    def list_accessions(self, sample):
+        """
+        List all the accession codes for the sample.
+
+        :return: [accession, ...]
+        """
+        return self.dbc.get_records_sql("""
+            SELECT sr.accession
+              FROM samples s 
+              JOIN sample_runs sr
+                ON sr.sample_id = s.id
+             WHERE s.name = '{sample}'
+               """.format(sample=sample), key='accession').keys()
 
 
 class PipelineExternalTask(luigi.ExternalTask, PipelineTask):

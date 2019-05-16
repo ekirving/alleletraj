@@ -67,13 +67,16 @@ class LoadModernSNPs(utils.DatabaseTask):
 
             num_snps += 1
 
+            # get all the populations and samples
+            populations = self.list_populations(modern=True)
+
             # resolve the genotypes of the samples in one population at a time
-            for pop in self.modern_pops:
+            for pop in populations:
 
                 # lets collate all the haploid observations for the two alleles
                 haploids = []
 
-                for sample in self.modern_pops[pop]:
+                for sample in populations[pop]:
                     # get the alleles, but skip any missing genotypes
                     haploids += [alleles for alleles in rec.samples[sample].alleles if alleles is not None]
 

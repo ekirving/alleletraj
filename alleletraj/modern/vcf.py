@@ -69,7 +69,7 @@ class ReferencePloidy(utils.PipelineTask):
                     fout.write('\t'.join(['*', '*', '*', sex, '2']) + '\n')
 
 
-class BCFToolsSamplesFile(utils.PipelineTask):
+class BCFToolsSamplesFile(utils.DatabaseTask):
     """
     Make a samples sex file and a samples readgroup file for bcftools.
 
@@ -81,7 +81,7 @@ class BCFToolsSamplesFile(utils.PipelineTask):
     species = luigi.Parameter()
 
     def requires(self):
-        for pop, sample in self.all_modern_samples:
+        for pop, sample in self.list_samples(modern=True, outgroup=True):
             yield SampleBAM(self.species, pop, sample)
 
     def output(self):
@@ -92,19 +92,21 @@ class BCFToolsSamplesFile(utils.PipelineTask):
         bam_files = [bam_file for bam_file, _ in self.input()]
         sex_file, rgs_file = self.output()
 
+        # get all the modern samples
+        samples = self.list_samples(modern=True, outgroup=True)
+
         # bcftools needs the sex specified in a separate file
         with sex_file.open('w') as fout:
-            for pop, sample in self.all_modern_samples:
-                sex = self.all_modern_data[pop][sample]['sex']
-                fout.write('{}\t{}\n'.format(sample, sex[0].upper() if sex else ''))  # use single letter uppercase
+            for pop, sample in samples:
+                fout.write('{}\t{}\n'.format(sample, samples[(pop, sample)]['sex']))
 
         # sample names in the BAM file(s) may not be consistent, so override the @SM code
         with rgs_file.open('w') as fout:
-            for (pop, sample), bam_file in itertools.izip(self.all_modern_samples, bam_files):
+            for (pop, sample), bam_file in itertools.izip(samples, bam_files):
                 fout.write('*\t{}\t{}\n'.format(bam_file.path, sample))
 
 
-class BCFToolsCall(utils.PipelineTask):
+class BCFToolsCall(utils.DatabaseTask):
     """
     Make genotype calls using the bcftools mpileup workflow
 
@@ -119,7 +121,7 @@ class BCFToolsCall(utils.PipelineTask):
         yield ReferencePloidy(self.species)
         yield BCFToolsSamplesFile(self.species)
 
-        for pop, sample in self.all_modern_samples:
+        for pop, sample in self.list_samples(modern=True, outgroup=True):
             yield SampleBAM(self.species, pop, sample)
 
     def output(self):

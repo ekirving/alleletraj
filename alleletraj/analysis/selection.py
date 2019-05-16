@@ -269,7 +269,7 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
              WHERE q.associationType = 'Association'
                AND q.valid = 1""")
 
-        for pop in self.modern_pops:
+        for pop in self.list_populations(modern=True):
             for modsnp_id in modsnps:
                 yield SelectionPlot(self.species, pop, modsnp_id, MCMC_POP_CONST)
 

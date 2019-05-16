@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # third party modules
+import itertools
+
 import luigi
 import numpy
 import pysam
@@ -87,7 +89,7 @@ class BCFToolsSamplesFile(utils.PipelineTask):
 
     def run(self):
         # unpack the params
-        bam_files = [bam_file for bam_file, bai_file in self.input()]
+        bam_files = [bam_file for bam_file, _ in self.input()]
         sex_file, rgs_file = self.output()
 
         # bcftools needs the sex specified in a separate file
@@ -98,8 +100,8 @@ class BCFToolsSamplesFile(utils.PipelineTask):
 
         # sample names in the BAM file(s) may not be consistent, so override the @SM code
         with rgs_file.open('w') as fout:
-            for idx, (pop, sample) in enumerate(self.all_modern_samples):
-                fout.write('*\t{}\t{}\n'.format(bam_files[idx].path, sample))
+            for (pop, sample), bam_file in itertools.izip(self.all_modern_samples, bam_files):
+                fout.write('*\t{}\t{}\n'.format(bam_file.path, sample))
 
 
 class BCFToolsCall(utils.PipelineTask):

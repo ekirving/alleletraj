@@ -3,6 +3,7 @@
 
 # standard modules
 import glob
+import itertools
 import os
 import random
 from collections import defaultdict
@@ -13,6 +14,7 @@ import pysam
 
 # local modules
 from alleletraj import utils
+from alleletraj.bam import AlignedBAM
 from alleletraj.samples import LoadSamples
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
@@ -79,9 +81,6 @@ class MergeAllLoci(utils.PipelineTask):
             fout.write(bed)
 
 
-# TODO align the ancient data
-
-
 class LoadAncientSNPs(utils.PipelineTask):
     """
     Load all the ancient data for SNPs that fall within the loci of interest.
@@ -99,30 +98,20 @@ class LoadAncientSNPs(utils.PipelineTask):
         yield ModernSNPsPipeline(self.species)
         yield EnsemblLinkPipeline(self.species)
 
+        for pop, samples in self.all_ancient_samples:
+            yield AlignedBAM(self.species, pop, samples)
+
     def output(self):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
-    # noinspection SqlResolve
     def run(self):
         # unpack the params
-        (ref_file, _), pld_file, bed_file, _, _, _ = self.input()
+        (ref_file, _), pld_file, bed_file = self.input()[0:3]
+        bam_files = [bam_file for bam_file, _ in self.input()[5:]]
         log_file = self.output()
 
         # open a db connection
         dbc = self.db_conn()
-
-        # get all the samples and their BAM files
-        samples = dbc.get_records_sql("""
-            SELECT s.*, GROUP_CONCAT(sf.path) paths
-             FROM samples s
-             JOIN sample_files sf
-               ON sf.sample_id = s.id
-            WHERE s.valid = 1
-         GROUP BY s.id""")
-
-        # fix issue with weird chars in accession code
-        for sid in samples:
-            samples[sid]['accession'] = samples[sid]['accession'].encode('utf-8')
 
         log = log_file.open('w')
         fin = bed_file.open('r')
@@ -131,9 +120,9 @@ class LoadAncientSNPs(utils.PipelineTask):
         for locus in fin:
             chrom, start, end = locus.split()
 
-            # get all the modern SNPs in this locus
+            # get all the modern SNPs in this locus, where the DAF in any population is above the threshold
             snps = dbc.get_records_sql("""
-                SELECT ms.site, ms.ancestral, ms.derived, ev.ref, ev.alt
+                SELECT DISTINCT ms.site, ms.ancestral, ms.derived, ev.ref, ev.alt
                   FROM modern_snps ms
                   JOIN modern_snp_daf msd
                     ON msd.modsnp_id = ms.id
@@ -141,7 +130,8 @@ class LoadAncientSNPs(utils.PipelineTask):
                     ON ev.id = ms.variant_id
                  WHERE ms.chrom = '{chrom}'
                    AND ms.site BETWEEN {start} AND {end}
-                   AND msd.daf >= {daf}""".format(chrom=chrom, start=start, end=end, daf=MIN_DAF), key='site')
+                   AND msd.daf >= {daf}
+                   """.format(chrom=chrom, start=start, end=end, daf=MIN_DAF), key='site')
 
             log.write("INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
 
@@ -173,76 +163,60 @@ class LoadAncientSNPs(utils.PipelineTask):
 
             num_reads = 0
 
-            # randomise the order of samples to reduce disk I/O for parallel jobs
-            sample_ids = samples.keys()
-            random.shuffle(sample_ids)
-
-            # check all the samples for coverage in this locus
-            for sample_id in sample_ids:
+            # check every sample for reads in this locus
+            for (pop, sample), bam_file in itertools.izip(self.all_ancient_samples, bam_files):
 
                 # get the sample record
-                sample = samples[sample_id]
+                sample_record = self.all_ancient_data[pop][sample]
 
-                log.write("INFO: Scanning locus chr{}:{}-{} in sample {}"
-                          .format(chrom, start, end, sample['accession']))
+                log.write("INFO: Scanning locus chr{}:{}-{} in sample {}".format(chrom, start, end, sample))
 
                 # buffer the reads so we can bulk insert them into the db
                 reads = defaultdict(list)
 
-                # TODO these should really be merged into one
-                # there may be multiple BAM files for each sample
-                for path in sample['paths'].split(','):
+                # open the BAM file for reading
+                with pysam.AlignmentFile(bam_file.path, 'rb') as bam_file:
 
-                    # open the BAM file for reading
-                    with pysam.AlignmentFile(path, 'rb') as bam_file:
-                        contig = chrom
+                    for pileup_column in bam_file.pileup(chrom, int(start), int(end)):
 
-                        try:
-                            bam_file.pileup(contig)
-                        except ValueError:
-                            # handle non-standard chr prefixes
-                            contig = 'chr' + chrom
+                        # NOTE PileupColumn.reference_pos is 0 based
+                        # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
+                        site = pileup_column.reference_pos + 1
 
-                        for pileup_column in bam_file.pileup(contig, int(start), int(end)):
+                        # skip all sites not ascertained in the modern samples
+                        if site not in snps:
+                            continue
 
-                            # NOTE PileupColumn.reference_pos is 0 based
-                            # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos
-                            site = pileup_column.reference_pos + 1
+                        # iterate over all the reads for this site
+                        for pileup_read in pileup_column.pileups:
 
-                            # skip all non-SNP sites
-                            if site not in snps:
+                            # skip alignments that don't have a base at this site (i.e. indels)
+                            if pileup_read.is_del or pileup_read.is_refskip:
                                 continue
 
-                            # iterate over all the reads for this site
-                            for pileup_read in pileup_column.pileups:
+                            # get the read position
+                            read_pos = pileup_read.query_position
 
-                                # skip alignments that don't have a base at this site (i.e. indels)
-                                if pileup_read.is_del or pileup_read.is_refskip:
-                                    continue
+                            # get the aligned base for this read
+                            base = pileup_read.alignment.query_sequence[read_pos]
 
-                                # get the read position
-                                read_pos = pileup_read.query_position
+                            # get the map quality
+                            mapq = pileup_read.alignment.mapping_quality
 
-                                # get the aligned base for this read
-                                base = pileup_read.alignment.query_sequence[read_pos]
+                            # get the base quality
+                            baseq = pileup_read.alignment.query_qualities[read_pos]
 
-                                # get the map quality
-                                mapq = pileup_read.alignment.mapping_quality
+                            # get the overall length of the read
+                            read_length = len(pileup_read.alignment.query_sequence)
 
-                                # get the base quality
-                                baseq = pileup_read.alignment.query_qualities[read_pos]
+                            # how close is the base to the edge of the read
+                            dist = min(read_pos, read_length - read_pos)
 
-                                # get the overall length of the read
-                                read_length = len(pileup_read.alignment.query_sequence)
+                            # setup the record to insert, in this order
+                            read = (sample_record['id'], chrom, site, base, mapq, baseq, dist)
 
-                                # how close is the base to the edge of the read
-                                dist = min(read_pos, read_length - read_pos)
-
-                                # setup the record to insert, in this order
-                                read = (sample_id, chrom, site, base, mapq, baseq, dist)
-
-                                # store the read so we can batch insert later
-                                reads[(chrom, site)].append(read)
+                            # store the read so we can batch insert later
+                            reads[(chrom, site)].append(read)
 
                 # now we're buffered all the reads for this sample at this locus, lets call diploid genotypes on those
                 # that pass our depth threshold
@@ -250,13 +224,14 @@ class LoadAncientSNPs(utils.PipelineTask):
 
                 if diploid:
                     log.write("INFO: Calling diploid bases in {:,} sites for sample {}"
-                              .format(len(diploid), sample_id))
+                              .format(len(diploid), sample_record['id']))
 
                     suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
 
+                    # TODO replace with luigi.LocalTarget(is_tmp=True)
                     # make some temp files
                     vcf_file, sex_file, tsv_file, tgz_file, rgs_file = [
-                        'data/vcf/diploid-sample{}-{}.{}'.format(sample_id, suffix, ext) for ext in
+                        'data/vcf/diploid-sample{}-{}.{}'.format(sample_record['id'], suffix, ext) for ext in
                         ['vcf', 'sex', 'tsv', 'tsv.gz', 'rgs']]
 
                     # sort the diploid positions
@@ -271,22 +246,20 @@ class LoadAncientSNPs(utils.PipelineTask):
                     utils.run_cmd(["bgzip -c {} > {}".format(tsv_file, tgz_file)], shell=True, verbose=False)
                     utils.run_cmd(["tabix -s1 -b2 -e2 {}".format(tgz_file)], shell=True, verbose=False)
 
-                    # sample names in the BAM file(s) may not be consistent, so override the @SM code with accession
+                    # sample names in the BAM file(s) may not be consistent, so override the @SM code
                     with open(rgs_file, 'w') as fout:
-                        for path in sample['paths'].split(','):
-                            fout.write('*\t{}\t{}'.format(path, sample['accession']))
+                        fout.write('*\t{}\t{}'.format(bam_file.path, sample))
 
                     # bcftools needs the sex specified in a separate file
                     with open(sex_file, 'w') as fout:
-                        sex = sample['sex'][0].upper() if sample['sex'] else ''
-                        fout.write('{}\t{}\n'.format(sample['accession'], sex))
+                        fout.write('{}\t{}\n'.format(sample, sample_record['sex']))
 
                     params = {
                         'ref': ref_file.path,
-                        'reg': '{}:{}-{}'.format(contig, int(start) + 1, end),  # restrict the callable region
-                        'tgz': tgz_file,                                        # only call the specified SNPs
+                        'reg': '{}:{}-{}'.format(chrom, int(start) + 1, end),  # restrict the callable region
+                        'tgz': tgz_file,                                       # only call the specified SNPs
                         'rgs': rgs_file,
-                        'bam': ' '.join(sample['paths'].split(',')),            # use all the BAM files
+                        'bam': bam_file.path,
                         'pld': pld_file.path,
                         'sex': sex_file,
                         'vcf': vcf_file
@@ -313,7 +286,7 @@ class LoadAncientSNPs(utils.PipelineTask):
                         site = rec.pos
 
                         # get the genotype call for this site
-                        geno = rec.samples[sample['accession']]['GT']
+                        geno = rec.samples[sample]['GT']
 
                         # get the genotype quality
                         genoq = int(rec.qual)
@@ -328,7 +301,7 @@ class LoadAncientSNPs(utils.PipelineTask):
                             for allele in alleles:
                                 # compose the read records
                                 read = {
-                                    'sample_id': sample_id,
+                                    'sample_id': sample_record['id'],
                                     'chrom': chrom,
                                     'site': site,
                                     'genoq': genoq,

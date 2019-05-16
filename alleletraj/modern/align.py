@@ -61,6 +61,8 @@ class BwaMem(utils.PipelineTask):
     """
     Align the fastq file(s) to the reference genome using the BWA-MEM algorithm.
 
+    see http://www.htslib.org/workflow/#mapping_to_variant
+
     :type species: str
     :type sample: str
     :type accession: str
@@ -104,8 +106,9 @@ class BwaMem(utils.PipelineTask):
             # get the temporary path for the bam file
             params['bam'] = bam_path
 
-            # align using the mem algorithm, and convert to a sorted BAM file
+            # align using the bwa-mem, tidy up with fixmate, and convert to a sorted BAM file
             cmd = "bwa mem -t {threads} -R '{readgroup}' {reference} {fastq} " \
+                  " | samtools fixmate -r -O bam - - " \
                   " | samtools sort -@ {threads} -O bam -o {bam} -".format(**params)
 
             # perform the alignment
@@ -141,6 +144,8 @@ class PicardMarkDuplicates(utils.PipelineTask):
         bam_in, _ = self.input()
         bam_out, _, log_file = self.output()
 
+        # TODO consider switching with MarkDuplicatesWithMateCigar
+        # https://software.broadinstitute.org/gatk/documentation/tooldocs/4.0.4.0/picard_sam_markduplicates_MarkDuplicatesWithMateCigar.php
         with bam_out.temporary_path() as bam_path:
             utils.run_cmd(['java', self.java_mem,
                            '-jar', 'jar/picard.jar',
@@ -149,10 +154,8 @@ class PicardMarkDuplicates(utils.PipelineTask):
                            'OUTPUT=' + bam_path,
                            'METRICS_FILE=' + log_file.path,
                            'REMOVE_DUPLICATES=true',
+                           'CREATE_INDEX=true',
                            'QUIET=true'])
-
-        # index the BAM file
-        utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 
 if __name__ == '__main__':

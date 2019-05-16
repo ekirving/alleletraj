@@ -268,6 +268,7 @@ class DatabaseTask(PipelineTask):
 
     _dbc = None
     _outgroup = None
+    _sample = None
 
     @property
     def dbc(self):
@@ -288,6 +289,16 @@ class DatabaseTask(PipelineTask):
             self._outgroup = self.dbc.get_record('samples', {'populaion': OUTGROUP_POP})
 
         return self._outgroup['name']
+
+    @property
+    def sample_data(self):
+        """
+        The sample record
+        """
+        if self._sample is None:
+            self._sample = self.dbc.get_record('samples', {'name': self.sample})
+
+        return self._sample
 
     def list_samples(self, ancient=None, modern=None, outgroup=False):
         """

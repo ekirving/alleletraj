@@ -14,7 +14,7 @@ from alleletraj.modern.dedupe import PicardMarkDuplicates
 from alleletraj.ref import PicardSequenceDictionary
 
 
-class DeduplicatedBAM(utils.PipelineTask):
+class DeduplicatedBAM(utils.DatabaseTask):
     """
     Wrapper task to return a deduplicated BAM file.
 
@@ -29,7 +29,7 @@ class DeduplicatedBAM(utils.PipelineTask):
     accession = luigi.Parameter()
 
     def requires(self):
-        if self.ancient:  # TODO fix me
+        if self.sample_data.get('ancient'):
             # use the aDNA pipeline
             return FilterUniqueSAMCons(self.species, self.sample, self.accession)
         else:

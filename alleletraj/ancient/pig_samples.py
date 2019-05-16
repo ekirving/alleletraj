@@ -206,15 +206,12 @@ class PopulatePigSamples(utils.DatabaseTask):
                 sample['age'] = unicode_truncate(sample['age'], 255)
 
             # save the sample record
-            self.dbc.save_record('samples', sample)
-
-            # fetch the sample record (so we can link the BAM files to the ID)
-            sample = self.dbc.get_record('samples', {'accession': accession})
+            sample_id = self.dbc.save_record('samples', sample)
 
             # save the BAM file paths
             for path in bam_files[accession]:
                 bam_file = dict()
-                bam_file['ancient_id'] = sample['id']
+                bam_file['ancient_id'] = sample_id
                 bam_file['path'] = path
 
                 if not self.dbc.exists_record('ancient_files', bam_file):

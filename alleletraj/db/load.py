@@ -18,7 +18,7 @@ class ExternalDatabaseSQL(utils.PipelineExternalTask):
         return luigi.LocalTarget('data/alleletraj_database.sql')
 
 
-class CreateDatabase(utils.PipelineTask):
+class CreateDatabase(utils.DatabaseTask):
     """
     Create and new db and add all the empty tables.
 

@@ -200,8 +200,6 @@ class FilterUniqueSAMCons(utils.PipelineTask):
     sample = luigi.Parameter()
     accession = luigi.Parameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 8}  # TODO check ram usage
-
     def requires(self):
         return BwaSamSe(self.species, self.sample, self.accession)
 
@@ -234,7 +232,7 @@ class AncientAlignPipeline(utils.PipelineWrapperTask):
 
     def requires(self):
         for accession in ['ERR2528430', 'ERR2528431', 'ERR2528432']:
-            yield BwaSamSe('horse', 'Blagotin2', accession, paired=False)
+            yield FilterUniqueSAMCons('horse', 'Blagotin2', accession)
 
 
 if __name__ == '__main__':

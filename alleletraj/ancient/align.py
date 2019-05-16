@@ -6,72 +6,13 @@ import luigi
 
 # local modules
 from alleletraj import utils
+from alleletraj.ancient.trim import AdapterRemoval
 from alleletraj.const import CPU_CORES_LOW, CPU_CORES_MED
 from alleletraj.ref import ReferenceFASTA, BwaIndexBWTSW
-from alleletraj.sra import SraToolsFastqDump
-
-# hard filters for AdapterRemoval
-TRIM_MIN_BASEQ = 20
-TRIM_MIN_LENGTH = 25
 
 # BWA-ALN settings
 BWA_ALN_SEED = 1024  # long seed effectively disables seeding
 BWA_ALN_EDIT = 0.03  # small edit distance improves mapping when reads have errors
-
-
-class AdapterRemoval(utils.PipelineTask):
-    """
-    Trim adapters, low-quality bases from the 5' and 3' ends, drop any resulting reads below a min-length threshold,
-    and collapse overlapping read pairs.
-
-    Becase we collapse paired-end reads, this task always produces a single fastq file.
-
-    :type accession: str
-    :type paired: bool
-    """
-    accession = luigi.Parameter()
-    paired = luigi.BoolParameter()
-
-    def requires(self):
-        return SraToolsFastqDump(self.accession, self.paired)
-
-    def output(self):
-        yield luigi.LocalTarget('data/fastq/{}-trim.fq.gz'.format(self.accession))
-        yield luigi.LocalTarget('data/fastq/{}-trim-discard.fq.gz'.format(self.accession))
-        yield luigi.LocalTarget('data/fastq/{}-trim.log'.format(self.accession))
-
-    def run(self):
-        fastq_files = self.input()
-        fastq_keep, fastq_drop, log_file = self.output()
-
-        cmd = [
-            'AdapterRemoval',
-            '--discarded',  fastq_drop.path,
-            '--settings',   log_file.path,
-            '--trimns',                       # trim ambiguous bases (N) at both 5'/3' termini
-            '--trimqualities',                # trim bases at both 5'/3' termini with quality scores...
-            '--minquality', TRIM_MIN_BASEQ,   # below this value
-            '--minlength',  TRIM_MIN_LENGTH,  # discard reads shorter than this length following trimming
-            '--gzip'
-        ]
-
-        if self.paired:
-            cmd += [
-                '--file1', fastq_files[0].path,
-                '--file2', fastq_files[1].path,
-                '--collapse',
-                '--outputcollapsed', fastq_keep.path
-            ]
-        else:
-            # TODO still need to test paired end mode works correctly
-            cmd += [
-                '--basename', utils.trim_ext(log_file.path),
-                '--file1',    fastq_files[0].path,
-                '--output1',  fastq_keep.path
-            ]
-
-        # perform the trimming
-        utils.run_cmd(cmd)
 
 
 class BwaAln(utils.PipelineTask):
@@ -182,57 +123,6 @@ class BwaSamSe(utils.PipelineTask):
 
         # index the BAM file
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
-
-
-class FilterUniqueSAMCons(utils.PipelineTask):
-    """
-    Remove PCR duplicates, so we don't overestimate coverage.
-
-    FilterUniqueSAMCons calls consensus on bases in duplicate reads, rather than simply keeping the read with best mapq.
-
-    See https://bioinf.eva.mpg.de/fastqProcessing/
-
-    :type species: str
-    :type sample: str
-    :type accession: str
-    """
-    species = luigi.Parameter()
-    sample = luigi.Parameter()
-    accession = luigi.Parameter()
-
-    def requires(self):
-        return BwaSamSe(self.species, self.sample, self.accession)
-
-    def output(self):
-        return [luigi.LocalTarget('data/bam/{}.sort.rmdup.{}'.format(self.accession, ext)) for ext in
-                ['bam', 'bam.bai']]
-
-    def run(self):
-        # unpack the params
-        bam_in, _ = self.input()
-        bam_out, _ = self.output()
-
-        with bam_out.temporary_path() as bam_path:
-            # filter duplicates
-            cmd = 'samtools view -h {} | FilterUniqueSAMCons.py | samtools view -b -o {}'.format(bam_in.path, bam_path)
-
-            utils.run_cmd([cmd], shell=True)
-
-        # index the BAM file
-        utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
-
-
-class AncientAlignPipeline(utils.PipelineWrapperTask):
-    """
-    Test the ancient alignment pipeline.
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    def requires(self):
-        for accession in ['ERR2528430', 'ERR2528431', 'ERR2528432']:
-            yield FilterUniqueSAMCons('horse', 'Blagotin2', accession)
 
 
 if __name__ == '__main__':

@@ -9,8 +9,8 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.ancient.align import FilterUniqueSAMCons
-from alleletraj.modern.align import PicardMarkDuplicates
+from alleletraj.ancient.dedupe import FilterUniqueSAMCons
+from alleletraj.modern.dedupe import PicardMarkDuplicates
 from alleletraj.ref import PicardSequenceDictionary
 
 
@@ -29,7 +29,7 @@ class DeduplicatedBAM(utils.PipelineTask):
     accession = luigi.Parameter()
 
     def requires(self):
-        if self.ancient:
+        if self.ancient:  # TODO fix me
             # use the aDNA pipeline
             return FilterUniqueSAMCons(self.species, self.sample, self.accession)
         else:

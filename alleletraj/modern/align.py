@@ -7,54 +7,8 @@ import luigi
 # local modules
 from alleletraj import utils
 from alleletraj.const import CPU_CORES_MED
+from alleletraj.modern.trim import TrimGalore
 from alleletraj.ref import ReferenceFASTA, BwaIndexBWTSW
-from alleletraj.sra import SraToolsFastqDump
-
-# hard filters for TrimGalore!
-TRIM_MIN_BASEQ = 20
-TRIM_MIN_LENGTH = 25
-
-
-class TrimGalore(utils.PipelineTask):
-    """
-    Trim adapters, low-quality bases from the 3' end, and drop any resulting reads below a min-length threshold.
-
-    :type accession: str
-    :type paired: bool
-    """
-    accession = luigi.Parameter()
-    paired = luigi.BoolParameter()
-
-    def requires(self):
-        return SraToolsFastqDump(self.accession, self.paired)
-
-    def output(self):
-        if self.paired:
-            return [luigi.LocalTarget('data/fastq/{}_{}-trim.fq.gz'.format(self.accession, pair)) for pair in [1, 2]]
-        else:
-            return [luigi.LocalTarget('data/fastq/{}_trimmed.fq.gz'.format(self.accession))]
-
-    def run(self):
-        fastq_files = self.input()
-
-        cmd = ['trim_galore',
-               '--quality', TRIM_MIN_BASEQ,   # trim low-quality ends from reads in addition to adapter removal
-               '--length',  TRIM_MIN_LENGTH,  # discard reads that became shorter than length because of trimming
-               '--fastqc',                    # run FastQC once trimming is complete
-               '--output_dir', 'data/fastq']
-
-        if self.paired:
-            cmd.append('--paired')
-
-        # add the fastq files
-        for fastq in fastq_files:
-            cmd.append(fastq.path)
-
-        # perform the trimming
-        utils.run_cmd(cmd)
-
-        # trim_galore does not let us name the outputs so rename the files
-        utils.run_cmd(["rename 's/_val_[12]/-trim/' data/fastq/{}_*".format(self.accession)], shell=True)
 
 
 class BwaMem(utils.PipelineTask):
@@ -116,46 +70,6 @@ class BwaMem(utils.PipelineTask):
 
         # index the BAM file
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
-
-
-class PicardMarkDuplicates(utils.PipelineTask):
-    """
-    Remove PCR duplicates, so we don't overestimate coverage
-
-    :type species: str
-    :type sample: str
-    :type accession: str
-    """
-    species = luigi.Parameter()
-    sample = luigi.Parameter()
-    accession = luigi.Parameter()
-
-    resources = {'cpu-cores': 1, 'ram-gb': 8}
-
-    def requires(self):
-        return BwaMem(self.species, self.sample, self.accession)
-
-    def output(self):
-        return [luigi.LocalTarget('data/bam/{}.sort.rmdup.{}'.format(self.accession, ext)) for ext in
-                ['bam', 'bam.bai', 'log']]
-
-    def run(self):
-        # unpack the params
-        bam_in, _ = self.input()
-        bam_out, _, log_file = self.output()
-
-        # TODO consider switching with MarkDuplicatesWithMateCigar
-        # https://software.broadinstitute.org/gatk/documentation/tooldocs/4.0.4.0/picard_sam_markduplicates_MarkDuplicatesWithMateCigar.php
-        with bam_out.temporary_path() as bam_path:
-            utils.run_cmd(['java', self.java_mem,
-                           '-jar', 'jar/picard.jar',
-                           'MarkDuplicates',
-                           'INPUT=' + bam_in.path,
-                           'OUTPUT=' + bam_path,
-                           'METRICS_FILE=' + log_file.path,
-                           'REMOVE_DUPLICATES=true',
-                           'CREATE_INDEX=true',
-                           'QUIET=true'])
 
 
 if __name__ == '__main__':

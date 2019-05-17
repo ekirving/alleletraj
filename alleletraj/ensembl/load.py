@@ -194,7 +194,7 @@ class LoadEnsemblVariants(utils.DatabaseTask):
                     num_recs += 1
 
                     # grab the GFF columns
-                    chrom, source, snptype, start, end, score, strand, phase, attributes = line.split('\t')
+                    chrom, source, snptype, start, end, _, _, _, attributes = line.split('\t')
 
                     # unpack the 'key1=value1;key2=value2;' attribute pairs
                     atts = dict([pair.strip().split('=') for pair in attributes.split(';') if pair != ''])

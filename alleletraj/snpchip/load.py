@@ -74,27 +74,23 @@ class LoadSNPChipVariants(utils.DatabaseTask):
         gzip_file, _ = self.input()
 
         # unzip the archive into a named pipe
-        pipe = '{}-luigi-tmp-{:010}'.format(utils.trim_ext(gzip_file.path), random.randrange(0, 1e10))
-        utils.run_cmd(['mkfifo -m0666 {pipe}'.format(pipe=pipe)], shell=True)
-        utils.run_cmd(['gzip --stdout -d  {gz} > {pipe}'.format(gz=gzip_file.path, pipe=pipe)], shell=True,
+        tmp_file = luigi.LocalTarget(is_tmp=True)
+        utils.run_cmd(['gzip --stdout -d  {gz} > {tmp}'.format(gz=gzip_file.path, tmp=tmp_file.path)], shell=True,
                       background=True)
 
         # load the data into the db
         self.dbc.execute_sql("""
             LOAD DATA 
-         LOCAL INFILE '{pipe}'
+         LOCAL INFILE '{tmp}'
            INTO TABLE snpchip 
                IGNORE 1 LINES (chip_name, rsnumber, @dummy, @dummy, snp_name)
-                  """.format(pipe=pipe))
+                  """.format(tmp=tmp_file.path))
 
         # tidy up NULL values which get imported as the string 'NULL'
         self.dbc.execute_sql("""
             UPDATE snpchip
                SET rsnumber = NULL
              WHERE rsnumber = 'NULL'""")
-
-        # remove the named pipe
-        utils.run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
 
         with self.output().open('w') as fout:
             fout.write('Loaded SNPchimp records')
@@ -126,22 +122,18 @@ class LoadAxiomEquineHD(utils.DatabaseTask):
         # just get the relevant columns
         awk = "awk -F ',' 'NR>1 {print $1 \"\\t\" $4 \"\\t\" $5}'"
 
-        # unzip the dump into a named pipe
-        pipe = '{}-luigi-tmp-{:010}'.format(utils.trim_ext(axiom_file.path), random.randrange(0, 1e10))
-        utils.run_cmd(['mkfifo -m0666 {pipe}'.format(pipe=pipe)], shell=True)
-        utils.run_cmd(["unzip -p {axiom} | grep -vP '^#' | {awk} > {pipe}"
-                      .format(axiom=axiom_file.path, awk=awk, pipe=pipe)], shell=True, background=True)
+        # unzip the dump into a temp file
+        tmp_file = luigi.LocalTarget(is_tmp=True)
+        utils.run_cmd(["unzip -p {axiom} | grep -vP '^#' | {awk} > {tmp}"
+                      .format(axiom=axiom_file.path, awk=awk, tmp=tmp_file.path)], shell=True, background=True)
 
         # load the data into the db
         self.dbc.execute_sql("""
                 LOAD DATA 
-             LOCAL INFILE '{pipe}'
+             LOCAL INFILE '{tmp}'
                INTO TABLE snpchip_axiom
                    FIELDS 
-              ENCLOSED BY '"' (snp_name, chrom, site)""".format(pipe=pipe))
-
-        # remove the named pipe
-        utils.run_cmd(['rm -f {pipe}'.format(pipe=pipe)], shell=True)
+              ENCLOSED BY '"' (snp_name, chrom, site)""".format(tmp=tmp_file.path))
 
         # fix the missing rsnumbers
         self.dbc.execute_sql("""

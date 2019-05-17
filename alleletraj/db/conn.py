@@ -56,6 +56,8 @@ class Database:
 
         data = {}
 
+        params = self.__decode_utf8(params)
+
         for key in params:
             new_key = u"`{}`".format(key)
             new_val = u"'{}'".format(self.cnx.converter.escape(params[key])) \
@@ -70,6 +72,26 @@ class Database:
         sub = [u"{}={}".format(key, conds[key]) for key in conds]
 
         return u"WHERE {conds}".format(conds=u" AND ".join(sub))
+
+    @staticmethod
+    def __encode_utf8(data):
+        for key in data:
+            data[key] = data[key].encode('utf-8') if isinstance(data[key], unicode) else data[key]
+
+        return data
+
+    @staticmethod
+    def __decode_utf8(data):
+        for key in data:
+            data[key] = data[key].decode('utf-8') if isinstance(data[key], str) else data[key]
+
+        return data
+
+    def __format_results(self, key):
+        if key is None:
+            return [self.__encode_utf8(item) for item in self.cursor]
+        else:
+            return OrderedDict((item[key], self.__encode_utf8(item)) for item in self.cursor)
 
     # noinspection SqlResolve
     def __get_records(self, table, conds=None, sort=None):
@@ -128,10 +150,7 @@ class Database:
         """
         self.__get_records(table, conds, sort)
 
-        if key is None:
-            return list(self.cursor)
-        else:
-            return OrderedDict((item[key], item) for item in self.cursor)
+        return self.__format_results(key)
 
     def get_records_sql(self, sql, key='id'):
         """
@@ -146,10 +165,7 @@ class Database:
             pprint(sql)
             raise e
 
-        if key is None:
-            return list(self.cursor)
-        else:
-            return OrderedDict((item[key], item) for item in self.cursor)
+        return self.__format_results(key)
 
     def get_record(self, table, conds=None):
         """
@@ -157,7 +173,7 @@ class Database:
         """
         self.__get_records(table, conds)
 
-        return self.cursor.fetchone()
+        return self.__encode_utf8(self.cursor.fetchone())
 
     def exists_record(self, table, conds=None):
         """

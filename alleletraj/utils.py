@@ -310,7 +310,7 @@ class DatabaseTask(PipelineTask):
 
         samples = self.dbc.get_records('samples', conds, sort='population, name', key=None)
 
-        return OrderedDict([((sample['population'].encode('utf-8'), sample['name'].encode('utf-8')), sample)
+        return OrderedDict([((sample['population'], sample['name']), sample)
                             for sample in samples if outgroup or sample['population'] != OUTGROUP_POP])
 
     def list_populations(self, ancient=None, modern=None, outgroup=False):

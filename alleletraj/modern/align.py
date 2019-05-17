@@ -60,9 +60,8 @@ class BwaMem(utils.PipelineTask):
             # get the temporary path for the bam file
             params['bam'] = bam_path
 
-            # align using the bwa-mem, tidy up with fixmate, and convert to a sorted BAM file
+            # align using bwa-mem and convert to a sorted BAM file
             cmd = "bwa mem -t {threads} -R '{readgroup}' {reference} {fastq} " \
-                  " | samtools fixmate -r -O bam - - " \
                   " | samtools sort -@ {threads} -O bam -o {bam} -".format(**params)
 
             # perform the alignment

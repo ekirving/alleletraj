@@ -49,9 +49,9 @@ class PicardMarkDuplicates(utils.PipelineTask):
                            'OUTPUT=' + bam_path,
                            'METRICS_FILE=' + log_file.path,
                            'REMOVE_DUPLICATES=true',
-                           'CREATE_INDEX=true',
                            'QUIET=true'])
 
+        utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
 if __name__ == '__main__':
     luigi.run()

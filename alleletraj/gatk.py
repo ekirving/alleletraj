@@ -116,4 +116,4 @@ class GATKIndelRealigner(utils.PipelineTask):
                           stdout=log_fout)
 
             # GATK automatically creates an index for us, but we need to rename the temp file
-            os.rename('{}.bai'.format(bam_path), bai_out)
+            os.rename('{}.bai'.format(bam_path), bai_out.path)

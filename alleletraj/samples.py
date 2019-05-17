@@ -86,7 +86,8 @@ class LoadSamples(utils.DatabaseTask):
                 accessions = [acc.strip() for acc in row['accessions'].split(';') if acc.strip() != '']
 
                 for accession in accessions:
-                    self.dbc.save_record('sample_runs', {'sample_id': sample_id, 'accession': accession, 'paired': paired})
+                    run = {'sample_id': sample_id, 'accession': accession, 'paired': paired}
+                    self.dbc.save_record('sample_runs', run)
 
         with self.output().open('w') as fout:
             fout.write('Done!')

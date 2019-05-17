@@ -142,7 +142,7 @@ class Database:
 
         except Exception as e:
             # dump the record before throwing the exception
-            print("ERROR: db_conn.save_records()")
+            print("ERROR: db_conn.get_records_sql()")
             pprint(sql)
             raise e
 

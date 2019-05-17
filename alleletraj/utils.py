@@ -286,7 +286,7 @@ class DatabaseTask(PipelineTask):
         Name of the outgroup sample
         """
         if self._outgroup is None:
-            self._outgroup = self.dbc.get_record('samples', {'populaion': OUTGROUP_POP})
+            self._outgroup = self.dbc.get_record('samples', {'population': OUTGROUP_POP})
 
         return self._outgroup['name']
 
@@ -337,13 +337,15 @@ class DatabaseTask(PipelineTask):
 
         :return: [accession, ...]
         """
-        return self.dbc.get_records_sql("""
+        accessions = self.dbc.get_records_sql("""
             SELECT sr.accession
               FROM samples s 
               JOIN sample_runs sr
                 ON sr.sample_id = s.id
              WHERE s.name = '{sample}'
-               """.format(sample=sample), key='accession').keys()
+               """.format(sample=sample), key=None)
+
+        return [row['accession'] for row in accessions]
 
 
 class PipelineExternalTask(luigi.ExternalTask, PipelineTask):

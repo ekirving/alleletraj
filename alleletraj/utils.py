@@ -266,7 +266,6 @@ class DatabaseTask(PipelineTask):
     """
     species = luigi.Parameter()
 
-    _dbc = None
     _outgroup = None
     _sample = None
 
@@ -274,11 +273,10 @@ class DatabaseTask(PipelineTask):
     def dbc(self):
         """
         Create a private connection to the db
-        """
-        if self._dbc is None:
-            self._dbc = Database(self.species)
 
-        return self._dbc
+        Connection is not persistant becauase there can be many hundreds of tasks with open connections.
+        """
+        return Database(self.species)
 
     @property
     def outgroup(self):
@@ -312,8 +310,8 @@ class DatabaseTask(PipelineTask):
 
         samples = self.dbc.get_records('samples', conds, sort='population, name', key=None)
 
-        return OrderedDict([((sample['population'], sample['name']), sample) for sample in samples
-                            if outgroup or sample['population'] != OUTGROUP_POP])
+        return OrderedDict([((sample['population'].encode('utf-8'), sample['name'].encode('utf-8')), sample)
+                            for sample in samples if outgroup or sample['population'] != OUTGROUP_POP])
 
     def list_populations(self, ancient=None, modern=None, outgroup=False):
         """
@@ -331,7 +329,7 @@ class DatabaseTask(PipelineTask):
 
         return data
 
-    def list_accessions(self, sample):
+    def list_accessions(self):
         """
         List all the accession codes for the sample.
 
@@ -343,7 +341,7 @@ class DatabaseTask(PipelineTask):
               JOIN sample_runs sr
                 ON sr.sample_id = s.id
              WHERE s.name = '{sample}'
-               """.format(sample=sample), key=None)
+               """.format(sample=self.sample), key=None)
 
         return [row['accession'] for row in accessions]
 

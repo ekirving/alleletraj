@@ -31,7 +31,7 @@ class Setup(utils.PipelineWrapperTask):
         # populate the snpchip tables
         yield SNPChipLoadPipeline(self.species)
 
-        # populate all the QTL and pseudo-QTL windows
+        # populate all the QTLs from the AnimalQTL db, and other regions of interest
         yield PopulateAllLoci(self.species)
 
         # load all samples

@@ -124,7 +124,7 @@ class SAMToolsMerge(utils.DatabaseTask):
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
-        for accession in self.list_accessions(self.sample):
+        for accession in self.list_accessions():
             yield AccessionBAM(self.species, self.sample, accession)
 
     def output(self):
@@ -164,7 +164,7 @@ class SampleBAM(utils.DatabaseTask):
             # validate external BAM files before using them
             return ValidateBamFile(self.species, self.population, self.sample)
         else:
-            accessions = self.list_accessions(self.sample)
+            accessions = self.list_accessions()
             if len(accessions) > 1:
                 # TODO merge all accessions together, and deduplicate a second time (just in case)
                 return SAMToolsMerge(self.species, self.population, self.sample)

@@ -95,8 +95,8 @@ class LoadAncientSNPs(utils.DatabaseTask):
         yield ModernSNPsPipeline(self.species)
         yield EnsemblLinkPipeline(self.species)
 
-        for pop, samples in self.list_samples(ancient=True):
-            yield SampleBAM(self.species, pop, samples)
+        for pop, sample in self.list_samples(ancient=True):
+            yield SampleBAM(self.species, pop, sample)
 
     def output(self):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))

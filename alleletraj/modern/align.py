@@ -25,7 +25,7 @@ class BwaMem(utils.PipelineTask):
     species = luigi.Parameter()
     sample = luigi.Parameter()
     accession = luigi.Parameter()
-    paired = luigi.BoolParameter(default=True)  # TODO read from CSV
+    paired = luigi.BoolParameter()
 
     resources = {'cpu-cores': CPU_CORES_MED, 'ram-gb': 8}
 

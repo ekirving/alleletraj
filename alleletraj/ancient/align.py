@@ -33,7 +33,7 @@ class BwaAln(utils.PipelineTask):
     species = luigi.Parameter()
     sample = luigi.Parameter()
     accession = luigi.Parameter()
-    paired = luigi.BoolParameter(default=True)
+    paired = luigi.BoolParameter()
 
     resources = {'cpu-cores': CPU_CORES_MED, 'ram-gb': 8}  # TODO check ram usage
 
@@ -85,13 +85,13 @@ class BwaSamSe(utils.PipelineTask):
     species = luigi.Parameter()
     sample = luigi.Parameter()
     accession = luigi.Parameter()
-    paired = luigi.BoolParameter(default=True)  # TODO this should come from the CSV
+    paired = luigi.BoolParameter()
 
     resources = {'cpu-cores': CPU_CORES_LOW, 'ram-gb': 8}  # TODO check ram usage
 
     def requires(self):
         yield AdapterRemoval(self.accession, self.paired)
-        yield BwaAln(self.species, self.sample, self.accession)
+        yield BwaAln(self.species, self.sample, self.accession, self.paired)
         yield ReferenceFASTA(self.species)
 
     def output(self):

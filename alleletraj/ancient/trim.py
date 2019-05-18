@@ -50,6 +50,7 @@ class AdapterRemoval(utils.PipelineTask):
         ]
 
         if self.paired:
+            # TODO still need to test paired end mode works correctly
             cmd += [
                 '--file1', fastq_files[0].path,
                 '--file2', fastq_files[1].path,
@@ -57,7 +58,6 @@ class AdapterRemoval(utils.PipelineTask):
                 '--outputcollapsed', fastq_keep.path
             ]
         else:
-            # TODO still need to test paired end mode works correctly
             cmd += [
                 '--basename', utils.trim_ext(log_file.path),
                 '--file1',    fastq_files[0].path,

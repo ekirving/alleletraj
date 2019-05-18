@@ -268,6 +268,7 @@ class DatabaseTask(PipelineTask):
 
     _outgroup = None
     _sample = None
+    _accession = None
 
     @property
     def dbc(self):
@@ -297,6 +298,16 @@ class DatabaseTask(PipelineTask):
             self._sample = self.dbc.get_record('samples', {'name': self.sample})
 
         return self._sample
+
+    @property
+    def accession_data(self):
+        """
+        The accession record
+        """
+        if self._accession is None:
+            self._accession = self.dbc.get_record('sample_runs', {'accession': self.accession})
+
+        return self._accession
 
     def list_samples(self, ancient=None, modern=None, outgroup=False):
         """

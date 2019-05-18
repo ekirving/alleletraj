@@ -9,7 +9,7 @@ from alleletraj import utils
 from alleletraj.modern.align import BwaMem
 
 
-class PicardMarkDuplicates(utils.PipelineTask):
+class PicardMarkDuplicates(utils.DatabaseTask):
     """
     Remove PCR duplicates, so we don't overestimate coverage
 
@@ -28,7 +28,7 @@ class PicardMarkDuplicates(utils.PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 8}
 
     def requires(self):
-        return BwaMem(self.species, self.sample, self.accession)
+        return BwaMem(self.species, self.sample, self.accession, self.accession_data['paired'])
 
     def output(self):
         return [luigi.LocalTarget('data/bam/{}.sort.rmdup.{}'.format(self.accession, ext)) for ext in

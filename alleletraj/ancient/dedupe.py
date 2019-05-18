@@ -9,7 +9,7 @@ from alleletraj import utils
 from alleletraj.ancient.align import BwaSamSe
 
 
-class FilterUniqueSAMCons(utils.PipelineTask):
+class FilterUniqueSAMCons(utils.DatabaseTask):
     """
     Remove PCR duplicates, so we don't overestimate coverage.
 
@@ -26,7 +26,7 @@ class FilterUniqueSAMCons(utils.PipelineTask):
     accession = luigi.Parameter()
 
     def requires(self):
-        return BwaSamSe(self.species, self.sample, self.accession)
+        return BwaSamSe(self.species, self.sample, self.accession, self.accession_data['paired'])
 
     def output(self):
         return [luigi.LocalTarget('data/bam/{}.sort.rmdup.{}'.format(self.accession, ext)) for ext in

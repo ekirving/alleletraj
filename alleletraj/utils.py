@@ -387,7 +387,7 @@ class MySQLTask(DatabaseTask):
         # run all the sql queries
         self.queries()
 
-        with self.output().open('wa') as fout:
+        with self.output().open('w') as fout:
             fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 

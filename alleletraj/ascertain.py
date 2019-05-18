@@ -439,8 +439,8 @@ class ExportAscertainedSNPs(utils.DatabaseTask):
           ORDER BY chrom, site
                """.format(), key=None)
 
-        with self.output().open('w') as tsv_file:
-            writer = csv.DictWriter(tsv_file, fieldnames=reads[0].keys(), delimiter='\t')
+        with self.output().open('w') as fout:
+            writer = csv.DictWriter(fout, fieldnames=reads[0].keys(), delimiter='\t')
             writer.writeheader()
 
             # write the data to disk

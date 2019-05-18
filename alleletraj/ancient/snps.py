@@ -97,7 +97,7 @@ class LoadAncientSNPs(utils.MySQLTask):
         for pop, sample in self.list_samples(ancient=True):
             yield SampleBAM(self.species, pop, sample)
 
-    def queries(self):
+    def run(self):
         # unpack the params
         (ref_file, _), pld_file, bed_file = self.input()[0:3]
         bam_files = [bam_file for bam_file, _ in self.input()[5:]]

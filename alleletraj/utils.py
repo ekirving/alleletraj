@@ -19,13 +19,12 @@ from alleletraj.db.conn import Database
 MAX_INTERVAL_SIZE = int(1e6)
 
 
-def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None, verbose=True):
+def run_cmd(cmd, shell=False, stdout=None, stderr=None, verbose=True):
     """
     Executes the given command in a system subprocess
 
     :param cmd: The system command to run (list|string)
     :param shell: Use the native shell
-    :param background: Flag to tun the process in the background
     :param stdout: File handle to redirect stdout
     :param stderr: File handle to redirect stderr
     :param verbose: Print the command before running it
@@ -37,31 +36,26 @@ def run_cmd(cmd, shell=False, background=False, stdout=None, stderr=None, verbos
     if verbose:
         print(u' '.join(cmd))
 
-    if background:
-        subprocess.Popen(cmd, shell=shell)
+    stdout = subprocess.PIPE if not stdout else stdout
+    stderr = subprocess.PIPE if not stderr else stderr
 
-    else:
+    # run the command
+    proc = subprocess.Popen(cmd, shell=shell, stdout=stdout, stderr=stderr)
 
-        stdout = subprocess.PIPE if not stdout else stdout
-        stderr = subprocess.PIPE if not stderr else stderr
+    # fetch any output and error
+    (out, err) = proc.communicate()
 
-        # run the command
-        proc = subprocess.Popen(cmd, shell=shell, stdout=stdout, stderr=stderr)
+    # bail if something went wrong
+    if proc.returncode != 0:
 
-        # fetch any output and error
-        (out, err) = proc.communicate()
+        # decode return codes
+        if proc.returncode == 139:
+            err = 'Segmentation fault (core dumped) ' + err
 
-        # bail if something went wrong
-        if proc.returncode != 0:
+        raise RuntimeError(err)
 
-            # decode return codes
-            if proc.returncode == 139:
-                err = 'Segmentation fault (core dumped) ' + err
-
-            raise RuntimeError(err)
-
-        # some commands log progress to stderr
-        return out if out else err
+    # some commands log progress to stderr
+    return out if out else err
 
 
 def merge_intervals(ranges, capped=True):

@@ -1,246 +1,246 @@
-﻿Population,Sample,Bioproject,Accessions,Site,Alias,BP,Age,Lat,Long,Sex,LibraryLayout,Reference,Path
-DOM2,KaiseraugustSchmidmatt_NBxK9279,,,KaiseraugustSchmidmatt,NBxK9279,1650,3rd/4th,47.536085,7.721967,male,,,data/bam/NB_K9279_CGG_1_020505_i65_CGGCAC_U.r.t.5p2.3p2.bam
-DOM,Botai_N,,,Botai,N,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_N_CGG_1_020194_i9_GATCAG_U.r.t.5p1.3p2.bam
-DOM2,Balagansk_Rus19,,,Balagansk,Rus19,1950,200 BC - 200 AD,47.66666667,8.85,male,,,data/bam/Rus19_CGG_1_019169_i3_TTAGGC_U.r.t.5p1.3p2.bam
-DOM2,TepeHasanlu_2689,,,TepeHasanlu,2689,2600,Iron III - 7th BC,37.004486,45.458817,female,,,data/bam/Hasanlu2689_CGG_1_019996_i58_ATGAGC_U.r.t.5p1.3p2.bam
-DOM2,Marvele_27,,,Marvele,27,1071,range Marvele,54.89674,23.87248,male,,,data/bam/Marvele27_CGG_1_019414_i47_CATAGA_U.r.t.bam
-DOM,Botai_E,,,Botai,E,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_E_CGG_1_020185_i27_TGCATA_U.r.t.3p2.bam
-DOM2,Miciurin_Mic2,,,Miciurin,Mic2,3200,1500-1000 BC,47.986875,27.790131,male,,,data/bam/Mic2_CGG_1_018388_Enriched_i32_ACGCAT_U.r.t.s.bam
-DOM2,Syrgal_Syr1t1c4,,,Syrgal,Syr1t1c4,2250,,48.583056,88.393528,male,,,data/bam/Syr1_t1_c4_CGG_1_018920_i52_AAACAA_U.r.t.5p4.3p4.bam
-DOM2,Halvai_KSH5,,,Halvai,KSH5,2475,,52.843,62.9029,male,,,data/bam/KSH5_CGG_1_017099_i54_ACCATC_U.r.t.s.3p2.bam
-DOM2,Capesterre_LIS2,,,Capesterre,LIS2,200,XVII-XIX,16.049578,-61.569156,female,,,data/bam/LIS2_Tr19_i8_ACTTGA_U.r.t.5p1.bam
-DOM2,Goyet_Vert300,,,Goyet,Vert300,31683,Upper Palaeolithic,50.44667,5.00911,female,,,data/bam/Vert300_CGG_1_018529_i6_GCCAAT_U.r.t.3p1.bam
-DOM2,Kokorevo_Rus3,,,Kokorevo,Rus3,14383,14450,53.933,90.933,male,,,data/bam/Rus3_CGG_1_019154_i32_ACGCAT_U.r.t.3p1.bam
-DOM2,ArzhanII_Rus11,,,ArzhanII,Rus11,2433,,52.0588889,93.6038889,male,,,data/bam/Rus11_CGG_1_019162_i08_U_ACTTGA.r.t.3p2.bam
-DOM2,Bruszcewo_Bru4,,,Bruszcewo,Bru4,3850,2200-1600BC,52.007,16.562,male,,,data/bam/Bru4_CGG_1_018376.Horse_nuc_wY.realigned.r.t.s.m.bam
-DOM2,TepeHasanlu_2529,,,TepeHasanlu,2529,2600,Iron III - 7th BC,37.004486,45.458817,female,,,data/bam/Hasanlu2529_CGG_1_019988_i57_ATACCT_U.r.t.3p1.bam
-DOM,Botai_D2,,,Botai,D2,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_D2_CGG_1_020205_i21_ACATAC_U.r.t.bam
-DOM2,Sebastovce_131,,,Sebastovce,131,1250,7-8th AD,48.655,21.268,male,,,data/bam/Seb131_CGG_1_018487_i1_ATCACG_U.r.t.5p2.3p1.bam
-DOM2,PotapovkaI_1,,,PotapovkaI,1,3833,2025-1740 BC,53.662987,50.671471,female,,,data/bam/DaAn01_CGG_1_018337_i28_TCTCGC_U.r.t.3p1.bam
-DOM2,KaiseraugustSchmidmatt_NBxP9261,,,KaiseraugustSchmidmatt,NBxP9261,1715,130-340AD,47.536085,7.721967,male,,,data/bam/NB_P9261_CGG_1_020506_i66_CTCGGT_U.r.t.5p1.3p2.bam
-DOM2,SolothurnVigier_NB175,,,SolothurnVigier,NB175,1750,2nd 3rd AD,47.2333,7.5167,male,,,data/bam/NB_175_CGG_1_020499_i26_TGTGAC_U.r.t.5p1.3p2.bam
-DOM2,Marvele_2,,,Marvele,2,1071,range Marvele,54.89674,23.87248,male,,,data/bam/Marvele02_CGG_1_019389_i13_CTATCA_U.r.t.3p2.bam
-DOM2,Marvele_22,,,Marvele,22,1071,range Marvele,54.89674,23.87248,male,,,data/bam/Marvele22_CGG_1_019409_i46_CACGAA_U.r.t.bam
-DOM2,Santarem_254,,,Santarem,254,950,9th-12th AD,39.241,-8.692,female,,,data/bam/Iberia254_CGG_1_020032_i69_GATGCA_U.r.t.5p2.3p3.bam
-DOM2,Capote_Cap102,,,Capote,Cap102,2397,1000-105 BC,38.0982811,-6.693194,female,,,data/bam/Cap102_CGG_1_016984.Horse_nuc_wY.realigned.r.t.s.m.bam
-DOM,Botai_NB18,,,Botai,NB18,4625,4625BP,53.3039424,67.6457864,female,,,data/bam/NewBotai_18_CGG_1_017010.Horse_nuc_wY.realigned.r.t.s.m.bam
-DOM2,TepeHasanlu_2327,,,TepeHasanlu,2327,2600,Iron III - 7th BC,37.004486,45.458817,male,,,data/bam/Hasanlu2327_CGG_1_019995_i56_AGGGGA_U.r.t.5p2.3p1.bam
-DOM2,TepeHasanlu_3398,,,TepeHasanlu,3398,2600,Iron III - 7th BC,37.004486,45.458817,female,,,data/bam/Hasanlu3398_CGG_1_019986_i47_CATAGA_U.r.t.5p2.3p2.bam
-DOM2,LongueilAnnel_GVA129,,,LongueilAnnel,GVA129,200,1750,49.469035,2.86053,male,,,data/bam/GVA129_CGG_1_019387_i16_GTGTAT_U.r.t.3p1.bam
-DOM2,Goyet_Vert293,,,Goyet,Vert293,,Upper Palaeolithic,50.44667,5.00911,female,,,data/bam/Vert293_CGG_1_018522.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Goyet_Vert304,,,Goyet,Vert304,,Upper Palaeolithic,50.44667,5.00911,female,,,data/bam/Vert304_CGG_1_018533_i10_TAGCTT_U.r.t.5p1.3p2.bam
-DOM2,Charregass_NBxRa849,,,Charregass,NBxRa849,1600,4th AD,47.65,8.85,male,,,data/bam/NB_Ra_8_49_CGG_1_020509_i69_GATGCA_U.r.t.5p1.3p2.bam
-DOM,Botai_O,,,Botai,O,5433,5500,53.3039424,67.6457864,male,,,data/bam/LOBOT_O_CGG_1_020195_i10_TAGCTT_U.r.t.5p2.3p2.bam
-DOM2,BapskaGradac_BAPSKA,,,BapskaGradac,BAPSKA,1238,,45.1973255,19.2624907,male,,,data/bam/BAPSKA_unregistered_i63_CAACTG_U.r.t.3p1.bam
-DOM2,Derkul_NB2,,,Derkul,NB2,,Neolithic,51.16,51.17,male,,,data/bam/NewBotai2_CGG_1_016994.Horse_nuc_wY.realigned.r.t.s.m.bam
-DOM2,Schloßvippach_Svi6,,,Schloßvippach,Svi6,3850,2200-1600 BC,51.104,11.145,male,,,data/bam/Svi6_CGG_1_018375.Horse_nuc_wY.realigned.r.t.m.5p2.3p2.bam
-DOM2,OlonKurinGol_OKG1,,,OlonKurinGol,OKG1,2300,300-400 BC,49.32875,88.3488611,male,,,data/bam/OKG1_CGG_1_018397.Horse_nuc_wY.realigned.r.t.bam
-DOM2,SaintQuentin_GVA237,,,SaintQuentin,GVA237,1850,I-II AD,49.847998,3.290399,male,,,data/bam/GVA237_CGG_1_019877_i55_AGATCG_U.r.t.3p1.bam
-DOM2,Diriali_Georgia2,,,Diriali,Georgia2,250,,42.74016371,44.62016419,female,,,data/bam/Georgia2_CGG_1_020266_i13_CTATCA_U.r.t.s.3p2.bam
-DOM2,SolothurnVigier_NB63,,,SolothurnVigier,NB63,1800,1st-3rd AD,47.2333,7.5167,female,,,data/bam/NB_63_CGG_1_020512_i72_GGGCCG_U.r.t.5p1.3p2.bam
-DOM2,Marvele_16,,,Marvele,16,1071,range Marvele,54.89674,23.87248,male,,,data/bam/Marvele16_CGG_1_019403_i28_TCTCGC_U.r.t.5p2.bam
-DOM,Botai_T,,,Botai,T,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_T_CGG_1_020200_i47_U_CATAGA.r.t.bam
-DOM2,Uppsala_Upps02,,,Uppsala,Upps02,1250,600-800 AD,59.861,17.639,male,,,data/bam/Upps02_CGG_1_018490.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p2.bam
-DOM2,Marvele_5,,,Marvele,5,1071,range Marvele,54.89674,23.87248,male,,,data/bam/Marvele05_CGG_1_019392_i21_ACATAC_U.r.t.3p2.bam
-DOM2,ArzhanI_Arz3,,,ArzhanI,Arz3,2700,8. century BC,52.0588889,93.6038889,male,,,data/bam/Arz3_CGG_1_017089_i9_GATCAG_U.r.t.5p1.3p1.bam
-DOM2,Actiparc_GVA310,,,Actiparc,GVA310,2252,,50.31503,2.821797,female,,,data/bam/GVA310_CGG_1_019860_i56_AGGGGA_U.r.t.bam
-DOM2,TepeHasanlu_3394,,,TepeHasanlu,3394,2741,,37.004486,45.458817,male,,,data/bam/Hasanlu3394_CGG_1_019997_i69_GATGCA_U.r.t.3p1.bam
-DOM2,TepeHasanlu_368,,,TepeHasanlu,368,2829,,37.004486,45.458817,male,,,data/bam/Hasanlu368_CGG_1_019994_i52_AAACAA_U.r.5p2.3p1.bam
-DOM2,Altata_NB31,,,Altata,NB31,,CopperAge,51.07,48.44,male,,,data/bam/NewBotai_31_CGG_1_017023.Horse_nuc_wY.realigned.r.t.s.m.5p3.3p2.bam
-DOM2,Metz_GVA321,,,Metz,GVA321,425,Beginning of XVIe c. AD,49.115293,6.172751,male,,,data/bam/GVA321_CGG_1_019871_i01_U_ATCACG.r.t.3p1.bam
-DOM2,Vicerrectorado_VIR175,,,Vicerrectorado,VIR175,1650,3rd-4th AD,43.0092829,-7.5592897,male,,,data/bam/VIR175_CGG_1_016987_i41_TGTCTG.r.t.3p2.bam
-DOM2,ArzhanII_Arz17,,,ArzhanII,Arz17,2575,late 7. century BC,52.0588889,93.6038889,male,,,data/bam/Arz17_CGG_1_017086_U_i5_ACAGTG.r.t.3p1.bam
-DOM2,Chartres_GVA47,,,Chartres,GVA47,1850,100 AD,48.442396,1.494154,male,,,data/bam/GVA47_CGG_1_019305_i56_U_AGGGGA.r.t.3p1.bam
-DOM2,Chartres_GVA48,,,Chartres,GVA48,1850,100 AD,48.442396,1.494154,male,,,data/bam/GVA48_CGG_1_019306_i57_U_ATACCT.r.t.bam
-DOM2,Chartres_GVA53,,,Chartres,GVA53,1850,,48.442396,1.494154,male,,,data/bam/GVA53_CGG_1_019311_i71_GCTAGC_U.r.t.5p1.bam
-DOM2,TepeHasanlu_3461,,,TepeHasanlu,3461,2863,,37.004486,45.458817,female,,,data/bam/Hasanlu3461_CGG_1_020003_i37_ACTGCC_U.r.t.5p1.3p1.bam
-DOM2,Chartres_GVA75,,,Chartres,GVA75,1850,,48.442396,1.494154,male,,,data/bam/GVA75_CGG_1_019333_i75_TAGTAA_U.r.t.5p1.bam
-DOM2,Chartres_GVA111,,,Chartres,GVA111,1850,,48.442396,1.494154,female,,,data/bam/GVA111_CGG_1_019369_i74_GTGGGG_U.r.t.5p2.3p1.bam
-DOM2,Granastadir_VHR031,,,Granastadir,VHR031,1000,,65.61,-18.25,female,,,data/bam/VHR031_CGG_1_020955_i61_ATTCTC_U.r.t.3p1.bam
-DOM2,WitterPlace_UK20,,,WitterPlace,UK20,150,1800 AD,53.193018,-2.882844,female,,,data/bam/UK20_CGG_1_019447_i11_GGCTAC_U.r.t.5p2.3p1.bam
-DOM2,WhitehallRomanVilla_UK08,,,WhitehallRomanVilla,UK08,1600,,52.2260364,-1.0568535,male,,,data/bam/UK08_CGG_1_019435_i16_GTGTAT_U.r.t.5p2.3p1.bam
-DOM2,Krasnokamenka_NB9,,,Krasnokamenka,NB9,4433,IIIrd BC,54.35,60.15,female,,,data/bam/NewBotai_9_CGG_1_017001.Horse_nuc_wY.realigned.r.t.s.m.bam
-DOM2,Chartres_GVA1,,,Chartres,GVA1,1850,100 AD,48.442396,1.494154,male,,,data/bam/GVA1_CGG_1_019259_i52_U_AAACAA.r.t.bam
-DOM2,BroughOfDeerness_VHR037,,,BroughOfDeerness,VHR037,1000,,58.964099,-2.704933,male,,,data/bam/VHR037_CGG_1_020957_i60_ATTAAA_U.r.t.5p2.3p1.bam
-DOM2,Chartres_GVA60,,,Chartres,GVA60,1850,,48.442396,1.494154,male,,,data/bam/GVA60_CGG_1_019318_i72_GGGCCG_U.r.t.5p1.3p2.bam
-DOM2,Chartres_GVA9,,,Chartres,GVA9,1850,,48.442396,1.494154,male,,,data/bam/GVA9_CGG_1_019267_i5_ACAGTG_U.r.t.s.bam
-DOM2,Sintashta_NB44,,,Sintashta,NB44,3510,radio cal,52.29,62.11,male,,,data/bam/NewBotai44_CGG_1_017036.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p2.bam
-DOM2,Nustar_4,,,Nustar,4,1120,,45.3325281,18.8414917,male,,,data/bam/NUSTAR4_CGG_1_020438_i60_ATTAAA_U.r.t.5p2.bam
-DOM2,UushgiinUvur_Mon89,,,UushgiinUvur,Mon89,3018,3039-3130,49.6561667,99.9122056,male,,,data/bam/Mon89_i28_TCTCGC_U.r.t.3p2.bam
-DOM2,Chartres_GVA112,,,Chartres,GVA112,1850,,48.442396,1.494154,male,,,data/bam/GVA112_CGG_1_019370_i11_GGCTAC_U.r.t.bam
-DOM2,Belkaragay_NB13,,,Belkaragay,NB13,,CopperAge,51.52,62.55,male,,,data/bam/NewBotai_13_CGG_1_017005.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p1.bam
-DOM2,Krasnokamenka_NB10,,,Krasnokamenka,NB10,4433,IIIrd BC,54.35,60.15,male,,,data/bam/NewBotai10.Horse_nuc_wY.realigned.r.t.s.m.bam
-DOM2,TepeHasanlu_1140,,,TepeHasanlu,1140,2615,,37.004486,45.458817,female,,,data/bam/Hasanlu1140_CGG_1_019998_i4_TGACCA_U.r.t.5p2.3p2.bam
-DOM2,Museum_Earb5,,,Museum,Earb5,38,1912,,,male,,,data/bam/Earb5_CGG_1_018497_i80_TTTTGG_U.r.t.3p1.bam
-DOM2,ArzhanII_Arz15,,,ArzhanII,Arz15,2575,late 7. century BC,52.0588889,93.6038889,male,,,data/bam/Arz15_CGG_1_017084_U_i4_TGACCA.r.t.3p1.bam
-DOM2,Otok_OTOK16,,,Otok,OTOK16,1241,,45.1464084,18.8838649,female,,,data/bam/OTOK16_unregistered_i62_CAAAAT_U.r.t.bam
-DOM2,Chartres_GVA115,,,Chartres,GVA115,1850,,48.442396,1.494154,male,,,data/bam/GVA115_CGG_1_019373_i13_CTATCA_U.r.t.5p1.3p1.bam
-DOM2,KrasnayaGorka_Rus48,,,KrasnayaGorka,Rus48,1379,RADIOC,51.53869,94.00885,male,,,data/bam/Rus48_CGG_1_019195_i77_TCCCGG_U.r.t.5p1.3p2.bam
-DOM2,Berufjordur_VHR102,,,Berufjordur,VHR102,1000,,64.7566798,-14.430196,male,,,data/bam/VHR102_CGG_1_020961_i54_ACCATC_U.r.t.3p1.bam
-DOM2,Belkaragay_NB15,,,Belkaragay,NB15,,CopperAge,51.52,62.55,female,,,data/bam/NewBotai15_CGG_1_017007.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p2.bam
-DOM2,Chartres_GVA28,,,Chartres,GVA28,1850,,48.442396,1.494154,male,,,data/bam/GVA28_CGG_1_019286_i2_CGATGT_U.r.t.bam
-DOM2,Sintashta_NB45,,,Sintashta,NB45,3510,radio cal,52.29,62.11,male,,,data/bam/NewBotai45_CGG_1_017037.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p1.bam
-DOM2,LebyazhinkaIV_NB35,,,LebyazhinkaIV,NB35,,Neolithic,53.43,50.4,male,,,data/bam/NewBotai35_CGG_1_017027.Horse_nuc_wY.realigned.r.t.m.2.5p.s.bam
-DOM2,UushgiinUvur_Mon40,,,UushgiinUvur,Mon40,3018,3039-3130,49.6561667,99.9122056,male,,,data/bam/Mon40_CGG_1_018076.Horse_nuc_wY.realigned.r.t.s.m.3p1.bam
-DOM,Botai_A,,,Botai,A,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_A_CGG_1_020181.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,Derkul_NB4,,,Derkul,NB4,,Neolithic,51.16,51.17,female,,,data/bam/NewBotai_4_CGG_1_016996.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,ElAcequion_Spain38,,,ElAcequion,Spain38,3991,,39.024444,-2.028056,female,,,data/bam/Spain38_CGG_1_020484.Horse_nuc_wY.realigned.r.t.5p1.3p2.bam
-DOM2,Fengtai_Fen4,,,Fengtai,Fen4,2753,,36.8406667,101.9584722,male,,,data/bam/Fen4_CGG_1_018396.Horse_nuc_wY.realigned.r.t.s.5p2.3p2.bam
-DOM2,BroughOfDeerness_VHR010,,,BroughOfDeerness,VHR010,1000,,58.964099,-2.704933,female,,,data/bam/VHR010_CGG_1_020949_i74_GTGGGG_U.r.t.s.5p1.3p2.bam
-DOM2,BroughOfDeerness_VHR011,,,BroughOfDeerness,VHR011,1000,,58.964099,-2.704933,male,,,data/bam/VHR011_CGG_1_020950_i76_TCAGCT_U.r.t.bam
-WILD,Goyet_Vert311,,,Goyet,Vert311,35803,,50.44667,5.00911,female,,,data/bam/Vert311_CGG_1_018540.Horse_nuc_wY.realigned.r.t.m.3p1.bam
-DOM2,BroughOfDeerness_VHR062,,,BroughOfDeerness,VHR062,1000,,58.964099,-2.704933,female,,,data/bam/VHR062_CGG_1_020959_i75_TAGTAA_U.r.t.3p1.bam
-DOM2,Oktyabrsky_Rus38,,,Oktyabrsky,Rus38,592,,47.9666667,43.6436111,male,,,data/bam/Rus38_CGG_1_019186.Horse_nuc_wY.realigned.r.t.s.5p1.3p2.s.bam
-DOM2,WitterPlace_UK19,,,WitterPlace,UK19,200,,53.193018,-2.882844,male,,,data/bam/UK19_CGG_1_019446.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-DOM2,Quoygrew_VHR017,,,Quoygrew,VHR017,1000,,59.337156,-2.97,male,,,data/bam/VHR017_CGG_1_020952_i62_CAAAAT_U.r.t.s.3p1.bam
-DOM2,Evreux_GVA135,,,Evreux,GVA135,1750,II-IIIe AD,49.0196385,1.1589729,male,,,data/bam/GVA135_CGG_1_019709.Horse_nuc_wY.realigned.r.t.m.5p2.31p.bam
-DOM2,Vermand_GVA199,,,Vermand,GVA199,1675,,49.87749,3.145772,female,,,data/bam/GVA199_CGG_1_019773.Horse_nuc_wY.realigned.r.t.m.5p2.3p2.bam
-DOM2,Museum_Earb6,,,Museum,Earb6,22,1928 AD,,,male,,,data/bam/Earb6_CGG_1_018495.Horse_nuc_wY.realigned.r.t.s.m.3p1.bam
-DOM2,Khatuu_Kha2_t1,,,Khatuu,Kha2_t1,2245,,48.583056,88.393528,male,,,data/bam/Kha2_t1_CGG_1_018909.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Sayangorsk_Rus41,,,Sayangorsk,Rus41,2610,,53.0966188,91.4164518,female,,,data/bam/Rus41_CGG_1_019189.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-DOM2,Yerqorqan_YER28,,,Yerqorqan,YER28,2786,,38.867278,65.800161,male,,,data/bam/YER28_CGG_1_020254.Horse_nuc_wY.realigned.r.t.m.1.3p.s.bam
-DOM2,WitterPlace_UK15,,,WitterPlace,UK15,150,,53.193018,-2.882844,female,,,data/bam/UK15_CGG_1_019442.Horse_nuc_wY.realigned.r.t.m.3p1.bam
-DOM2,Garbovat_Gar3,,,Garbovat,Gar3,3507,,44.86699,22.0079387,male,,,data/bam/Gar3_CGG_1_018389.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Dunaujvaros_Duk2,,,Dunaujvaros,Duk2,4010,,46.9619059,18.9355227,male,,,data/bam/Duk2_CGG_1_018386.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Actiparc_GVA309,,,Actiparc,GVA309,2235,,50.31503,2.821797,male,,,data/bam/GVA309_CGG_1_019859.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Otepaa_Ote2,,,Otepaa,Ote2,1117,,58.058048,26.4947523,male,,,data/bam/Ote2_CGG_1_018473.Horse_nuc_wY.realigned.r.t.m.1.3p.s.bam
-DOM2,Sagzabad_SAGS27,,,Sagzabad,SAGS27,3050,,35.773056,49.937778,male,,,data/bam/SAG_S27_CGG_1_019559.Horse_nuc_wY.realigned.r.t.m.5p2.3p2.bam
-DOM2,Oktyabrsky_Rus37,,,Oktyabrsky,Rus37,763,,47.9666667,43.6436111,male,,,data/bam/Rus37_CGG_1_019185.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Beauvais_GVA122,,,Beauvais,GVA122,350,XVI-XVII AD,49.415371,2.101307,male,,,data/bam/GVA122_CGG_1_019380.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Berel_BER11_L,,,Berel,BER11_L,2233,,49.3737353,86.4272922,male,,,data/bam/L_Ch102_CGG_1_016178.Horse_nuc_wY.realigned.r.t.bam
-DOM2,Actiparc_GVA307,,,Actiparc,GVA307,2060,,50.31503,2.821797,male,,,data/bam/GVA307_CGG_1_019857.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Noyon_GVA123,,,Noyon,GVA123,650,XIII-XIV AD,49.571363,3.017742,female,,,data/bam/GVA123_CGG_1_019381.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Chartres_GVA36,,,Chartres,GVA36,1850,,48.442396,1.494154,male,,,data/bam/GVA36_CGG_1_019294.Horse_nuc_wY.realigned.r.t.m.1.3p.1.5p.1.3p.bam
-DOM2,Evreux_GVA140,,,Evreux,GVA140,1750,II-IIIe AD,49.0196385,1.1589729,male,,,data/bam/GVA140_CGG_1_019714.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,TachtiPerda_TP4,,,TachtiPerda,TP4,3537,,41.466667,46.016667,male,,,data/bam/TP4_CGG_1_018394.Horse_nuc_wY.realigned.r.t.m.3p1.bam
-DOM,Botai_Petrous,,,Botai,Petrous,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_Petrous_CGG_1_020210.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Actiparc_GVA311,,,Actiparc,GVA311,2186,,50.31503,2.821797,male,,,data/bam/GVA311_CGG_1_019861.Horse_nuc_wY.realigned.r.t.m.5p2.3p3.bam
-DOM2,Evreux_GVA133,,,Evreux,GVA133,1750,II-IIIe AD,49.0196385,1.1589729,male,,,data/bam/GVA133_CGG_1_019707.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,Bateni_Rus14,,,Bateni,Rus14,3251,,54.6236111,90.945,male,,,data/bam/Rus14_CGG_1_019164.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,TepeHasanlu_2405,,,TepeHasanlu,2405,2819,,37.004486,45.458817,male,,,data/bam/Hasanlu2405_CGG_1_019992.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_R,,,Botai,R,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_R_CGG_1_020198.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,ElAcequion_Spain39,,,ElAcequion,Spain39,3926,,39.024444,-2.028056,male,,,data/bam/Spain39_CGG_1_020485.Horse_nuc_wY.realigned.r.t.5p1.s.bam
-DOM2,UushgiinUvur_Mon79,,,UushgiinUvur,Mon79,3018,3039-3130,49.6561667,99.9122056,male,,,data/bam/Mon79_CGG_1_018115.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Haunstetten_,,,Haunstetten,,1912,,48.3079118,10.8938381,male,,,data/bam/Haunstetten_CGG_1_017139.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Berel_BER07_G,,,Berel,BER07_G,2233,,49.3737353,86.4272922,male,,,data/bam/G_Ch82_CGG_1_016174.Horse_nuc_wY.realigned.r.t.bam
-DOM2,WitterPlace_UK18,,,WitterPlace,UK18,200,,53.193018,-2.882844,female,,,data/bam/UK18_CGG_1_019445.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Syrgal_Syr1t1c3,,,Syrgal,Syr1t1c3,2250,Syr1t1c3,48.583056,88.393528,male,,,data/bam/Syr1_t1_c3_CGG_1_018919.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Macon_GVA201,,,Macon,GVA201,1700,,46.307532,4.823474,male,,,data/bam/GVA201_CGG_1_019775.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Fmontauban_GVA126,,,Fmontauban,GVA126,1805,,48.442396,1.494154,male,,,data/bam/GVA126_CGG_1_019384.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Actiparc_GVA124,,,Actiparc,GVA124,2076,II-IIIe BC,50.31503,2.821797,male,,,data/bam/GVA124_CGG_1_019382.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,AugustaRaurica_JG160,,,AugustaRaurica,JG160,1750,II-III AD,47.5331782,7.7220154,male,,,data/bam/JG160_CGG_1_019246.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_D6,,,Botai,D6,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_D6_CGG_1_020209.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Marvele_21,,,Marvele,21,1020,,54.89674,23.87248,male,,,data/bam/Marvele21_CGG_1_019408.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-DOM2,Boves_GVA191,,,Boves,GVA191,1650,,49.8534339,2.3969306,female,,,data/bam/GVA191_CGG_1_019765.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,ArzhanII_Rus9,,,ArzhanII,Rus9,2433,,52.0588889,93.6038889,male,,,data/bam/Rus9_CGG_1_019160.Horse_nuc_wY.realigned.r.t.m.3p2.s.bam
-DOM2,UushgiinUvur_Mon44,,,UushgiinUvur,Mon44,3018,3039-3130,49.6561667,99.9122056,male,,,data/bam/Mon44_CGG_1_018080.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Berel_BER08_H,,,Berel,BER08_H,2233,,49.3737353,86.4272922,male,,,data/bam/H_Ch78_CGG_1_016175.Horse_nuc_wY.realigned.r.t.t.bam
-DOM2,Berel_BER10_K,,,Berel,BER10_K,2233,,49.3737353,86.4272922,male,,,data/bam/K_Ch137_CGG_1_016177.Horse_nuc_wY.realigned.r.t.bam
-DOM2,Belgheis_TrBWBX116,,,Belgheis,TrBWBX116,418,,37.0424531,57.4715652,male,,,data/bam/Belgheis_TrBWBX116_CGG_1_019521.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,WitterPlace_UK16,,,WitterPlace,UK16,150,,53.193018,-2.882844,female,,,data/bam/UK16_CGG_1_019443.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,UushgiinUvur_Mon41,,,UushgiinUvur,Mon41,3018,3039-3130,49.6561667,99.9122056,male,,,data/bam/Mon41_CGG_1_018077.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Cantorella_UE2275x2,,,Cantorella,UE2275x2,4724,,41.552778,1.039444,female,,,data/bam/UE2275x2_CGG_1_020989.Horse_nuc_wY.realigned.r.t.s.m.5p5.3p5.s.bam
-DOM2,Yenikapi_Tur243,,,Yenikapi,Tur243,1376,Range turkish,41.00521,28.95172,male,,,data/bam/Tur243_CGG_1_018809.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,ArzhanI_I-K3_Arz2,,,ArzhanI,I-K3_Arz2,2660,,52.0588889,93.6038889,male,,,data/bam/I-K3_Arz2_CGG_1_017088.Horse_nuc_wY.realigned.r.t.t.s.bam
-DOM2,Halvai_KSH4,,,Halvai,KSH4,3950,,52.843,62.9029,female,,,data/bam/KSH4_CGG_1_017098.Horse_nuc_wY.realigned.r.t.m.5p1.3p1.bam
-DOM2,Yenikapi_Tur175,,,Yenikapi,Tur175,1376,Range turkish,41.00521,28.95172,male,,,data/bam/Tur175_CGG_1_018741.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_L,,,Botai,L,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_L_CGG_1_020192.LOBOT_M_CGG_1_020193.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_I,,,Botai,I,5433,5500,53.3039424,67.6457864,male,,,data/bam/LOBOT_I_CGG_1_020189.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Yenikapi_Tur176,,,Yenikapi,Tur176,1376,Range turkish,41.00521,28.95172,male,,,data/bam/Tur176_CGG_1_018742.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Yenikapi_Tur181,,,Yenikapi,Tur181,1376,Range turkish,41.00521,28.95172,male,,,data/bam/Tur181_CGG_1_018747.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_D5,,,Botai,D5,5433,5500,53.3039424,67.6457864,male,,,data/bam/LOBOT_D5_CGG_1_020208.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Yenikapi_Tur173,,,Yenikapi,Tur173,1376,Range turkish,41.00521,28.95172,male,,,data/bam/Tur173_CGG_1_018739.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,Zhanaturmus_Issyk1,,,Zhanaturmus,Issyk1,1076,,43.1836111,76.7797222,male,,,data/bam/Issyk1_CGG_1_018577.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_P,,,Botai,P,5433,5500,53.3039424,67.6457864,male,,,data/bam/LOBOT_P_CGG_1_020196.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Marvele_1,,,Marvele,1,1071,range Marvele,54.89674,23.87248,male,,,data/bam/Marvele01_CGG_1_019388.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Chartres_GVA56,,,Chartres,GVA56,1850,,48.442396,1.494154,male,,,data/bam/GVA56_CGG_1_019314.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_D1,,,Botai,D1,5433,5500,53.3039424,67.6457864,male,,,data/bam/LOBOT_D1_CGG_1_020204.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,KoulianCave_MV178,,,KoulianCave,MV178,1627,,34.730428,46.671981,female,,,data/bam/MV178_CGG_1_020446.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,ArzhanI_I-K2_Arz1,,,ArzhanI,I-K2_Arz1,2660,,52.0588889,93.6038889,male,,,data/bam/I-K2_Arz1_CGG_1_017079.Horse_nuc_wY.realigned.r.t.t.bam
-DOM2,SharIQumis_AM181,,,SharIQumis,AM181,1627,,35.961667,54.0375,male,,,data/bam/AM181_CGG_1_018580.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_C,,,Botai,C,5433,5500,53.3039424,67.6457864,male,,,data/bam/LOBOT_C_CGG_1_020183.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Mainz_Mzr1,,,Mainz,Mzr1,1306,,49.99,8.26,male,,,data/bam/Mzr1_CGG_1_018150.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,WitterPlace_UK17,,,WitterPlace,UK17,200,,53.193018,-2.882844,female,,,data/bam/UK17_CGG_1_019444.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_3,,,Botai,3,5433,5500,53.3039424,67.6457864,male,,,data/bam/Botai3_CGG_1_018175.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_F,,,Botai,F,5433,5500,53.3039424,67.6457864,male,,,data/bam/LOBOT_F_CGG_1_020186.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,SaintJust_GVA242,,,SaintJust,GVA242,2183,,49.505432,2.435059,male,,,data/bam/GVA242_CGG_1_019816.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_D4,,,Botai,D4,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_D4_CGG_1_020207.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Chartres_GVA81,,,Chartres,GVA81,1850,,48.442396,1.494154,female,,,data/bam/GVA81_CGG_1_019339.Horse_nuc_wY.realigned.r.t.m.5p2.bam
-DOM,Botai_8,,,Botai,8,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_8_CGG_1_020179.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Saadjarve_Saa1,,,Saadjarve,Saa1,1050,,58.5431999,26.6781,male,,,data/bam/Saa1_CGG_1_018474.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Chartres_GVA4,,,Chartres,GVA4,1850,,48.442396,1.494154,male,,,data/bam/GVA4_CGG_1_019262.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-DOM2,Yenikapi_Tur193,,,Yenikapi,Tur193,1376,Range turkish,41.00521,28.95172,male,,,data/bam/Tur193_CGG_1_018759.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,UushgiinUvur_Mon37,,,UushgiinUvur,Mon37,3018,3039-3130,49.6561667,99.9122056,male,,,data/bam/Mon37_CGG_1_018073.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,OlonKurinGol_OKG2,,,OlonKurinGol,OKG2,2300,400-300 BC,49.32875,88.3488611,male,,,data/bam/OKG2_CGG_1_018398.Horse_nuc_wY.realigned.r.t.m.3p2.bam
-DOM2,ElsVilars_UE4618,,,ElsVilars,UE4618,2605,,41.57,0.95,female,,,data/bam/UE4618_CGG_1_020962.Horse_nuc_wY.realigned.r.t.s.m.t.bam
-DOM2,FrankfurtHeddenheim_Fr1,,,FrankfurtHeddenheim,Fr1,1796,,50.1612625,8.6424693,male,,,data/bam/Fr1_CGG_1_018151.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Marvele_18,,,Marvele,18,1122,,54.89674,23.87248,male,,,data/bam/Marvele18_CGG_1_019405.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM,Botai_B,,,Botai,B,5433,5500,53.3039424,67.6457864,female,,,data/bam/LOBOT_B_CGG_1_020182.Horse_nuc_wY.realigned.r.t.m.3p1.bam
-DOM2,Actiparc_GVA308,,,Actiparc,GVA308,2245,,50.31503,2.821797,female,,,data/bam/GVA308_CGG_1_019858.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,CaminoDeLasYeseras_CdY2,,,CaminoDeLasYeseras,CdY2,4611,4496-4861,40.4421,-3.49408,male,,,data/bam/CdY2_CGG_1_018391.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,UushgiinUvur_Mon87,,,UushgiinUvur,Mon87,3050,,49.6561667,99.9122056,female,,,data/bam/Mon87_CGG_1_018123.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,BozAdyr_KYRH8,,,BozAdyr,KYRH8,1200,,39.9983333,71.0733333,male,,,data/bam/KYRH8_CGG_1_018029.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-PRZ,Przewalski_Paratype,,,Przewalski,Paratype,51,,,,female,,,data/bam/Prze_0213A_Paratype.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Marvele_32,,,Marvele,32,1077,,54.89674,23.87248,male,,,data/bam/Marvele32_CGG_1_019419.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,UushgiinUvur_Mon39,,,UushgiinUvur,Mon39,3018,3039-3130,49.6561667,99.9122056,female,,,data/bam/Mon39.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,GolModII_Mon27,,,GolModII,Mon27,1944,,48.01777778,101.3533333,female,,,data/bam/Mon27_CGG_1_018063.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,Nustar_5,,,Nustar,5,1120,,45.3325281,18.8414917,male,,,data/bam/NUSTAR5_.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,GolModII_Mon28,,,GolModII,Mon28,1921,,48.01777778,101.3533333,male,,,data/bam/Mon28_CGG_1_018064.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,GolModII_Mon26,,,GolModII,Mon26,1932,range Xiongnu,48.01777778,101.3533333,female,,,data/bam/Mon26_CGG_1_018062.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,Ridala_Rid1,,,Ridala,Rid1,2650,,58.4551999,23.0325999,male,,,data/bam/Rid1_CGG_1_018468.Horse_nuc_wY.realigned.r.t.s.m.3p1.bam
-DOM2,Yenikapi_Tur229,,,Yenikapi,Tur229,1376,Range turkish,41.00521,28.95172,male,,,data/bam/Tur229_CGG_1_018795.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,Yenikapi_Tur150,,,Yenikapi,Tur150,1376,Range turkish,41.00521,28.95172,male,,,data/bam/Tur150_CGG_1_018716.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM,Botai_G,,,Botai,G,5433,5500,53.3039424,67.6457864,male,,,data/bam/LOBOT_G_CGG_1_020187.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Ridala_Rid2,,,Ridala,Rid2,2650,,58.4551999,23.0325999,male,,,data/bam/Rid2_CGG_1_018469.Horse_nuc_wY.realigned.r.t.m.5p2.3p2.bam
-DOM,Botai_K,,,Botai,K,5433,5500,53.3039424,67.6457864,male,,,data/bam/LOBOT_K_CGG_1_020191.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Yenikapi_Tur141,,,Yenikapi,Tur141,1363,,41.00521,28.95172,male,,,data/bam/Tur141_CGG_1_018707.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-DOM,Borly4_PAVH6,,,Borly4,PAVH6,4945,,52.2873032,76.9674023,female,,,data/bam/PAVH6_CGG_1_018161.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Yenikapi_Tur170,,,Yenikapi,Tur170,1376,Range turkish,41.00521,28.95172,male,,,data/bam/Tur170_CGG_1_018736.Horse_nuc_wY.realigned.r.t.m.3p1.bam
-DOM2,Khotont_UCIE2012x85,,,Khotont,UCIE2012x85,1224,1177-1406,47.3056111,102.6464722,male,,,data/bam/UCIE2012_85_.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Yenikapi_Tur146,,,Yenikapi,Tur146,1663,,41.00521,28.95172,male,,,data/bam/Tur146_CGG_1_018712.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-DOM2,BozAdyr_KYRH10,,,BozAdyr,KYRH10,1200,,39.9983333,71.0733333,male,,,data/bam/KYRH10_CGG_1_018031.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Chartres_GVA43,,,Chartres,GVA43,1850,,48.442396,1.494154,female,,,data/bam/GVA43_CGG_1_019301.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.s.bam
-DOM2,GolModII_Mon25,,,GolModII,Mon25,1944,,48.01777778,101.3533333,female,,,data/bam/Mon25_CGG_1_018061.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,Bateni_Rus16,,,Bateni,Rus16,3283,,54.6236111,90.945,male,,,data/bam/Rus16_CGG_1_019166.Horse_nuc_wY.realigned.r.t.s.5p0.3p2.s.bam
-DOM2,TavanTolgoi_GEP14,,,TavanTolgoi,GEP14,663,649-811 y.ago,45.0997222,112.7196944,male,,,data/bam/GEP14_CGG_1_018050.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,UushgiinUvur_Mon43,,,UushgiinUvur,Mon43,3053,,49.6561667,99.9122056,female,,,data/bam/Mon43_CGG_1_018079.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-DOM2,TavanTolgoi_GEP21,,,TavanTolgoi,GEP21,663,649-811 y.ago,45.0997222,112.7196944,male,,,data/bam/GEP21.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,UushgiinUvur_Mon86,,,UushgiinUvur,Mon86,2972,,49.6561667,99.9122056,male,,,data/bam/Mon86_CGG_1_018122.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,GolModII_Mon24,,,GolModII,Mon24,1926,,48.01777778,101.3533333,female,,,data/bam/Mon24_CGG_1_018060.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM,Borly4_PAVH9,,,Borly4,PAVH9,4910,,52.2873032,76.9674023,male,,,data/bam/PAVH9_CGG_1_018167.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,MerzlyYar_Rus45,,,MerzlyYar,Rus45,23722,,53.36333333,95.36277778,male,,,data/bam/Rus45_CGG_1_019192.Horse_nuc_wY.realigned.r.t.m.5p1.3p2.bam
-DOM2,Yenikapi_Tur140,,,Yenikapi,Tur140,1222,,41.00521,28.95172,male,,,data/bam/Tur140_CGG_1_018706.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,Gregorevka4_PAVH2,,,Gregorevka4,PAVH2,1125,,52.62909,76.738794,male,,,data/bam/PAVH2_CGG_1_018154.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Berel_BER12_M,,,Berel,BER12_M,2233,,49.3737353,86.4272922,male,,,data/bam/M_Ch112_CGG_1_016179.Horse_nuc_wY.realigned.r.t.bam
-DOM2,Yenikapi_Tur172,,,Yenikapi,Tur172,1628,,41.00521,28.95172,male,,,data/bam/Tur172_CGG_1_018738.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,UushgiinUvur_Mon45,,,UushgiinUvur,Mon45,3013,,49.6561667,99.9122056,female,,,data/bam/Mon45_CGG_1_018081.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-DOM2,Chartres_GVA26,,,Chartres,GVA26,1850,,48.442396,1.494154,male,,,data/bam/GVA26_CGG_1_019284.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Sintashta_NB46,,,Sintashta,NB46,3956,,55.1644419,61.4368431,female,,,data/bam/NewBotai46_CGG_1_017038.Horse_nuc_wY.realigned.r.t.m.bam
-WILD,Taymyr_CGG10023,,,Taymyr,CGG10023,15989,,73.046,109.708,male,,,data/bam/ARUS_0225A_CGG10023.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,GolModII_Mon23,,,GolModII,Mon23,1940,,48.01777778,101.3533333,female,,,data/bam/Mon23_CGG_1_018059.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM,Borly4_PAVH11,,,Borly4,PAVH11,4948,,52.2873032,76.9674023,female,,,data/bam/PAVH11_CGG_1_018171.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Yenikapi_Tur171,,,Yenikapi,Tur171,1622,,41.00521,28.95172,male,,,data/bam/Tur171_CGG_1_018737.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,SharIQumis_AM115,,,SharIQumis,AM115,1490,,35.961667,54.0375,male,,,data/bam/AM115_CGG_1_018579.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Berel_BER04_D,,,Berel,BER04_D,2233,,49.3737353,86.4272922,male,,,data/bam/D_Ch47_CGG_1_016171.Horse_nuc_wY.realigned.r.t.bam
-DOM,Borly4_PAVH4,,,Borly4,PAVH4,4907,,52.2873032,76.9674023,female,,,data/bam/PAVH4_CGG_1_018157.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Yenikapi_Tur194,,,Yenikapi,Tur194,1293,,41.00521,28.95172,male,,,data/bam/Tur194_CGG_1_018760.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM2,Yenikapi_Tur142,,,Yenikapi,Tur142,1329,,41.00521,28.95172,male,,,data/bam/Tur142_CGG_1_018708.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.s.bam
-DOM2,TavanTolgoi_GEP13,,,TavanTolgoi,GEP13,663,649-811 y.ago,45.0997222,112.7196944,male,,,data/bam/GEP13_CGG_1_018049.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Yenikapi_Tur145,,,Yenikapi,Tur145,1089,,41.00521,28.95172,male,,,data/bam/Tur145_CGG_1_018711.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
-DOM,Botai_5,,,Botai,5,5433,5500,53.3039424,67.6457864,male,,,data/bam/Botai5_CGG_1_018177.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,UushgiinUvur_Mon84,,,UushgiinUvur,Mon84,3056,,49.6561667,99.9122056,male,,,data/bam/Mon84_CGG_1_018120.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_1,,,Botai,1,5433,5500,53.3039424,67.6457864,male,,,data/bam/Botai1_CGG_1_018173.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_6,,,Botai,6,5433,5500,53.3039424,67.6457864,male,,,data/bam/Botai6_CGG_1_018178.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Berel_BER05_E,,,Berel,BER05_E,2233,,49.3737353,86.4272922,male,,,data/bam/E_Ch25_CGG_1_016172.Horse_nuc_wY.realigned.r.t.t.s.bam
-DOM2,Beauvais_GVA375,,,Beauvais,GVA375,400,XV AD,49.415371,2.101307,male,,,data/bam/GVA375_CGG_1_019925.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Borly4_PAVH8,,,Borly4,PAVH8,4911,,52.2873032,76.9674023,male,,,data/bam/PAVH8_CGG_1_018165.Horse_nuc_wY.realigned.r.t.m.bam
-DOM,Botai_4,,,Botai,4,5433,5500,53.3039424,67.6457864,male,,,data/bam/Botai4_CGG_1_018176.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,Berel_BER01_A,,,Berel,BER01_A,2233,,49.3737353,86.4272922,male,,,data/bam/A_Ch40_CGG_1_016168.Horse_nuc_wY.realigned.r.t.bam
-DOM,Botai_2,,,Botai,2,5433,5500,53.3039424,67.6457864,male,,,data/bam/Botai2_CGG_1_018174.Horse_nuc_wY.realigned.r.t.m.bam
-DOM2,UushgiinUvur_Mon42,,,UushgiinUvur,Mon42,3063,,49.6561667,99.9122056,female,,,data/bam/Mon42_CGG_1_018078.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
-DOM2,Berel_BER06_F,,,Berel,BER06_F,2233,,49.3737353,86.4272922,male,,,data/bam/F_Ch26_CGG_1_016173.Horse_nuc_wY.realigned.r.t.bam
-DOM2,Berel_BER09_I,,,Berel,BER09_I,2233,,49.3737353,86.4272922,male,,,data/bam/I_Ch118_CGG_1_016176.Horse_nuc_wY.realigned.r.t.bam
-DOM2,Berel_BER02_B,,,Berel,BER02_B,2233,,49.3737353,86.4272922,male,,,data/bam/B_Ch24_CGG_1_016169.Horse_nuc_wY.realigned.r.t.bam
-DOM2,Tumeski_CGG101397,,,Tumeski,CGG101397,125,,66.93333333,131.9166667,male,,,data/bam/ARUS_0222A_CGG101397.Horse_nuc_wY.realigned.r.t.m.bam
-WILD,Batagai,,,,Batagai,5088,,67.5666667,134.7666667,male,,,data/bam/ARUS_0223A_Batagai.Horse_nuc_wY.realigned.r.t.m.bam
-WILD,Taymyr_CGG10022,,,Taymyr,CGG10022,42691,,73.046,109.708,female,,,data/bam/ARUS_0224A_CGG10022.Horse_nuc_wY.realigned.r.t.m.bam
+﻿Population,Sample,Bioproject,Accessions,Site,sra_sample,Alias,BP,Age,Lat,Long,Sex,LibraryLayout,Reference,Path
+DOM2,Actiparc_GVA124,PRJEB31613,ERR3223708; ERR3225449,Actiparc,Actiparc_GVA124_2143,GVA124,2076,II-IIIe BC,50.31503,2.821797,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA124_CGG_1_019382.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Actiparc_GVA307,PRJEB31613,ERR3223709; ERR3225450,Actiparc,Actiparc_GVA307_2127,GVA307,2060,,50.31503,2.821797,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA307_CGG_1_019857.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Actiparc_GVA308,PRJEB31613,ERR3223710; ERR3225451,Actiparc,Actiparc_GVA308_2312,GVA308,2245,,50.31503,2.821797,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA308_CGG_1_019858.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Actiparc_GVA309,PRJEB31613,ERR3223711; ERR3225452,Actiparc,Actiparc_GVA309_2302,GVA309,2235,,50.31503,2.821797,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA309_CGG_1_019859.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Actiparc_GVA310,PRJEB31613,ERR3225670,Actiparc,Actiparc_GVA310_2319,GVA310,2252,,50.31503,2.821797,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA310_CGG_1_019860_i56_AGGGGA_U.r.t.bam
+DOM2,Actiparc_GVA311,PRJEB31613,ERR3223712; ERR3225453,Actiparc,Actiparc_GVA311_2253,GVA311,2186,,50.31503,2.821797,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA311_CGG_1_019861.Horse_nuc_wY.realigned.r.t.m.5p2.3p3.bam
+DOM2,Altata_NB31,PRJEB31613,ERR3223713; ERR3225454,Altata,Altata_NB31_Neolithic,NB31,,CopperAge,51.07,48.44,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai_31_CGG_1_017023.Horse_nuc_wY.realigned.r.t.s.m.5p3.3p2.bam
+DOM2,ArzhanI_Arz3,PRJEB31613,ERR3223714; ERR3225455,ArzhanI,ArzhanI_Arz3_2767,Arz3,2700,8. century BC,52.0588889,93.6038889,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Arz3_CGG_1_017089_i9_GATCAG_U.r.t.5p1.3p1.bam
+DOM2,ArzhanI_I-K2_Arz1,,,ArzhanI,,I-K2_Arz1,2660,,52.0588889,93.6038889,male,,,/home/ludo/inbox/BAMs/ancient/I-K2_Arz1_CGG_1_017079.Horse_nuc_wY.realigned.r.t.t.bam
+DOM2,ArzhanI_I-K3_Arz2,,,ArzhanI,,I-K3_Arz2,2660,,52.0588889,93.6038889,male,,,/home/ludo/inbox/BAMs/ancient/I-K3_Arz2_CGG_1_017088.Horse_nuc_wY.realigned.r.t.t.s.bam
+DOM2,ArzhanII_Arz15,PRJEB31613,ERR3223715; ERR3225456,ArzhanII,ArzhanII_Arz15_2642,Arz15,2575,late 7. century BC,52.0588889,93.6038889,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Arz15_CGG_1_017084_U_i4_TGACCA.r.t.3p1.bam
+DOM2,ArzhanII_Arz17,PRJEB31613,ERR3223716; ERR3225457,ArzhanII,ArzhanII_Arz17_2642,Arz17,2575,late 7. century BC,52.0588889,93.6038889,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Arz17_CGG_1_017086_U_i5_ACAGTG.r.t.3p1.bam
+DOM2,ArzhanII_Rus11,PRJEB31613,ERR3223717; ERR3225458,ArzhanII,ArzhanII_Rus11_2500,Rus11,2433,,52.0588889,93.6038889,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus11_CGG_1_019162_i08_U_ACTTGA.r.t.3p2.bam
+DOM2,ArzhanII_Rus9,PRJEB31613,ERR3223718; ERR3225459,ArzhanII,ArzhanII_Rus9_2500,Rus9,2433,,52.0588889,93.6038889,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus9_CGG_1_019160.Horse_nuc_wY.realigned.r.t.m.3p2.s.bam
+DOM2,AugustaRaurica_JG160,PRJEB31613,ERR3223719; ERR3225460,AugustaRaurica,AugustaRaurica_JG160_1817,JG160,1750,II-III AD,47.5331782,7.7220154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/JG160_CGG_1_019246.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Balagansk_Rus19,PRJEB31613,ERR3223722; ERR3225463,Balagansk,Balagansk_Rus19_2017,Rus19,1950,200 BC - 200 AD,47.66666667,8.85,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus19_CGG_1_019169_i3_TTAGGC_U.r.t.5p1.3p2.bam
+DOM2,BapskaGradac_BAPSKA,PRJEB31613,ERR3223723; ERR3225464,BapskaGradac,BapskaGradac_BAPSKA_1305,BAPSKA,1238,,45.1973255,19.2624907,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/BAPSKA_unregistered_i63_CAACTG_U.r.t.3p1.bam
+WILD,Batagai,,,,,Batagai,5088,,67.5666667,134.7666667,male,,,/home/ludo/inbox/BAMs/ancient/ARUS_0223A_Batagai.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Bateni_Rus14,,,Bateni,,Rus14,3251,,54.6236111,90.945,male,,,/home/ludo/inbox/BAMs/ancient/Rus14_CGG_1_019164.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Bateni_Rus16,PRJEB31613,ERR3223724; ERR3225465,Bateni,Bateni_Rus16_3350,Rus16,3283,,54.6236111,90.945,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus16_CGG_1_019166.Horse_nuc_wY.realigned.r.t.s.5p0.3p2.s.bam
+DOM2,Beauvais_GVA122,PRJEB31613,ERR3223725; ERR3225466,Beauvais,Beauvais_GVA122_417,GVA122,350,XVI-XVII AD,49.415371,2.101307,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA122_CGG_1_019380.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Beauvais_GVA375,PRJEB31613,ERR3223726; ERR3225467,Beauvais,Beauvais_GVA375_467,GVA375,400,XV AD,49.415371,2.101307,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA375_CGG_1_019925.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Belgheis_TrBWBX116,PRJEB31613,ERR3223727; ERR3225468,Belgheis,Belgheis_TrBWBX116_485,TrBWBX116,418,,37.0424531,57.4715652,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Belgheis_TrBWBX116_CGG_1_019521.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Belkaragay_NB13,PRJEB31613,ERR3223728; ERR3225469,Belkaragay,Belkaragay_NB13_CopperAge,NB13,,CopperAge,51.52,62.55,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai_13_CGG_1_017005.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p1.bam
+DOM2,Belkaragay_NB15,PRJEB31613,ERR3223729; ERR3225470,Belkaragay,Belkaragay_NB15_CopperAge,NB15,,CopperAge,51.52,62.55,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai15_CGG_1_017007.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p2.bam
+DOM2,Berel_BER01_A,,,Berel,,BER01_A,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/A_Ch40_CGG_1_016168.Horse_nuc_wY.realigned.r.t.bam
+DOM2,Berel_BER02_B,,,Berel,,BER02_B,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/B_Ch24_CGG_1_016169.Horse_nuc_wY.realigned.r.t.bam
+DOM2,Berel_BER04_D,,,Berel,,BER04_D,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/D_Ch47_CGG_1_016171.Horse_nuc_wY.realigned.r.t.bam
+DOM2,Berel_BER05_E,,,Berel,,BER05_E,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/E_Ch25_CGG_1_016172.Horse_nuc_wY.realigned.r.t.t.s.bam
+DOM2,Berel_BER06_F,,,Berel,,BER06_F,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/F_Ch26_CGG_1_016173.Horse_nuc_wY.realigned.r.t.bam
+DOM2,Berel_BER07_G,,,Berel,,BER07_G,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/G_Ch82_CGG_1_016174.Horse_nuc_wY.realigned.r.t.bam
+DOM2,Berel_BER08_H,,,Berel,,BER08_H,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/H_Ch78_CGG_1_016175.Horse_nuc_wY.realigned.r.t.t.bam
+DOM2,Berel_BER09_I,,,Berel,,BER09_I,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/I_Ch118_CGG_1_016176.Horse_nuc_wY.realigned.r.t.bam
+DOM2,Berel_BER10_K,,,Berel,,BER10_K,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/K_Ch137_CGG_1_016177.Horse_nuc_wY.realigned.r.t.bam
+DOM2,Berel_BER11_L,,,Berel,,BER11_L,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/L_Ch102_CGG_1_016178.Horse_nuc_wY.realigned.r.t.bam
+DOM2,Berel_BER12_M,,,Berel,,BER12_M,2233,,49.3737353,86.4272922,male,,,/home/ludo/inbox/BAMs/ancient/M_Ch112_CGG_1_016179.Horse_nuc_wY.realigned.r.t.bam
+DOM2,Berufjordur_VHR102,PRJEB31613,ERR3223730; ERR3225471,Berufjordur,Berufjordur_VHR102_1057,VHR102,1000,,64.7566798,-14.430196,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/VHR102_CGG_1_020961_i54_ACCATC_U.r.t.3p1.bam
+DOM,Borly4_PAVH11,,,Borly4,,PAVH11,4948,,52.2873032,76.9674023,female,,,/home/ludo/inbox/BAMs/ancient/PAVH11_CGG_1_018171.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Borly4_PAVH4,,,Borly4,,PAVH4,4907,,52.2873032,76.9674023,female,,,/home/ludo/inbox/BAMs/ancient/PAVH4_CGG_1_018157.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Borly4_PAVH6,,,Borly4,,PAVH6,4945,,52.2873032,76.9674023,female,,,/home/ludo/inbox/BAMs/ancient/PAVH6_CGG_1_018161.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Borly4_PAVH8,,,Borly4,,PAVH8,4911,,52.2873032,76.9674023,male,,,/home/ludo/inbox/BAMs/ancient/PAVH8_CGG_1_018165.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Borly4_PAVH9,,,Borly4,,PAVH9,4910,,52.2873032,76.9674023,male,,,/home/ludo/inbox/BAMs/ancient/PAVH9_CGG_1_018167.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_1,,,Botai,,1,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/Botai1_CGG_1_018173.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_2,,,Botai,,2,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/Botai2_CGG_1_018174.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_3,,,Botai,,3,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/Botai3_CGG_1_018175.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_4,,,Botai,,4,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/Botai4_CGG_1_018176.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_5,,,Botai,,5,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/Botai5_CGG_1_018177.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_6,,,Botai,,6,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/Botai6_CGG_1_018178.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_8,,,Botai,,8,5433,5500,53.3039424,67.6457864,female,,,/home/ludo/inbox/BAMs/ancient/LOBOT_8_CGG_1_020179.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_A,PRJEB31613,ERR3223732; ERR3225473,Botai,Botai_A_5500,A,5433,5500,53.3039424,67.6457864,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_A_CGG_1_020181.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM,Botai_B,PRJEB31613,ERR3223733; ERR3225474,Botai,Botai_B_5500,B,5433,5500,53.3039424,67.6457864,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_B_CGG_1_020182.Horse_nuc_wY.realigned.r.t.m.3p1.bam
+DOM,Botai_C,PRJEB31613,ERR3225666,Botai,Botai_C_5500,C,5433,5500,53.3039424,67.6457864,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_C_CGG_1_020183.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_D1,,,Botai,,D1,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/LOBOT_D1_CGG_1_020204.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_D2,PRJEB31613,ERR3223734; ERR3225475,Botai,Botai_D2_5500,D2,5433,5500,53.3039424,67.6457864,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_D2_CGG_1_020205_i21_ACATAC_U.r.t.bam
+DOM,Botai_D4,,,Botai,,D4,5433,5500,53.3039424,67.6457864,female,,,/home/ludo/inbox/BAMs/ancient/LOBOT_D4_CGG_1_020207.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_D5,,,Botai,,D5,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/LOBOT_D5_CGG_1_020208.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_D6,,,Botai,,D6,5433,5500,53.3039424,67.6457864,female,,,/home/ludo/inbox/BAMs/ancient/LOBOT_D6_CGG_1_020209.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_E,PRJEB31613,ERR3223735; ERR3225476,Botai,Botai_E_5500,E,5433,5500,53.3039424,67.6457864,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_E_CGG_1_020185_i27_TGCATA_U.r.t.3p2.bam
+DOM,Botai_F,,,Botai,,F,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/LOBOT_F_CGG_1_020186.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_G,PRJEB31613,ERR3225667,Botai,Botai_G_5500,G,5433,5500,53.3039424,67.6457864,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_G_CGG_1_020187.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_I,PRJEB31613,ERR3225668,Botai,Botai_I_5500,I,5433,5500,53.3039424,67.6457864,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_I_CGG_1_020189.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_K,PRJEB31613,ERR3225669,Botai,Botai_K_5500,K,5433,5500,53.3039424,67.6457864,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_K_CGG_1_020191.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_L,,,Botai,,L,5433,5500,53.3039424,67.6457864,female,,,/home/ludo/inbox/BAMs/ancient/LOBOT_L_CGG_1_020192.LOBOT_M_CGG_1_020193.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_N,PRJEB31613,ERR3223736; ERR3225477,Botai,Botai_N_5500,N,5433,5500,53.3039424,67.6457864,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_N_CGG_1_020194_i9_GATCAG_U.r.t.5p1.3p2.bam
+DOM,Botai_NB18,PRJEB31613,ERR3223737; ERR3225478,Botai,Botai_NB18_4692,NB18,4625,4625BP,53.3039424,67.6457864,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai_18_CGG_1_017010.Horse_nuc_wY.realigned.r.t.s.m.bam
+DOM,Botai_O,PRJEB31613,ERR3223738; ERR3225479,Botai,Botai_O_5500,O,5433,5500,53.3039424,67.6457864,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_O_CGG_1_020195_i10_TAGCTT_U.r.t.5p2.3p2.bam
+DOM,Botai_P,,,Botai,,P,5433,5500,53.3039424,67.6457864,male,,,/home/ludo/inbox/BAMs/ancient/LOBOT_P_CGG_1_020196.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_Petrous,,,Botai,,Petrous,5433,5500,53.3039424,67.6457864,female,,,/home/ludo/inbox/BAMs/ancient/LOBOT_Petrous_CGG_1_020210.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_R,,,Botai,,R,5433,5500,53.3039424,67.6457864,female,,,/home/ludo/inbox/BAMs/ancient/LOBOT_R_CGG_1_020198.Horse_nuc_wY.realigned.r.t.m.bam
+DOM,Botai_T,PRJEB31613,ERR3223739; ERR3225480,Botai,Botai_T_5500,T,5433,5500,53.3039424,67.6457864,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LOBOT_T_CGG_1_020200_i47_U_CATAGA.r.t.bam
+DOM2,Boves_GVA191,PRJEB31613,ERR3223740; ERR3225481,Boves,Boves_GVA191_1717,GVA191,1650,,49.8534339,2.3969306,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA191_CGG_1_019765.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,BozAdyr_KYRH10,PRJEB31613,ERR3223741; ERR3225482,BozAdyr,BozAdyr_KYRH10_1267,KYRH10,1200,,39.9983333,71.0733333,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/KYRH10_CGG_1_018031.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,BozAdyr_KYRH8,PRJEB31613,ERR3223742; ERR3225483,BozAdyr,BozAdyr_KYRH8_1267,KYRH8,1200,,39.9983333,71.0733333,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/KYRH8_CGG_1_018029.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,BroughOfDeerness_VHR010,PRJEB31613,ERR3223743; ERR3225484,BroughOfDeerness,BroughOfDeerness_VHR010_1417,VHR010,1000,,58.964099,-2.704933,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/VHR010_CGG_1_020949_i74_GTGGGG_U.r.t.s.5p1.3p2.bam
+DOM2,BroughOfDeerness_VHR011,PRJEB31613,ERR3223744; ERR3225485,BroughOfDeerness,BroughOfDeerness_VHR011_1367,VHR011,1000,,58.964099,-2.704933,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/VHR011_CGG_1_020950_i76_TCAGCT_U.r.t.bam
+DOM2,BroughOfDeerness_VHR037,PRJEB31613,ERR3223745; ERR3225486,BroughOfDeerness,BroughOfDeerness_VHR037_1417,VHR037,1000,,58.964099,-2.704933,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/VHR037_CGG_1_020957_i60_ATTAAA_U.r.t.5p2.3p1.bam
+DOM2,BroughOfDeerness_VHR062,PRJEB31613,ERR3225487; ERR3223746,BroughOfDeerness,BroughOfDeerness_VHR062_1417,VHR062,1000,,58.964099,-2.704933,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/VHR062_CGG_1_020959_i75_TAGTAA_U.r.t.3p1.bam
+DOM2,Bruszcewo_Bru4,PRJEB31613,ERR3225488; ERR3223747,Bruszcewo,Bruszcewo_Bru4_3917,Bru4,3850,2200-1600BC,52.007,16.562,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Bru4_CGG_1_018376.Horse_nuc_wY.realigned.r.t.s.m.bam
+DOM2,CaminoDeLasYeseras_CdY2,PRJEB31613,ERR3225489; ERR3223748,CaminoDeLasYeseras,CaminoDeLasYeseras_CdY2_4678,CdY2,4611,4496-4861,40.4421,-3.49408,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/CdY2_CGG_1_018391.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Cantorella_UE2275x2,PRJEB31613,ERR3225490; ERR3223749,Cantorella,Cantorella_UE2275x2_4791,UE2275x2,4724,,41.552778,1.039444,female,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UE2275x2_CGG_1_020989.Horse_nuc_wY.realigned.r.t.s.m.5p5.3p5.s.bam
+DOM2,Capesterre_LIS2,PRJEB31613,ERR3225491; ERR3223750,Capesterre,Capesterre_LIS2_417,LIS2,200,XVII-XIX,16.049578,-61.569156,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/LIS2_Tr19_i8_ACTTGA_U.r.t.5p1.bam
+DOM2,Capote_Cap102,PRJEB31613,ERR3225492; ERR3223751,Capote,Capote_Cap102_2167,Cap102,2397,1000-105 BC,38.0982811,-6.693194,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Cap102_CGG_1_016984.Horse_nuc_wY.realigned.r.t.s.m.bam
+DOM2,Charregass_NBxRa849,PRJEB31613,ERR3225493; ERR3223752,Charregass,Charregass_NBxRa849_1667,NBxRa849,1600,4th AD,47.65,8.85,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NB_Ra_8_49_CGG_1_020509_i69_GATGCA_U.r.t.5p1.3p2.bam
+DOM2,Chartres_GVA1,PRJEB31613,ERR3225494; ERR3223753,Chartres,Chartres_GVA1_1917,GVA1,1850,100 AD,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA1_CGG_1_019259_i52_U_AAACAA.r.t.bam
+DOM2,Chartres_GVA111,PRJEB31613,ERR3225495; ERR3223754,Chartres,Chartres_GVA111_1917,GVA111,1850,,48.442396,1.494154,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA111_CGG_1_019369_i74_GTGGGG_U.r.t.5p2.3p1.bam
+DOM2,Chartres_GVA112,PRJEB31613,ERR3225496; ERR3223755,Chartres,Chartres_GVA112_1917,GVA112,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA112_CGG_1_019370_i11_GGCTAC_U.r.t.bam
+DOM2,Chartres_GVA115,PRJEB31613,ERR3225497; ERR3223756,Chartres,Chartres_GVA115_1917,GVA115,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA115_CGG_1_019373_i13_CTATCA_U.r.t.5p1.3p1.bam
+DOM2,Chartres_GVA26,PRJEB31613,ERR3225499; ERR3223758,Chartres,Chartres_GVA26_1917,GVA26,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA26_CGG_1_019284.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Chartres_GVA28,PRJEB31613,ERR3225500; ERR3223759,Chartres,Chartres_GVA28_1917,GVA28,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA28_CGG_1_019286_i2_CGATGT_U.r.t.bam
+DOM2,Chartres_GVA36,PRJEB31613,ERR3225501; ERR3223760,Chartres,Chartres_GVA36_1917,GVA36,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA36_CGG_1_019294.Horse_nuc_wY.realigned.r.t.m.1.3p.1.5p.1.3p.bam
+DOM2,Chartres_GVA4,PRJEB31613,ERR3225503; ERR3223762,Chartres,Chartres_GVA4_1917,GVA4,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA4_CGG_1_019262.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,Chartres_GVA43,PRJEB31613,ERR3225504; ERR3223763,Chartres,Chartres_GVA43_1917,GVA43,1850,,48.442396,1.494154,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA43_CGG_1_019301.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.s.bam
+DOM2,Chartres_GVA47,PRJEB31613,ERR3225505; ERR3223764,Chartres,Chartres_GVA47_1917,GVA47,1850,100 AD,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA47_CGG_1_019305_i56_U_AGGGGA.r.t.3p1.bam
+DOM2,Chartres_GVA48,PRJEB31613,ERR3225506; ERR3223765,Chartres,Chartres_GVA48_1917,GVA48,1850,100 AD,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA48_CGG_1_019306_i57_U_ATACCT.r.t.bam
+DOM2,Chartres_GVA53,PRJEB31613,ERR3225507; ERR3223766,Chartres,Chartres_GVA53_1917,GVA53,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA53_CGG_1_019311_i71_GCTAGC_U.r.t.5p1.bam
+DOM2,Chartres_GVA56,PRJEB31613,ERR3225508; ERR3223767,Chartres,Chartres_GVA56_1917,GVA56,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA56_CGG_1_019314.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Chartres_GVA60,PRJEB31613,ERR3225509; ERR3223768,Chartres,Chartres_GVA60_1917,GVA60,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA60_CGG_1_019318_i72_GGGCCG_U.r.t.5p1.3p2.bam
+DOM2,Chartres_GVA75,PRJEB31613,ERR3225513; ERR3223772,Chartres,Chartres_GVA75_1917,GVA75,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA75_CGG_1_019333_i75_TAGTAA_U.r.t.5p1.bam
+DOM2,Chartres_GVA81,PRJEB31613,ERR3225515; ERR3223774,Chartres,Chartres_GVA81_1917,GVA81,1850,,48.442396,1.494154,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA81_CGG_1_019339.Horse_nuc_wY.realigned.r.t.m.5p2.bam
+DOM2,Chartres_GVA9,PRJEB31613,ERR3225516; ERR3223775,Chartres,Chartres_GVA9_1917,GVA9,1850,,48.442396,1.494154,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA9_CGG_1_019267_i5_ACAGTG_U.r.t.s.bam
+DOM2,Derkul_NB2,PRJEB31613,ERR3225519; ERR3223778,Derkul,Derkul_NB2_Neolithic,NB2,,Neolithic,51.16,51.17,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai2_CGG_1_016994.Horse_nuc_wY.realigned.r.t.s.m.bam
+DOM2,Derkul_NB4,PRJEB31613,ERR3225520; ERR3223779,Derkul,Derkul_NB4_Neolithic,NB4,,Neolithic,51.16,51.17,female,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai_4_CGG_1_016996.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Diriali_Georgia2,,,Diriali,,Georgia2,250,,42.74016371,44.62016419,female,,,/home/ludo/inbox/BAMs/ancient/Georgia2_CGG_1_020266_i13_CTATCA_U.r.t.s.3p2.bam
+DOM2,Dunaujvaros_Duk2,,,Dunaujvaros,,Duk2,4010,,46.9619059,18.9355227,male,,,/home/ludo/inbox/BAMs/ancient/Duk2_CGG_1_018386.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,ElAcequion_Spain38,PRJEB31613,ERR3225521; ERR3223780,ElAcequion,ElAcequion_Spain38_4058,Spain38,3991,,39.024444,-2.028056,female,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Spain38_CGG_1_020484.Horse_nuc_wY.realigned.r.t.5p1.3p2.bam
+DOM2,ElAcequion_Spain39,PRJEB31613,ERR3225522; ERR3223781,ElAcequion,ElAcequion_Spain39_3993,Spain39,3926,,39.024444,-2.028056,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Spain39_CGG_1_020485.Horse_nuc_wY.realigned.r.t.5p1.s.bam
+DOM2,ElsVilars_UE4618,PRJEB31613,ERR3225523; ERR3223782,ElsVilars,ElsVilars_UE4618_2672,UE4618,2605,,41.57,0.95,female,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UE4618_CGG_1_020962.Horse_nuc_wY.realigned.r.t.s.m.t.bam
+DOM2,Evreux_GVA133,PRJEB31613,ERR3225526; ERR3223785,Evreux,Evreux_GVA133_1817,GVA133,1750,II-IIIe AD,49.0196385,1.1589729,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA133_CGG_1_019707.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Evreux_GVA135,PRJEB31613,ERR3225527; ERR3223786,Evreux,Evreux_GVA135_1817,GVA135,1750,II-IIIe AD,49.0196385,1.1589729,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA135_CGG_1_019709.Horse_nuc_wY.realigned.r.t.m.5p2.31p.bam
+DOM2,Evreux_GVA140,PRJEB31613,ERR3225528; ERR3223787,Evreux,Evreux_GVA140_1817,GVA140,1750,II-IIIe AD,49.0196385,1.1589729,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA140_CGG_1_019714.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Fengtai_Fen4,PRJEB31613,ERR3225529; ERR3223788,Fengtai,Fengtai_Fen4_2820,Fen4,2753,,36.8406667,101.9584722,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Fen4_CGG_1_018396.Horse_nuc_wY.realigned.r.t.s.5p2.3p2.bam
+DOM2,Fmontauban_GVA126,,,Fmontauban,,GVA126,1805,,48.442396,1.494154,male,,,/home/ludo/inbox/BAMs/ancient/GVA126_CGG_1_019384.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,FrankfurtHeddenheim_Fr1,PRJEB31613,ERR3225530; ERR3223789,FrankfurtHeddenheim,FrankfurtHeddernheim_Fr1_1863,Fr1,1796,,50.1612625,8.6424693,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Fr1_CGG_1_018151.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Garbovat_Gar3,,,Garbovat,,Gar3,3507,,44.86699,22.0079387,male,,,/home/ludo/inbox/BAMs/ancient/Gar3_CGG_1_018389.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,GolModII_Mon23,PRJEB31613,ERR3225531; ERR3223790,GolModII,GolModII_Mon23_2007,Mon23,1940,,48.01777778,101.3533333,female,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon23_CGG_1_018059.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,GolModII_Mon24,PRJEB31613,ERR3225532; ERR3223791,GolModII,GolModII_Mon24_1993,Mon24,1926,,48.01777778,101.3533333,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon24_CGG_1_018060.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,GolModII_Mon25,PRJEB31613,ERR3225533; ERR3223792,GolModII,GolModII_Mon25_2011,Mon25,1944,,48.01777778,101.3533333,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon25_CGG_1_018061.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,GolModII_Mon26,PRJEB31613,ERR3225534; ERR3223793,GolModII,GolModII_Mon26_1999,Mon26,1932,range Xiongnu,48.01777778,101.3533333,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon26_CGG_1_018062.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,GolModII_Mon27,PRJEB31613,ERR3225535; ERR3223794,GolModII,GolModII_Mon27_2011,Mon27,1944,,48.01777778,101.3533333,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon27_CGG_1_018063.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,GolModII_Mon28,,,GolModII,,Mon28,1921,,48.01777778,101.3533333,male,,,/home/ludo/inbox/BAMs/ancient/Mon28_CGG_1_018064.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Goyet_Vert293,PRJEB31613,ERR3225536; ERR3223795,Goyet,Goyet_Vert293_UpperPalaeolithic,Vert293,,Upper Palaeolithic,50.44667,5.00911,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Vert293_CGG_1_018522.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Goyet_Vert300,PRJEB31613,ERR3225537; ERR3223796,Goyet,Goyet_Vert300_31750,Vert300,31683,Upper Palaeolithic,50.44667,5.00911,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Vert300_CGG_1_018529_i6_GCCAAT_U.r.t.3p1.bam
+DOM2,Goyet_Vert304,PRJEB31613,ERR3225538; ERR3223797,Goyet,Goyet_Vert304_UpperPalaeolithic,Vert304,,Upper Palaeolithic,50.44667,5.00911,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Vert304_CGG_1_018533_i10_TAGCTT_U.r.t.5p1.3p2.bam
+WILD,Goyet_Vert311,PRJEB31613,ERR3225539; ERR3223798,Goyet,Goyet_Vert311_35870,Vert311,35803,,50.44667,5.00911,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Vert311_CGG_1_018540.Horse_nuc_wY.realigned.r.t.m.3p1.bam
+DOM2,Granastadir_VHR031,PRJEB31613,ERR3225540; ERR3223799,Granastadir,Granastadir_VHR031_1067,VHR031,1000,,65.61,-18.25,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/VHR031_CGG_1_020955_i61_ATTCTC_U.r.t.3p1.bam
+DOM2,Gregorevka4_PAVH2,,,Gregorevka4,,PAVH2,1125,,52.62909,76.738794,male,,,/home/ludo/inbox/BAMs/ancient/PAVH2_CGG_1_018154.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Halvai_KSH4,PRJEB31613,ERR3225541; ERR3223800,Halvai,Halvai_KSH4_4017,KSH4,3950,,52.843,62.9029,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/KSH4_CGG_1_017098.Horse_nuc_wY.realigned.r.t.m.5p1.3p1.bam
+DOM2,Halvai_KSH5,PRJEB31613,ERR3225542; ERR3223801,Halvai,Halvai_KSH5_2542,KSH5,2475,,52.843,62.9029,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/KSH5_CGG_1_017099_i54_ACCATC_U.r.t.s.3p2.bam
+DOM2,Haunstetten,,,Haunstetten,,,1912,,48.3079118,10.8938381,male,,,/home/ludo/inbox/BAMs/ancient/Haunstetten_CGG_1_017139.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,KaiseraugustSchmidmatt_NBxK9279,,,KaiseraugustSchmidmatt,,NBxK9279,1650,3rd/4th,47.536085,7.721967,male,,,/home/ludo/inbox/BAMs/ancient/NB_K9279_CGG_1_020505_i65_CGGCAC_U.r.t.5p2.3p2.bam
+DOM2,KaiseraugustSchmidmatt_NBxP9261,,,KaiseraugustSchmidmatt,,NBxP9261,1715,130-340AD,47.536085,7.721967,male,,,/home/ludo/inbox/BAMs/ancient/NB_P9261_CGG_1_020506_i66_CTCGGT_U.r.t.5p1.3p2.bam
+DOM2,Khatuu_Kha2_t1,PRJEB31613,ERR3225543; ERR3223802,Khatuu,Khatuu_Kha2_t1_2312,Kha2_t1,2245,,48.583056,88.393528,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Kha2_t1_CGG_1_018909.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Khotont_UCIE2012x85,PRJEB31613,ERR3225544; ERR3223803,Khotont,Khotont_UCIE2012x85_1291,UCIE2012x85,1224,1177-1406,47.3056111,102.6464722,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UCIE2012_85_.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Kokorevo_Rus3,PRJEB31613,ERR3225545; ERR3223804,Kokorevo,Kokorevo_Rus3_14450,Rus3,14383,14450,53.933,90.933,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus3_CGG_1_019154_i32_ACGCAT_U.r.t.3p1.bam
+DOM2,KoulianCave_MV178,,,KoulianCave,,MV178,1627,,34.730428,46.671981,female,,,/home/ludo/inbox/BAMs/ancient/MV178_CGG_1_020446.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,KrasnayaGorka_Rus48,PRJEB31613,ERR3225546; ERR3223805,KrasnayaGorka,KrasnayaGorka_Rus48_1446,Rus48,1379,RADIOC,51.53869,94.00885,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus48_CGG_1_019195_i77_TCCCGG_U.r.t.5p1.3p2.bam
+DOM2,Krasnokamenka_NB10,PRJEB31613,ERR3225547; ERR3223806,Krasnokamenka,Krasnokamenka_NB10_4500,NB10,4433,IIIrd BC,54.35,60.15,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai10.Horse_nuc_wY.realigned.r.t.s.m.bam
+DOM2,Krasnokamenka_NB9,PRJEB31613,ERR3225548; ERR3223807,Krasnokamenka,Krasnokamenka_NB9_4500,NB9,4433,IIIrd BC,54.35,60.15,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai_9_CGG_1_017001.Horse_nuc_wY.realigned.r.t.s.m.bam
+DOM2,LebyazhinkaIV_NB35,PRJEB31613,ERR3225550; ERR3223809,LebyazhinkaIV,LebyazhinkaIV_NB35_Neolithic,NB35,,Neolithic,53.43,50.4,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai35_CGG_1_017027.Horse_nuc_wY.realigned.r.t.m.2.5p.s.bam
+DOM2,LongueilAnnel_GVA129,PRJEB31613,ERR3225551; ERR3223810,LongueilAnnel,LongueilAnnel_GVA129_267,GVA129,200,1750,49.469035,2.86053,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA129_CGG_1_019387_i16_GTGTAT_U.r.t.3p1.bam
+DOM2,Macon_GVA201,PRJEB31613,ERR3225552; ERR3223811,Macon,Macon_GVA201_1767,GVA201,1700,,46.307532,4.823474,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA201_CGG_1_019775.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Mainz_Mzr1,PRJEB31613,ERR3225553; ERR3223812,Mainz,Mainz_Mzr1_1373,Mzr1,1306,,49.99,8.26,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mzr1_CGG_1_018150.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Marvele_1,PRJEB31613,ERR3225554; ERR3223813,Marvele,Marvele_01_1138,1,1071,range Marvele,54.89674,23.87248,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Marvele01_CGG_1_019388.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Marvele_2,PRJEB31613,ERR3225555; ERR3223814,Marvele,Marvele_02_1138,2,1071,range Marvele,54.89674,23.87248,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Marvele02_CGG_1_019389_i13_CTATCA_U.r.t.3p2.bam
+DOM2,Marvele_5,PRJEB31613,ERR3225556; ERR3223815,Marvele,Marvele_05_1138,5,1071,range Marvele,54.89674,23.87248,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Marvele05_CGG_1_019392_i21_ACATAC_U.r.t.3p2.bam
+DOM2,Marvele_16,PRJEB31613,ERR3225557; ERR3223816,Marvele,Marvele_16_1138,16,1071,range Marvele,54.89674,23.87248,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Marvele16_CGG_1_019403_i28_TCTCGC_U.r.t.5p2.bam
+DOM2,Marvele_18,PRJEB31613,ERR3225558; ERR3223817,Marvele,Marvele_18_1189,18,1122,,54.89674,23.87248,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Marvele18_CGG_1_019405.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Marvele_21,PRJEB31613,ERR3225559; ERR3223818,Marvele,Marvele_21_1087,21,1020,,54.89674,23.87248,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Marvele21_CGG_1_019408.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,Marvele_22,PRJEB31613,ERR3225560; ERR3223819,Marvele,Marvele_22_1138,22,1071,range Marvele,54.89674,23.87248,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Marvele22_CGG_1_019409_i46_CACGAA_U.r.t.bam
+DOM2,Marvele_27,PRJEB31613,ERR3225561; ERR3223820,Marvele,Marvele_27_1138,27,1071,range Marvele,54.89674,23.87248,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Marvele27_CGG_1_019414_i47_CATAGA_U.r.t.bam
+DOM2,Marvele_32,PRJEB31613,ERR3225562; ERR3223821,Marvele,Marvele_32_1144,32,1077,,54.89674,23.87248,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Marvele32_CGG_1_019419.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,MerzlyYar_Rus45,PRJEB31613,ERR3225563; ERR3223822,MerzlyYar,MerzlyYar_Rus45_23789,Rus45,23722,,53.36333333,95.36277778,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus45_CGG_1_019192.Horse_nuc_wY.realigned.r.t.m.5p1.3p2.bam
+DOM2,Metz_GVA321,PRJEB31613,ERR3225564; ERR3223823,Metz,Metz_GVA321_492,GVA321,425,Beginning of XVIe c. AD,49.115293,6.172751,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA321_CGG_1_019871_i01_U_ATCACG.r.t.3p1.bam
+DOM2,Miciurin_Mic2,PRJEB31613,ERR3225565; ERR3223824,Miciurin,Miciurin_Mic2_3267,Mic2,3200,1500-1000 BC,47.986875,27.790131,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mic2_CGG_1_018388_Enriched_i32_ACGCAT_U.r.t.s.bam
+DOM2,Museum_Earb5,PRJEB31613,ERR3225566; ERR3223825,Museum,Museum_Earb5_105,Earb5,38,1912,,,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Earb5_CGG_1_018497_i80_TTTTGG_U.r.t.3p1.bam
+DOM2,Museum_Earb6,PRJEB31613,ERR3225567; ERR3223826,Museum,Museum_Earb6_89,Earb6,22,1928 AD,,,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Earb6_CGG_1_018495.Horse_nuc_wY.realigned.r.t.s.m.3p1.bam
+DOM2,Noyon_GVA123,PRJEB31613,ERR3225568; ERR3223827,Noyon,Noyon_GVA123_717,GVA123,650,XIII-XIV AD,49.571363,3.017742,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA123_CGG_1_019381.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Nustar_4,PRJEB31613,ERR3225569; ERR3223828,Nustar,Nustar_4_1187,4,1120,,45.3325281,18.8414917,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NUSTAR4_CGG_1_020438_i60_ATTAAA_U.r.t.5p2.bam
+DOM2,Nustar_5,PRJEB31613,ERR3225570; ERR3223829,Nustar,Nustar_5_1187,5,1120,,45.3325281,18.8414917,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NUSTAR5_.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Oktyabrsky_Rus37,PRJEB31613,ERR3225571; ERR3223830,Oktyabrsky,Oktyabrsky_Rus37_830,Rus37,763,,47.9666667,43.6436111,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus37_CGG_1_019185.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Oktyabrsky_Rus38,PRJEB31613,ERR3225572; ERR3223831,Oktyabrsky,Oktyabrsky_Rus38_659,Rus38,592,,47.9666667,43.6436111,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus38_CGG_1_019186.Horse_nuc_wY.realigned.r.t.s.5p1.3p2.s.bam
+DOM2,OlonKurinGol_OKG1,PRJEB31613,ERR3225573; ERR3223832,OlonKurinGol,OlonKurinGol_OKG1_2367,OKG1,2300,300-400 BC,49.32875,88.3488611,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/OKG1_CGG_1_018397.Horse_nuc_wY.realigned.r.t.bam
+DOM2,OlonKurinGol_OKG2,PRJEB31613,ERR3225574; ERR3223833,OlonKurinGol,OlonKurinGol_OKG2_2367,OKG2,2300,400-300 BC,49.32875,88.3488611,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/OKG2_CGG_1_018398.Horse_nuc_wY.realigned.r.t.m.3p2.bam
+DOM2,Otepaa_Ote2,PRJEB31613,ERR3225575; ERR3223834,Otepaa,Otepaa_Ote2_1184,Ote2,1117,,58.058048,26.4947523,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Ote2_CGG_1_018473.Horse_nuc_wY.realigned.r.t.m.1.3p.s.bam
+DOM2,Otok_OTOK16,PRJEB31613,ERR3225576; ERR3223835,Otok,Otok_OTOK16_1308,OTOK16,1241,,45.1464084,18.8838649,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/OTOK16_unregistered_i62_CAAAAT_U.r.t.bam
+DOM2,PotapovkaI_1,PRJEB31613,ERR3225577; ERR3223836,PotapovkaI,PotapovkaI_1_3900,1,3833,2025-1740 BC,53.662987,50.671471,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/DaAn01_CGG_1_018337_i28_TCTCGC_U.r.t.3p1.bam
+PRZ,Przewalski_Paratype,,,Przewalski,,Paratype,51,,,,female,,,/home/ludo/inbox/BAMs/ancient/Prze_0213A_Paratype.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Quoygrew_VHR017,PRJEB31613,ERR3225578; ERR3223837,Quoygrew,Quoygrew_VHR017_1117,VHR017,1000,,59.337156,-2.97,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/VHR017_CGG_1_020952_i62_CAAAAT_U.r.t.s.3p1.bam
+DOM2,Ridala_Rid1,,,Ridala,,Rid1,2650,,58.4551999,23.0325999,male,,,/home/ludo/inbox/BAMs/ancient/Rid1_CGG_1_018468.Horse_nuc_wY.realigned.r.t.s.m.3p1.bam
+DOM2,Ridala_Rid2,PRJEB31613,ERR3225579; ERR3223838,Ridala,Ridala_Rid2_2717,Rid2,2650,,58.4551999,23.0325999,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rid2_CGG_1_018469.Horse_nuc_wY.realigned.r.t.m.5p2.3p2.bam
+DOM2,Saadjarve_Saa1,PRJEB31613,ERR3225580; ERR3223839,Saadjarve,Saadjarve_Saa1_1117,Saa1,1050,,58.5431999,26.6781,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Saa1_CGG_1_018474.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Sagzabad_SAGS27,PRJEB31613,ERR3225581; ERR3223840,Sagzabad,Sagzabad_SAGS27_3117,SAGS27,3050,,35.773056,49.937778,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/SAG_S27_CGG_1_019559.Horse_nuc_wY.realigned.r.t.m.5p2.3p2.bam
+DOM2,SaintJust_GVA242,PRJEB31613,ERR3225586; ERR3223845,SaintJust,SaintJust_GVA242_2250,GVA242,2183,,49.505432,2.435059,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA242_CGG_1_019816.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,SaintQuentin_GVA237,PRJEB31613,ERR3225587; ERR3223846,SaintQuentin,SaintQuentin_GVA237_1917,GVA237,1850,I-II AD,49.847998,3.290399,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA237_CGG_1_019877_i55_AGATCG_U.r.t.3p1.bam
+DOM2,Santarem_254,PRJEB31613,ERR3225589; ERR3223848,Santarem,Santarem_254_1017,254,950,9th-12th AD,39.241,-8.692,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Iberia254_CGG_1_020032_i69_GATGCA_U.r.t.5p2.3p3.bam
+DOM2,Sayangorsk_Rus41,PRJEB31613,ERR3225590; ERR3223849,Sayangorsk,Sayangorsk_Rus41_2677,Rus41,2610,,53.0966188,91.4164518,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Rus41_CGG_1_019189.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,Schloßvippach_Svi6,PRJEB31613,ERR3225591; ERR3223850,Schloßvippach,Schlossvippach_Svi6_3917,Svi6,3850,2200-1600 BC,51.104,11.145,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Svi6_CGG_1_018375.Horse_nuc_wY.realigned.r.t.m.5p2.3p2.bam
+DOM2,Sebastovce_131,PRJEB31613,ERR3225592; ERR3223851,Sebastovce,Sebastovce_131_1317,131,1250,7-8th AD,48.655,21.268,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Seb131_CGG_1_018487_i1_ATCACG_U.r.t.5p2.3p1.bam
+DOM2,SharIQumis_AM115,PRJEB31613,ERR3225593; ERR3223852,SharIQumis,SharIQumis_AM115_1557,AM115,1490,,35.961667,54.0375,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/AM115_CGG_1_018579.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,SharIQumis_AM181,,,SharIQumis,,AM181,1627,,35.961667,54.0375,male,,,/home/ludo/inbox/BAMs/ancient/AM181_CGG_1_018580.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Sintashta_NB44,PRJEB31613,ERR3225594; ERR3223853,Sintashta,Sintashta_NB44_3577,NB44,3510,radio cal,52.29,62.11,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai44_CGG_1_017036.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p2.bam
+DOM2,Sintashta_NB45,PRJEB31613,ERR3225595; ERR3223854,Sintashta,Sintashta_NB45_3577,NB45,3510,radio cal,52.29,62.11,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NewBotai45_CGG_1_017037.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p1.bam
+DOM2,Sintashta_NB46,,,Sintashta,,NB46,3956,,55.1644419,61.4368431,female,,,/home/ludo/inbox/BAMs/ancient/NewBotai46_CGG_1_017038.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,SolothurnVigier_NB175,PRJEB31613,ERR3225596; ERR3223855,SolothurnVigier,SolothurnVigier_NB175_1817,NB175,1750,2nd 3rd AD,47.2333,7.5167,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NB_175_CGG_1_020499_i26_TGTGAC_U.r.t.5p1.3p2.bam
+DOM2,SolothurnVigier_NB63,PRJEB31613,ERR3225597; ERR3223856,SolothurnVigier,SolothurnVigier_NB63_1867,NB63,1800,1st-3rd AD,47.2333,7.5167,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/NB_63_CGG_1_020512_i72_GGGCCG_U.r.t.5p1.3p2.bam
+DOM2,Syrgal_Syr1t1c3,,,Syrgal,,Syr1t1c3,2250,Syr1t1c3,48.583056,88.393528,male,,,/home/ludo/inbox/BAMs/ancient/Syr1_t1_c3_CGG_1_018919.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Syrgal_Syr1t1c4,PRJEB31613,ERR3225599; ERR3223858,Syrgal,Syrgal_Syr1t1c4_2317,Syr1t1c4,2250,,48.583056,88.393528,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Syr1_t1_c4_CGG_1_018920_i52_AAACAA_U.r.t.5p4.3p4.bam
+DOM2,TachtiPerda_TP4,,,TachtiPerda,,TP4,3537,,41.466667,46.016667,male,,,/home/ludo/inbox/BAMs/ancient/TP4_CGG_1_018394.Horse_nuc_wY.realigned.r.t.m.3p1.bam
+DOM2,TavanTolgoi_GEP13,PRJEB31613,ERR3225600; ERR3223859,TavanTolgoi,TavanTolgoi_GEP13_730,GEP13,663,649-811 y.ago,45.0997222,112.7196944,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GEP13_CGG_1_018049.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,TavanTolgoi_GEP14,PRJEB31613,ERR3225601; ERR3223860,TavanTolgoi,TavanTolgoi_GEP14_730,GEP14,663,649-811 y.ago,45.0997222,112.7196944,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GEP14_CGG_1_018050.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,TavanTolgoi_GEP21,PRJEB31613,ERR3225602; ERR3223861,TavanTolgoi,TavanTolgoi_GEP21_730,GEP21,663,649-811 y.ago,45.0997222,112.7196944,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GEP21.Horse_nuc_wY.realigned.r.t.m.bam
+WILD,Taymyr_CGG10022,,,Taymyr,,CGG10022,42691,,73.046,109.708,female,,,/home/ludo/inbox/BAMs/ancient/ARUS_0224A_CGG10022.Horse_nuc_wY.realigned.r.t.m.bam
+WILD,Taymyr_CGG10023,,,Taymyr,,CGG10023,15989,,73.046,109.708,male,,,/home/ludo/inbox/BAMs/ancient/ARUS_0225A_CGG10023.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,TepeHasanlu_1140,PRJEB31613,ERR3225603; ERR3223862,TepeHasanlu,TepeHasanlu_1140_2682,1140,2615,,37.004486,45.458817,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Hasanlu1140_CGG_1_019998_i4_TGACCA_U.r.t.5p2.3p2.bam
+DOM2,TepeHasanlu_2327,PRJEB31613,ERR3225604; ERR3223863,TepeHasanlu,TepeHasanlu_2327_2352,2327,2600,Iron III - 7th BC,37.004486,45.458817,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Hasanlu2327_CGG_1_019995_i56_AGGGGA_U.r.t.5p2.3p1.bam
+DOM2,TepeHasanlu_2405,PRJEB31613,ERR3225671,TepeHasanlu,TepeHasanlu_2405_2886,2405,2819,,37.004486,45.458817,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Hasanlu2405_CGG_1_019992.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,TepeHasanlu_2529,PRJEB31613,ERR3225605; ERR3223864,TepeHasanlu,TepeHasanlu_2529_2352,2529,2600,Iron III - 7th BC,37.004486,45.458817,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Hasanlu2529_CGG_1_019988_i57_ATACCT_U.r.t.3p1.bam
+DOM2,TepeHasanlu_2689,PRJEB31613,ERR3225606; ERR3223865,TepeHasanlu,TepeHasanlu_2689_2352,2689,2600,Iron III - 7th BC,37.004486,45.458817,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Hasanlu2689_CGG_1_019996_i58_ATGAGC_U.r.t.5p1.3p2.bam
+DOM2,TepeHasanlu_3394,PRJEB31613,ERR3225607; ERR3223866,TepeHasanlu,TepeHasanlu_3394_2808,3394,2741,,37.004486,45.458817,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Hasanlu3394_CGG_1_019997_i69_GATGCA_U.r.t.3p1.bam
+DOM2,TepeHasanlu_3398,PRJEB31613,ERR3225608; ERR3223867,TepeHasanlu,TepeHasanlu_3398_2352,3398,2600,Iron III - 7th BC,37.004486,45.458817,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Hasanlu3398_CGG_1_019986_i47_CATAGA_U.r.t.5p2.3p2.bam
+DOM2,TepeHasanlu_3461,PRJEB31613,ERR3225610; ERR3223869,TepeHasanlu,TepeHasanlu_3461_2930,3461,2863,,37.004486,45.458817,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Hasanlu3461_CGG_1_020003_i37_ACTGCC_U.r.t.5p1.3p1.bam
+DOM2,TepeHasanlu_368,PRJEB31613,ERR3225611; ERR3223870,TepeHasanlu,TepeHasanlu_368_2896,368,2829,,37.004486,45.458817,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Hasanlu368_CGG_1_019994_i52_AAACAA_U.r.5p2.3p1.bam
+DOM2,Tumeski_CGG101397,,,Tumeski,,CGG101397,125,,66.93333333,131.9166667,male,,,/home/ludo/inbox/BAMs/ancient/ARUS_0222A_CGG101397.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Uppsala_Upps02,PRJEB31613,ERR3225613; ERR3223872,Uppsala,Uppsala_Upps02_1317,Upps02,1250,600-800 AD,59.861,17.639,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Upps02_CGG_1_018490.Horse_nuc_wY.realigned.r.t.s.m.5p2.3p2.bam
+DOM2,UushgiinUvur_Mon37,PRJEB31613,ERR3225614; ERR3223873,UushgiinUvur,UushgiinUvur_Mon37_3085,Mon37,3018,3039-3130,49.6561667,99.9122056,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon37_CGG_1_018073.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,UushgiinUvur_Mon39,PRJEB31613,ERR3225615; ERR3223874,UushgiinUvur,UushgiinUvur_Mon39_3085,Mon39,3018,3039-3130,49.6561667,99.9122056,female,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon39.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,UushgiinUvur_Mon40,PRJEB31613,ERR3225616; ERR3223875,UushgiinUvur,UushgiinUvur_Mon40_3085,Mon40,3018,3039-3130,49.6561667,99.9122056,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon40_CGG_1_018076.Horse_nuc_wY.realigned.r.t.s.m.3p1.bam
+DOM2,UushgiinUvur_Mon41,PRJEB31613,ERR3225617; ERR3223876,UushgiinUvur,UushgiinUvur_Mon41_3085,Mon41,3018,3039-3130,49.6561667,99.9122056,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon41_CGG_1_018077.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,UushgiinUvur_Mon42,PRJEB31613,ERR3225618; ERR3223877,UushgiinUvur,UushgiinUvur_Mon42_3130,Mon42,3063,,49.6561667,99.9122056,female,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon42_CGG_1_018078.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,UushgiinUvur_Mon43,PRJEB31613,ERR3225619; ERR3223878,UushgiinUvur,UushgiinUvur_Mon43_3120,Mon43,3053,,49.6561667,99.9122056,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon43_CGG_1_018079.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,UushgiinUvur_Mon44,PRJEB31613,ERR3225620; ERR3223879,UushgiinUvur,UushgiinUvur_Mon44_3085,Mon44,3018,3039-3130,49.6561667,99.9122056,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon44_CGG_1_018080.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,UushgiinUvur_Mon45,PRJEB31613,ERR3225621; ERR3223880,UushgiinUvur,UushgiinUvur_Mon45_3080,Mon45,3013,,49.6561667,99.9122056,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon45_CGG_1_018081.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,UushgiinUvur_Mon79,PRJEB31613,ERR3225622; ERR3223881,UushgiinUvur,UushgiinUvur_Mon79_3085,Mon79,3018,3039-3130,49.6561667,99.9122056,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon79_CGG_1_018115.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,UushgiinUvur_Mon84,,,UushgiinUvur,,Mon84,3056,,49.6561667,99.9122056,male,,,/home/ludo/inbox/BAMs/ancient/Mon84_CGG_1_018120.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,UushgiinUvur_Mon86,,,UushgiinUvur,,Mon86,2972,,49.6561667,99.9122056,male,,,/home/ludo/inbox/BAMs/ancient/Mon86_CGG_1_018122.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,UushgiinUvur_Mon87,PRJEB31613,ERR3225623; ERR3223882,UushgiinUvur,UushgiinUvur_Mon87_3117,Mon87,3050,,49.6561667,99.9122056,female,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon87_CGG_1_018123.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,UushgiinUvur_Mon89,PRJEB31613,ERR3225624; ERR3223883,UushgiinUvur,UushgiinUvur_Mon89_3085,Mon89,3018,3039-3130,49.6561667,99.9122056,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Mon89_i28_TCTCGC_U.r.t.3p2.bam
+DOM2,Vermand_GVA199,PRJEB31613,ERR3225625; ERR3223884,Vermand,Vermand_GVA199_1742,GVA199,1675,,49.87749,3.145772,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/GVA199_CGG_1_019773.Horse_nuc_wY.realigned.r.t.m.5p2.3p2.bam
+DOM2,Vicerrectorado_VIR175,PRJEB31613,ERR3225626; ERR3223885,Vicerrectorado,Vicerrectorado_VIR175_1717,VIR175,1650,3rd-4th AD,43.0092829,-7.5592897,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/VIR175_CGG_1_016987_i41_TGTCTG.r.t.3p2.bam
+DOM2,WhitehallRomanVilla_UK08,PRJEB31613,ERR3225627; ERR3223886,WhitehallRomanVilla,WhitehallRomanVilla_UK08_1667,UK08,1600,,52.2260364,-1.0568535,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UK08_CGG_1_019435_i16_GTGTAT_U.r.t.5p2.3p1.bam
+DOM2,WitterPlace_UK15,PRJEB31613,ERR3225628; ERR3223887,WitterPlace,WitterPlace_UK15_217,UK15,150,,53.193018,-2.882844,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UK15_CGG_1_019442.Horse_nuc_wY.realigned.r.t.m.3p1.bam
+DOM2,WitterPlace_UK16,PRJEB31613,ERR3225629; ERR3223888,WitterPlace,WitterPlace_UK16_217,UK16,150,,53.193018,-2.882844,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UK16_CGG_1_019443.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,WitterPlace_UK17,PRJEB31613,ERR3225630; ERR3223889,WitterPlace,WitterPlace_UK17_267,UK17,200,,53.193018,-2.882844,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UK17_CGG_1_019444.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,WitterPlace_UK18,PRJEB31613,ERR3225631; ERR3223890,WitterPlace,WitterPlace_UK18_267,UK18,200,,53.193018,-2.882844,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UK18_CGG_1_019445.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,WitterPlace_UK19,PRJEB31613,ERR3225632; ERR3223891,WitterPlace,WitterPlace_UK19_267,UK19,200,,53.193018,-2.882844,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UK19_CGG_1_019446.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,WitterPlace_UK20,PRJEB31613,ERR3225633; ERR3223892,WitterPlace,WitterPlace_UK20_217,UK20,150,1800 AD,53.193018,-2.882844,female,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/UK20_CGG_1_019447_i11_GGCTAC_U.r.t.5p2.3p1.bam
+DOM2,Yenikapi_Tur140,PRJEB31613,ERR3225635; ERR3223894,Yenikapi,Yenikapi_Tur140_1289,Tur140,1222,,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur140_CGG_1_018706.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Yenikapi_Tur141,PRJEB31613,ERR3225636; ERR3223895,Yenikapi,Yenikapi_Tur141_1430,Tur141,1363,,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur141_CGG_1_018707.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,Yenikapi_Tur142,PRJEB31613,ERR3225637; ERR3223896,Yenikapi,Yenikapi_Tur142_1396,Tur142,1329,,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur142_CGG_1_018708.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.s.bam
+DOM2,Yenikapi_Tur145,PRJEB31613,ERR3225639; ERR3223898,Yenikapi,Yenikapi_Tur145_1156,Tur145,1089,,41.00521,28.95172,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur145_CGG_1_018711.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Yenikapi_Tur146,PRJEB31613,ERR3225640; ERR3223899,Yenikapi,Yenikapi_Tur146_1730,Tur146,1663,,41.00521,28.95172,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur146_CGG_1_018712.Horse_nuc_wY.realigned.r.t.m.5p2.3p1.bam
+DOM2,Yenikapi_Tur150,PRJEB31613,ERR3225643; ERR3223902,Yenikapi,Yenikapi_Tur150_1443,Tur150,1376,Range turkish,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur150_CGG_1_018716.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Yenikapi_Tur170,PRJEB31613,ERR3225646; ERR3223905,Yenikapi,Yenikapi_Tur170_1443,Tur170,1376,Range turkish,41.00521,28.95172,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur170_CGG_1_018736.Horse_nuc_wY.realigned.r.t.m.3p1.bam
+DOM2,Yenikapi_Tur171,PRJEB31613,ERR3225647; ERR3223906,Yenikapi,Yenikapi_Tur171_1689,Tur171,1622,,41.00521,28.95172,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur171_CGG_1_018737.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Yenikapi_Tur172,,,Yenikapi,,Tur172,1628,,41.00521,28.95172,male,,,/home/ludo/inbox/BAMs/ancient/Tur172_CGG_1_018738.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Yenikapi_Tur173,PRJEB31613,ERR3225648; ERR3223907,Yenikapi,Yenikapi_Tur173_1443,Tur173,1376,Range turkish,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur173_CGG_1_018739.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Yenikapi_Tur175,PRJEB31613,ERR3225649; ERR3223908,Yenikapi,Yenikapi_Tur175_1443,Tur175,1376,Range turkish,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur175_CGG_1_018741.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Yenikapi_Tur176,PRJEB31613,ERR3225650; ERR3223909,Yenikapi,Yenikapi_Tur176_1443,Tur176,1376,Range turkish,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur176_CGG_1_018742.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Yenikapi_Tur181,PRJEB31613,ERR3225651; ERR3223910,Yenikapi,Yenikapi_Tur181_1443,Tur181,1376,Range turkish,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur181_CGG_1_018747.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Yenikapi_Tur193,PRJEB31613,ERR3225654; ERR3223913,Yenikapi,Yenikapi_Tur193_1443,Tur193,1376,Range turkish,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur193_CGG_1_018759.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Yenikapi_Tur194,PRJEB31613,ERR3225655; ERR3223914,Yenikapi,Yenikapi_Tur194_1360,Tur194,1293,,41.00521,28.95172,male,PAIRED,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur194_CGG_1_018760.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Yenikapi_Tur229,PRJEB31613,ERR3225657; ERR3223916,Yenikapi,Yenikapi_Tur229_1443,Tur229,1376,Range turkish,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur229_CGG_1_018795.Horse_nuc_wY.realigned.r.t.m.1.3p.bam
+DOM2,Yenikapi_Tur243,PRJEB31613,ERR3225658; ERR3223917,Yenikapi,Yenikapi_Tur243_1443,Tur243,1376,Range turkish,41.00521,28.95172,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/Tur243_CGG_1_018809.Horse_nuc_wY.realigned.r.t.m.bam
+DOM2,Yerqorqan_YER28,PRJEB31613,ERR3225665; ERR3223924,Yerqorqan,Yerqorqan_YER28_2853,YER28,2786,,38.867278,65.800161,male,SINGLE,Fages_et_al_2019,/home/ludo/inbox/BAMs/ancient/YER28_CGG_1_020254.Horse_nuc_wY.realigned.r.t.m.1.3p.s.bam
+DOM2,Zhanaturmus_Issyk1,,,Zhanaturmus,,Issyk1,1076,,43.1836111,76.7797222,male,,,/home/ludo/inbox/BAMs/ancient/Issyk1_CGG_1_018577.Horse_nuc_wY.realigned.r.t.m.bam

@@ -39,7 +39,7 @@ class GATKRealignerTargetCreator(utils.PipelineTask):
 
     def run(self):
         # unpack the inputs/outputs
-        (bam_in, _, _), (ref_file, _, _) = self.input()
+        (bam_in, _), (ref_file, _, _) = self.input()
         itv_file, log_file = self.output()
 
         with itv_file.temporary_path() as itv_path, open(log_file.path, 'w') as log_fout:
@@ -80,7 +80,7 @@ class GATKIndelRealigner(utils.PipelineTask):
 
     def run(self):
         # unpack the inputs/outputs
-        (bam_in, _, _), (itv_file, _), (ref_file, _, _) = self.input()
+        (bam_in, _), (itv_file, _), (ref_file, _, _) = self.input()
         bam_out, bai_out, log_file = self.output()
 
         with bam_out.temporary_path() as bam_path, open(log_file.path, 'w') as log_fout:

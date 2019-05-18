@@ -6,7 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.sra import SraToolsFastqDump
+from alleletraj.sra import SraToolsFasterqDump
 
 # hard filters for TrimGalore!
 TRIM_MIN_BASEQ = 20
@@ -24,7 +24,7 @@ class TrimGalore(utils.PipelineTask):
     paired = luigi.BoolParameter()
 
     def requires(self):
-        return SraToolsFastqDump(self.accession, self.paired)
+        return SraToolsFasterqDump(self.accession, self.paired)
 
     def output(self):
         if self.paired:

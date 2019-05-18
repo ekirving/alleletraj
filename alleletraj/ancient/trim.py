@@ -6,7 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.sra import SraToolsFastqDump
+from alleletraj.sra import SraToolsFasterqDump
 
 # hard filters for AdapterRemoval
 TRIM_MIN_BASEQ = 20
@@ -27,7 +27,7 @@ class AdapterRemoval(utils.PipelineTask):
     paired = luigi.BoolParameter()
 
     def requires(self):
-        return SraToolsFastqDump(self.accession, self.paired)
+        return SraToolsFasterqDump(self.accession, self.paired)
 
     def output(self):
         yield luigi.LocalTarget('data/fastq/{}-trim.fq.gz'.format(self.accession))

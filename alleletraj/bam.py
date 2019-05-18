@@ -127,6 +127,10 @@ class DeduplicatedBAM(utils.DatabaseTask):
     sample = luigi.Parameter()
     accession = luigi.OptionalParameter(default=None)
 
+    def complete(self):
+        # this task is complete if our input task is complete (necessary to force ValidateBamFile to run)
+        return self.requires().complete()
+
     def requires(self):
         if self.sample_data['ancient']:
             # use the aDNA pipeline
@@ -136,7 +140,8 @@ class DeduplicatedBAM(utils.DatabaseTask):
             return PicardMarkDuplicates(self.species, self.sample, self.accession)
 
     def output(self):
-        return self.input()
+        # only pass on the bam and bai files (i.e. trim off any .log files)
+        return self.input()[:2]
 
 
 class SampleBAM(utils.DatabaseTask):

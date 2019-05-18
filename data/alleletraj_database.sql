@@ -6,8 +6,8 @@
 # https://github.com/sequelpro/sequelpro
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
-# Database: alleletraj_horse_equcab2_rel37
-# Generation Time: 2019-05-15 14:07:44 +0000
+# Database: alleletraj_goat_ars1_rel37
+# Generation Time: 2019-05-18 17:20:28 +0000
 # ************************************************************
 
 
@@ -52,7 +52,7 @@ CREATE TABLE `ensembl_genes` (
   `gene_name` varchar(255) DEFAULT '',
   `version` int(11) NOT NULL,
   `biotype` varchar(255) NOT NULL,
-  `chrom` varchar(10) NOT NULL,
+  `chrom` varchar(15) NOT NULL,
   `start` int(11) NOT NULL,
   `end` int(11) NOT NULL,
   PRIMARY KEY (`id`),
@@ -376,9 +376,10 @@ CREATE TABLE `sample_reads` (
 CREATE TABLE `sample_runs` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `sample_id` int(11) NOT NULL,
-  `accession` varchar(255) NOT NULL DEFAULT '',
+  `accession` varchar(255) NOT NULL,
   `paired` tinyint(1) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `accession` (`accession`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

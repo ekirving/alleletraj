@@ -42,8 +42,8 @@ class RunAll(utils.PipelineWrapperTask):
         # link QTLs and modern snps
         yield QTLPipeline(self.species)
 
-        # load the ancient sample reads for each ascertained SNP
-        yield AncientSNPsPipeline(self.species)
+        # # load the ancient sample reads for each ascertained SNP
+        # yield AncientSNPsPipeline(self.species)
 
         # # analyse the coverage and quality for SNPs in each QTLs
         # yield AnalyseQTLsPipeline(self.species)

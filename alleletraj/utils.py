@@ -34,7 +34,7 @@ def run_cmd(cmd, shell=False, stdout=None, stderr=None, verbose=True):
     cmd = [str(args) for args in cmd]
 
     if verbose:
-        print(u' '.join(cmd))
+        print(' '.join(cmd))
 
     stdout = subprocess.PIPE if not stdout else stdout
     stderr = subprocess.PIPE if not stderr else stderr

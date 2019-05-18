@@ -18,7 +18,7 @@ from alleletraj.bam import SampleBAM
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
 from alleletraj.modern.vcf import ReferencePloidy, MIN_GENO_QUAL
-from alleletraj.qtl.load import PopulateAllLoci, MIN_DAF
+from alleletraj.qtl.load import MIN_DAF, MergeAllLoci
 from alleletraj.ref import ReferenceFASTA
 
 # minimum depth of coverage to call diploid genotypes
@@ -32,49 +32,6 @@ HARD_MAPQ_CUTOFF = 30
 
 # minimum base quality (hard filtered)
 HARD_BASEQ_CUTOFF = 30
-
-
-class MergeAllLoci(utils.DatabaseTask):
-    """
-    Merge all the overlapping QTL and pseudo-QTL windows.
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-    chrom = luigi.Parameter()
-
-    def requires(self):
-        yield PopulateAllLoci(self.species)
-
-    def output(self):
-        return luigi.LocalTarget('data/bed/{}-loci.bed'.format(self.basename))
-
-    def run(self):
-        # get all the unique QTL windows
-        loci = self.dbc.get_records_sql("""
-            SELECT DISTINCT q.chrom, q.start, q.end
-              FROM qtls q
-             WHERE q.chrom = '{chrom}' 
-               AND q.valid = 1
-          ORDER BY q.start, q.end""".format(chrom=self.chrom), key=None)
-
-        tmp_loci = 'data/bed/{}-tmp-loci.bed'.format(self.basename)
-
-        # write all the QTL regions to a BED file
-        with open(tmp_loci, 'w') as fout:
-            for locus in loci:
-                # NOTE that BED starts are zero-based and BED ends are one-based
-                fout.write('{}\t{}\t{}\n'.format(locus['chrom'], locus['start'] - 1, locus['end']))
-
-        # now merge overlapping loci
-        bed = utils.run_cmd(['bedtools', 'merge', '-i', tmp_loci])
-
-        # tidy up the tmp file
-        os.remove(tmp_loci)
-
-        # save the merged loci
-        with self.output().open('w') as fout:
-            fout.write(bed)
 
 
 class LoadAncientSNPs(utils.MySQLTask):

@@ -125,7 +125,7 @@ class DeduplicatedBAM(utils.DatabaseTask):
     """
     species = luigi.Parameter()
     sample = luigi.Parameter()
-    accession = luigi.Parameter(default=None)
+    accession = luigi.OptionalParameter(default=None)
 
     def requires(self):
         if self.sample_data['ancient']:

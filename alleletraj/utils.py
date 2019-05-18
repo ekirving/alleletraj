@@ -293,6 +293,7 @@ class DatabaseTask(PipelineTask):
         """
         if self._accession is None:
             self._accession = self.dbc.get_record('sample_runs', {'accession': self.accession})
+            self._accession['paired'] = bool(int(self._accession['paired']))  # cast as boolean
 
         return self._accession
 

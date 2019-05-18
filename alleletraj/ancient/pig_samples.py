@@ -4,8 +4,6 @@
 # standard modules
 import os
 from collections import defaultdict, OrderedDict
-from datetime import timedelta
-from time import time
 
 # third party modules
 import httplib2

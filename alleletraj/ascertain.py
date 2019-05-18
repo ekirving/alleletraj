@@ -3,8 +3,6 @@
 
 # standard modules
 from collections import OrderedDict
-from datetime import timedelta
-from time import time
 
 # third party modules
 import luigi

@@ -15,7 +15,6 @@ import pysam
 # local modules
 from alleletraj import utils
 from alleletraj.bam import SampleBAM
-from alleletraj.samples import LoadSamples
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
 from alleletraj.modern.vcf import ReferencePloidy, MIN_GENO_QUAL

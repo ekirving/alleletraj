@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# standard modules
-from datetime import timedelta
-from time import time
-
 # third party modules
 import luigi
 

@@ -3,7 +3,6 @@
 
 # standard modules
 import os
-import random
 
 # third party modules
 import luigi

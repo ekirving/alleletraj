@@ -4,8 +4,6 @@
 # standard modules
 import gzip
 import os
-from datetime import timedelta
-from time import time
 
 # third party modules
 import luigi

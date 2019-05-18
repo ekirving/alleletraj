@@ -485,8 +485,6 @@ class PopulateNeutralLoci(utils.MySQLTask):
         # subtract the non-neutral regions from the whole genome
         loci = utils.run_cmd(['bedtools', 'subtract', '-a', all_regions.path, '-b', non_neutral.path])
 
-        num_loci = 0
-
         for locus in loci.splitlines():
             chrom, start, end = locus.split()
 
@@ -500,8 +498,6 @@ class PopulateNeutralLoci(utils.MySQLTask):
             }
 
             self.dbc.save_record('qtls', qtl)
-
-            num_loci += 1
 
 
 class PopulateAllLoci(utils.PipelineWrapperTask):

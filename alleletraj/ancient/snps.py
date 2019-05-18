@@ -218,7 +218,6 @@ class LoadAncientSNPs(utils.MySQLTask):
 
                     suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
 
-                    # TODO replace with luigi.LocalTarget(is_tmp=True)
                     # make some temp files
                     vcf_file, sex_file, tsv_file, tgz_file, rgs_file = [
                         'data/vcf/diploid-sample{}-{}.{}'.format(sample_id, suffix, ext) for ext in

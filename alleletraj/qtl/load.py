@@ -2,9 +2,6 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
-import glob
-import os
-import random
 import re
 from collections import defaultdict, OrderedDict
 
@@ -469,26 +466,24 @@ class PopulateNeutralLoci(utils.MySQLTask):
         for result in results:
             intervals[result['chrom']].append((result['start'], result['end']))
 
-        # TODO replace with LocalTarget(is_tmp=True)
-        suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
-
-        all_regions = 'data/bed/{}-all_regions-{}.bed'.format(self.species, suffix)
-        non_neutral = 'data/bed/{}-non_neutral-{}.bed'.format(self.species, suffix)
+        # make some temp files
+        all_regions = luigi.LocalTarget(is_tmp=True)
+        non_neutral = luigi.LocalTarget(is_tmp=True)
 
         # write a BED file for the whole genome
-        with open(all_regions, 'w') as fout:
+        with all_regions.open('w') as fout:
             for chrom in self.chromosomes:
                 fout.write('{}\t{}\t{}\n'.format(chrom, 1, sizes[chrom]))
 
         # write all the non-neutral regions to a BED file
-        with open(non_neutral, 'w') as fout:
+        with non_neutral.open('w') as fout:
             for chrom in natsorted(intervals.keys()):
                 # merge overlapping intervals
                 for start, stop in utils.merge_intervals(intervals[chrom], capped=False):
                     fout.write('{}\t{}\t{}\n'.format(chrom, start, stop))
 
         # subtract the non-neutral regions from the whole genome
-        loci = utils.run_cmd(['bedtools', 'subtract', '-a', all_regions, '-b', non_neutral])
+        loci = utils.run_cmd(['bedtools', 'subtract', '-a', all_regions.path, '-b', non_neutral.path])
 
         num_loci = 0
 
@@ -511,10 +506,6 @@ class PopulateNeutralLoci(utils.MySQLTask):
             self.dbc.save_record('qtls', qtl)
 
             num_loci += 1
-
-        # delete the temp files
-        for tmp in glob.glob("data/bed/*{}*".format(suffix)):
-            os.remove(tmp)
 
 
 class PopulateAllLoci(utils.PipelineWrapperTask):

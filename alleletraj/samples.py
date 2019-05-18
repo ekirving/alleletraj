@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
+import itertools
 import math
 import re
 
@@ -79,13 +80,14 @@ class LoadSamples(utils.DatabaseTask):
 
                 sample_id = self.dbc.save_record('samples', sample)
 
-                # are the accessions paired end or not
-                paired = 1 if row.get('librarylayout') == 'PAIRED' else 0
-
                 # get the SRA run accessions
                 accessions = [acc.strip() for acc in row['accessions'].split(';') if acc.strip() != '']
 
-                for accession in accessions:
+                # are the accessions paired end or not
+                layout = [1 if lib == 'PAIRED' else 0
+                          for lib in row.get('librarylayout').split(';') if lib.strip() != '']
+
+                for accession, paired in itertools.izip(accessions, itertools.cycle(layout)):
                     run = {'sample_id': sample_id, 'accession': accession, 'paired': paired}
                     self.dbc.save_record('sample_runs', run)
 

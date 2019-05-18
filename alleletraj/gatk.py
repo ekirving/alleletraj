@@ -9,35 +9,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.ancient.dedupe import FilterUniqueSAMCons
-from alleletraj.modern.dedupe import PicardMarkDuplicates
 from alleletraj.ref import PicardSequenceDictionary
-
-
-class DeduplicatedBAM(utils.DatabaseTask):
-    """
-    Wrapper task to return a deduplicated BAM file.
-
-    We use different trimming, alignment and deduplication methods depending on ancient/modern status of sample.
-
-    :type species: str
-    :type sample: str
-    :type accession: str
-    """
-    species = luigi.Parameter()
-    sample = luigi.Parameter()
-    accession = luigi.Parameter()
-
-    def requires(self):
-        if self.sample_data['ancient']:
-            # use the aDNA pipeline
-            return FilterUniqueSAMCons(self.species, self.sample, self.accession)
-        else:
-            # use the modern pipeline
-            return PicardMarkDuplicates(self.species, self.sample, self.accession)
-
-    def output(self):
-        return self.input()
 
 
 class GATKRealignerTargetCreator(utils.PipelineTask):
@@ -55,6 +27,9 @@ class GATKRealignerTargetCreator(utils.PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 4}
 
     def requires(self):
+        # import locally to avoid recursive import error
+        from alleletraj.bam import DeduplicatedBAM
+
         yield DeduplicatedBAM(self.species, self.sample, self.accession)
         yield PicardSequenceDictionary(self.species)
 
@@ -92,6 +67,9 @@ class GATKIndelRealigner(utils.PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 4}
 
     def requires(self):
+        # import locally to avoid recursive import error
+        from alleletraj.bam import DeduplicatedBAM
+
         yield DeduplicatedBAM(self.species, self.sample, self.accession)
         yield GATKRealignerTargetCreator(self.species, self.sample, self.accession)
         yield PicardSequenceDictionary(self.species)

@@ -6,8 +6,10 @@ import luigi
 
 # local modules
 from alleletraj import utils
+from alleletraj.ancient.dedupe import FilterUniqueSAMCons
 from alleletraj.ancient.rescale import MapDamageRescale
 from alleletraj.gatk import GATKIndelRealigner
+from alleletraj.modern.dedupe import PicardMarkDuplicates
 
 # ignore these inconsequential errors when running ValidateSamFile
 VALIDATE_BAM_IGNORE = [
@@ -109,36 +111,32 @@ class AccessionBAM(utils.DatabaseTask):
         return self.input()
 
 
-class SAMToolsMerge(utils.DatabaseTask):
+class DeduplicatedBAM(utils.DatabaseTask):
     """
-    Merge multiple libraries into a single BAM file
+    Wrapper task to return a deduplicated BAM file.
+
+    We use different trimming, alignment and deduplication methods depending on ancient/modern status of sample.
+
+    When `accession` is not set this returns a deduplicated BAM file containing all the sample accessions.
 
     :type species: str
-    :type population: str
     :type sample: str
+    :type accession: str
     """
     species = luigi.Parameter()
-    population = luigi.Parameter()
     sample = luigi.Parameter()
-
-    resources = {'cpu-cores': 1, 'ram-gb': 8}
+    accession = luigi.Parameter(default=None)
 
     def requires(self):
-        for accession in self.list_accessions():
-            yield AccessionBAM(self.species, self.sample, accession)
+        if self.sample_data['ancient']:
+            # use the aDNA pipeline
+            return FilterUniqueSAMCons(self.species, self.sample, self.accession)
+        else:
+            # use the modern pipeline
+            return PicardMarkDuplicates(self.species, self.sample, self.accession)
 
     def output(self):
-        return [luigi.LocalTarget('data/bam/{}.merged.{}'.format(self.sample, ext)) for ext in ['bam', 'bam.bai']]
-
-    def run(self):
-        bam_inputs = [bam_file.path for bam_file, _, _ in self.input()]
-        bam_out, _ = self.output()
-
-        with bam_out.temporary_path() as bam_path:
-            utils.run_cmd(['samtools', 'merge', bam_path] + bam_inputs)
-
-        # index the BAM file
-        utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
+        return self.input()
 
 
 class SampleBAM(utils.DatabaseTask):
@@ -166,8 +164,8 @@ class SampleBAM(utils.DatabaseTask):
         else:
             accessions = self.list_accessions()
             if len(accessions) > 1:
-                # TODO merge all accessions together, and deduplicate a second time (just in case)
-                return SAMToolsMerge(self.species, self.population, self.sample)
+                # merge all accessions together, and deduplicate a second time (just in case)
+                return DeduplicatedBAM(self.species, self.sample)
             else:
                 return AccessionBAM(self.species, self.sample, accessions[0])
 

@@ -7,6 +7,7 @@ import luigi
 # local modules
 from alleletraj import utils
 from alleletraj.ancient.align import BwaSamSe
+from alleletraj.samtools import SAMToolsMerge
 
 
 class FilterUniqueSAMCons(utils.DatabaseTask):
@@ -17,20 +18,29 @@ class FilterUniqueSAMCons(utils.DatabaseTask):
 
     https://bioinf.eva.mpg.de/fastqProcessing/
 
+    NOTE When `accession` is not set, this deduplicates a merged BAM file containing all the sample accessions.
+
     :type species: str
     :type sample: str
     :type accession: str
     """
     species = luigi.Parameter()
     sample = luigi.Parameter()
-    accession = luigi.Parameter()
+    accession = luigi.Parameter(default=None)
 
     def requires(self):
-        return BwaSamSe(self.species, self.sample, self.accession, self.accession_data['paired'])
+        if self.accession:
+            return BwaSamSe(self.species, self.sample, self.accession, self.accession_data['paired'])
+        else:
+            return SAMToolsMerge(self.species, self.sample)
 
     def output(self):
-        return [luigi.LocalTarget('data/bam/{}.sort.rmdup.{}'.format(self.accession, ext)) for ext in
-                ['bam', 'bam.bai']]
+        if self.accession:
+            return [luigi.LocalTarget('data/bam/{}.sort.rmdup.{}'.format(self.accession, ext)) for ext in
+                    ['bam', 'bam.bai']]
+        else:
+            return [luigi.LocalTarget('data/bam/{}.merged.rmdup.{}'.format(self.sample, ext)) for ext in
+                    ['bam', 'bam.bai']]
 
     def run(self):
         # unpack the params

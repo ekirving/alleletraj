@@ -199,7 +199,7 @@ class LoadEnsemblVariants(utils.MySQLTask):
 
 class FlagSNPsNearIndels(utils.MySQLTask):
     """
-    Flag any dbsnp variants that are within a given range of an INDEL
+    Flag any dbsnp variants that are within a given range of an INDEL.
 
     :type species: str
     :type chrom: str

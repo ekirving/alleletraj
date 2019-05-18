@@ -15,7 +15,7 @@ NJTREE_FAN = 'fan'
 
 class NeighborJoiningTree(utils.DatabaseTask):
     """
-    Create a neighbor joining phylogenetic tree from a distance matrix
+    Create a neighbor joining phylogenetic tree from a distance matrix.
 
     :type species: str
     :type tree: str

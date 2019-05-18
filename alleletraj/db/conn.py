@@ -96,7 +96,7 @@ class Database:
     # noinspection SqlResolve
     def __get_records(self, table, conds=None, sort=None):
         """
-        Helper function for fetching records
+        Helper function for fetching records.
         """
         sql = "SELECT * FROM {table} ".format(table=table)
 
@@ -111,7 +111,7 @@ class Database:
     # noinspection SqlResolve, SqlWithoutWhere
     def __delete_records(self, table, conds=None):
         """
-        Helper function for deleting records
+        Helper function for deleting records.
         """
         sql = u"DELETE FROM {table} ".format(table=table)
 
@@ -123,7 +123,7 @@ class Database:
     # noinspection SqlResolve
     def __count_records(self, table, conds=None):
         """
-        Helper function for counting records
+        Helper function for counting records.
         """
         sql = u"SELECT COUNT(*) FROM {table} ".format(table=table)
 
@@ -135,7 +135,7 @@ class Database:
     @staticmethod
     def create_database(species):
         """
-        Create an empty db
+        Create an empty db.
         """
         cnx = mysql.connector.connect(**Database.db_config)
         cursor = cnx.cursor()
@@ -146,7 +146,7 @@ class Database:
 
     def get_records(self, table, conds=None, sort=None, key='id'):
         """
-        Get all matching records
+        Get all matching records.
         """
         self.__get_records(table, conds, sort)
 
@@ -154,7 +154,7 @@ class Database:
 
     def get_records_sql(self, sql, key='id'):
         """
-        Get all matching records for a given SQL query
+        Get all matching records for a given SQL query.
         """
         try:
             self.cursor.execute(sql)
@@ -169,7 +169,7 @@ class Database:
 
     def get_record(self, table, conds=None):
         """
-        Get a single record
+        Get a single record.
         """
         self.__get_records(table, conds)
 
@@ -177,7 +177,7 @@ class Database:
 
     def exists_record(self, table, conds=None):
         """
-        Get a single record
+        Get a single record.
         """
         self.__get_records(table, conds)
 
@@ -185,13 +185,13 @@ class Database:
 
     def delete_records(self, table, conds=None):
         """
-        Delete all matching records
+        Delete all matching records.
         """
         return self.__delete_records(table, conds)
 
     def count_records(self, table, conds=None):
         """
-        Count all matching records
+        Count all matching records.
         """
         self.__count_records(table, conds)
 
@@ -200,7 +200,7 @@ class Database:
     # noinspection SqlResolve
     def save_record(self, table, record, insert=None):
         """
-        Insert/update a record
+        Insert/update a record.
         """
         formatted = self.__format_data(record)
 
@@ -238,7 +238,7 @@ class Database:
     # noinspection SqlResolve
     def save_records(self, table, fields, records):
         """
-        Batch insert new records
+        Batch insert new records.
         """
 
         if type(records) is list:

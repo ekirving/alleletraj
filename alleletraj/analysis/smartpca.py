@@ -15,7 +15,7 @@ PCA_COMPONENTS = [(1, 2), (3, 4), (5, 6)]
 
 class SmartPCA(utils.DatabaseTask):
     """
-    Calculate the eigenvectors for the given dataset
+    Calculate the eigenvectors for the given dataset.
 
     :type species: str
     :type project: list
@@ -67,7 +67,7 @@ class SmartPCA(utils.DatabaseTask):
 
 class SmartPCAPlot(utils.DatabaseTask):
     """
-    Use ggplot to plot the PCA
+    Use ggplot to plot the PCA.
 
     :type species: str
     :type project: list

@@ -48,7 +48,7 @@ MCMC_MIN_BINS = 3
 
 class SelectionInputFile(utils.DatabaseTask):
     """
-    Generate the 4-column sample input file for `selection` (Schraiber et al., 2016)
+    Generate the 4-column sample input file for `selection`.
 
     See https://github.com/Schraiber/selection
 
@@ -276,7 +276,7 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
 
 class SelectionBestQTLSNPs(utils.PipelineWrapperTask):
     """
-    Run `selection` on all the 'best' QTL SNPs
+    Run `selection` on all the 'best' QTL SNPs.
 
     :type species: str
     """

@@ -16,7 +16,7 @@ from vcf import BiallelicSNPsVCF
 
 def mutation_type(alleles):
     """
-    Is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else)
+    Is this mutation a transition (A <-> G and C <-> T) or a transversion (everything else).
     """
     return 'ts' if set(alleles) == {'A', 'G'} or set(alleles) == {'C', 'T'} else 'tv'
 

@@ -10,7 +10,7 @@ from alleletraj.db.conn import Database
 
 def generate_mc1r_snp_input(species, population):
     """
-    Custom code for handling the PCR data for modsnp #71891
+    Custom code for handling the PCR data for modsnp #71891.
     """
 
     dbc = Database(species)

@@ -19,7 +19,7 @@ from alleletraj.snpchip.link import SNPChipLinkPipeline
 
 class RunAll(utils.PipelineWrapperTask):
     """
-    Build the species db
+    Process all the pipeline tasks.
 
     :type species: str
     """

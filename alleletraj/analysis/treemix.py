@@ -18,7 +18,7 @@ TREEMIX_K = 1000
 
 class TreemixPlinkFreq(utils.PipelineTask):
     """
-    Convert a Plink MAF frequency file into Treemix format
+    Convert a Plink MAF frequency file into Treemix format.
 
     :type species: str
     :type groupby: str
@@ -133,7 +133,7 @@ class TreemixPlotM(utils.PipelineTask):
 
 class PipelineTreemix(utils.PipelineWrapperTask):
     """
-    Run all the Treemix plots
+    Run all the Treemix plots.
 
     :type species: str
     """

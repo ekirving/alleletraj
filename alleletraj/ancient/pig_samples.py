@@ -213,7 +213,7 @@ class PopulatePigSamples(utils.MySQLTask):
 
 class SyncRadiocarbonDates(utils.MySQLTask):
     """
-    Fetch all the radiocarbon dates
+    Fetch all the radiocarbon dates.
 
     :type species: str
     """
@@ -238,7 +238,7 @@ class SyncRadiocarbonDates(utils.MySQLTask):
 
 class ConfirmAgeMapping(utils.MySQLTask):
     """
-    Make sure that all the free-text dates have proper numeric mappings
+    Make sure that all the free-text dates have proper numeric mappings.
 
     :type species: str
     """

@@ -173,7 +173,7 @@ class BinSamples(utils.MySQLTask):
 
 class LoadAllSamples(utils.PipelineWrapperTask):
     """
-    Load both modern and ancient samples, and group ancient samples into temporal bins
+    Load both modern and ancient samples, and group ancient samples into temporal bins.
 
     :type species: str
     """

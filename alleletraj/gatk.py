@@ -14,7 +14,7 @@ from alleletraj.ref import PicardSequenceDictionary
 
 class GATKRealignerTargetCreator(utils.PipelineTask):
     """
-    Use the GATK RealignerTargetCreator to find suspicious indels to target for local realignment
+    Use the GATK RealignerTargetCreator to find suspicious indels to target for local realignment.
 
     :type species: str
     :type sample: str
@@ -54,7 +54,7 @@ class GATKRealignerTargetCreator(utils.PipelineTask):
 
 class GATKIndelRealigner(utils.PipelineTask):
     """
-    Use the GATK IndelRealigner to perform local realignment of reads around indels
+    Use the GATK IndelRealigner to perform local realignment of reads around indels.
 
     :type species: str
     :type sample: str

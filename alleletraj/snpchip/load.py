@@ -51,7 +51,7 @@ class DownloadAxiomEquineHD(utils.PipelineTask):
 
 class LoadSNPChipVariants(utils.MySQLTask):
     """
-    Load the SNP chip variants from SNPchimp
+    Load the SNP chip variants from SNPchimp.
 
     See http://bioinformatics.tecnoparco.org/SNPchimp
 

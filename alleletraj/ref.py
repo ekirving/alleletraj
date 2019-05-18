@@ -34,7 +34,7 @@ class ReferenceFASTA(utils.PipelineTask):
 
 class BwaIndexBWTSW(utils.PipelineTask):
     """
-    Builds the BWA index for the reference genome, needed for performing alignments
+    Builds the BWA index for the reference genome, needed for performing alignments.
 
     :type species: str
     """

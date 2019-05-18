@@ -236,7 +236,7 @@ class FetchMC1RSNPs(utils.MySQLTask):
 
 class FetchNeutralSNPs(utils.MySQLTask):
     """
-    Get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
+    Get neutral SNPs (excluding all QTLs and gene regions, w/ buffer).
 
     :type species: str
     """
@@ -450,7 +450,7 @@ class ExportAscertainedSNPs(utils.DatabaseTask):
 
 class AscertainmentPipeline(utils.PipelineWrapperTask):
     """
-    Perform the ascertainment for the pig SNP capture
+    Perform the ascertainment for the pig SNP capture.
 
     :type species: str
     """

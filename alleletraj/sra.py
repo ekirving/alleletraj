@@ -11,7 +11,7 @@ from alleletraj.const import CPU_CORES_LOW
 
 class SraToolsFastqDump(utils.PipelineTask):
     """
-    Fetches the paired-end and single end FASTQ files for a given accession code, using SRA Tools
+    Fetches the paired-end and single end FASTQ files for a given accession code, using SRA Tools.
 
     :type accession: str
     :type paired: bool

@@ -320,7 +320,7 @@ class CountCallableSites(utils.PipelineTask):
 
 class DadiDemography(utils.PipelineTask):
     """
-    Convert the best fitting dadi model into a demography file for `selection`
+    Convert the best fitting dadi model into a demography file for `selection`.
 
     :type species: str
     :type population: str

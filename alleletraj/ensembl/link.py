@@ -12,7 +12,7 @@ from alleletraj.modern.snps import ModernSNPsPipeline
 
 class LinkEnsemblGenes(utils.MySQLTask):
     """
-    Link modern SNPs to their Ensembl genes
+    Link modern SNPs to their Ensembl genes.
 
     :type species: str
     :type chrom: str
@@ -39,7 +39,7 @@ class LinkEnsemblGenes(utils.MySQLTask):
 
 class LinkEnsemblVariants(utils.MySQLTask):
     """
-    Link modern SNPs to their Ensembl dbsnp variants
+    Link modern SNPs to their Ensembl dbsnp variants.
 
     :type species: str
     :type chrom: str

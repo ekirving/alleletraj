@@ -10,7 +10,7 @@ from alleletraj import utils
 
 class SAMToolsMerge(utils.DatabaseTask):
     """
-    Merge multiple libraries into a single BAM file
+    Merge multiple libraries into a single BAM file.
 
     :type species: str
     :type sample: str

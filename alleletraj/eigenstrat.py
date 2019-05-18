@@ -12,7 +12,7 @@ from alleletraj.plink import PlinkMergeBeds
 
 class ConvertfBedToEigenstrat(utils.PipelineTask):
     """
-    Convert a BED file into Eigenstrat format, for use by admixtools
+    Convert a BED file into Eigenstrat format, for use by admixtools.
 
     :type species: str
     :type groupby: str

@@ -12,7 +12,7 @@ from alleletraj.snpchip.load import SNPChipLoadPipeline
 
 class LinkSNPChipVariants(utils.MySQLTask):
     """
-    Link modern SNPs to their SNPchip variants
+    Link modern SNPs to their SNPchip variants.
 
     :type species: str
     :type chrom: str

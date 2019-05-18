@@ -21,7 +21,7 @@ MAX_INTERVAL_SIZE = int(1e6)
 
 def run_cmd(cmd, shell=False, stdout=None, stderr=None, verbose=True):
     """
-    Executes the given command in a system subprocess
+    Executes the given command in a system subprocess.
 
     :param cmd: The system command to run (list|string)
     :param shell: Use the native shell
@@ -60,7 +60,7 @@ def run_cmd(cmd, shell=False, stdout=None, stderr=None, verbose=True):
 
 def merge_intervals(ranges, capped=True):
     """
-    Merge overlapping intervals, so we only check each site once
+    Merge overlapping intervals, so we only check each site once.
     """
 
     try:
@@ -114,14 +114,14 @@ def dump(obj):
 
 def curl_download(url, filename):
     """
-    Downloads a remote url to a local file path using cURL
+    Downloads a remote url to a local file path using cURL.
     """
     run_cmd(['curl', '-s', '--output', filename, url])
 
 
 def get_chrom_sizes(fai_file, exclude_scaffolds=True):
     """
-    Get the names and sizes of all the chromosomes in a reference by iterating over the index
+    Get the names and sizes of all the chromosomes in a reference by iterating over the index.
     """
     chroms = {}
 
@@ -146,13 +146,13 @@ def get_chrom_sizes(fai_file, exclude_scaffolds=True):
 
 class PipelineTask(luigi.Task):
     """
-    Pipeline task that implements several dynamic attributes
+    Pipeline task that implements several dynamic attributes.
     """
 
     @property
     def resources(self):
         """
-        Dynamically set task resource usage
+        Dynamically set task resource usage.
         """
         resources = {'cpu-cores': 1}
 
@@ -168,7 +168,7 @@ class PipelineTask(luigi.Task):
     @property
     def priority(self):
         """
-        Dynamically set task priority
+        Dynamically set task priority.
         """
 
         # deprioritise large values of K, m or n
@@ -181,16 +181,9 @@ class PipelineTask(luigi.Task):
         return 1000 - offset if offset else 0
 
     @property
-    def classname(self):
-        """
-        The name of the current class
-        """
-        return type(self).__name__
-
-    @property
     def basename(self):
         """
-        Collapse all the param values into a hyphen delimited list
+        Collapse all the param values into a hyphen delimited list.
         """
         params = []
 
@@ -213,41 +206,41 @@ class PipelineTask(luigi.Task):
     @property
     def binomial(self):
         """
-        Scientific binomial name of the species
+        Scientific binomial name of the species.
         """
         return BINOMIAL_NAME[self.species]
 
     @property
     def assembly(self):
         """
-        Identifier of the reference assembly for the species
+        Identifier of the reference assembly for the species.
         """
         return REF_ASSEMBLY[self.species]
 
     @property
     def chromosomes(self):
         """
-        List of chromosome names (e.g. 1, 2, ..., X, Y, MT)
+        List of chromosome names (e.g. 1, 2, ..., X, Y, MT).
         """
         return CHROMOSOMES[self.assembly]
 
     @property
     def autosomes(self):
         """
-        List of autosomal chromosome names (e.g. 1, 2, ..., 29)
+        List of autosomal chromosome names (e.g. 1, 2, ..., 29).
         """
         return [chrom for chrom in self.chromosomes if chrom.isdigit()]
 
     @property
     def java_mem(self):
         """
-        Memory to allocate to java processes
+        Memory to allocate to java processes.
         """
         return "-Xmx{}G".format(self.resources['ram-gb'])
 
     def _all_params(self):
         """
-        Get all the params as a (name, value) tuple
+        Get all the params as a (name, value) tuple.
         """
         return [(name, getattr(self, name)) for name in self.get_param_names()]
 
@@ -276,7 +269,7 @@ class DatabaseTask(PipelineTask):
     @property
     def outgroup(self):
         """
-        Name of the outgroup sample
+        Name of the outgroup sample.
         """
         if self._outgroup is None:
             self._outgroup = self.dbc.get_record('samples', {'population': OUTGROUP_POP})
@@ -286,7 +279,7 @@ class DatabaseTask(PipelineTask):
     @property
     def sample_data(self):
         """
-        The sample record
+        The sample record.
         """
         if self._sample is None:
             self._sample = self.dbc.get_record('samples', {'name': self.sample})
@@ -296,7 +289,7 @@ class DatabaseTask(PipelineTask):
     @property
     def accession_data(self):
         """
-        The accession record
+        The accession record.
         """
         if self._accession is None:
             self._accession = self.dbc.get_record('sample_runs', {'accession': self.accession})
@@ -305,7 +298,7 @@ class DatabaseTask(PipelineTask):
 
     def list_samples(self, ancient=None, modern=None, outgroup=False):
         """
-        List all the samples.
+        List of all the population and sample tuples.
 
         :return: {(pop, sample): record, ...}
         """
@@ -320,7 +313,7 @@ class DatabaseTask(PipelineTask):
 
     def list_populations(self, ancient=None, modern=None, outgroup=False):
         """
-        List all the populations, and their samples.
+        Nested list of all the populations and their samples.
 
         :return: {pop: {sample: record, ...}, ...}
         """
@@ -336,7 +329,7 @@ class DatabaseTask(PipelineTask):
 
     def list_accessions(self):
         """
-        List all the accession codes for the sample.
+        List of all the accession codes for the current sample.
 
         :return: [accession, ...]
         """
@@ -370,7 +363,7 @@ class MySQLTask(DatabaseTask):
         return self._dbc
 
     def output(self):
-        return luigi.LocalTarget('data/db/{}/{}-{}.log'.format(__name__, self.classname, self.basename))
+        return luigi.LocalTarget('data/db/{}/{}-{}.log'.format(self.task_module, type(self).__name__, self.basename))
 
     def queries(self):
         """
@@ -393,13 +386,13 @@ class MySQLTask(DatabaseTask):
 
 class PipelineExternalTask(luigi.ExternalTask, PipelineTask):
     """
-    Let ExternalTasks access dynamic properties of the PipelineTask
+    Let luigi.ExternalTasks share the properties of the PipelineTask.
     """
     pass
 
 
 class PipelineWrapperTask(luigi.WrapperTask, DatabaseTask):
     """
-    Let WrapperTasks access dynamic properties of the PipelineTask
+    Let luigi.WrapperTasks share the properties of the DatabaseTask.
     """
     pass

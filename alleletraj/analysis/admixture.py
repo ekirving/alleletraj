@@ -117,7 +117,7 @@ class AdmixtureSortK(utils.PipelineTask):
 
 class AdmixturePlotK(utils.PipelineTask):
     """
-    Use ggplot to plot the admixture Q stats
+    Use ggplot to plot the admixture Q stats.
 
     :type species: str
     :type maxk: int
@@ -179,7 +179,7 @@ class AdmixturePlotK(utils.PipelineTask):
 
 class AdmixtureCV(utils.PipelineTask):
     """
-    Run admixture for the given population, determine the optimal K value, and plot the graphs
+    Run admixture for the given population, determine the optimal K value, and plot the graphs.
 
     :type species: str
     :type maxk: int

@@ -108,7 +108,7 @@ class BCFToolsSamplesFile(utils.DatabaseTask):
 
 class BCFToolsCall(utils.DatabaseTask):
     """
-    Make genotype calls using the bcftools mpileup workflow
+    Make genotype calls using the bcftools mpileup workflow.
 
     :type species: str
     :type chrom: str

@@ -14,7 +14,7 @@ SNPS_PER_QTL = 3
 
 class CountSNPCoverage(utils.MySQLTask):
     """
-    Count the read coverage for each SNP
+    Count the read coverage for each SNP.
 
     :type species: str
     :type chrom: str
@@ -64,7 +64,7 @@ class CountSNPCoverage(utils.MySQLTask):
 
 class FindBestSNPs(utils.MySQLTask):
     """
-    Choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
+    Choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak).
 
     :type species: str
     :type chrom: str
@@ -115,7 +115,7 @@ class FindBestSNPs(utils.MySQLTask):
 
 class CalculateSummaryStats(utils.MySQLTask):
     """
-    Calculate summary stats for each QTL
+    Calculate summary stats for each QTL.
 
     :type species: str
     :type chrom: str

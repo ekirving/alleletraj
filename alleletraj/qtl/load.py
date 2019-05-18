@@ -384,7 +384,7 @@ class PopulatePigMummyLoci(utils.MySQLTask):
 
 class PopulateTraitLoci(utils.PipelineWrapperTask):
     """
-    Wrapper task to populate all the QTLs and other trait loci of interest
+    Wrapper task to populate all the QTLs and other trait loci of interest.
 
     :type species: str
     """
@@ -407,7 +407,7 @@ class PopulateTraitLoci(utils.PipelineWrapperTask):
 
 class PopulateNeutralLoci(utils.MySQLTask):
     """
-    Populate dummy QTLs for all the 'neutral' loci (i.e. regions outside of all QTLs and gene regions +/- a buffer)
+    Populate dummy QTLs for all the 'neutral' loci (i.e. regions outside of all QTLs and gene regions +/- a buffer).
 
     :type species: str
     """
@@ -554,7 +554,7 @@ class PopulateQTLSNPs(utils.MySQLTask):
 
 class MarkNeutralSNPs(utils.MySQLTask):
     """
-    Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
+    Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions).
 
     :type species: str
     :type chrom: str

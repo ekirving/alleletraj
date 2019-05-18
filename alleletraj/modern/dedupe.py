@@ -12,7 +12,7 @@ from alleletraj.samtools import SAMToolsMerge
 
 class PicardMarkDuplicates(utils.DatabaseTask):
     """
-    Remove PCR duplicates, so we don't overestimate coverage
+    Remove PCR duplicates, so we don't overestimate coverage.
 
     MarkDuplicates groups duplicate reads by their 5' alignment and keeps the read with the highest total base qaulity.
 

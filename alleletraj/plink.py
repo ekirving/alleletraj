@@ -47,7 +47,7 @@ def plink_sex_code(sex):
 
 class PlinkTask(utils.PipelineTask):
     """
-    Luigi class for running plink tasks
+    Luigi class for running plink tasks.
 
     see https://www.cog-genomics.org/plink/1.9/index
     """
@@ -67,7 +67,7 @@ class PlinkTask(utils.PipelineTask):
 
 class PlinkVCFtoBED(PlinkTask, utils.DatabaseTask):
     """
-    Convert a VCF to binary PLINK binary format (i.e. bed, bim, fam)
+    Convert a VCF to binary PLINK binary format (i.e. bed, bim, fam).
 
     :type species: str
     """
@@ -132,7 +132,7 @@ class PlinkVCFtoBED(PlinkTask, utils.DatabaseTask):
 
 class HaploToPlink(PlinkTask, utils.DatabaseTask):
     """
-    Convert an angsd haplo.gz file to PLINK transposed text format (tped)
+    Convert an angsd haplo.gz file to PLINK transposed text format (tped).
 
     :type species: str
     """
@@ -203,7 +203,7 @@ class PlinkTpedToBed(PlinkTask):
 
 class PlinkMergeBeds(PlinkTask):
     """
-    Merge all the ancient samples into into the modern dataset
+    Merge all the ancient samples into into the modern dataset.
 
     :type species: str
     """
@@ -311,7 +311,7 @@ class PlinkIndepPairwise(PlinkTask):
 
 class PlinkPruneBed(PlinkTask):
     """
-    Prune the merged group BED file using the prune.in list from PlinkIndepPairwise()
+    Prune the merged group BED file using the prune.in list from PlinkIndepPairwise.
 
     :type species: str
     """
@@ -341,7 +341,7 @@ class PlinkPruneBed(PlinkTask):
 
 class PlinkExtractPop(PlinkTask):
     """
-    Extract a single population from a larger BED file
+    Extract a specific population from a larger BED file.
 
     :type species: str
     :type population: str
@@ -412,7 +412,7 @@ class PlinkHighGeno(PlinkTask):
 
 class PlinkDistMatrix(PlinkTask):
     """
-    Compute a distance matrix using IBS
+    Compute a distance matrix using IBS.
 
     :type species: str
     """

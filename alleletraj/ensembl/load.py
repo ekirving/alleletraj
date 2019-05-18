@@ -163,62 +163,54 @@ class LoadEnsemblVariants(utils.DatabaseTask):
     """
     species = luigi.Parameter()
 
+    db_lock_tables = ['ensembl_variants']
+
     def requires(self):
-        yield CreateDatabase(self.species)
         yield DownloadEnsemblData(self.species, 'gvf')
+        yield CreateDatabase(self.species)
 
     def output(self):
         return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
 
     def run(self):
         # unpack the inputs
-        _, gvf_file = self.input()
+        gvf_file, _ = self.input()
 
-        # the column headers for batch inserting into the db
-        fields = ('dbxref', 'rsnumber', 'type', 'chrom', 'start', 'end', 'ref', 'alt')
+        start_time = time()
 
-        # open the GVF file
-        with gzip.open(gvf_file.path, 'r') as fin:
+        # make a temp file to buffer the input data
+        tmp_file = luigi.LocalTarget(is_tmp=True)
 
-            num_recs = 0
-
-            # buffer the records for bulk insert
-            records = []
+        with gzip.open(gvf_file.path, 'r') as fin, tmp_file.open('w') as fout:
 
             for line in fin:
-                # strip flanking whitespace
-                line = line.strip()
+                if line.startswith('#'):
+                    # skip comments
+                    continue
 
-                # skip comments
-                if not line.startswith('#'):
-                    num_recs += 1
+                # unpack the GFF columns
+                chrom, source, snptype, start, end, _, _, _, attributes = line.strip().split('\t')
 
-                    # grab the GFF columns
-                    chrom, source, snptype, start, end, _, _, _, attributes = line.split('\t')
+                # split the 'key1=value1;key2=value2;' attribute pairs
+                atts = dict([pair.strip().split('=') for pair in attributes.split(';') if pair != ''])
 
-                    # unpack the 'key1=value1;key2=value2;' attribute pairs
-                    atts = dict([pair.strip().split('=') for pair in attributes.split(';') if pair != ''])
+                # split the 'key=value1:value2' pair
+                dbxref, rsnumber = atts['Dbxref'].split(':')
 
-                    # unpack dbxref
-                    dbxref, rsnumber = atts['Dbxref'].split(':')
+                record = [dbxref, rsnumber, snptype, chrom, start, end, atts['Reference_seq'], atts['Variant_seq']]
 
-                    # setup the record to insert, in this order
-                    variant = (dbxref, rsnumber, snptype, chrom, start, end, atts['Reference_seq'], atts['Variant_seq'])
+                # save to temp file
+                fout.write('\t'.join(record) + '\n')
 
-                    # add to the buffer
-                    records.append(variant)
-
-                    # bulk insert in chunks
-                    if num_recs % self.dbc.max_insert_size == 0:
-                        self.dbc.save_records('ensembl_variants', fields, records)
-                        records = []
-
-            # insert any remaining records
-            if records:
-                self.dbc.save_records('ensembl_variants', fields, records)
+        # load the temp file
+        self.dbc.execute_sql("""
+            LOAD DATA
+         LOCAL INFILE '{tmp}'
+           INTO TABLE ensembl_variants (dbxref, rsnumber, type, chrom, start, end, ref, alt)
+                  """.format(tmp=tmp_file.path))
 
         with self.output().open('w') as fout:
-            fout.write('Inserted {:,} Ensembl variant records'.format(num_recs))
+            fout.write('Execution took {}'.format(timedelta(seconds=time() - start_time)))
 
 
 class FlagSNPsNearIndels(utils.DatabaseTask):

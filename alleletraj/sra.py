@@ -26,6 +26,9 @@ class SraToolsFasterqDump(utils.PipelineTask):
 
     resources = {'cpu-cores': CPU_CORES_LOW}
 
+    # do not retry after failure, as this just chews CPU cycles
+    retry_count = 0
+
     def output(self):
         if self.paired:
             return [luigi.LocalTarget('data/fastq/{}_{}.fastq.gz'.format(self.accession, pair)) for pair in [1, 2]]

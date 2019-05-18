@@ -60,7 +60,7 @@ class ValidateBamFile(utils.DatabaseTask):
     retry_count = 0
 
     def requires(self):
-        return ExternalSampleBAM(self.sample_data.get('path'))
+        return ExternalSampleBAM(self.sample_data['path'])
 
     def output(self):
         # included the external bam and bai files in the output
@@ -100,7 +100,7 @@ class AccessionBAM(utils.DatabaseTask):
     accession = luigi.Parameter()
 
     def requires(self):
-        if self.sample_data.get('ancient'):
+        if self.sample_data['ancient']:
             return MapDamageRescale(self.species, self.sample, self.accession)
         else:
             return GATKIndelRealigner(self.species, self.sample, self.accession)
@@ -174,22 +174,6 @@ class SampleBAM(utils.DatabaseTask):
     def output(self):
         # only pass on the bam and bai files (i.e. trim off any .log and .err files from ValidateBamFile)
         return self.input()[:2]
-
-
-class ValidateModernBAMs(utils.PipelineWrapperTask):
-    """
-    Wrapper task to validate all the external BAM files.
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    def requires(self):
-        samples = self.list_samples(modern=True, outgroup=True)
-
-        for pop, sample in samples:
-            if samples[(pop, sample)].get('path'):
-                yield ValidateBamFile(self.species, pop, sample)
 
 
 if __name__ == '__main__':

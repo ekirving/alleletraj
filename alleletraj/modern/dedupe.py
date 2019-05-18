@@ -53,5 +53,6 @@ class PicardMarkDuplicates(utils.DatabaseTask):
 
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])
 
+
 if __name__ == '__main__':
     luigi.run()

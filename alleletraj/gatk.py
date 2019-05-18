@@ -29,7 +29,7 @@ class DeduplicatedBAM(utils.DatabaseTask):
     accession = luigi.Parameter()
 
     def requires(self):
-        if self.sample_data.get('ancient'):
+        if self.sample_data['ancient']:
             # use the aDNA pipeline
             return FilterUniqueSAMCons(self.species, self.sample, self.accession)
         else:

@@ -50,7 +50,7 @@ class DownloadAxiomEquineHD(utils.PipelineTask):
             utils.curl_download(self.url, tmp_path)
 
 
-class LoadSNPChipVariants(utils.DatabaseTask):
+class LoadSNPChipVariants(utils.MySQLTask):
     """
     Load the SNP chip variants from SNPchimp
 
@@ -66,17 +66,12 @@ class LoadSNPChipVariants(utils.DatabaseTask):
         yield ExternalSNPchimp(self.species)
         yield CreateDatabase(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        # get the input file
+    def queries(self):
         gzip_file, _ = self.input()
 
-        # unzip the archive into a named pipe
+        # unzip the archive into a temp file
         tmp_file = luigi.LocalTarget(is_tmp=True)
-        utils.run_cmd(['gzip --stdout -d  {gz} > {tmp}'.format(gz=gzip_file.path, tmp=tmp_file.path)], shell=True,
-                      background=True)
+        utils.run_cmd(['gunzip --stdout {gz} > {tmp}'.format(gz=gzip_file.path, tmp=tmp_file.path)], shell=True)
 
         # load the data into the db
         self.dbc.execute_sql("""
@@ -92,11 +87,8 @@ class LoadSNPChipVariants(utils.DatabaseTask):
                SET rsnumber = NULL
              WHERE rsnumber = 'NULL'""")
 
-        with self.output().open('w') as fout:
-            fout.write('Loaded SNPchimp records')
 
-
-class LoadAxiomEquineHD(utils.DatabaseTask):
+class LoadAxiomEquineHD(utils.MySQLTask):
     """
     SNPchimp doesn't have the details for the Affymetrix Axiom EquineHD array, so we have to load the data separately.
 
@@ -111,12 +103,8 @@ class LoadAxiomEquineHD(utils.DatabaseTask):
         yield LoadSNPChipVariants(self.species)
         yield LoadEnsemblVariants(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlWithoutWhere
-    def run(self):
-        # get the input file
+    def queries(self):
         axiom_file, _, _ = self.input()
 
         # just get the relevant columns
@@ -125,7 +113,7 @@ class LoadAxiomEquineHD(utils.DatabaseTask):
         # unzip the dump into a temp file
         tmp_file = luigi.LocalTarget(is_tmp=True)
         utils.run_cmd(["unzip -p {axiom} | grep -vP '^#' | {awk} > {tmp}"
-                      .format(axiom=axiom_file.path, awk=awk, tmp=tmp_file.path)], shell=True, background=True)
+                      .format(axiom=axiom_file.path, awk=awk, tmp=tmp_file.path)], shell=True)
 
         # load the data into the db
         self.dbc.execute_sql("""
@@ -133,7 +121,8 @@ class LoadAxiomEquineHD(utils.DatabaseTask):
              LOCAL INFILE '{tmp}'
                INTO TABLE snpchip_axiom
                    FIELDS 
-              ENCLOSED BY '"' (snp_name, chrom, site)""".format(tmp=tmp_file.path))
+              ENCLOSED BY '"' (snp_name, chrom, site)
+                      """.format(tmp=tmp_file.path))
 
         # fix the missing rsnumbers
         self.dbc.execute_sql("""
@@ -145,9 +134,6 @@ class LoadAxiomEquineHD(utils.DatabaseTask):
                AND sa.site = ev.start
                SET sc.rsnumber = ev.rsnumber
              WHERE ev.type = 'SNV'""")
-
-        with self.output().open('w') as fout:
-            fout.write('Loaded Axiom EquineHD records')
 
 
 class SNPChipLoadPipeline(utils.PipelineWrapperTask):

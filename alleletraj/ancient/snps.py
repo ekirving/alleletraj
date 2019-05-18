@@ -78,7 +78,7 @@ class MergeAllLoci(utils.DatabaseTask):
             fout.write(bed)
 
 
-class LoadAncientSNPs(utils.DatabaseTask):
+class LoadAncientSNPs(utils.MySQLTask):
     """
     Load all the ancient data for SNPs that fall within the loci of interest.
 
@@ -98,16 +98,12 @@ class LoadAncientSNPs(utils.DatabaseTask):
         for pop, sample in self.list_samples(ancient=True):
             yield SampleBAM(self.species, pop, sample)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
+    def queries(self):
         # unpack the params
         (ref_file, _), pld_file, bed_file = self.input()[0:3]
         bam_files = [bam_file for bam_file, _ in self.input()[5:]]
-        log_file = self.output()
 
-        log = log_file.open('w')
+        log = self.output().open('w')
         fin = bed_file.open('r')
 
         # iterate over the loci in the BED file
@@ -127,7 +123,7 @@ class LoadAncientSNPs(utils.DatabaseTask):
                    AND msd.daf >= {daf}
                    """.format(chrom=chrom, start=start, end=end, daf=MIN_DAF), key='site')
 
-            log.write("INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)))
+            log.write("INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)) + '\n')
 
             # not all SNPs have a dbsnp entry, so we need to scan the reference to find which alleles are REF/ALT
             # because bcftools needs this info to constrain the diploid genotype calls
@@ -140,7 +136,7 @@ class LoadAncientSNPs(utils.DatabaseTask):
 
                         if ref_allele not in snp_alleles:
                             log.write("WARNING: chr{}:{} REF allele {} not found in SNP alleles {}"
-                                      .format(chrom, site, ref_allele, snp_alleles))
+                                      .format(chrom, site, ref_allele, snp_alleles) + '\n')
 
                             # remove this site
                             snps.pop(site)
@@ -162,7 +158,7 @@ class LoadAncientSNPs(utils.DatabaseTask):
             # check every sample for reads in this locus
             for (pop, sample), bam_file in itertools.izip(samples, bam_files):
 
-                log.write("INFO: Scanning locus chr{}:{}-{} in sample {}".format(chrom, start, end, sample))
+                log.write("INFO: Scanning locus chr{}:{}-{} in sample {}".format(chrom, start, end, sample) + '\n')
 
                 sample_id = samples[(pop, sample)]['id']
 
@@ -219,7 +215,7 @@ class LoadAncientSNPs(utils.DatabaseTask):
 
                 if diploid:
                     log.write("INFO: Calling diploid bases in {:,} sites for sample {}"
-                              .format(len(diploid), sample_id))
+                              .format(len(diploid), sample_id) + '\n')
 
                     suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
 
@@ -329,7 +325,7 @@ class LoadAncientSNPs(utils.DatabaseTask):
                 if randcall:
                     self.dbc.save_records('sample_reads', fields, randcall)
 
-            log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end))
+            log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end) + '\n')
 
         log.close()
         fin.close()

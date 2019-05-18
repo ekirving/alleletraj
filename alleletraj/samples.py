@@ -35,7 +35,7 @@ class ExternalCSV(utils.PipelineExternalTask):
         return luigi.LocalTarget('data/{}_samples_{}.csv'.format(period, self.species))
 
 
-class LoadSamples(utils.DatabaseTask):
+class LoadSamples(utils.MySQLTask):
     """
     Load all the samples into the database.
 
@@ -49,10 +49,7 @@ class LoadSamples(utils.DatabaseTask):
         yield CreateDatabase(self.species)
         yield ExternalCSV(self.species, self.ancient)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
+    def queries(self):
         _, csv_file = self.input()
 
         with csv_file.open('r') as fin:
@@ -91,11 +88,8 @@ class LoadSamples(utils.DatabaseTask):
                     run = {'sample_id': sample_id, 'accession': accession, 'paired': paired}
                     self.dbc.save_record('sample_runs', run)
 
-        with self.output().open('w') as fout:
-            fout.write('Done!')
 
-
-class CreateSampleBins(utils.DatabaseTask):
+class CreateSampleBins(utils.MySQLTask):
     """
     Create the sample bins.
 
@@ -106,10 +100,7 @@ class CreateSampleBins(utils.DatabaseTask):
     def requires(self):
         return LoadSamples(self.species, ancient=True)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
+    def queries(self):
         self.dbc.execute_sql("TRUNCATE TABLE sample_bins")
 
         # get the maximum date
@@ -134,11 +125,8 @@ class CreateSampleBins(utils.DatabaseTask):
 
             self.dbc.save_record('sample_bins', sample_bin)
 
-        with self.output().open('w') as fout:
-            fout.write('Done!')
 
-
-class BinSamples(utils.DatabaseTask):
+class BinSamples(utils.MySQLTask):
     """
     Assign samples to temporal bins.
 
@@ -151,11 +139,8 @@ class BinSamples(utils.DatabaseTask):
     def requires(self):
         return CreateSampleBins(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlWithoutWhere
-    def run(self):
+    def queries(self):
         # reset sample bins (just in case)
         self.dbc.execute_sql("""
             UPDATE samples s
@@ -184,9 +169,6 @@ class BinSamples(utils.DatabaseTask):
                    ) AS num
               ON num.id = sb.id
             SET sb.num_samples = num.cnt""")
-
-        with self.output().open('w') as fout:
-            fout.write('Done!')
 
 
 class LoadAllSamples(utils.PipelineWrapperTask):

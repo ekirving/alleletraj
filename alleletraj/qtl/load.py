@@ -76,7 +76,7 @@ class ExternalAnimalQTLdb(utils.PipelineExternalTask):
         return luigi.LocalTarget('data/qtldb/{}_cM_{}.txt'.format(self.species, QTLDB_RELEASE))
 
 
-class PopulateQTLs(utils.DatabaseTask):
+class PopulateQTLs(utils.MySQLTask):
     """
     Fetch all the QTLs from the QTLdb API and populate the local database.
 
@@ -85,15 +85,11 @@ class PopulateQTLs(utils.DatabaseTask):
     species = luigi.Parameter()
 
     def requires(self):
-        yield CreateDatabase(self.species)
         yield ExternalAnimalQTLdb(self.species)
+        yield CreateDatabase(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        # get the file containing all the QTL IDs
-        _, qtl_file = self.input()
+    def queries(self):
+        qtl_file, _ = self.input()
 
         api = QTLdbAPI()
 
@@ -103,109 +99,96 @@ class PopulateQTLs(utils.DatabaseTask):
         # convert all the IDs to int
         qtl_ids = [int(qtl_id) for qtl_id in data['QTL_ID'] if qtl_id.isdigit()]
 
-        with self.output().open('w') as fout:
-            fout.write("INFO: Processing {:,} QTLs from '{}'\n".format(len(qtl_ids), qtl_file.path))
+        # get all the QTLs already in the DB
+        qtls = self.dbc.get_records_sql("""
+            SELECT qtldb_id 
+              FROM qtls 
+             WHERE qtldb_id IS NOT NULL""", key='qtldb_id')
 
-            # get all the QTLs already in the DB
-            qtls = self.dbc.get_records_sql("""
-                SELECT qtldb_id 
-                  FROM qtls 
-                 WHERE qtldb_id IS NOT NULL""", key='qtldb_id')
+        # find the new IDs in the list
+        new_ids = list(set(qtl_ids) - set(qtls.keys()))
 
-            # find the new IDs in the list
-            new_ids = list(set(qtl_ids) - set(qtls.keys()))
+        # fields to rename
+        key_map = {
+            'id': 'qtldb_id',
+            'pubmedID': 'pubmed_id',
+            'geneId': 'gene_id',
+            'chromosome': 'chrom'
+        }
 
-            fout.write('INFO: Found {:,} new QTLs to add\n'.format(len(new_ids)))
+        # get all the new records
+        for record in api.get_qtls(self.species, new_ids):
 
-            # rename these fields
-            key_map = {
-                'id': 'qtldb_id',
-                'pubmedID': 'pubmed_id',
-                'geneId': 'gene_id',
-                'chromosome': 'chrom'
-            }
+            # extract the nested trait record
+            trait = record.pop('trait')
+            trait['name'] = record.pop('name')
 
-            added = 0
+            # set the tait foreign key on the main record
+            record['trait_id'] = trait['traitID']
 
-            # get all the new records
-            for record in api.get_qtls(self.species, new_ids):
+            # does the trait exist
+            if not self.dbc.exists_record('traits', {'id': record['trait_id']}):
+                # setup the trait record
+                trait = dict((field.replace('trait', '').lower(), trait[field]) for field in trait)
+                # TODO this is broken!!
+                trait['type'] = ''  # api.get_trait_type(self.species, trait['id'], trait['name'])
 
-                # extract the nested trait record
-                trait = record.pop('trait')
-                trait['name'] = record.pop('name')
+                self.dbc.save_record('traits', trait, insert=True)
 
-                # set the tait foreign key on the main record
-                record['trait_id'] = trait['traitID']
+            # does the publication exist
+            if not self.dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
+                # setup the pubmed record
+                pubmed = {}  # api.get_publication(self.species, record['pubmedID'])  # TODO this is broken!!
 
-                # does the trait exist
-                if not self.dbc.exists_record('traits', {'id': record['trait_id']}):
-                    # setup the trait record
-                    trait = dict((field.replace('trait', '').lower(), trait[field]) for field in trait)
-                    # TODO this is broken!!
-                    trait['type'] = ''  # api.get_trait_type(self.species, trait['id'], trait['name'])
+                if pubmed:
+                    pubmed['id'] = pubmed.pop('pubmed_ID')
+                    pubmed['year'] = re.search(r'\(([0-9]{4})\)', pubmed['authors']).group(1)
+                    pubmed['journal'] = pubmed['journal']['#text'][:-5]
 
-                    self.dbc.save_record('traits', trait, insert=True)
+                    self.dbc.save_record('pubmeds', pubmed, insert=True)
+                else:
+                    # TODO some records have a bogus pubmed ID, but these appear to work on the website
+                    record['pubmedID'] = None
 
-                # does the publication exist
-                if not self.dbc.exists_record('pubmeds', {'id': record['pubmedID']}):
-                    # setup the pubmed record
-                    pubmed = {}  # api.get_publication(self.species, record['pubmedID'])  # TODO this is broken!!
+            # flatten the other nested records
+            for field in record:
 
-                    if pubmed:
-                        pubmed['id'] = pubmed.pop('pubmed_ID')
-                        pubmed['year'] = re.search(r'\(([0-9]{4})\)', pubmed['authors']).group(1)
-                        pubmed['journal'] = pubmed['journal']['#text'][:-5]
+                if type(record[field]) is OrderedDict:
+                    nested = record.pop(field)
 
-                        self.dbc.save_record('pubmeds', pubmed, insert=True)
-                    else:
-                        # TODO some records have a bogus pubmed ID, but these appear to work on the website
-                        record['pubmedID'] = None
+                    for name in nested:
+                        # for doubly nested fields, use the parent name as a prefix
+                        if type(nested[name]) is OrderedDict:
+                            for key in nested[name]:
+                                record[name + '_' + key] = nested[name][key]
+                        elif field in ['gene']:
+                            record[field + name.title()] = nested[name]
+                        else:
+                            record[name] = nested[name]
 
-                # flatten the other nested records
-                for field in record:
+            # drop any lingering malformed fields
+            record.pop('source', None)
+            record.pop('breeds', None)
+            record.pop('effects', None)  # TODO check this out
+            record.pop('statTests', None)
 
-                    if type(record[field]) is OrderedDict:
-                        nested = record.pop(field)
+            # handle malformed data
+            for field in ['linkageLoc_end', 'linkageLoc_peak', 'linkageLoc_start']:
+                if field in record and record[field] is not None:
+                    record[field] = re.sub('[^0-9.]', '', record[field])
 
-                        for name in nested:
-                            # for doubly nested fields, use the parent name as a prefix
-                            if type(nested[name]) is OrderedDict:
-                                for key in nested[name]:
-                                    record[name + '_' + key] = nested[name][key]
-                            elif field in ['gene']:
-                                record[field + name.title()] = nested[name]
-                            else:
-                                record[name] = nested[name]
+            # rename some fields
+            for key in record:
+                if key in key_map:
+                    record[key_map[key]] = record.pop(key)
 
-                # drop any lingering malformed fields
-                record.pop('source', None)
-                record.pop('breeds', None)
-                record.pop('effects', None)  # TODO check this out
-                record.pop('statTests', None)
+            # filter out any empty values
+            qtl = OrderedDict((key, record[key]) for key in record if record[key] != '-')
 
-                # handle malformed data
-                for field in ['linkageLoc_end', 'linkageLoc_peak', 'linkageLoc_start']:
-                    if field in record and record[field] is not None:
-                        record[field] = re.sub('[^0-9.]', '', record[field])
-
-                # rename some fields
-                for key in record:
-                    if key in key_map:
-                        record[key_map[key]] = record.pop(key)
-
-                # filter out any empty values
-                qtl = OrderedDict((key, record[key]) for key in record if record[key] != '-')
-
-                self.dbc.save_record('qtls', qtl, insert=True)
-
-                added += 1
-
-                fout.write('INFO: Added {:5d} new QTLs\n'.format(added))
-
-            fout.write('INFO: Finished adding {} new QTLs\n'.format(len(new_ids)))
+            self.dbc.save_record('qtls', qtl, insert=True)
 
 
-class SetQTLWindows(utils.DatabaseTask):
+class SetQTLWindows(utils.MySQLTask):
     """
     Calculate the QTL window sizes.
 
@@ -218,10 +201,7 @@ class SetQTLWindows(utils.DatabaseTask):
         yield PopulateQTLs(self.species)
         yield LoadEnsemblVariants(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
+    def queries(self):
         # unpack the inputs
         (_, fai_file), _, _ = self.input()
 
@@ -264,11 +244,8 @@ class SetQTLWindows(utils.DatabaseTask):
 
             self.dbc.save_record('qtls', qtl)
 
-        with self.output().open('w') as fout:
-            fout.write('INFO: Set window sizes for {:,} QTLs'.format(len(results)))
 
-
-class PopulateSweepLoci(utils.DatabaseTask):
+class PopulateSweepLoci(utils.MySQLTask):
     """
     Populate the db with any selective sweep regions.
 
@@ -279,16 +256,10 @@ class PopulateSweepLoci(utils.DatabaseTask):
     def requires(self):
         yield CreateDatabase(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
+    def queries(self):
         # get the files containing the sweep data
         loci_file = SWEEP_DATA[self.species]['loci']  # TODO make SWEEP_DATA into external dependencies
         snps_file = SWEEP_DATA[self.species]['snps']
-
-        num_loci = 0
-        num_snps = 0
 
         with open(loci_file, 'r') as loci_fin:
 
@@ -307,8 +278,6 @@ class PopulateSweepLoci(utils.DatabaseTask):
                 }
 
                 qtl_id = self.dbc.save_record('qtls', qtl)
-
-                num_loci += 1
 
                 # get the all the SNPs from this locus
                 snps = utils.run_cmd(["printf '{}' | bedtools intersect -a {} -b stdin"
@@ -331,13 +300,8 @@ class PopulateSweepLoci(utils.DatabaseTask):
 
                     self.dbc.save_record('sweep_snps', sweep_snp)
 
-                    num_snps += 1
 
-        with self.output().open('w') as fout:
-            fout.write('INFO: Loaded {} selective sweep loci (inc. {} SNPs)'.format(num_loci, num_snps))
-
-
-class PopulateMC1RLocus(utils.DatabaseTask):
+class PopulateMC1RLocus(utils.MySQLTask):
     """
     Populate a dummy QTL for the MC1R gene.
 
@@ -349,10 +313,7 @@ class PopulateMC1RLocus(utils.DatabaseTask):
     def requires(self):
         return LoadEnsemblGenes(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
+    def queries(self):
         # get the MC1R gene record
         mc1r = self.dbc.get_record('ensembl_genes', {'gene_name': MC1R_GENE})
 
@@ -367,11 +328,8 @@ class PopulateMC1RLocus(utils.DatabaseTask):
 
         self.dbc.save_record('qtls', qtl)
 
-        with self.output().open('w') as fout:
-            fout.write('INFO: Added the MC1R gene locus')
 
-
-class PopulatePigMummyLoci(utils.DatabaseTask):
+class PopulatePigMummyLoci(utils.MySQLTask):
     """
     Balancing selection on a recessive lethal deletion with pleiotropic effects on two neighboring genes in the porcine
     genome.
@@ -388,11 +346,8 @@ class PopulatePigMummyLoci(utils.DatabaseTask):
         yield ReferenceFASTA(self.species)
         yield LoadEnsemblVariants(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve
-    def run(self):
+    def queries(self):
         # unpack the inputs
         (_, fai_file), _ = self.input()
 
@@ -429,9 +384,6 @@ class PopulatePigMummyLoci(utils.DatabaseTask):
 
             self.dbc.save_record('qtls', qtl)
 
-        with self.output().open('w') as fout:
-            fout.write('INFO: Added {:,} pig mummy loci'.format(len(results)))
-
 
 class PopulateTraitLoci(utils.PipelineWrapperTask):
     """
@@ -456,7 +408,7 @@ class PopulateTraitLoci(utils.PipelineWrapperTask):
             yield PopulatePigMummyLoci(self.species)
 
 
-class PopulateNeutralLoci(utils.DatabaseTask):
+class PopulateNeutralLoci(utils.MySQLTask):
     """
     Populate dummy QTLs for all the 'neutral' loci (i.e. regions outside of all QTLs and gene regions +/- a buffer)
 
@@ -468,11 +420,8 @@ class PopulateNeutralLoci(utils.DatabaseTask):
         yield ReferenceFASTA(self.species)
         yield PopulateTraitLoci(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve
-    def run(self):
+    def queries(self):
         # unpack the inputs
         (_, fai_file), _ = self.input()
 
@@ -520,6 +469,7 @@ class PopulateNeutralLoci(utils.DatabaseTask):
         for result in results:
             intervals[result['chrom']].append((result['start'], result['end']))
 
+        # TODO replace with LocalTarget(is_tmp=True)
         suffix = 'luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
 
         all_regions = 'data/bed/{}-all_regions-{}.bed'.format(self.species, suffix)
@@ -566,9 +516,6 @@ class PopulateNeutralLoci(utils.DatabaseTask):
         for tmp in glob.glob("data/bed/*{}*".format(suffix)):
             os.remove(tmp)
 
-        with self.output().open('w') as fout:
-            fout.write('INFO: Added {:,} neutral loci'.format(num_loci))
-
 
 class PopulateAllLoci(utils.PipelineWrapperTask):
     """
@@ -584,7 +531,7 @@ class PopulateAllLoci(utils.PipelineWrapperTask):
         yield PopulateNeutralLoci(self.species)
 
 
-class PopulateQTLSNPs(utils.DatabaseTask):
+class PopulateQTLSNPs(utils.MySQLTask):
     """
     Now we have ascertained all the modern SNPs, let's find those that intersect with the QTLs.
 
@@ -597,13 +544,9 @@ class PopulateQTLSNPs(utils.DatabaseTask):
     def requires(self):
         yield PopulateAllLoci(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve
-    def run(self):
-        # insert linking records to make future queries much quicker
-        exec_time = self.dbc.execute_sql("""
+    def queries(self):
+        self.dbc.execute_sql("""
             INSERT INTO qtl_snps (qtl_id, modsnp_id)
                  SELECT DISTINCT q.id, ms.id
                    FROM qtls q
@@ -617,11 +560,8 @@ class PopulateQTLSNPs(utils.DatabaseTask):
                     AND msd.daf >= {daf}
                     """.format(chrom=self.chrom, daf=MIN_DAF))
 
-        with self.output().open('w') as fout:
-            fout.write('INFO: Execution took {}'.format(exec_time))
 
-
-class MarkNeutralSNPs(utils.DatabaseTask):
+class MarkNeutralSNPs(utils.MySQLTask):
     """
     Mark neutral SNPs (i.e. SNPs outside of all QTLs and gene regions)
 
@@ -636,11 +576,8 @@ class MarkNeutralSNPs(utils.DatabaseTask):
     def requires(self):
         return PopulateQTLSNPs(self.species, self.chrom)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        exec_time = self.dbc.execute_sql("""
+    def queries(self):
+        self.dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN qtl_snps qs
                 ON qs.modsnp_id = ms.id
@@ -651,9 +588,6 @@ class MarkNeutralSNPs(utils.DatabaseTask):
                AND q.associationType = 'Neutral'
                AND q.valid = 1
                """.format(chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('INFO: Execution took {}'.format(exec_time))
 
 
 class QTLPipeline(utils.PipelineWrapperTask):

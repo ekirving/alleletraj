@@ -16,7 +16,7 @@ from alleletraj.ancient.snps import LoadAncientSNPs
 SNPS_PER_QTL = 3
 
 
-class CountSNPCoverage(utils.DatabaseTask):
+class CountSNPCoverage(utils.MySQLTask):
     """
     Count the read coverage for each SNP
 
@@ -31,13 +31,8 @@ class CountSNPCoverage(utils.DatabaseTask):
     def requires(self):
         return LoadAncientSNPs(self.species, self.chrom)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlWithoutWhere
-    def run(self):
-        start = time()
-
+    def queries(self):
         # clear any existing values
         self.dbc.execute_sql("""
             UPDATE qtl_snps qs
@@ -70,11 +65,8 @@ class CountSNPCoverage(utils.DatabaseTask):
     
                SET qtl_snps.num_reads = num.num_reads""".format(chrom=self.chrom))
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
-
-class FindBestSNPs(utils.DatabaseTask):
+class FindBestSNPs(utils.MySQLTask):
     """
     Choose the best SNPs for each QTL (based on number of reads and closeness to the GWAS peak)
 
@@ -89,13 +81,8 @@ class FindBestSNPs(utils.DatabaseTask):
     def requires(self):
         return CountSNPCoverage(self.species, self.chrom)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve, SqlWithoutWhere
-    def run(self):
-        start = time()
-
+    def queries(self):
         # clear any existing values
         self.dbc.execute_sql("""
             UPDATE qtl_snps qs
@@ -129,11 +116,8 @@ class FindBestSNPs(utils.DatabaseTask):
     
                 SET qtl_snps.best = 1""".format(chrom=self.chrom, num_snps=SNPS_PER_QTL))
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
-
-class CalculateSummaryStats(utils.DatabaseTask):
+class CalculateSummaryStats(utils.MySQLTask):
     """
     Calculate summary stats for each QTL
 
@@ -148,17 +132,14 @@ class CalculateSummaryStats(utils.DatabaseTask):
     def requires(self):
         return FindBestSNPs(self.species, self.chrom)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
+    def queries(self):
         # remove any existing stats for this chromosome
         self.dbc.execute_sql("""
             DELETE 
               FROM qtl_stats qs
              WHERE qs.chrom = '{chrom}'""".format(chrom=self.chrom))
 
-        exec_time = self.dbc.execute_sql("""
+        self.dbc.execute_sql("""
             INSERT INTO qtl_stats (qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, 
                                    avg_samples, max_reads, avg_reads)
                  SELECT qtl_id, chrom, class, type, name, Pvalue, significance,
@@ -189,9 +170,6 @@ class CalculateSummaryStats(utils.DatabaseTask):
 
                          ) as snps
                GROUP BY snps.qtl_id""".format(chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
 
 
 class AnalyseQTLsPipeline(utils.PipelineWrapperTask):

@@ -10,7 +10,7 @@ from alleletraj.ensembl.load import LoadEnsemblGenes, LoadEnsemblVariants
 from alleletraj.modern.snps import ModernSNPsPipeline
 
 
-class LinkEnsemblGenes(utils.DatabaseTask):
+class LinkEnsemblGenes(utils.MySQLTask):
     """
     Link modern SNPs to their Ensembl genes
 
@@ -26,23 +26,18 @@ class LinkEnsemblGenes(utils.DatabaseTask):
         yield LoadEnsemblGenes(self.species)
         yield ModernSNPsPipeline(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        exec_time = self.dbc.execute_sql("""
+    def queries(self):
+        self.dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN ensembl_genes eg
                 ON eg.chrom = ms.chrom
                AND ms.site BETWEEN eg.start AND eg.end
                SET ms.gene_id = eg.id
-             WHERE ms.chrom = '{chrom}'""".format(chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
+             WHERE ms.chrom = '{chrom}'
+               """.format(chrom=self.chrom))
 
 
-class LinkEnsemblVariants(utils.DatabaseTask):
+class LinkEnsemblVariants(utils.MySQLTask):
     """
     Link modern SNPs to their Ensembl dbsnp variants
 
@@ -58,11 +53,8 @@ class LinkEnsemblVariants(utils.DatabaseTask):
         yield LoadEnsemblVariants(self.species)
         yield ModernSNPsPipeline(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        exec_time = self.dbc.execute_sql("""
+    def queries(self):
+        self.dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN ensembl_variants v
                 ON ms.chrom = v.chrom
@@ -72,10 +64,8 @@ class LinkEnsemblVariants(utils.DatabaseTask):
                AND v.type = 'SNV'
                AND CHAR_LENGTH(alt) = 1
                AND v.ref IN (ms.derived, ms.ancestral)
-               AND v.alt IN (ms.derived, ms.ancestral)""".format(chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
+               AND v.alt IN (ms.derived, ms.ancestral)
+               """.format(chrom=self.chrom))
 
 
 class EnsemblLinkPipeline(utils.PipelineWrapperTask):

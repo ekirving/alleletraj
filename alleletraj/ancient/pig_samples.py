@@ -160,7 +160,7 @@ def fetch_google_sheet(sheet_id, sheet_tabs, sheet_columns):
     return records
 
 
-class PopulatePigSamples(utils.DatabaseTask):
+class PopulatePigSamples(utils.MySQLTask):
     """
     Load all the ancient pig samples into the database.
 
@@ -171,12 +171,7 @@ class PopulatePigSamples(utils.DatabaseTask):
     def requires(self):
         return CreateDatabase(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        start = time()
-
+    def queries(self):
         # get the google sheet details
         sheet = GOOGLE_SHEET[self.species]
 
@@ -217,11 +212,8 @@ class PopulatePigSamples(utils.DatabaseTask):
                 if not self.dbc.exists_record('ancient_files', bam_file):
                     self.dbc.save_record('ancient_files', bam_file)
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
-
-class SyncRadiocarbonDates(utils.DatabaseTask):
+class SyncRadiocarbonDates(utils.MySQLTask):
     """
     Fetch all the radiocarbon dates
 
@@ -232,12 +224,7 @@ class SyncRadiocarbonDates(utils.DatabaseTask):
     def requires(self):
         return PopulatePigSamples(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        start = time()
-
+    def queries(self):
         # get the google sheet details
         sheet = RADIOCARBON_SHEET[self.species]
 
@@ -250,11 +237,8 @@ class SyncRadiocarbonDates(utils.DatabaseTask):
                 record['confident'] = 'Yes'
                 self.dbc.save_record('ancient_dates_c14', record)
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
-
-class ConfirmAgeMapping(utils.DatabaseTask):
+class ConfirmAgeMapping(utils.MySQLTask):
     """
     Make sure that all the free-text dates have proper numeric mappings
 
@@ -265,12 +249,7 @@ class ConfirmAgeMapping(utils.DatabaseTask):
     def requires(self):
         return PopulatePigSamples(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        start = time()
-
+    def queries(self):
         # get the google sheet details
         sheet = AGE_MAP[self.species]
 
@@ -284,23 +263,20 @@ class ConfirmAgeMapping(utils.DatabaseTask):
 
         # check if any samples have an age which is unmapped
         missing = self.dbc.get_records_sql("""
-            SELECT DISTINCT a.age
-              FROM ancient a
-         LEFT JOIN ancient_dates ad
-                ON a.age = ad.age
-             WHERE a.age IS NOT NULL
-               AND ad.id IS NULL
-          GROUP BY a.age""", key=None)
+            SELECT DISTINCT s.age
+              FROM samples s
+         LEFT JOIN sample_dates sd
+                ON s.age = sd.age
+             WHERE s.age IS NOT NULL
+               AND sd.id IS NULL
+          GROUP BY s.age""", key=None)
 
         if missing:
             ages = ', '.join(["'{}'".format(age['age']) for age in missing])
             raise Exception("ERROR: Not all sample ages have numeric mappings - {}".format(ages))
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
-
-class ConfirmCountryMapping(utils.DatabaseTask):
+class ConfirmCountryMapping(utils.MySQLTask):
     """
     Make sure that all the free-text countries have been properly mapped to Europe.
 
@@ -311,12 +287,7 @@ class ConfirmCountryMapping(utils.DatabaseTask):
     def requires(self):
         return PopulatePigSamples(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        start = time()
-
+    def queries(self):
         # make a list of known countries
         world = "','".join(EUROPE + NON_EUROPE)
 
@@ -327,18 +298,10 @@ class ConfirmCountryMapping(utils.DatabaseTask):
                """.format(world=world), key=None)
 
         if missing:
-            print("ERROR: Not all countries have been mapped!")
-
-            for country in missing:
-                print(country['country'])
-
-            quit()
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
+            raise RuntimeError('ERROR: Not all countries have been mapped! {}'.format(missing))
 
 
-class MarkValidPigs(utils.DatabaseTask):
+class MarkValidPigs(utils.MySQLTask):
     """
     Pig samples are valid if they are from Europe and have a BAM file or MC1R genotype.
 
@@ -353,24 +316,18 @@ class MarkValidPigs(utils.DatabaseTask):
         yield ConfirmAgeMapping(self.species)
         yield ConfirmCountryMapping(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
+    def queries(self):
         # make a list of permissible countries
         europe = "','".join(EUROPE)
 
-        exec_time = self.dbc.execute_sql("""
-            UPDATE ancient a
-         LEFT JOIN ancient_files af
-                ON af.ancient_id = a.id
-               SET a.valid = 1
-             WHERE a.country IN ('{europe}')
-               AND (af.id IS NOT NULL 
-                OR a.mc1r_snp IS NOT NULL) """.format(europe=europe))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
+        self.dbc.execute_sql("""
+            UPDATE samples s
+         LEFT JOIN sample_files sf
+                ON sf.sample_id = s.id
+               SET s.valid = 1
+             WHERE s.country IN ('{europe}')
+               AND (sf.id IS NOT NULL 
+                OR s.mc1r_snp IS NOT NULL) """.format(europe=europe))
 
 
 if __name__ == '__main__':

@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
-import csv
 import os
-import re
 import subprocess
 from collections import Iterable, OrderedDict, defaultdict
+from datetime import timedelta
+from time import time
 
 # third party modules
 import luigi
@@ -260,7 +260,7 @@ class PipelineTask(luigi.Task):
 
 class DatabaseTask(PipelineTask):
     """
-    Pipeline task with a db connection to retrieve sample metadata
+    Pipeline task with a database connection to retrieve sample metadata.
 
     :type species: str
     """
@@ -273,9 +273,9 @@ class DatabaseTask(PipelineTask):
     @property
     def dbc(self):
         """
-        Create a private connection to the db
+        Create a single use connection to the database.
 
-        Connection is not persistant becauase there can be many hundreds of tasks with open connections.
+        Connection is non-persistant becauase there can be thousands of tasks instantiated during scheduling.
         """
         return Database(self.species)
 
@@ -355,6 +355,46 @@ class DatabaseTask(PipelineTask):
                """.format(sample=self.sample), key=None)
 
         return [row['accession'] for row in accessions]
+
+
+class MySQLTask(DatabaseTask):
+    """
+    Pipeline task which only acts on the database.
+
+    Automatically handles completion tracking.
+    """
+    _dbc = None
+
+    @property
+    def dbc(self):
+        """
+        Create a persistent connection to the database.
+        """
+        if self._dbc is None:
+            self._dbc = Database(self.species)
+
+        return self._dbc
+
+    def output(self):
+        return luigi.LocalTarget('data/db/{}/{}-{}.log'.format(__name__, self.classname, self.basename))
+
+    def queries(self):
+        """
+        To be overridden in a subclass.
+        """
+        pass
+
+    def run(self):
+        """
+        Wrapper for :ref:`MySQLTask.run_sql` to handle completion tracking for SQL queries.
+        """
+        start = time()
+
+        # run all the sql queries
+        self.queries()
+
+        with self.output().open('wa') as fout:
+            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
 class PipelineExternalTask(luigi.ExternalTask, PipelineTask):

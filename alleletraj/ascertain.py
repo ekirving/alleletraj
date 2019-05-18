@@ -34,7 +34,7 @@ NUM_NEUTRAL_SNPS = 60000
 NUM_ANCESTRAL_SNPS = 30000
 
 
-class FetchGWASPeaks(utils.DatabaseTask):
+class FetchGWASPeaks(utils.MySQLTask):
     """
     Fetch all the GWAS peaks from the QTL db.
 
@@ -45,11 +45,8 @@ class FetchGWASPeaks(utils.DatabaseTask):
     def requires(self):
         return AncientSNPsPipeline(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        exec_time = self.dbc.execute_sql("""
+    def queries(self):
+        self.dbc.execute_sql("""
             INSERT 
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT q.id, 'peak',
@@ -70,11 +67,8 @@ class FetchGWASPeaks(utils.DatabaseTask):
                 ON sc.rsnumber = ev.rsnumber
           GROUP BY ev.rsnumber""")
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
 
-
-class FetchGWASFlankingSNPs(utils.DatabaseTask):
+class FetchGWASFlankingSNPs(utils.MySQLTask):
     """
     Fetch the best flanking SNPs for each GWAS peak.
 
@@ -85,13 +79,8 @@ class FetchGWASFlankingSNPs(utils.DatabaseTask):
     def requires(self):
         return FlagSNPsNearIndels(self.species, self.chrom)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve
-    def run(self):
-        start = time()
-
+    def queries(self):
         # get the best flanking SNPs for each QTL
         qtls = self.dbc.get_records_sql("""
             SELECT q.id, q.chrom, q.site,
@@ -144,11 +133,8 @@ class FetchGWASFlankingSNPs(utils.DatabaseTask):
               GROUP BY ev.rsnumber
                    """.format(qtl_id=qtl['id'], site=qtl['site'], modsnps=modsnps))
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
-
-class FetchSelectiveSweepSNPs(utils.DatabaseTask):
+class FetchSelectiveSweepSNPs(utils.MySQLTask):
     """
     Fetch the best SNPs from the selective sweep loci.
 
@@ -160,13 +146,8 @@ class FetchSelectiveSweepSNPs(utils.DatabaseTask):
         for chrom in self.chromosomes:
             yield FlagSNPsNearIndels(self.species, chrom)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve
-    def run(self):
-        start = time()
-
+    def queries(self):
         qtls = self.dbc.get_records_sql("""
             SELECT qtl_id AS id,
                    SUBSTRING_INDEX(
@@ -212,11 +193,8 @@ class FetchSelectiveSweepSNPs(utils.DatabaseTask):
               GROUP BY ms.id
                    """.format(qtl_id=qtl['id'], modsnps=qtl['snps']))
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
-
-class FetchMC1RSNPs(utils.DatabaseTask):
+class FetchMC1RSNPs(utils.MySQLTask):
     """
     Get all the dnsnp SNPs which fall within the MC1R gene.
 
@@ -234,15 +212,12 @@ class FetchMC1RSNPs(utils.DatabaseTask):
         yield LoadEnsemblVariants(self.species)
         yield AncientSNPsPipeline(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve
-    def run(self):
+    def queries(self):
         # get the MC1R qtl
         qtl = self.dbc.get_record('qtls', {'associationType': 'MC1R'})
 
-        exec_time = self.dbc.execute_sql("""
+        self.dbc.execute_sql("""
             INSERT 
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT {qtl_id}, 'mc1r', 
@@ -260,11 +235,8 @@ class FetchMC1RSNPs(utils.DatabaseTask):
           GROUP BY ev.rsnumber
                """.format(qtl_id=qtl['id'], gene_name=MC1R_GENE))
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
 
-
-class FetchNeutralSNPs(utils.DatabaseTask):
+class FetchNeutralSNPs(utils.MySQLTask):
     """
     Get neutral SNPs (excluding all QTLs and gene regions, w/ buffer)
 
@@ -277,15 +249,10 @@ class FetchNeutralSNPs(utils.DatabaseTask):
         yield LoadEnsemblVariants(self.species)
         yield AncientSNPsPipeline(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve
-    def run(self):
+    def queries(self):
         # unpack the inputs
         (_, fai_file), _, _ = self.input()
-
-        start = time()
 
         # get the sizes of the chromosomes
         sizes = utils.get_chrom_sizes(fai_file)
@@ -324,11 +291,8 @@ class FetchNeutralSNPs(utils.DatabaseTask):
                  LIMIT {num_snps}
                    """.format(chrom=chrom, num_snps=num_snps))
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
-
-class FetchAncestralSNPs(utils.DatabaseTask):
+class FetchAncestralSNPs(utils.MySQLTask):
     """
     Get ancestral SNPs which are variable in ASD (Asian domestic) and SUM (Sumatran Sus scrofa) populations.
 
@@ -342,15 +306,10 @@ class FetchAncestralSNPs(utils.DatabaseTask):
         yield ReferenceFASTA(self.species)
         yield AncientSNPsPipeline(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve
-    def run(self):
+    def queries(self):
         # unpack the inputs
         (_, fai_file), _ = self.input()
-
-        start = time()
 
         # get the sizes of the chromosomes
         sizes = utils.get_chrom_sizes(fai_file)
@@ -393,11 +352,8 @@ class FetchAncestralSNPs(utils.DatabaseTask):
                  LIMIT {num_snps}
                    """.format(chrom=chrom, num_snps=num_snps))
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
-
-class FetchRemainingSNPChipSNPs(utils.DatabaseTask):
+class FetchRemainingSNPChipSNPs(utils.MySQLTask):
     """
     Include any SNPchip SNPs which were not already included in a previous ascertainment category.
 
@@ -409,11 +365,8 @@ class FetchRemainingSNPChipSNPs(utils.DatabaseTask):
         yield LoadEnsemblVariants(self.species)
         yield LoadSNPChipVariants(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        exec_time = self.dbc.execute_sql("""
+    def queries(self):
+        self.dbc.execute_sql("""
             INSERT
               INTO ascertainment (qtl_id, type, rsnumber, chrom, site, ref, alt, chip_name, snp_name)
             SELECT NULL, 'snpchip',
@@ -429,9 +382,6 @@ class FetchRemainingSNPChipSNPs(utils.DatabaseTask):
                AND ev.type = 'SNV'
                AND length(ev.alt) = 1
           GROUP BY ev.rsnumber""")
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
 
 
 class PerformAscertainment(utils.PipelineWrapperTask):

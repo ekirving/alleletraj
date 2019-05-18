@@ -21,7 +21,7 @@ def mutation_type(alleles):
     return 'ts' if set(alleles) == {'A', 'G'} or set(alleles) == {'C', 'T'} else 'tv'
 
 
-class LoadModernSNPs(utils.DatabaseTask):
+class LoadModernSNPs(utils.MySQLTask):
     """
     Ascertain moderns SNPs and estimate their allele frequency from a chromosome VCF file.
 
@@ -35,24 +35,18 @@ class LoadModernSNPs(utils.DatabaseTask):
         yield CreateDatabase(self.species)
         yield BiallelicSNPsVCF(self.species, self.chrom)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
+    def queries(self):
         # unpack the inputs
         _, vcf_file = self.input()
 
-        # count the number of SNPs added
-        num_snps = 0
-
-        # parse the VCF with pysam
+        # iterate over the VCF with pysam
         for rec in pysam.VariantFile(vcf_file.path).fetch():
 
-            # the VCF has already been polarised, so the REF/ALT are the ancestral/derived
+            # the VCF has already been polarised, so the REF/ALT are the ancestral/derived alleles
             ancestral = rec.ref
             derived = rec.alts[0]
 
-            # is this mutation a transition or a transversion
+            # is this a transition or a transversion
             snp_type = mutation_type([ancestral, derived])
 
             modern_snp = {
@@ -65,9 +59,7 @@ class LoadModernSNPs(utils.DatabaseTask):
 
             modsnp_id = self.dbc.save_record('modern_snps', modern_snp)
 
-            num_snps += 1
-
-            # get all the populations and samples
+            # get all the populations and samples (except the outgroup)
             populations = self.list_populations(modern=True)
 
             # resolve the genotypes of the samples in one population at a time
@@ -99,9 +91,6 @@ class LoadModernSNPs(utils.DatabaseTask):
                 }
 
                 self.dbc.save_record('modern_snp_daf', modern_snp_daf)
-
-        with self.output().open('w') as fout:
-            fout.write('Added {:,} SNPs'.format(num_snps))
 
 
 class ModernSNPsPipeline(utils.PipelineWrapperTask):

@@ -87,7 +87,7 @@ class DownloadEnsemblData(utils.PipelineTask):
                               shell=True)
 
 
-class LoadEnsemblGenes(utils.DatabaseTask):
+class LoadEnsemblGenes(utils.MySQLTask):
     """
     Load the GTF (General Transfer Format) data from Ensembl.
 
@@ -103,11 +103,8 @@ class LoadEnsemblGenes(utils.DatabaseTask):
         yield CreateDatabase(self.species)
         yield DownloadEnsemblData(self.species, 'gtf')
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        # unpack the inputs
+    def queries(self):
+        # unpack the params
         _, gtf_file = self.input()
 
         # the column headers for batch inserting into the db
@@ -147,11 +144,8 @@ class LoadEnsemblGenes(utils.DatabaseTask):
             # bulk insert all the records
             self.dbc.save_records('ensembl_genes', fields, records)
 
-        with self.output().open('w') as fout:
-            fout.write('Inserted {:,} Ensembl gene records'.format(len(records)))
 
-
-class LoadEnsemblVariants(utils.DatabaseTask):
+class LoadEnsemblVariants(utils.MySQLTask):
     """
     Load the GVF (Genome Variation Format) data from Ensembl.
 
@@ -169,14 +163,9 @@ class LoadEnsemblVariants(utils.DatabaseTask):
         yield DownloadEnsemblData(self.species, 'gvf')
         yield CreateDatabase(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        # unpack the inputs
+    def queries(self):
+        # unpack the params
         gvf_file, _ = self.input()
-
-        start_time = time()
 
         # make a temp file to buffer the input data
         tmp_file = luigi.LocalTarget(is_tmp=True)
@@ -209,11 +198,8 @@ class LoadEnsemblVariants(utils.DatabaseTask):
            INTO TABLE ensembl_variants (dbxref, rsnumber, type, chrom, start, end, ref, alt)
                   """.format(tmp=tmp_file.path))
 
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start_time)))
 
-
-class FlagSNPsNearIndels(utils.DatabaseTask):
+class FlagSNPsNearIndels(utils.MySQLTask):
     """
     Flag any dbsnp variants that are within a given range of an INDEL
 
@@ -228,13 +214,8 @@ class FlagSNPsNearIndels(utils.DatabaseTask):
     def requires(self):
         return LoadEnsemblVariants(self.species)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
     # noinspection SqlResolve
-    def run(self):
-        start = time()
-
+    def queries(self):
         indels = self.dbc.get_records_sql("""
             SELECT ev.start, ev.end
               FROM ensembl_variants ev
@@ -262,9 +243,6 @@ class FlagSNPsNearIndels(utils.DatabaseTask):
                    AND ({conds})
                    AND type = 'SNV'
                    """.format(chrom=self.chrom, conds=" OR ".join(conds)))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(timedelta(seconds=time() - start)))
 
 
 class EnsemblLoadPipeline(utils.PipelineWrapperTask):

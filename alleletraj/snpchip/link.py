@@ -10,7 +10,7 @@ from alleletraj.modern.snps import LoadModernSNPs
 from alleletraj.snpchip.load import SNPChipLoadPipeline
 
 
-class LinkSNPChipVariants(utils.DatabaseTask):
+class LinkSNPChipVariants(utils.MySQLTask):
     """
     Link modern SNPs to their SNPchip variants
 
@@ -26,21 +26,16 @@ class LinkSNPChipVariants(utils.DatabaseTask):
         yield SNPChipLoadPipeline(self.species)
         yield LoadModernSNPs(self.species, self.chrom)
 
-    def output(self):
-        return luigi.LocalTarget('data/db/{}-{}.log'.format(self.basename, self.classname))
-
-    def run(self):
-        exec_time = self.dbc.execute_sql("""
+    def queries(self):
+        self.dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN ensembl_variants ev
                 ON ev.id = ms.variant_id
               JOIN snpchip sc
                 ON sc.rsnumber = ev.rsnumber 
                SET ms.snpchip_id = sc.id
-             WHERE ms.chrom = '{chrom}'""".format(chrom=self.chrom))
-
-        with self.output().open('w') as fout:
-            fout.write('Execution took {}'.format(exec_time))
+             WHERE ms.chrom = '{chrom}'
+               """.format(chrom=self.chrom))
 
 
 class SNPChipLinkPipeline(utils.PipelineWrapperTask):

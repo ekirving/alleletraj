@@ -499,10 +499,6 @@ class PopulateNeutralLoci(utils.MySQLTask):
                 'end': end,
             }
 
-            # check if this QTL already exists
-            if self.dbc.get_record('qtls', qtl):
-                continue
-
             self.dbc.save_record('qtls', qtl)
 
             num_loci += 1

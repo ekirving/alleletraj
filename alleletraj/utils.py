@@ -148,22 +148,7 @@ class PipelineTask(luigi.Task):
     """
     Pipeline task that implements several dynamic attributes.
     """
-
-    @property
-    def resources(self):
-        """
-        Dynamically set task resource usage.
-        """
-        resources = {'cpu-cores': 1}
-
-        if hasattr(self, 'db_lock_tables'):
-            for table in self.db_lock_tables:
-                # resolve table names that contain task parameters
-                if hasattr(self, 'chrom'):
-                    table = table.format(chrom=self.chrom)
-                resources[table] = 1
-
-        return resources
+    resources = {'cpu-cores': 1}
 
     @property
     def priority(self):
@@ -256,6 +241,26 @@ class DatabaseTask(PipelineTask):
     _outgroup = None
     _sample = None
     _accession = None
+
+    @property
+    def resources(self):
+        """
+        Handle table locking in the luigi scheduler so we don't crash the database by flooding it with locked queries.
+        """
+        resources = {'cpu-cores': 1}
+
+        if hasattr(self, 'db_lock_tables'):
+            for table in self.db_lock_tables:
+                # resolve table names that contain task parameters (e.g. chrom)
+                table = table.format(**self.param_kwargs)
+
+                # table resources are species specific
+                table = '{}_{}'.format(self.species, table)
+
+                # the default quantity for resources is '1', so this locks the table for other tasks
+                resources[table] = 1
+
+        return resources
 
     @property
     def dbc(self):

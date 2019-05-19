@@ -71,9 +71,9 @@ class ReferencePloidy(utils.PipelineTask):
 
 class BCFToolsSamplesFile(utils.DatabaseTask):
     """
-    Make a samples sex file and a samples readgroup file for bcftools.
+    Make a samples file and a readgroup file for bcftools.
 
-    The sex file specifies the sex of each samples, to be used with the ploidy file, and the readgroup file ensures that
+    The sex file specifies the sex of each sample, to be used with the ploidy file, and the readgroup file ensures that
     BAM files containing multiple libraries with different accession codes are treated as one sample.
 
     :type species: str
@@ -98,7 +98,7 @@ class BCFToolsSamplesFile(utils.DatabaseTask):
         # bcftools needs the sex specified in a separate file
         with sex_file.open('w') as fout:
             for pop, sample in samples:
-                fout.write('{}\t{}\n'.format(sample, samples[(pop, sample)]['sex']))
+                fout.write('{}\t{}\n'.format(sample, samples[(pop, sample)]['sex'] or ''))
 
         # sample names in the BAM file(s) may not be consistent, so override the @SM code
         with rgs_file.open('w') as fout:
@@ -125,14 +125,17 @@ class BCFToolsCall(utils.DatabaseTask):
             yield SampleBAM(self.species, pop, sample)
 
     def output(self):
-        return luigi.LocalTarget('data/vcf/{}.vcf.gz'.format(self.basename))
+        return [luigi.LocalTarget('data/vcf/{}.vcf.{}'.format(self.basename, ext)) for ext in ['gz', 'log']]
 
     def run(self):
         # unpack the params
         (ref_file, _), pld_file, (sex_file, rgs_file) = self.input()[0:3]
         bam_files = [bam_file for bam_file, _ in self.input()[3:]]
 
-        with self.output().temporary_path() as vcf_out:
+        vcf_file, log_file = self.output()
+
+        with vcf_file.temporary_path() as vcf_path, log_file.open('w') as fout:
+
             params = {
                 'ref': ref_file.path,
                 'chr': self.chrom,
@@ -140,14 +143,14 @@ class BCFToolsCall(utils.DatabaseTask):
                 'bam': ' '.join([bam.path for bam in bam_files]),
                 'pld': pld_file.path,
                 'sex': sex_file.path,
-                'vcf': vcf_out
+                'vcf': vcf_path
             }
 
             cmd = "bcftools mpileup --fasta-ref {ref} --regions {chr} --read-groups {rgs} --output-type u {bam} | " \
                   "bcftools call  --multiallelic-caller --ploidy-file {pld} --samples-file {sex} --output-type z " \
                   " --output {vcf}".format(**params)
 
-            utils.run_cmd([cmd], shell=True)
+            utils.run_cmd([cmd], shell=True, stderr=fout)
 
 
 class QuantilesOfCoverageVCF(utils.PipelineTask):
@@ -173,7 +176,7 @@ class QuantilesOfCoverageVCF(utils.PipelineTask):
         return luigi.LocalTarget('data/vcf/{}.quant'.format(self.basename))
 
     def run(self):
-        vcf_file = self.input()
+        vcf_file, _ = self.input()
         quant_file = self.output()
 
         # make a self destructing temp file
@@ -215,7 +218,7 @@ class FilterVCF(utils.PipelineTask):
 
     def run(self):
         # unpack the input params
-        (ref_file, _), vcf_input, quant_file = self.input()
+        (ref_file, _), (vcf_input, _), quant_file = self.input()
 
         # get the quantiles
         qlow, qhigh = numpy.loadtxt(quant_file.path)

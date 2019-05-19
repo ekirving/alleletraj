@@ -49,7 +49,7 @@ class PicardMarkDuplicates(utils.DatabaseTask):
         bam_in, _ = self.input()
         bam_out, _, log_file = self.output()
 
-        # TODO consider switching with MarkDuplicatesWithMateCigar
+        # NOTE consider switching with MarkDuplicatesWithMateCigar
         # https://software.broadinstitute.org/gatk/documentation/tooldocs/4.0.4.0/picard_sam_markduplicates_MarkDuplicatesWithMateCigar.php
         with bam_out.temporary_path() as bam_path:
             utils.run_cmd(['java', self.java_mem,

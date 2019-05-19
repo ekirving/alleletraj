@@ -400,7 +400,7 @@ CREATE TABLE `samples` (
   `period` varchar(255) DEFAULT NULL,
   `lat` varchar(255) DEFAULT NULL,
   `long` varchar(255) DEFAULT NULL,
-  `sex` char(1) NOT NULL,
+  `sex` char(1) DEFAULT '',
   `sfs` tinyint(1) DEFAULT NULL,
   `path` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),

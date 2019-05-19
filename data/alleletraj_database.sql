@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_goat_ars1_rel37
-# Generation Time: 2019-05-19 09:55:06 +0000
+# Generation Time: 2019-05-19 10:19:10 +0000
 # ************************************************************
 
 
@@ -391,14 +391,16 @@ CREATE TABLE `samples` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
   `population` varchar(255) NOT NULL,
-  `alias` varchar(255) DEFAULT '',
   `ancient` tinyint(1) NOT NULL,
-  `type` varchar(255) DEFAULT NULL,
+  `alias` varchar(255) DEFAULT '',
+  `group_a` varchar(255) DEFAULT NULL,
+  `group_b` varchar(255) DEFAULT NULL,
+  `site` varchar(255) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
-  `bin_id` int(11) DEFAULT NULL,
   `bp_max` int(11) DEFAULT NULL,
   `bp_min` int(11) DEFAULT NULL,
   `bp_median` int(11) DEFAULT NULL,
+  `bin_id` int(11) DEFAULT NULL,
   `age` varchar(255) DEFAULT NULL,
   `period` varchar(255) DEFAULT NULL,
   `lat` varchar(255) DEFAULT NULL,

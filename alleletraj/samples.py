@@ -64,7 +64,9 @@ class LoadSamples(utils.MySQLTask):
                     'population': row['population'],
                     'ancient':    1 if self.ancient else 0,
                     'alias':      row.get('alias'),
-                    'type':       row.get('site') if self.ancient else row.get('breed'),
+                    'group_a':    row.get('group_a') if self.ancient else row.get('breed'),
+                    'group_b':    row.get('group_b'),
+                    'site':       row.get('site'),
                     'location':   row.get('location'),
                     'bp_max':     row.get('bp_max'),
                     'bp_min':     row.get('bp_min'),
@@ -74,7 +76,7 @@ class LoadSamples(utils.MySQLTask):
                     'lat':        row.get('lat'),
                     'long':       row.get('lat'),
                     'sex':        row.get('sex')[0].upper() if row.get('sex') else None,  # first letter capital
-                    'mtdna':     row.get('mtdna'),
+                    'mtdna':      row.get('mtdna'),
                     'sfs':        row.get('sfs'),
                     'path':       row.get('path')
                 }

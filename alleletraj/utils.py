@@ -36,8 +36,8 @@ def run_cmd(cmd, shell=False, stdout=None, stderr=None, verbose=True):
     if verbose:
         print(' '.join(cmd))
 
-    stdout = subprocess.PIPE if not stdout else stdout
-    stderr = subprocess.PIPE if not stderr else stderr
+    stdout = stdout or subprocess.PIPE
+    stderr = stderr or subprocess.PIPE
 
     # run the command
     proc = subprocess.Popen(cmd, shell=shell, stdout=stdout, stderr=stderr)
@@ -55,7 +55,7 @@ def run_cmd(cmd, shell=False, stdout=None, stderr=None, verbose=True):
         raise RuntimeError(err)
 
     # some commands log progress to stderr
-    return out if out else err
+    return out or err
 
 
 def merge_intervals(ranges, capped=True):

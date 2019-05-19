@@ -65,12 +65,16 @@ class LoadSamples(utils.MySQLTask):
                     'ancient':    1 if self.ancient else 0,
                     'alias':      row.get('alias'),
                     'type':       row.get('site') if self.ancient else row.get('breed'),
-                    'age_int':    row.get('bp'),
+                    'location':   row.get('location'),
+                    'bp_max':     row.get('bp_max'),
+                    'bp_min':     row.get('bp_min'),
+                    'bp_median':  row.get('bp_median'),
                     'age':        row.get('age'),
                     'period':     row.get('period'),
                     'lat':        row.get('lat'),
                     'long':       row.get('lat'),
                     'sex':        row.get('sex')[0].upper() if row.get('sex') else None,  # first letter capital
+                    'mtdna':     row.get('mtdna'),
                     'sfs':        row.get('sfs'),
                     'path':       row.get('path')
                 }

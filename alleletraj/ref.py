@@ -85,7 +85,9 @@ class PicardSequenceDictionary(utils.PipelineTask):
 
         # create the sequence dictionary
         with dict_file.temporary_path() as dict_path:
-            utils.run_cmd(['java', self.java_mem,
+            utils.run_cmd(['java',
+                           self.java_mem,
+                           self.java_gc_threads,
                            '-jar', 'jar/picard.jar',
                            'CreateSequenceDictionary',
                            'R=' + ref_out.path,

@@ -78,7 +78,9 @@ class ValidateBamFile(utils.DatabaseTask):
 
         # validate the BAM file
         with log_file.temporary_path() as log_path:
-            utils.run_cmd(['java', self.java_mem,
+            utils.run_cmd(['java',
+                           self.java_mem,
+                           self.java_gc_threads,
                            '-jar', 'jar/picard.jar',
                            'ValidateSamFile',
                            'MODE=SUMMARY',

@@ -223,6 +223,15 @@ class PipelineTask(luigi.Task):
         """
         return "-Xmx{}G".format(self.resources['ram-gb'])
 
+    @property
+    def java_gc_threads(self):
+        """
+        Threads to allocate to garbage collection in java processes.
+
+        See 'Why does a Picard tool use so many threads?' in https://broadinstitute.github.io/picard/faq.html
+        """
+        return "-XX:ParallelGCThreads={}".format(self.resources['cpu-cores'])
+
     def _all_params(self):
         """
         Get all the params as a (name, value) tuple.

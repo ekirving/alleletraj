@@ -28,7 +28,7 @@ class PicardMarkDuplicates(utils.DatabaseTask):
     sample = luigi.Parameter()
     accession = luigi.OptionalParameter(default=None)
 
-    resources = {'cpu-cores': 1, 'ram-gb': 8}
+    resources = {'cpu-cores': 2, 'ram-gb': 8}
 
     def requires(self):
         if self.accession:
@@ -52,7 +52,9 @@ class PicardMarkDuplicates(utils.DatabaseTask):
         # NOTE consider switching with MarkDuplicatesWithMateCigar
         # https://software.broadinstitute.org/gatk/documentation/tooldocs/4.0.4.0/picard_sam_markduplicates_MarkDuplicatesWithMateCigar.php
         with bam_out.temporary_path() as bam_path:
-            utils.run_cmd(['java', self.java_mem,
+            utils.run_cmd(['java',
+                           self.java_mem,
+                           self.java_gc_threads,
                            '-jar', 'jar/picard.jar',
                            'MarkDuplicates',
                            'INPUT=' + bam_in.path,

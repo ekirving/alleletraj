@@ -44,7 +44,7 @@ class FilterUniqueSAMCons(utils.DatabaseTask):
 
     def run(self):
         # unpack the params
-        bam_in, _ = self.input()
+        bam_in, _, _ = self.input()
         bam_out, _ = self.output()
 
         with bam_out.temporary_path() as bam_path:

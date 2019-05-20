@@ -27,7 +27,7 @@ class BwaMem(utils.PipelineTask):
     accession = luigi.Parameter()
     paired = luigi.BoolParameter()
 
-    resources = {'cpu-cores': CPU_CORES_MED, 'ram-gb': 8}
+    resources = {'cpu-cores': CPU_CORES_MED, 'ram-gb': 16}
 
     def requires(self):
         yield TrimGalore(self.accession, self.paired)
@@ -35,12 +35,13 @@ class BwaMem(utils.PipelineTask):
         yield BwaIndexBWTSW(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('data/bam/{}.sort.{}'.format(self.accession, ext)) for ext in ['bam', 'bam.bai']]
+        return [luigi.LocalTarget('data/bam/{}.sort.{}'.format(self.accession, ext)) for ext in
+                ['bam', 'bam.bai', 'log']]
 
     def run(self):
         # unpack the input params
         fastq_input, (ref_file, _), _ = self.input()
-        bam_out, _ = self.output()
+        bam_out, _, log_file = self.output()
 
         params = {
             # CPU threads to use
@@ -56,7 +57,7 @@ class BwaMem(utils.PipelineTask):
             'fastq': ' '.join(fastq.path for fastq in fastq_input),
         }
 
-        with bam_out.temporary_path() as bam_path:
+        with bam_out.temporary_path() as bam_path, log_file.open('w') as fout:
             # get the temporary path for the bam file
             params['bam'] = bam_path
 
@@ -65,7 +66,7 @@ class BwaMem(utils.PipelineTask):
                   " | samtools sort -@ {threads} -O bam -o {bam} -".format(**params)
 
             # perform the alignment
-            utils.run_cmd([cmd], shell=True)
+            utils.run_cmd([cmd], shell=True, stderr=fout)
 
         # index the BAM file
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])

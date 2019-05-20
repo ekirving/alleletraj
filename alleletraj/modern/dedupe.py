@@ -46,7 +46,7 @@ class PicardMarkDuplicates(utils.DatabaseTask):
 
     def run(self):
         # unpack the params
-        bam_in, _ = self.input()
+        bam_in, _, _ = self.input()
         bam_out, _, log_file = self.output()
 
         # NOTE consider switching with MarkDuplicatesWithMateCigar

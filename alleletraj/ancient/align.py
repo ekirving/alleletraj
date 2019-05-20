@@ -95,12 +95,13 @@ class BwaSamSe(utils.PipelineTask):
         yield ReferenceFASTA(self.species)
 
     def output(self):
-        return [luigi.LocalTarget('data/bam/{}.sort.{}'.format(self.accession, ext)) for ext in ['bam', 'bam.bai']]
+        return [luigi.LocalTarget('data/bam/{}.sort.{}'.format(self.accession, ext)) for ext in
+                ['bam', 'bam.bai','log']]
 
     def run(self):
         # unpack the params
         (fastq_file, _, _), sai_file, (ref_file, _) = self.input()
-        bam_out, _ = self.output()
+        bam_out, _, log_file = self.output()
 
         params = {
             'readgroup': r'@RG\tID:{sample}\tSM:{sample}'.format(sample=self.sample),
@@ -110,7 +111,7 @@ class BwaSamSe(utils.PipelineTask):
             'threads':   self.resources['cpu-cores'],
         }
 
-        with bam_out.temporary_path() as bam_path:
+        with bam_out.temporary_path() as bam_path, log_file.open('w') as fout:
             # get the temporary path for the bam file
             params['bam'] = bam_path
 
@@ -119,7 +120,7 @@ class BwaSamSe(utils.PipelineTask):
                   " | samtools sort -@ {threads} -O bam -o {bam} -".format(**params)
 
             # perform the alignment
-            utils.run_cmd([cmd], shell=True)
+            utils.run_cmd([cmd], shell=True, stderr=fout)
 
         # index the BAM file
         utils.run_cmd(['samtools', 'index', '-b', bam_out.path])

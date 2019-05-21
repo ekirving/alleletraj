@@ -378,7 +378,9 @@ class MySQLTask(DatabaseTask):
         return self._dbc
 
     def output(self):
-        return luigi.LocalTarget('data/db/{}/{}-{}.log'.format(self.task_module, type(self).__name__, self.basename))
+        return luigi.LocalTarget(
+            'data/db/{}/{}/{}-{}.log'.format(self.dbc.db_config['db'], self.task_module, type(self).__name__,
+                                             self.basename))
 
     def queries(self):
         """

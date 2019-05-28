@@ -5,7 +5,7 @@
 from multiprocessing import cpu_count
 
 # QTLdb release number (changing this number will trigger a complete db rebuild)
-QTLDB_RELEASE = 'rel37'
+QTLDB_RELEASE = 'rel38'
 
 # the scientific name of each species (necessary for resolving Ensembl URLs)
 BINOMIAL_NAME = {

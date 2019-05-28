@@ -390,7 +390,7 @@ class MySQLTask(DatabaseTask):
 
     def run(self):
         """
-        Wrapper for :ref:`MySQLTask.run_sql` to handle completion tracking for SQL queries.
+        Wrapper for :ref:`MySQLTask.queries` to handle completion tracking for SQL queries.
         """
         start = time()
 

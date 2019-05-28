@@ -29,7 +29,7 @@ GOOGLE_SHEET = {
             ('Total Reads', 'map_reads'),
             ('% Mapped', 'map_prcnt'),
             ('Age', 'age'),
-            ('Age (Mean years BP)', 'age_int'),
+            ('Age (Mean years BP)', 'bp_median'),
             ('Period', 'period'),
             ('Location', 'location'),
             ('Country', 'country'),
@@ -48,7 +48,7 @@ GOOGLE_SHEET = {
             ('Status', 'population'),
             ('path', 'path'),
             ('sex', 'sex'),
-            ('Age BP', 'age_int'),
+            ('Age BP', 'bp_median'),
             ('Age', 'period'),
             ('Site', 'location'),
         ])

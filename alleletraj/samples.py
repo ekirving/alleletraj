@@ -111,7 +111,7 @@ class CreateSampleBins(utils.MySQLTask):
 
         # get the maximum date
         max_age = self.dbc.get_records_sql("""
-            SELECT MAX(s.age_int) max_age
+            SELECT MAX(s.bp_median) max_age
               FROM samples s
                """, key=None)[0].pop('max_age')
 
@@ -156,7 +156,7 @@ class BinSamples(utils.MySQLTask):
         self.dbc.execute_sql("""
             UPDATE samples s
               JOIN sample_bins sb
-                ON s.age_int BETWEEN sb.upper AND sb.lower
+                ON s.bp_median BETWEEN sb.upper AND sb.lower
                SET s.bin_id = sb.id""")
 
         # reset sample counts

@@ -34,7 +34,7 @@ class Database:
 
     def __init__(self, species):
         # set the db name
-        self.db_config['db'] = Database.__get_name(species)
+        self.db_config['db'] = Database.get_name(species)
 
         # connect to the db
         self.cnx = mysql.connector.connect(**self.db_config)
@@ -46,7 +46,7 @@ class Database:
         self.cnx.close()
 
     @staticmethod
-    def __get_name(species):
+    def get_name(species):
         """
         Embed the reference assembly and the QTLdb release number into the db name.
         """
@@ -139,7 +139,7 @@ class Database:
         """
         cnx = mysql.connector.connect(**Database.db_config)
         cursor = cnx.cursor()
-        name = Database.__get_name(species)
+        name = Database.get_name(species)
         cursor.execute(u"CREATE DATABASE `{}` DEFAULT CHARACTER SET = `utf8`".format(name))
 
         return name

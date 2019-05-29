@@ -230,7 +230,6 @@ class DepthOfCoveragePipeline(utils.PipelineWrapperTask):
     Calculate the depth of coverage for all samples.
 
     :type species: str
-    :type ancient: bool
     """
     species = luigi.Parameter()
 

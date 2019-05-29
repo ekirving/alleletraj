@@ -6,8 +6,8 @@
 # https://github.com/sequelpro/sequelpro
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
-# Database: alleletraj_goat_ars1_rel37
-# Generation Time: 2019-05-19 10:19:10 +0000
+# Database: alleletraj_horse_equcab2_rel38
+# Generation Time: 2019-05-29 13:53:23 +0000
 # ************************************************************
 
 
@@ -408,6 +408,7 @@ CREATE TABLE `samples` (
   `sex` char(1) DEFAULT '',
   `mtdna` varchar(1) DEFAULT NULL,
   `sfs` tinyint(1) DEFAULT NULL,
+  `coverage` float DEFAULT NULL,
   `path` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `name` (`name`)

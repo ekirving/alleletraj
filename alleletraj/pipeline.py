@@ -6,8 +6,8 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.analysis.selection import SelectionBestQTLSNPs
-from alleletraj.ancient.graphs import GraphsPipeline
+# from alleletraj.analysis.selection import SelectionBestQTLSNPs
+# from alleletraj.ancient.graphs import GraphsPipeline
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.demog import DadiPipeline
@@ -36,25 +36,25 @@ class RunAll(utils.PipelineWrapperTask):
         # link the SNPChip data to the modern SNPs
         yield SNPChipLinkPipeline(self.species)
 
-        # # find the best fitting ∂a∂i model
-        # yield DadiPipeline(self.species)
+        # find the best fitting ∂a∂i model
+        yield DadiPipeline(self.species)
 
         # link QTLs and modern snps
         yield QTLPipeline(self.species)
 
-        # # load the ancient sample reads for each ascertained SNP
-        # yield AncientSNPsPipeline(self.species)
+        # load the ancient sample reads for each ascertained SNP
+        yield AncientSNPsPipeline(self.species)
 
-        # # analyse the coverage and quality for SNPs in each QTLs
-        # yield AnalyseQTLsPipeline(self.species)
-        #
+        # analyse the coverage and quality for SNPs in each QTLs
+        yield AnalyseQTLsPipeline(self.species)
+
         # # run `selection` on all the 'best' QTL SNPs
         # yield SelectionBestQTLSNPs(self.species)
         #
         # # make all the plots
         # yield GraphsPipeline(self.species)
-        #
-        # # TODO add analysis modules
+
+        # TODO add analysis modules
 
 
 if __name__ == '__main__':

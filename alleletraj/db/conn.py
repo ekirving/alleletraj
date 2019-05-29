@@ -282,8 +282,15 @@ class Database:
         """
         start = time()
 
-        self.cursor.execute(sql)
-        self.cnx.commit()
+        try:
+            self.cursor.execute(sql)
+            self.cnx.commit()
+
+        except Exception as e:
+            # dump the record before throwing the exception
+            print("ERROR: db_conn.execute_sql()")
+            pprint(sql)
+            raise e
 
         return timedelta(seconds=time() - start)
 

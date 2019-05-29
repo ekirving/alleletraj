@@ -181,5 +181,63 @@ class SampleBAM(utils.DatabaseTask):
         return self.input()[:2]
 
 
+class DepthOfCoverageBAM(utils.DatabaseTask):
+    """
+    Calculate the depth of coverage across the whole genome for this sample (e.g. 1.5x).
+
+    :type species: str
+    :type population: str
+    :type sample: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    sample = luigi.Parameter()
+
+    def requires(self):
+        return SampleBAM(self.species, self.population, self.sample)
+
+    def output(self):
+        return luigi.LocalTarget('data/bam/{}.cov'.format(self.sample))
+
+    def run(self):
+        # import locally to avoid recursive import error
+        from alleletraj.ancient.snps import HARD_BASEQ_CUTOFF, HARD_MAPQ_CUTOFF
+
+        bam_file, _ = self.input()
+        cov_file = self.output()
+
+        # extract the depth of coverage at each site in the BAM that passes the quality filters
+        sam = "samtools depth -a -q {} -Q {} {}".format(HARD_BASEQ_CUTOFF, HARD_MAPQ_CUTOFF, bam_file.path)
+
+        # calculate the mean depth of coverage (3rd column of samtools output)
+        awk = "awk 'BEGIN { total = 0; count = 0 } { total += $3; count += 1; } END { avg = total / count; print avg}'"
+
+        cov = utils.run_cmd([sam + " | " + awk], shell=True)
+
+        # update the db
+        self.dbc.execute_sql("""
+            UPDATE samples
+               SET coverage = '{cov}'
+             WHERE name = '{sample}'
+               """.format(cov=cov.strip(), sample=self.sample))
+
+        with cov_file.open('w') as fout:
+            fout.write('{}'.format(cov))
+
+
+class DepthOfCoveragePipeline(utils.PipelineWrapperTask):
+    """
+    Calculate the depth of coverage for all samples.
+
+    :type species: str
+    :type ancient: bool
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        for pop, sample in self.list_samples():
+            yield DepthOfCoverageBAM(self.species, pop, sample)
+
+
 if __name__ == '__main__':
     luigi.run()

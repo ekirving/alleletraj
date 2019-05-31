@@ -132,8 +132,9 @@ class CalculateSummaryStats(utils.MySQLTask):
         # remove any existing stats for this chromosome
         self.dbc.execute_sql("""
             DELETE 
-              FROM qtl_stats qs
-             WHERE qs.chrom = '{chrom}'""".format(chrom=self.chrom))
+              FROM qtl_stats
+             WHERE chrom = '{chrom}'
+               """.format(chrom=self.chrom))
 
         self.dbc.execute_sql("""
             INSERT INTO qtl_stats (qtl_id, chrom, class, type, name, Pvalue, significance, snps, max_samples, 

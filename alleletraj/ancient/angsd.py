@@ -57,7 +57,7 @@ class CallAncientGenotypes(utils.DatabaseTask):
         # NOTE using a regions file is ~15x slower, but we only want the sites that overlap with VCF (inc. non-variant)
         cmd = ['angsd',
                '-nThreads',    self.resources['cpu-cores'],
-               '-out',         utils.trim_ext(pos_file),
+               '-out',         utils.trim_ext(pos_file.path),
                '-dohaplocall', 1,
                '-doCounts',    1,
                '-bam',         list_file.path,

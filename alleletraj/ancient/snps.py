@@ -122,9 +122,9 @@ class LoadAncientSNPs(utils.MySQLTask):
                 reads = defaultdict(list)
 
                 # open the BAM file for reading
-                with pysam.AlignmentFile(bam_file.path, 'rb') as bam_file:
+                with pysam.AlignmentFile(bam_file.path, 'rb') as pysam_align:
 
-                    for pileup_column in bam_file.pileup(chrom, int(start), int(end)):
+                    for pileup_column in pysam_align.pileup(chrom, int(start), int(end)):
 
                         # NOTE PileupColumn.reference_pos is 0 based
                         # see http://pysam.readthedocs.io/en/latest/api.html#pysam.PileupColumn.reference_pos

@@ -66,4 +66,4 @@ class CallAncientGenotypes(utils.DatabaseTask):
                '-minQ',        HARD_BASEQ_CUTOFF,
                '-trim',        HARD_CLIP_DIST]
 
-        utils.run_cmd([cmd])
+        utils.run_cmd(cmd)

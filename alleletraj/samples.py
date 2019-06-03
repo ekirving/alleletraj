@@ -116,17 +116,16 @@ class CreateSampleBins(utils.MySQLTask):
                """, key=None)[0].pop('max_age')
 
         # round to nearest multiple of BIN_WIDTH
-        bin_max = int(math.ceil(float(max_age) / BIN_WIDTH) * BIN_WIDTH)
+        max_ceil = int(math.ceil(float(max_age) / BIN_WIDTH) * BIN_WIDTH)
 
         # TODO improve binning with a clustering algorithm
-        # iterate over each temporal bin
-        for bin_upper in range(0, bin_max, BIN_WIDTH):
-            bin_lower = bin_upper + BIN_WIDTH
+        for bin_min in range(0, max_ceil, BIN_WIDTH):
+            bin_max = bin_min + BIN_WIDTH
 
             sample_bin = {
-                'name': '{} - {} BP'.format(bin_lower, bin_upper),
-                'lower': bin_lower,
-                'upper': bin_upper + 1
+                'name': '{} - {} BP'.format(bin_max, bin_min),
+                'max': bin_max,
+                'min': bin_min + 1
             }
 
             self.dbc.save_record('sample_bins', sample_bin)
@@ -156,7 +155,7 @@ class BinSamples(utils.MySQLTask):
         self.dbc.execute_sql("""
             UPDATE samples s
               JOIN sample_bins sb
-                ON s.bp_median BETWEEN sb.upper AND sb.lower
+                ON s.bp_median BETWEEN sb.min AND sb.max
                SET s.bin_id = sb.id""")
 
         # reset sample counts
@@ -175,6 +174,8 @@ class BinSamples(utils.MySQLTask):
                    ) AS num
               ON num.id = sb.id
             SET sb.num_samples = num.cnt""")
+
+        # TODO delete unused bins
 
 
 class LoadAllSamples(utils.PipelineWrapperTask):

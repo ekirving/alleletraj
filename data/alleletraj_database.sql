@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_horse_equcab2_rel38
-# Generation Time: 2019-05-29 13:53:23 +0000
+# Generation Time: 2019-06-03 16:29:17 +0000
 # ************************************************************
 
 
@@ -150,6 +150,7 @@ CREATE TABLE `modern_snps` (
   `snpchip_id` int(11) DEFAULT NULL,
   `gene_id` int(11) unsigned DEFAULT NULL,
   `neutral` tinyint(1) DEFAULT NULL,
+  `mispolar` tinyint(1) DEFAULT NULL,
   KEY `id` (`id`),
   KEY `chrom_site` (`chrom`,`site`),
   KEY `variant_id` (`variant_id`),
@@ -307,8 +308,8 @@ CREATE TABLE `qtls` (
 CREATE TABLE `sample_bins` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
-  `lower` int(11) NOT NULL,
-  `upper` int(11) NOT NULL,
+  `max` int(11) NOT NULL,
+  `min` int(11) NOT NULL,
   `num_samples` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

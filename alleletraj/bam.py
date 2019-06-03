@@ -214,15 +214,36 @@ class DepthOfCoverageBAM(utils.DatabaseTask):
 
         cov = utils.run_cmd([sam + " | " + awk], shell=True)
 
-        # update the db
+        with cov_file.open('w') as fout:
+            fout.write('{}'.format(cov))
+
+
+class LoadDepthOfCoverage(utils.MySQLTask):
+    """
+    Load the depth of coverage into the database.
+
+    :type species: str
+    :type population: str
+    :type sample: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    sample = luigi.Parameter()
+
+    def requires(self):
+        return DepthOfCoverageBAM(self.species, self.population, self.sample)
+
+    def queries(self):
+        cov_file = self.input()
+
+        with cov_file.open() as fin:
+            cov = float(fin.read())
+
         self.dbc.execute_sql("""
             UPDATE samples
                SET coverage = '{cov}'
              WHERE name = '{sample}'
-               """.format(cov=cov.strip(), sample=self.sample))
-
-        with cov_file.open('w') as fout:
-            fout.write('{}'.format(cov))
+               """.format(cov=cov, sample=self.sample))
 
 
 class DepthOfCoveragePipeline(utils.PipelineWrapperTask):
@@ -235,7 +256,7 @@ class DepthOfCoveragePipeline(utils.PipelineWrapperTask):
 
     def requires(self):
         for pop, sample in self.list_samples():
-            yield DepthOfCoverageBAM(self.species, pop, sample)
+            yield LoadDepthOfCoverage(self.species, pop, sample)
 
 
 if __name__ == '__main__':

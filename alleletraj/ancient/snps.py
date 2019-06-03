@@ -33,6 +33,10 @@ HARD_MAPQ_CUTOFF = 30
 # minimum base quality (hard filtered)
 HARD_BASEQ_CUTOFF = 30
 
+# diagnose mispolarized SNPs by sampling N snps and thresholding the DAF
+MISPOLAR_SNPS = 10
+MISPOLAR_DAF = 0.8
+
 
 class LoadAncientSNPs(utils.MySQLTask):
     """
@@ -286,6 +290,48 @@ class LoadAncientSNPs(utils.MySQLTask):
         fin.close()
 
 
+class FlagMispolarizedSNPs(utils.MySQLTask):
+    """
+    Flag SNPs which may be mispolarized.
+
+    Get the first MISPOLAR_SNPS snps and calculate the derived allele frequency. If daf > MISPOLAR_DAF then flag the SNP
+    as mispolarized.
+
+    :type species: str
+    :type chrom: str
+    """
+    species = luigi.Parameter()
+    chrom = luigi.Parameter()
+
+    def requires(self):
+        return LoadAncientSNPs(self.species, self.chrom)
+
+    # noinspection SqlAggregates
+    def queries(self):
+
+        mispolar = self.dbc.get_records_sql("""
+            SELECT ms.id,
+                   LENGTH(REPLACE(SUBSTRING(
+                        GROUP_CONCAT(
+                            IF(sr.base = ms.derived, 1, 0)
+                            ORDER BY s.bp_median DESC
+                            SEPARATOR ''
+                        ), 1, {snps}), 0, '')) / {snps} AS daf
+              FROM modern_snps ms
+              JOIN sample_reads sr
+                ON sr.chrom = ms.chrom
+               AND sr.site = ms.site
+              JOIN samples s
+                ON s.id = sr.sample_id
+            WHERE ms.chrom = '{chrom}'
+          GROUP BY ms.id
+            HAVING daf >= {daf}
+               """.format(chrom=self.chrom, snps=MISPOLAR_SNPS, daf=MISPOLAR_DAF))
+
+        for modsnp_id in mispolar:
+            self.dbc.save_record('modern_snps', {'id': modsnp_id, 'mispolar': 1})
+
+
 class AncientSNPsPipeline(utils.PipelineWrapperTask):
     """
     Populate the modern_snps table.
@@ -296,7 +342,7 @@ class AncientSNPsPipeline(utils.PipelineWrapperTask):
 
     def requires(self):
         for chrom in self.chromosomes:
-            yield LoadAncientSNPs(self.species, chrom)
+            yield FlagMispolarizedSNPs(self.species, chrom)
 
 
 if __name__ == '__main__':

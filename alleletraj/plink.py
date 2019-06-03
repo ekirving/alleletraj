@@ -29,8 +29,9 @@ PLINK_SEX_UNKNOWN = 0
 PLINK_SEX_MALE = 1
 PLINK_SEX_FEMALE = 2
 
-# minimum genotyping call rate (%)
-PLINK_MIN_GENO = 60  # TODO will need to make this smaller to accommodate such a large ratio of ancient to modern
+# minimum genotyping call rate for samples (--mind) and SNPs (--geno)
+PLINK_MIN_MIND = 50
+PLINK_MIN_GENO = 90
 
 
 def plink_sex_code(sex):
@@ -384,9 +385,11 @@ class PlinkHighGeno(PlinkTask):
     Drop all sites with a genotyping call rate below the given threshold.
 
     :type species: str
+    :type mind: int
     :type geno: int
     """
     species = luigi.Parameter()
+    mind = luigi.IntParameter(default=PLINK_MIN_MIND)
     geno = luigi.IntParameter(default=PLINK_MIN_GENO)
 
     def requires(self):
@@ -402,11 +405,13 @@ class PlinkHighGeno(PlinkTask):
         bed_output, _, _, _ = self.output()
 
         # plink requires the genotyping rate to be expressed as the missing threshold (i.e. 90% = 0.1)
+        plink_mind = 1 - (self.mind / 100.0)
         plink_geno = 1 - (self.geno / 100.0)
 
         utils.run_cmd(['plink',
                        '--chr-set', self.chrset,
                        '--make-bed',
+                       '--mind',  plink_mind,
                        '--geno',  plink_geno,
                        '--bfile', utils.trim_ext(bed_input.path),
                        '--out',   utils.trim_ext(bed_output.path)])

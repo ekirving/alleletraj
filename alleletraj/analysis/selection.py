@@ -144,7 +144,7 @@ class SelectionRunMCMC(utils.PipelineTask):
 
     def output(self):
         return [luigi.LocalTarget('data/selection/{}.{}'.format(self.basename, ext))
-                for ext in ['log', 'param', 'time', 'traj']]
+                for ext in ['log', 'param', 'time.gz', 'traj.gz']]
 
     def run(self):
 
@@ -181,10 +181,14 @@ class SelectionRunMCMC(utils.PipelineTask):
 
             raise RuntimeError(e)
 
-        # TODO gzip the output files
-        # TODO measure ESS and enforce threshold
-        # https://www.rdocumentation.org/packages/LaplacesDemon/versions/16.1.0/topics/ESS
-        # https://cran.r-project.org/web/packages/coda/index.html
+        else:
+            # gzip the output files
+            utils.run_cmd(['gzip {}'.format(time_file.path)], shell=True)
+            utils.run_cmd(['gzip {}'.format(traj_file.path)], shell=True)
+
+            # TODO measure ESS and enforce threshold
+            # https://www.rdocumentation.org/packages/LaplacesDemon/versions/16.1.0/topics/ESS
+            # https://cran.r-project.org/web/packages/coda/index.html
 
 
 class SelectionPlot(utils.PipelineTask):

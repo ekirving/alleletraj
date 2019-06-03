@@ -13,6 +13,7 @@ from alleletraj.bam import DepthOfCoveragePipeline
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.demog import DadiPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
+from alleletraj.plink import PlinkMergeBeds
 from alleletraj.qtl.analyse import AnalyseQTLsPipeline
 from alleletraj.qtl.load import QTLPipeline
 from alleletraj.snpchip.link import SNPChipLinkPipeline
@@ -51,6 +52,9 @@ class RunAll(utils.PipelineWrapperTask):
 
         # analyse the coverage and quality for SNPs in each QTLs
         yield AnalyseQTLsPipeline(self.species)
+
+        # TODO replace with analysis pipeline when fully tested
+        yield PlinkMergeBeds(self.species)
 
         # # run `selection` on all the 'best' QTL SNPs
         # yield SelectionBestQTLSNPs(self.species)

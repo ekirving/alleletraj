@@ -38,32 +38,30 @@ class CallAncientGenotypes(utils.DatabaseTask):
 
     def output(self):
         return [luigi.LocalTarget('data/angsd/{}-ancient.{}'.format(self.basename, ext)) for ext in
-                ['haplo.gz', 'arg', 'pos', 'list']]
+                ['haplo.gz', 'arg', 'list', 'log']]
 
     def run(self):
         # unpack the params
         vcf_file, bam_files = self.input()[0], self.input()[1:]
-        _, _, pos_file, list_file = self.output()
-
-        # extract the list of sites from the modern VCF
-        utils.run_cmd(['bcftools query --format "%CHROM:%POS-%POS\\n" {} > {}'.format(vcf_file.path, pos_file.path)],
-                      shell=True)
+        _, _, list_file, log_file = self.output()
 
         # make a list of all the BAM files
         with list_file.open('w') as fout:
             for bam_file, _ in bam_files:
                 fout.write(bam_file.path + '\n')
 
-        # NOTE using a regions file is ~15x slower, but we only want the sites that overlap with VCF (inc. non-variant)
+        # NOTE using a regions file is crazy slow, so call all sites and extract just the VCF SNPs in PlinkTpedToBed()
         cmd = ['angsd',
                '-nThreads',    self.resources['cpu-cores'],
-               '-out',         utils.trim_ext(pos_file.path),
+               '-out',         utils.trim_ext(list_file.path),
                '-dohaplocall', 1,
                '-doCounts',    1,
                '-bam',         list_file.path,
-               '-rf',          pos_file.path,
                '-minMapQ',     HARD_MAPQ_CUTOFF,
                '-minQ',        HARD_BASEQ_CUTOFF,
                '-trim',        HARD_CLIP_DIST]
 
-        utils.run_cmd(cmd)
+        log = utils.run_cmd(cmd)
+
+        with log_file.open('w') as fout:
+            fout.write(log)

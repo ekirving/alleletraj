@@ -170,14 +170,15 @@ class HaploToPlink(PlinkTask, utils.DatabaseTask):
 
 class PlinkTpedToBed(PlinkTask):
     """
-    Convert PLINK tped format to binary (bed).
+    Convert PLINK tped format to binary (bed), and only keep the sites that intersect with the modern SNPs.
 
     :type species: str
     """
     species = luigi.Parameter()
 
     def requires(self):
-        return HaploToPlink(self.species)
+        yield PlinkVCFtoBED(self.species)
+        yield HaploToPlink(self.species)
 
     def output(self):
         return [luigi.LocalTarget('data/plink/{}-ancient.{}'.format(self.basename, ext)) for ext in
@@ -185,13 +186,14 @@ class PlinkTpedToBed(PlinkTask):
 
     def run(self):
         # unpack the params
-        tped_file, tfam_file, _ = self.input()
+        (_, bim_file, _, _), (tped_file, tfam_file, _) = self.input()
         _, _, _, log_file = self.output()
 
         # NOTE angst encodes missing genotypes as N when 0 is the default in plink
         cmd = ['plink',
                '--chr-set', self.chrset,
                '--make-bed',
+               '--extract', bim_file.path,  # only keep the sites that intersect with the modern SNPs
                '--missing-genotype', 'N',
                '--output-missing-genotype', '0',
                '--tped', tped_file.path,

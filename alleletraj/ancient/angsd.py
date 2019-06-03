@@ -7,7 +7,7 @@ import luigi
 # local modules
 from alleletraj import utils
 from alleletraj.bam import SampleBAM
-from alleletraj.const import CPU_CORES_MED
+from alleletraj.const import CPU_CORES_LOW
 from alleletraj.modern.vcf import WholeGenomeSNPsVCF
 
 # number of bases to hard clip
@@ -28,7 +28,7 @@ class CallAncientGenotypes(utils.DatabaseTask):
     """
     species = luigi.Parameter()
 
-    resources = {'cpu-cores': CPU_CORES_MED}
+    resources = {'cpu-cores': CPU_CORES_LOW}
 
     def requires(self):
         yield WholeGenomeSNPsVCF(self.species)

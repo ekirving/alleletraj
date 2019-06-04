@@ -28,7 +28,7 @@ class CallAncientGenotypes(utils.DatabaseTask):
     """
     species = luigi.Parameter()
 
-    resources = {'cpu-cores': 2}
+    resources = {'cpu-cores': 2, 'ram-gb': 4}
 
     def requires(self):
         yield WholeGenomeSNPsVCF(self.species)

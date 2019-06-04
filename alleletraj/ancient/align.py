@@ -15,6 +15,7 @@ BWA_ALN_SEED = 1024  # long seed effectively disables seeding
 BWA_ALN_EDIT = 0.01  # small edit distance improves mapping when reads have errors
 BWA_ALN_GAPS = 2     # maximum number of gap opens
 
+
 class BwaAln(utils.PipelineTask):
     """
     Align the fastq file to the reference genome using the BWA-ALN algorithm.

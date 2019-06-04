@@ -12,8 +12,8 @@ from alleletraj.ref import ReferenceFASTA, BwaIndexBWTSW
 
 # BWA-ALN settings
 BWA_ALN_SEED = 1024  # long seed effectively disables seeding
-BWA_ALN_EDIT = 0.03  # small edit distance improves mapping when reads have errors
-
+BWA_ALN_EDIT = 0.01  # small edit distance improves mapping when reads have errors
+BWA_ALN_GAPS = 2     # maximum number of gap opens
 
 class BwaAln(utils.PipelineTask):
     """
@@ -53,6 +53,7 @@ class BwaAln(utils.PipelineTask):
         params = {
             'seed': BWA_ALN_SEED,  # disable seeding by setting very long length
             'edit': BWA_ALN_EDIT,  # maximum edit distance
+            'gaps': BWA_ALN_GAPS,  # maximum gap opens
             'threads': self.resources['cpu-cores'],
             'reference': ref_file.path,
             'fastq': fastq_file.path,
@@ -63,7 +64,7 @@ class BwaAln(utils.PipelineTask):
             params['sai'] = sai_path
 
             # align using the ALN algorithm
-            cmd = "bwa aln -l {seed} -n {edit} -t {threads} {reference} {fastq} > {sai}".format(**params)
+            cmd = "bwa aln -l {seed} -n {edit} -o {gaps} -t {threads} {reference} {fastq} > {sai}".format(**params)
 
             # perform the alignment
             utils.run_cmd([cmd], shell=True)

@@ -54,7 +54,7 @@ class FilterUniqueSAMCons(utils.DatabaseTask):
                 'readgroup': r'@RG\tID:{sample}\tSM:{sample}'.format(sample=self.sample)
             }
 
-            # NOTE FilterUniqueSAMCons strips the RG tag from merged reads, so add a new readgroup to orphaned reads
+            # NOTE FilterUniqueSAMCons strips the RG tag from merged reads, so we add a new readgroup to orphaned reads
             cmd = "samtools view -h {bam_in} | " \
                   "FilterUniqueSAMCons.py | " \
                   "samtools addreplacerg -r '{readgroup}' -m orphan_only -O bam -o {bam_out} - ".format(**params)

@@ -48,8 +48,16 @@ class FilterUniqueSAMCons(utils.DatabaseTask):
         bam_out, _ = self.output()
 
         with bam_out.temporary_path() as bam_path:
-            # filter duplicates
-            cmd = 'samtools view -h {} | FilterUniqueSAMCons.py | samtools view -b -o {}'.format(bam_in.path, bam_path)
+            params = {
+                'bam_in':  bam_in.path,
+                'bam_out': bam_path,
+                'readgroup': r'@RG\tID:{sample}\tSM:{sample}'.format(sample=self.sample)
+            }
+
+            # NOTE FilterUniqueSAMCons strips the RG tag from merged reads, so add a new readgroup to orphaned reads
+            cmd = "samtools view -h {bam_in} | " \
+                  "FilterUniqueSAMCons.py | " \
+                  "samtools addreplacerg -r '{readgroup}' -m orphan_only -O bam -o {bam_out} - ".format(**params)
 
             utils.run_cmd([cmd], shell=True)
 

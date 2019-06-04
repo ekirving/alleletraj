@@ -96,7 +96,7 @@ class BwaSamSe(utils.PipelineTask):
 
     def output(self):
         return [luigi.LocalTarget('data/bam/{}.sort.{}'.format(self.accession, ext)) for ext in
-                ['bam', 'bam.bai','log']]
+                ['bam', 'bam.bai', 'log']]
 
     def run(self):
         # unpack the params

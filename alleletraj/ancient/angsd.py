@@ -25,14 +25,14 @@ class CallAncientGenotypes(utils.DatabaseTask):
     Call ancient genotypes with angsd by randomly selecting a base.
 
     :type species: str
+    :type chrom: str
     """
     species = luigi.Parameter()
+    chrom = luigi.Parameter()
 
     resources = {'cpu-cores': 2, 'ram-gb': 4}
 
     def requires(self):
-        yield WholeGenomeSNPsVCF(self.species)
-
         for pop, sample in self.list_samples(ancient=True):
             yield SampleBAM(self.species, pop, sample)
 
@@ -42,7 +42,7 @@ class CallAncientGenotypes(utils.DatabaseTask):
 
     def run(self):
         # unpack the params
-        vcf_file, bam_files = self.input()[0], self.input()[1:]
+        bam_files = self.input()
         _, _, list_file, log_file = self.output()
 
         # make a list of all the BAM files
@@ -57,6 +57,7 @@ class CallAncientGenotypes(utils.DatabaseTask):
                '-dohaplocall', 1,
                '-doCounts',    1,
                '-bam',         list_file.path,
+               '-r',           '{}:'.format(self.chrom),
                '-minMapQ',     HARD_MAPQ_CUTOFF,
                '-minQ',        HARD_BASEQ_CUTOFF,
                '-trim',        HARD_CLIP_DIST]

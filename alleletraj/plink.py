@@ -136,11 +136,13 @@ class HaploToPlink(PlinkTask, utils.DatabaseTask):
     Convert an angsd haplo.gz file to PLINK transposed text format (tped).
 
     :type species: str
+    :type chrom: str
     """
     species = luigi.Parameter()
+    chrom = luigi.Parameter()
 
     def requires(self):
-        return CallAncientGenotypes(self.species)
+        return CallAncientGenotypes(self.species, self.chrom)
 
     def output(self):
         return [luigi.LocalTarget('data/plink/{}-ancient.{}'.format(self.basename, ext)) for ext in
@@ -174,12 +176,14 @@ class PlinkTpedToBed(PlinkTask):
     Convert PLINK tped format to binary (bed), and only keep the sites that intersect with the modern SNPs.
 
     :type species: str
+    :type chrom: str
     """
     species = luigi.Parameter()
+    chrom = luigi.Parameter()
 
     def requires(self):
         yield PlinkVCFtoBED(self.species)
-        yield HaploToPlink(self.species)
+        yield HaploToPlink(self.species, self.chrom)
 
     def output(self):
         return [luigi.LocalTarget('data/plink/{}-ancient.{}'.format(self.basename, ext)) for ext in
@@ -214,7 +218,8 @@ class PlinkMergeBeds(PlinkTask):
 
     def requires(self):
         yield PlinkVCFtoBED(self.species)
-        yield PlinkTpedToBed(self.species)
+        for chrom in self.chromosomes:
+            yield PlinkTpedToBed(self.species, chrom)
 
     def output(self):
         return [luigi.LocalTarget('data/plink/{}-merged.{}'.format(self.basename, ext)) for ext in

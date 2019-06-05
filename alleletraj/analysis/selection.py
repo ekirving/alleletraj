@@ -15,6 +15,8 @@ from alleletraj.const import GENERATION_TIME
 from alleletraj.modern.demog import DadiDemography
 
 # number of replicate chains
+from alleletraj.qtl.load import MIN_DAF
+
 MCMC_REPLICATES = 4
 
 # number of MCMC cycles to run
@@ -180,7 +182,7 @@ class SelectionRunMCMC(utils.PipelineTask):
                        '-P', pop_file.path,     # path to population size history file
                        '-o', output_prefix,     # output file prefix
                        '-a',                    # flag to infer allele age
-                       '-A',                    # ascertainment flag
+                       '-A', MIN_DAF,           # ascertainment in modern individuals
                        '-n', self.n,            # number of MCMC cycles to run
                        '-s', self.s,            # frequency of sampling from the posterior
                        '-h', self.h,            # genetic model (additive, recessive, dominant)

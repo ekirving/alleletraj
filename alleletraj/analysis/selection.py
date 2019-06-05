@@ -84,13 +84,15 @@ class SelectionInputFile(utils.DatabaseTask):
         # NOTE some SNPs may be mispolarised, so we switch the derived/ancestral alleles in those cases
         derived = 'derived' if not self.mispolar else 'ancestral'
 
+        gen_time = GENERATION_TIME[self.species]
+
         # noinspection SqlResolve
         bins = self.dbc.get_records_sql("""
             # get the ancient frequencies in each bin
             SELECT SUM(sr.base = ms.{derived}) AS derived_count,
                    COUNT(sr.id) AS sample_size,
-                   sb.max,
-                   sb.min
+                   -(sb.max / (2 * {pop_size} * {gen_time})) AS max,
+                   -(sb.min / (2 * {pop_size} * {gen_time})) AS min                   
               FROM modern_snps ms
               JOIN sample_reads sr
                 ON sr.chrom = ms.chrom
@@ -114,7 +116,8 @@ class SelectionInputFile(utils.DatabaseTask):
                AND msd.population = '{population}'
 
           ORDER BY max
-        """.format(derived=derived, modsnp=self.modsnp, population=self.population, pop_size=pop_size), key=None)
+               """.format(derived=derived, modsnp=self.modsnp, population=self.population, pop_size=pop_size,
+                          gen_time=gen_time), key=None)
 
         if len(bins) < MCMC_MIN_BINS:
             raise RuntimeError('ERROR: Insufficient time bins to run `selection` (n={})'.format(len(bins)))

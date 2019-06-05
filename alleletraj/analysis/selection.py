@@ -189,8 +189,8 @@ class SelectionRunMCMC(utils.PipelineTask):
 
         except RuntimeError as e:
             # delete the unfinished *.time and *.traj files
-            time_file.remove()
-            traj_file.remove()
+            os.remove(utils.trim_ext(time_file.path))
+            os.remove(utils.trim_ext(traj_file.path))
 
             raise RuntimeError(e)
 

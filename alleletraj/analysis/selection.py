@@ -64,7 +64,7 @@ class SelectionInputFile(utils.DatabaseTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    mispolar = luigi.BoolParameter(default=False)
+    mispolar = luigi.BoolParameter()
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
@@ -140,6 +140,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type mispolar: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -214,6 +215,7 @@ class SelectionPlot(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type mispolar: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -222,12 +224,14 @@ class SelectionPlot(utils.PipelineTask):
     n = luigi.IntParameter(default=MCMC_CYCLES)
     s = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
     h = luigi.FloatParameter(default=MODEL_ADDITIVE)
+    mispolar = luigi.BoolParameter(default=False)
 
     resources = {'cpu-cores': 1, 'ram-gb': 64}
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
-        yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.chain, self.n, self.s, self.h)
+        yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.chain, self.n, self.s, self.h,
+                               self.mispolar)
 
     def output(self):
         return luigi.LocalTarget('data/pdf/{}.pdf'.format(self.basename))
@@ -293,7 +297,7 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
         for pop in self.list_populations(modern=True):
             for modsnp in modsnps:
                 for chain in range(MCMC_REPLICATES):
-                    yield SelectionPlot(self.species, pop, modsnp)
+                    yield SelectionPlot(self.species, pop, modsnp, chain)
 
 
 class SelectionExportSLURM(utils.PipelineWrapperTask):

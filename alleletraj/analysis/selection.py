@@ -13,11 +13,9 @@ from alleletraj import utils
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.const import GENERATION_TIME
 from alleletraj.modern.demog import DadiDemography
-from alleletraj.qtl.analyse import AnalyseQTLsPipeline
 
-# the population history is either: constant, or a fully specified complex demography
-MCMC_POP_CONST = 'const'
-MCMC_POP_DEMOG = 'demog'
+# number of replicate chains
+MCMC_REPLICATES = 4
 
 # number of MCMC cycles to run
 MCMC_CYCLES = int(5e7)
@@ -34,13 +32,10 @@ MCMC_PRINT = 1000
 # fraction of the allele frequency to update during a trajectory update move
 MCMC_FRACTION = 20
 
-# derived allele is
-MCMC_RECESSIVE = 0
-MCMC_ADDITIVE = 0.5
-MCMC_DOMINANT = 1
-
-# random number seed
-MCMC_RANDOM_SEED = 234395
+# genetic model
+MODEL_RECESSIVE = 0
+MODEL_ADDITIVE = 0.5
+MODEL_DOMINANT = 1
 
 # minimum number of time bins
 MCMC_MIN_BINS = 3
@@ -60,10 +55,16 @@ class SelectionInputFile(utils.DatabaseTask):
     2. the sample size (in haploid genomes)
     3. the most ancient end of the possible age of the sample (i.e. the oldest it could be)
     4. the most recent end of the possible age of the sample (i.e. the youngest it could be)
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type mispolar: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
-    modsnp_id = luigi.IntParameter()
+    modsnp = luigi.IntParameter()
+    mispolar = luigi.BoolParameter(default=False)
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
@@ -76,51 +77,51 @@ class SelectionInputFile(utils.DatabaseTask):
         # unpack the inputs
         (_, nref_file), _ = self.input()
 
-        gen_time = GENERATION_TIME[self.species]
-
         # get the Nref population size
         with nref_file.open() as fin:
             pop_size = int(fin.read())
 
-        # resolve pseudo-population DOM2WLD
-        pop_sql = self.population if self.population != 'DOM2WLD' else "DOM2', 'WILD"
+        # NOTE some SNPs may be mispolarised, so we switch the derived/ancestral alleles in those cases
+        derived = 'derived' if not self.mispolar else 'ancestral'
 
         # noinspection SqlResolve
         bins = self.dbc.get_records_sql("""
             # get the ancient frequencies in each bin
-            SELECT SUM(sr.base = ms.derived) AS derived_count,
+            SELECT SUM(sr.base = ms.{derived}) AS derived_count,
                    COUNT(sr.id) AS sample_size,
-                   -(age - (age % 500) + 500) / (2 * {pop_size} * {gen_time}) AS bin_high,
-                   -(age - (age % 500) + 1) / (2 * {pop_size} * {gen_time}) AS bin_low
+                   sb.max,
+                   sb.min
               FROM modern_snps ms
               JOIN sample_reads sr
                 ON sr.chrom = ms.chrom
                AND sr.site = ms.site
               JOIN samples s
                 ON s.id = sr.sample_id
-             WHERE ms.id = {modsnp_id}
-               AND s.age IS NOT NULL
-               AND s.population IN ('{pop_sql}')
-          GROUP BY bin_high
+              JOIN sample_bins sb
+                ON sb.id = s.bin_id  
+             WHERE ms.id = {modsnp}
+               AND s.population = '{population}'
+          GROUP BY sb.id
 
              UNION
 
             # add the modern frequency 
-            SELECT derived_count, ancestral_count + derived_count, 0, 0
+            SELECT {derived}_count, ancestral_count + derived_count, 0, 0
               FROM modern_snps ms
-             WHERE ms.id = {modsnp_id}
+              JOIN modern_snp_daf msd
+                ON msd.modsnp_id = ms.id
+             WHERE ms.id = {modsnp}
+               AND msd.population = '{population}'
 
-          ORDER BY bin_high
-               """.format(modsnp_id=self.modsnp_id, pop_sql=pop_sql, gen_time=gen_time,
-                          pop_size=pop_size), key=None)
+          ORDER BY max
+        """.format(derived=derived, modsnp=self.modsnp, population=self.population, pop_size=pop_size), key=None)
 
         if len(bins) < MCMC_MIN_BINS:
             raise RuntimeError('ERROR: Insufficient time bins to run `selection` (n={})'.format(len(bins)))
 
         # write the sample input file
-        with self.output().open('wb') as tsv_file:
-
-            fields = ['derived_count', 'sample_size', 'bin_high', 'bin_low']
+        with self.output().open('w') as tsv_file:
+            fields = ['derived_count', 'sample_size', 'max', 'min']
             writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
 
             # write the data to disk
@@ -131,46 +132,57 @@ class SelectionInputFile(utils.DatabaseTask):
 class SelectionRunMCMC(utils.PipelineTask):
     """
     Run `selection` for the given SNP.
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type chain: int
+    :type n: int
+    :type s: int
+    :type h: float
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
-    modsnp_id = luigi.IntParameter()
-    pop_hist = luigi.Parameter()
-    mcmc_cycles = luigi.IntParameter()
-    mcmc_freq = luigi.IntParameter()
+    modsnp = luigi.IntParameter()
+    chain = luigi.IntParameter()
+    n = luigi.IntParameter()
+    s = luigi.IntParameter()
+    h = luigi.FloatParameter()
+    mispolar = luigi.BoolParameter()
 
     def requires(self):
-        return SelectionInputFile(self.species, self.population, self.modsnp_id)
+        yield DadiDemography(self.species, self.population)
+        yield SelectionInputFile(self.species, self.population, self.modsnp, self.mispolar)
 
     def output(self):
         return [luigi.LocalTarget('data/selection/{}.{}'.format(self.basename, ext))
                 for ext in ['log', 'param', 'time.gz', 'traj.gz']]
 
     def run(self):
-
         # compose the input and output file paths
-        input_file = self.input().path
+        (pop_file, _), input_file = self.input()
         log_file, param_file, time_file, traj_file = self.output()
+
         output_prefix = utils.trim_ext(log_file.path)
 
-        # get path of the population history file
-        pop_hist = 'data/selection/{}-{}-{}.pop'.format(self.species, self.population, self.pop_hist)
+        # make a deterministic random seed
+        seed = int('{}{}'.format(self.modsnp, self.chain))
 
         try:
             with log_file.open('w') as fout:
                 # run `selection`
                 cmd = ['sr',
-                       '-D', input_file,        # path to data input file
-                       '-P', pop_hist,          # path to population size history file
+                       '-D', input_file.path,   # path to data input file
+                       '-P', pop_file.path,     # path to population size history file
                        '-o', output_prefix,     # output file prefix
                        '-a',                    # flag to infer allele age
                        '-A',                    # ascertainment flag
-                       '-h', MCMC_ADDITIVE,     # assume derived allele is additive
-                       '-n', self.mcmc_cycles,  # number of MCMC cycles to run
-                       '-s', self.mcmc_freq,    # frequency of sampling from the posterior
+                       '-n', self.n,            # number of MCMC cycles to run
+                       '-s', self.s,            # frequency of sampling from the posterior
+                       '-h', self.h,            # genetic model (additive, recessive, dominant)
                        '-f', MCMC_PRINT,        # frequency of printing output to the screen
                        '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory move
-                       '-e', MCMC_RANDOM_SEED]  # random number seed
+                       '-e', seed]              # random number seed
 
                 utils.run_cmd(cmd, stdout=fout)
 
@@ -195,22 +207,27 @@ class SelectionPlot(utils.PipelineTask):
     """
     Plot the allele trajectory.
 
-    :type mcmc_cycles: int
-    :type mcmc_freq: int
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type chain: int
+    :type n: int
+    :type s: int
+    :type h: float
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
-    modsnp_id = luigi.IntParameter()
-    pop_hist = luigi.Parameter(default=MCMC_POP_CONST)
-    mcmc_cycles = luigi.IntParameter(default=MCMC_CYCLES)
-    mcmc_freq = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
+    modsnp = luigi.IntParameter()
+    chain = luigi.IntParameter()
+    n = luigi.IntParameter(default=MCMC_CYCLES)
+    s = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
+    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
 
     resources = {'cpu-cores': 1, 'ram-gb': 64}
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
-        yield SelectionRunMCMC(self.species, self.population, self.modsnp_id, self.pop_hist, self.mcmc_cycles,
-                               self.mcmc_freq)
+        yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.chain, self.n, self.s, self.h)
 
     def output(self):
         return luigi.LocalTarget('data/pdf/{}.pdf'.format(self.basename))
@@ -220,7 +237,7 @@ class SelectionPlot(utils.PipelineTask):
         (_, nref_file), _ = self.input()
 
         # compose the input and output file paths
-        input_file = 'data/selection/{}-{}-{}.input'.format(self.species, self.population, self.modsnp_id)
+        input_file = 'data/selection/{}-{}-{}.input'.format(self.species, self.population, self.modsnp)
         output_prefix = utils.trim_ext(self.input()[0].path)
 
         gen_time = GENERATION_TIME[self.species]
@@ -229,7 +246,7 @@ class SelectionPlot(utils.PipelineTask):
         with nref_file.open() as fin:
             pop_size = int(fin.read())
 
-        burn_in = (self.mcmc_cycles / self.mcmc_freq) * MCMC_BURN_IN
+        burn_in = (self.n / self.s) * MCMC_BURN_IN
 
         try:
             # plot the allele trajectory
@@ -259,7 +276,7 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
 
     def requires(self):
 
-        # get the modsnp_id for every GWAS hit
+        # get the modsnp id for every GWAS hit
         modsnps = self.dbc.get_records_sql("""
             SELECT DISTINCT ms.id
               FROM qtls q
@@ -274,34 +291,9 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
                AND q.valid = 1""")
 
         for pop in self.list_populations(modern=True):
-            for modsnp_id in modsnps:
-                yield SelectionPlot(self.species, pop, modsnp_id, MCMC_POP_CONST)
-
-
-class SelectionBestQTLSNPs(utils.PipelineWrapperTask):
-    """
-    Run `selection` on all the 'best' QTL SNPs.
-
-    :type species: str
-    """
-    species = luigi.Parameter()
-
-    def requires(self):
-        # mark the best SNPs
-        yield AnalyseQTLsPipeline(self.species)
-
-        # get the modsnp_id for every GWAS hit
-        modsnps = self.dbc.get_records_sql("""
-            SELECT DISTINCT qs.modsnp_id AS id
-              FROM qtls q
-              JOIN qtl_snps qs
-                ON qs.qtl_id = q.id
-               AND qs.best IS NOT NULL
-             WHERE q.associationType = 'Association'
-               AND q.valid = 1""")
-
-        for modsnp_id in modsnps:
-            yield SelectionPlot(self.species, 'DOM2WLD', modsnp_id, MCMC_POP_CONST)
+            for modsnp in modsnps:
+                for chain in range(MCMC_REPLICATES):
+                    yield SelectionPlot(self.species, pop, modsnp)
 
 
 class SelectionExportSLURM(utils.PipelineWrapperTask):

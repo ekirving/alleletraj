@@ -19,20 +19,20 @@ from alleletraj.qtl.load import MIN_DAF
 MCMC_REPLICATES = 4
 
 # number of MCMC cycles to run
-MCMC_CYCLES = 50000  # int(5e7)  # TODO fix me
+MCMC_CYCLES = int(5e7)
 
 # fraction of MCMC cycles to discard as burn in
 MCMC_BURN_IN = 0.2
 
-# thinning in analytically unnecessary, but makes the MCMC runs much faster
+# thinning in analytically unnecessary, but makes the MCMC run much faster
 # see https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.2041-210X.2011.00131.x
-MCMC_THIN = 100
+MCMC_THIN = 1000
 
 # frequency of printing output to the screen
 MCMC_PRINT = 1000
 
 # fraction of the allele frequency to update during a trajectory update move
-MCMC_FRACTION = 20
+MCMC_FRACTION = 20  # TODO what units is this in?
 
 # genetic model
 MODEL_RECESSIVE = 0

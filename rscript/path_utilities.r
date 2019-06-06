@@ -1,5 +1,5 @@
-require(DAAG)
-require(expm)
+require(DAAG, quietly=T)
+require(expm, quietly=T)
 
 ####################MCMC UTILITIES############################
 

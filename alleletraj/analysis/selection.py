@@ -244,7 +244,7 @@ class SelectionPlot(utils.PipelineTask):
                                self.chain)
 
     def output(self):
-        return luigi.LocalTarget('data/pdf/selection/{}.pdf'.format(self.basename))
+        return luigi.LocalTarget('data/pdf/selection/{}-traj.pdf'.format(self.basename))
 
     def run(self):
         # unpack the inputs

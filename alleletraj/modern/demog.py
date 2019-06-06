@@ -196,7 +196,7 @@ class DadiEpochMaximumLikelihood(utils.PipelineTask):
     epoch = luigi.IntParameter()
 
     def requires(self):
-        for n in range(1, int(DADI_REPLICATES) + 1):
+        for n in range(1, DADI_REPLICATES + 1):
             yield DadiEpochOptimizeParams(self.species, self.population, self.folded, self.epoch, n)
 
     def output(self):

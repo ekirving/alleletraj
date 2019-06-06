@@ -19,7 +19,7 @@ from alleletraj.qtl.load import MIN_DAF
 MCMC_REPLICATES = 4
 
 # number of MCMC cycles to run
-MCMC_CYCLES = int(5e7)
+MCMC_CYCLES = 50000  # int(5e7)  # TODO fix me
 
 # fraction of MCMC cycles to discard as burn in
 MCMC_BURN_IN = 0.2
@@ -141,20 +141,20 @@ class SelectionRunMCMC(utils.PipelineTask):
     :type species: str
     :type population: str
     :type modsnp: int
-    :type chain: int
     :type n: int
     :type s: int
     :type h: float
     :type mispolar: bool
+    :type chain: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    chain = luigi.IntParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
     mispolar = luigi.BoolParameter()
+    chain = luigi.IntParameter()
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
@@ -220,27 +220,27 @@ class SelectionPlot(utils.PipelineTask):
     :type species: str
     :type population: str
     :type modsnp: int
-    :type chain: int
     :type n: int
     :type s: int
     :type h: float
     :type mispolar: bool
+    :type chain: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    chain = luigi.IntParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
     mispolar = luigi.BoolParameter()
+    chain = luigi.IntParameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 64}  # TODO need to refactor Josh's code to fix massive memory requirement
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
-        yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.chain, self.n, self.s, self.h,
-                               self.mispolar)
+        yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar,
+                               self.chain)
 
     def output(self):
         return luigi.LocalTarget('data/pdf/selection/{}.pdf'.format(self.basename))
@@ -260,7 +260,7 @@ class SelectionPlot(utils.PipelineTask):
         with nref_file.open() as fin:
             pop_size = int(fin.read())
 
-        burn_in = (self.n / self.s) * MCMC_BURN_IN
+        burn_in = self.n * MCMC_BURN_IN
 
         try:
             # plot the allele trajectory
@@ -289,25 +289,28 @@ class SelectionDiagnostics(utils.PipelineTask):
     :type species: str
     :type population: str
     :type modsnp: int
-    :type chain: int
     :type n: int
     :type s: int
     :type h: float
     :type mispolar: bool
+    :type chain: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    chain = luigi.IntParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
     mispolar = luigi.BoolParameter()
+    chain = luigi.IntParameter()
 
     def requires(self):
-        return SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar)
+        return SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar,
+                                self.chain)
 
     def output(self):
+        yield self.input()[0]  # pass along the param file
+        yield luigi.LocalTarget('data/selection/{}.diag'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}.ess'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-ess-burn.pdf'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-autocorr.pdf'.format(self.basename))
@@ -316,24 +319,25 @@ class SelectionDiagnostics(utils.PipelineTask):
     def run(self):
         # unpack the params
         param_file, _, _, _ = self.input()
-        ess_file, ess_pdf, autocorr_pdf, trace_pdf = self.output()
+        _, diag_file, ess_file, ess_pdf, autocorr_pdf, trace_pdf = self.output()
 
-        burn_in = (self.n / self.s) * MCMC_BURN_IN
+        burn_in = self.n * MCMC_BURN_IN
 
-        utils.run_cmd(['Rscript',
-                       'rscript/mcmc_diagnostics.R',
-                       param_file.path,
-                       burn_in,
-                       self.s,
-                       ess_file.path,
-                       ess_pdf.path,
-                       autocorr_pdf.path,
-                       trace_pdf.path])
+        with diag_file.temporary_path() as diag_path:
+            utils.run_cmd(['Rscript',
+                           'rscript/mcmc_diagnostics.R',
+                           param_file.path,
+                           burn_in,
+                           self.s,
+                           ess_file.path,
+                           ess_pdf.path,
+                           autocorr_pdf.path,
+                           trace_pdf.path], stdout=open(diag_path, 'w'))
 
 
-class SelectionCodaPSRF(utils.PipelineTask):
+class SelectionPSRF(utils.PipelineTask):
     """
-    Calculate the Potential Scale Reduction Factor (PSRF) for all replicate chains.
+    Calculate the Potential Scale Reduction Factor (PSRF) for all the replicate chains.
 
     AKA. the Gelman and Rubin's convergence diagnostic.
 
@@ -342,7 +346,6 @@ class SelectionCodaPSRF(utils.PipelineTask):
     :type species: str
     :type population: str
     :type modsnp: int
-    :type chain: int
     :type n: int
     :type s: int
     :type h: float
@@ -357,15 +360,32 @@ class SelectionCodaPSRF(utils.PipelineTask):
     mispolar = luigi.BoolParameter(default=False)
 
     def requires(self):
-        for chain in range(MCMC_REPLICATES):
-            yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar)
+        for chain in range(1, MCMC_REPLICATES + 1):
+            yield SelectionDiagnostics(self.species, self.population, self.modsnp, self.n, self.s, self.h,
+                                       self.mispolar, chain)
 
     def output(self):
-        pass # TODO fix me
+        yield luigi.LocalTarget('data/selection/{}-chainAll.diag'.format(self.basename))
+        yield luigi.LocalTarget('data/selection/{}-chainAll.ess'.format(self.basename))
+        yield luigi.LocalTarget('data/selection/{}-chainAll.psrf'.format(self.basename))
+        yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-trace.pdf'.format(self.basename))
+        yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-gelman.pdf'.format(self.basename))
 
     def run(self):
-        # TODO measure PSRF
-        pass
+        param_paths = [param_file.path for param_file, _, _, _, _, _ in self.input()]
+        diag_file, ess_file, psrf_file, trace_pdf, gelman_pdf = self.output()
+
+        burn_in = self.n * MCMC_BURN_IN
+
+        with diag_file.temporary_path() as diag_path:
+            utils.run_cmd(['Rscript',
+                           'rscript/mcmc_gelman.R',
+                           burn_in,
+                           self.s,
+                           ess_file.path,
+                           psrf_file.path,
+                           trace_pdf.path,
+                           gelman_pdf.path] + param_paths, stdout=open(diag_path, 'w'))
 
 
 class SelectionGWASSNPs(utils.PipelineWrapperTask):
@@ -394,7 +414,7 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
 
         for pop in self.list_populations(modern=True):
             for modsnp in modsnps:
-                yield SelectionCodaPSRF(self.species, pop, modsnp)
+                yield SelectionPSRF(self.species, pop, modsnp)
 
 
 class SelectionExportSLURM(utils.PipelineWrapperTask):

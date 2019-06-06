@@ -239,6 +239,7 @@ class SelectionPlot(utils.PipelineTask):
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
+        yield SelectionInputFile(self.species, self.population, self.modsnp)
         yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar,
                                self.chain)
 
@@ -247,18 +248,18 @@ class SelectionPlot(utils.PipelineTask):
 
     def run(self):
         # unpack the inputs
-        (_, nref_file), _ = self.input()
+        (_, nref_file), input_file, (param_file, _, _, _) = self.input()
         pdf_file = self.output()
 
         # compose the input and output file paths
-        input_file = 'data/selection/{}-{}-{}.input'.format(self.species, self.population, self.modsnp)  # TODO fix me
-        output_prefix = utils.trim_ext(self.input()[0].path)
-
-        gen_time = GENERATION_TIME[self.species]
+        output_prefix = utils.trim_ext(param_file.path, 2)
 
         # get the Nref population size
         with nref_file.open() as fin:
             pop_size = int(fin.read())
+
+        # time is measured in diffusion units
+        units = 2 * pop_size * GENERATION_TIME[self.species]
 
         burn_in = self.n * MCMC_BURN_IN
 
@@ -266,11 +267,12 @@ class SelectionPlot(utils.PipelineTask):
             # plot the allele trajectory
             utils.run_cmd(['Rscript',
                            'rscript/plot-selection.R',
-                           input_file,
+                           input_file.path,
                            output_prefix,
-                           gen_time,
-                           pop_size,
-                           burn_in])
+                           units,
+                           burn_in,
+                           self.s,
+                           pdf_file.path])
 
         except RuntimeError as e:
             # delete the broken PDF

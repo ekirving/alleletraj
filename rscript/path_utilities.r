@@ -29,9 +29,9 @@ make_command_string = function(sam_times,sam_sizes,sam_counts,outFile,dt=.001,n=
 #reads sampled paths from MCMC
 #outname should be the PREFIX, it automatically reads both times and trajectories
 read.path = function(outname,n=-1L) {
-	traj = readLines(paste(outname,".traj",sep=""),n=n)
+	traj = readLines(paste(outname,".traj.gz",sep=""),n=n)
 	traj = lapply(traj, function(x) {temp = as.numeric(unlist(strsplit(x,split=" "))); temp[2:length(temp)]})
-	time = readLines(paste(outname,".time",sep=""),n=n)
+	time = readLines(paste(outname,".time.gz",sep=""),n=n)
 	time = lapply(time, function(x) {temp = as.numeric(unlist(strsplit(x,split=" "))); temp[2:length(temp)]})
 	return(list(traj=traj,time=time))
 }

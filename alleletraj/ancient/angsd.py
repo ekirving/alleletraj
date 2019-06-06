@@ -50,6 +50,7 @@ class CallAncientGenotypes(utils.DatabaseTask):
             for bam_file, _ in bam_files:
                 fout.write(bam_file.path + '\n')
 
+        # TODO set a random seed?
         # NOTE using a regions file is crazy slow, so call all sites and extract just the VCF SNPs in PlinkTpedToBed()
         cmd = ['angsd',
                '-nThreads',    self.resources['cpu-cores'],

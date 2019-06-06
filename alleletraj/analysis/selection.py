@@ -171,8 +171,11 @@ class SelectionRunMCMC(utils.PipelineTask):
 
         output_prefix = utils.trim_ext(log_file.path)
 
-        # make a deterministic random seed
+        # make a deterministic random seed (helps keep everything easily reproducible)
         seed = int('{}{}'.format(self.modsnp, self.chain))
+
+        time_path = utils.trim_ext(time_file.path)
+        traj_path = utils.trim_ext(traj_file.path)
 
         try:
             with log_file.open('w') as fout:
@@ -193,20 +196,16 @@ class SelectionRunMCMC(utils.PipelineTask):
                 utils.run_cmd(cmd, stdout=fout)
 
         except RuntimeError as e:
-            # delete the unfinished *.time and *.traj files
-            os.remove(utils.trim_ext(time_file.path))
-            os.remove(utils.trim_ext(traj_file.path))
+            # delete the unfinished .time and .traj files (as these can be very large)
+            os.remove(time_path)
+            os.remove(traj_path)
 
             raise RuntimeError(e)
 
         else:
-            # gzip the output files
-            utils.run_cmd(['gzip {}'.format(time_file.path)], shell=True)
-            utils.run_cmd(['gzip {}'.format(traj_file.path)], shell=True)
-
-            # TODO measure ESS and enforce threshold
-            # https://www.rdocumentation.org/packages/LaplacesDemon/versions/16.1.0/topics/ESS
-            # https://cran.r-project.org/web/packages/coda/index.html
+            # gzip the .time and .traj files
+            utils.run_cmd(['gzip', time_path])
+            utils.run_cmd(['gzip', traj_path])
 
 
 class SelectionPlot(utils.PipelineTask):
@@ -226,12 +225,12 @@ class SelectionPlot(utils.PipelineTask):
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
     chain = luigi.IntParameter()
-    n = luigi.IntParameter(default=MCMC_CYCLES)
-    s = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
-    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
-    mispolar = luigi.BoolParameter(default=False)
+    n = luigi.IntParameter()
+    s = luigi.IntParameter()
+    h = luigi.FloatParameter()
+    mispolar = luigi.BoolParameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 64}
+    resources = {'cpu-cores': 1, 'ram-gb': 64}  # TODO need to refactor Josh's code to fix massive memory requirement
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
@@ -239,11 +238,12 @@ class SelectionPlot(utils.PipelineTask):
                                self.mispolar)
 
     def output(self):
-        return luigi.LocalTarget('data/pdf/{}.pdf'.format(self.basename))
+        return luigi.LocalTarget('data/pdf/selection/{}.pdf'.format(self.basename))
 
     def run(self):
         # unpack the inputs
         (_, nref_file), _ = self.input()
+        pdf_file = self.output()
 
         # compose the input and output file paths
         input_file = 'data/selection/{}-{}-{}.input'.format(self.species, self.population, self.modsnp)
@@ -269,10 +269,86 @@ class SelectionPlot(utils.PipelineTask):
 
         except RuntimeError as e:
             # delete the broken PDF
-            if os.path.isfile(self.output().path):
-                self.output().remove()
+            if os.path.isfile(pdf_file.path):
+                pdf_file.remove()
 
             raise RuntimeError(e)
+
+
+class SelectionCodaESS(utils.PipelineTask):
+    """
+    Calculate the Effective Sample Size (ESS) of an MCMC chain.
+
+    https://www.rdocumentation.org/packages/coda/versions/0.19-2/topics/effectiveSize
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type chain: int
+    :type n: int
+    :type s: int
+    :type h: float
+    :type mispolar: bool
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    modsnp = luigi.IntParameter()
+    n = luigi.IntParameter(default=MCMC_CYCLES)
+    s = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
+    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
+    mispolar = luigi.BoolParameter(default=False)
+
+    def requires(self):
+        return SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar)
+
+    def output(self):
+        pass # TODO fix me
+
+    def run(self):
+        # unpack the inputs
+        (_, nref_file), _ = self.input()
+
+        # TODO measure ESS and enforce threshold
+        utils.run_cmd(['Rscript', 'rscript/plot-age-derived.R', utils.trim_ext(pdf_file.path)])
+
+
+class SelectionCodaPSRF(utils.PipelineTask):
+    """
+    Calculate the Potential Scale Reduction Factor (PSRF) for all replicate chains.
+
+    AKA. the Gelman and Rubin's convergence diagnostic.
+
+    https://www.rdocumentation.org/packages/coda/versions/0.19-2/topics/gelman.diag
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type chain: int
+    :type n: int
+    :type s: int
+    :type h: float
+    :type mispolar: bool
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    modsnp = luigi.IntParameter()
+    n = luigi.IntParameter(default=MCMC_CYCLES)
+    s = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
+    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
+    mispolar = luigi.BoolParameter(default=False)
+
+    def requires(self):
+        for chain in range(MCMC_REPLICATES):
+            yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar)
+
+    def output(self):
+        pass # TODO fix me
+
+    def run(self):
+        # unpack the inputs
+        (_, nref_file), _ = self.input()
+
+        # TODO measure PSRF
 
 
 class SelectionGWASSNPs(utils.PipelineWrapperTask):
@@ -301,8 +377,7 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
 
         for pop in self.list_populations(modern=True):
             for modsnp in modsnps:
-                for chain in range(MCMC_REPLICATES):
-                    yield SelectionPlot(self.species, pop, modsnp, chain)
+                yield SelectionCodaPSRF(self.species, pop, modsnp)
 
 
 class SelectionExportSLURM(utils.PipelineWrapperTask):

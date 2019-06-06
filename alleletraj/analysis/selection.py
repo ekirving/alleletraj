@@ -13,20 +13,20 @@ from alleletraj import utils
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.const import GENERATION_TIME
 from alleletraj.modern.demog import DadiDemography
-
-# number of replicate chains
 from alleletraj.qtl.load import MIN_DAF
 
+# number of independent MCMC replicates to run
 MCMC_REPLICATES = 4
 
 # number of MCMC cycles to run
 MCMC_CYCLES = int(5e7)
 
-# frequency of sampling from the posterior
-MCMC_SAMPLE_FREQ = 10000
-
 # fraction of MCMC cycles to discard as burn in
 MCMC_BURN_IN = 0.2
+
+# thinning in analytically unnecessary, but makes the MCMC runs much faster
+# see https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.2041-210X.2011.00131.x
+MCMC_THIN = 100
 
 # frequency of printing output to the screen
 MCMC_PRINT = 1000
@@ -83,18 +83,19 @@ class SelectionInputFile(utils.DatabaseTask):
         with nref_file.open() as fin:
             pop_size = int(fin.read())
 
+        # time is measured in diffusion units
+        units = 2 * pop_size * GENERATION_TIME[self.species]
+
         # NOTE some SNPs may be mispolarised, so we switch the derived/ancestral alleles in those cases
         derived = 'derived' if not self.mispolar else 'ancestral'
-
-        gen_time = GENERATION_TIME[self.species]
 
         # noinspection SqlResolve
         bins = self.dbc.get_records_sql("""
             # get the ancient frequencies in each bin
             SELECT SUM(sr.base = ms.{derived}) AS derived_count,
                    COUNT(sr.id) AS sample_size,
-                   -(sb.max / (2 * {pop_size} * {gen_time})) AS max,
-                   -(sb.min / (2 * {pop_size} * {gen_time})) AS min                   
+                   -(sb.max / {units}) AS max,
+                   -(sb.min / {units}) AS min                   
               FROM modern_snps ms
               JOIN sample_reads sr
                 ON sr.chrom = ms.chrom
@@ -118,8 +119,7 @@ class SelectionInputFile(utils.DatabaseTask):
                AND msd.population = '{population}'
 
           ORDER BY max
-               """.format(derived=derived, modsnp=self.modsnp, population=self.population, pop_size=pop_size,
-                          gen_time=gen_time), key=None)
+               """.format(derived=derived, modsnp=self.modsnp, population=self.population, units=units), key=None)
 
         if len(bins) < MCMC_MIN_BINS:
             raise RuntimeError('ERROR: Insufficient time bins to run `selection` (n={})'.format(len(bins)))
@@ -162,18 +162,19 @@ class SelectionRunMCMC(utils.PipelineTask):
 
     def output(self):
         return [luigi.LocalTarget('data/selection/{}.{}'.format(self.basename, ext))
-                for ext in ['log', 'param', 'time.gz', 'traj.gz']]
+                for ext in ['param.gz', 'time.gz', 'traj.gz', 'log']]
 
     def run(self):
         # compose the input and output file paths
         (pop_file, _), input_file = self.input()
-        log_file, param_file, time_file, traj_file = self.output()
+        param_file, time_file, traj_file, log_file = self.output()
 
         output_prefix = utils.trim_ext(log_file.path)
 
         # make a deterministic random seed (helps keep everything easily reproducible)
         seed = int('{}{}'.format(self.modsnp, self.chain))
 
+        param_path = utils.trim_ext(param_file.path)
         time_path = utils.trim_ext(time_file.path)
         traj_path = utils.trim_ext(traj_file.path)
 
@@ -200,10 +201,14 @@ class SelectionRunMCMC(utils.PipelineTask):
             os.remove(time_path)
             os.remove(traj_path)
 
+            # but keep the param file, as this may be useful for diagnosing the error
+            utils.run_cmd(['gzip', param_path])
+
             raise RuntimeError(e)
 
         else:
-            # gzip the .time and .traj files
+            # gzip the output files
+            utils.run_cmd(['gzip', param_path])
             utils.run_cmd(['gzip', time_path])
             utils.run_cmd(['gzip', traj_path])
 
@@ -246,7 +251,7 @@ class SelectionPlot(utils.PipelineTask):
         pdf_file = self.output()
 
         # compose the input and output file paths
-        input_file = 'data/selection/{}-{}-{}.input'.format(self.species, self.population, self.modsnp)
+        input_file = 'data/selection/{}-{}-{}.input'.format(self.species, self.population, self.modsnp)  # TODO fix me
         output_prefix = utils.trim_ext(self.input()[0].path)
 
         gen_time = GENERATION_TIME[self.species]
@@ -275,11 +280,11 @@ class SelectionPlot(utils.PipelineTask):
             raise RuntimeError(e)
 
 
-class SelectionCodaESS(utils.PipelineTask):
+class SelectionDiagnostics(utils.PipelineTask):
     """
-    Calculate the Effective Sample Size (ESS) of an MCMC chain.
+    Diagnostics for an MCMC run.
 
-    https://www.rdocumentation.org/packages/coda/versions/0.19-2/topics/effectiveSize
+    Calculate effective sample size (ESS), and plot ESS vs. burn in, autocorrelation, and traces.
 
     :type species: str
     :type population: str
@@ -293,23 +298,37 @@ class SelectionCodaESS(utils.PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    n = luigi.IntParameter(default=MCMC_CYCLES)
-    s = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
-    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
-    mispolar = luigi.BoolParameter(default=False)
+    chain = luigi.IntParameter()
+    n = luigi.IntParameter()
+    s = luigi.IntParameter()
+    h = luigi.FloatParameter()
+    mispolar = luigi.BoolParameter()
 
     def requires(self):
         return SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar)
 
     def output(self):
-        pass # TODO fix me
+        yield luigi.LocalTarget('data/selection/{}.ess'.format(self.basename))
+        yield luigi.LocalTarget('data/pdf/selection/{}-ess-burn.pdf'.format(self.basename))
+        yield luigi.LocalTarget('data/pdf/selection/{}-autocorr.pdf'.format(self.basename))
+        yield luigi.LocalTarget('data/pdf/selection/{}-trace.pdf'.format(self.basename))
 
     def run(self):
-        # unpack the inputs
-        (_, nref_file), _ = self.input()
+        # unpack the params
+        param_file, _, _, _ = self.input()
+        ess_file, ess_pdf, autocorr_pdf, trace_pdf = self.output()
 
-        # TODO measure ESS and enforce threshold
-        utils.run_cmd(['Rscript', 'rscript/plot-age-derived.R', utils.trim_ext(pdf_file.path)])
+        burn_in = (self.n / self.s) * MCMC_BURN_IN
+
+        utils.run_cmd(['Rscript',
+                       'rscript/mcmc_diagnostics.R',
+                       param_file.path,
+                       burn_in,
+                       self.s,
+                       ess_file.path,
+                       ess_pdf.path,
+                       autocorr_pdf.path,
+                       trace_pdf.path])
 
 
 class SelectionCodaPSRF(utils.PipelineTask):
@@ -333,7 +352,7 @@ class SelectionCodaPSRF(utils.PipelineTask):
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
     n = luigi.IntParameter(default=MCMC_CYCLES)
-    s = luigi.IntParameter(default=MCMC_SAMPLE_FREQ)
+    s = luigi.IntParameter(default=MCMC_THIN)
     h = luigi.FloatParameter(default=MODEL_ADDITIVE)
     mispolar = luigi.BoolParameter(default=False)
 
@@ -345,10 +364,8 @@ class SelectionCodaPSRF(utils.PipelineTask):
         pass # TODO fix me
 
     def run(self):
-        # unpack the inputs
-        (_, nref_file), _ = self.input()
-
         # TODO measure PSRF
+        pass
 
 
 class SelectionGWASSNPs(utils.PipelineWrapperTask):

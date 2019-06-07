@@ -21,6 +21,7 @@ nohup*
 *test*
 misc
 bash
+*.bak
 
 # serialised data
 *.pickle

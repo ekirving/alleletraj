@@ -443,6 +443,39 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
                         yield SelectionPSRF(self.species, pop, modsnp, no_modern=no_modern, mispolar=True)
 
 
+class SelectionInputFilePipeline(utils.PipelineWrapperTask):
+    """
+    Generate the input files
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+
+        # get the modsnp id for every GWAS hit
+        modsnps = self.dbc.get_records_sql("""
+            SELECT DISTINCT ms.id, ms.mispolar
+              FROM qtls q
+              JOIN qtl_snps qs
+                ON qs.qtl_id = q.id
+              JOIN modern_snps ms
+                ON qs.modsnp_id = ms.id 
+              JOIN ensembl_variants ev              
+                ON ms.variant_id = ev.id
+               AND ev.rsnumber = q.peak
+             WHERE q.associationType = 'Association'
+               AND q.valid = 1""")
+
+        for pop in self.list_populations(modern=True):
+            for modsnp in modsnps:
+                for no_modern in [True, False]:
+                    yield SelectionInputFile(self.species, pop, modsnp, no_modern=no_modern, mispolar=False)
+
+                    if modsnps[modsnp]['mispolar']:
+                        yield SelectionInputFile(self.species, pop, modsnp, no_modern=no_modern, mispolar=True)
+
+
 class SelectionExportSLURM(utils.PipelineWrapperTask):
     """
     Export a script for batch running `selection` on the HPC, using SLURM.

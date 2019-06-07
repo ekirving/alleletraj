@@ -61,11 +61,13 @@ class SelectionInputFile(utils.DatabaseTask):
     :type species: str
     :type population: str
     :type modsnp: int
+    :type no_modern: bool
     :type mispolar: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
 
     def requires(self):
@@ -89,8 +91,14 @@ class SelectionInputFile(utils.DatabaseTask):
         # NOTE some SNPs may be mispolarised, so we switch the derived/ancestral alleles in those cases
         derived = 'derived' if not self.mispolar else 'ancestral'
 
-        # noinspection SqlResolve
-        bins = self.dbc.get_records_sql("""
+        params = {
+            'derived': derived,
+            'modsnp': self.modsnp,
+            'population': self.population,
+            'units': units,
+        }
+
+        sql = """
             # get the ancient frequencies in each bin
             SELECT SUM(sr.base = ms.{derived}) AS derived_count,
                    COUNT(sr.id) AS sample_size,
@@ -107,19 +115,23 @@ class SelectionInputFile(utils.DatabaseTask):
              WHERE ms.id = {modsnp}
                AND s.population = '{population}'
           GROUP BY sb.id
+               """.format(**params)
 
-             UNION
-
-            # add the modern frequency 
+        # noinspection SqlResolve
+        modern_sql = """
+            # get the modern frequencies
             SELECT {derived}_count, ancestral_count + derived_count, 0, 0
               FROM modern_snps ms
               JOIN modern_snp_daf msd
                 ON msd.modsnp_id = ms.id
              WHERE ms.id = {modsnp}
                AND msd.population = '{population}'
+               """.format(**params)
 
-          ORDER BY max
-               """.format(derived=derived, modsnp=self.modsnp, population=self.population, units=units), key=None)
+        if not self.no_modern:
+            sql += " UNION " + modern_sql
+
+        bins = self.dbc.get_records_sql(sql + " ORDER BY max", key=None)
 
         if len(bins) < MCMC_MIN_BINS:
             raise RuntimeError('ERROR: Insufficient time bins to run `selection` (n={})'.format(len(bins)))
@@ -144,6 +156,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type no_modern: bool
     :type mispolar: bool
     :type chain: int
     """
@@ -153,12 +166,13 @@ class SelectionRunMCMC(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
     chain = luigi.IntParameter()
 
     def requires(self):
         yield DadiDemography(self.species, self.population)
-        yield SelectionInputFile(self.species, self.population, self.modsnp, self.mispolar)
+        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
 
     def output(self):
         return [luigi.LocalTarget('data/selection/{}.{}'.format(self.basename, ext))
@@ -223,6 +237,7 @@ class SelectionPlot(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type no_modern: bool
     :type mispolar: bool
     :type chain: int
     """
@@ -232,6 +247,7 @@ class SelectionPlot(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
     chain = luigi.IntParameter()
 
@@ -240,8 +256,8 @@ class SelectionPlot(utils.PipelineTask):
     def requires(self):
         yield DadiDemography(self.species, self.population)
         yield SelectionInputFile(self.species, self.population, self.modsnp)
-        yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar,
-                               self.chain)
+        yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.no_modern,
+                               self.mispolar, self.chain)
 
     def output(self):
         return luigi.LocalTarget('data/pdf/selection/{}-traj.pdf'.format(self.basename))
@@ -294,6 +310,7 @@ class SelectionDiagnostics(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type no_modern: bool
     :type mispolar: bool
     :type chain: int
     """
@@ -303,12 +320,13 @@ class SelectionDiagnostics(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
     chain = luigi.IntParameter()
 
     def requires(self):
-        return SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.mispolar,
-                                self.chain)
+        return SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.no_modern,
+                                self.mispolar, self.chain)
 
     def output(self):
         yield self.input()[0]  # pass along the param file
@@ -351,6 +369,7 @@ class SelectionPSRF(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type no_modern: bool
     :type mispolar: bool
     """
     species = luigi.Parameter()
@@ -359,12 +378,13 @@ class SelectionPSRF(utils.PipelineTask):
     n = luigi.IntParameter(default=MCMC_CYCLES)
     s = luigi.IntParameter(default=MCMC_THIN)
     h = luigi.FloatParameter(default=MODEL_ADDITIVE)
+    no_modern = luigi.BoolParameter(default=False)
     mispolar = luigi.BoolParameter(default=False)
 
     def requires(self):
         for chain in range(1, MCMC_REPLICATES + 1):
             yield SelectionDiagnostics(self.species, self.population, self.modsnp, self.n, self.s, self.h,
-                                       self.mispolar, chain)
+                                       self.no_modern, self.mispolar, chain)
 
     def output(self):
         yield luigi.LocalTarget('data/selection/{}-chainAll.diag'.format(self.basename))
@@ -402,21 +422,25 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
 
         # get the modsnp id for every GWAS hit
         modsnps = self.dbc.get_records_sql("""
-            SELECT DISTINCT ms.id
+            SELECT DISTINCT ms.id, ms.mispolar
               FROM qtls q
-              JOIN ensembl_variants ev 
-                ON ev.rsnumber = q.peak
-              JOIN modern_snps ms
-                ON ms.variant_id = ev.id
               JOIN qtl_snps qs
                 ON qs.qtl_id = q.id
-               AND qs.modsnp_id = ms.id 
+              JOIN modern_snps ms
+                ON qs.modsnp_id = ms.id 
+              JOIN ensembl_variants ev              
+                ON ms.variant_id = ev.id
+               AND ev.rsnumber = q.peak
              WHERE q.associationType = 'Association'
                AND q.valid = 1""")
 
         for pop in self.list_populations(modern=True):
             for modsnp in modsnps:
-                yield SelectionPSRF(self.species, pop, modsnp)
+                for no_modern in [True, False]:
+                    yield SelectionPSRF(self.species, pop, modsnp, no_modern=no_modern)
+
+                    if modsnps[modsnp]['mispolar']:
+                        yield SelectionPSRF(self.species, pop, modsnp, no_modern=no_modern, mispolar=True)
 
 
 class SelectionExportSLURM(utils.PipelineWrapperTask):

@@ -51,7 +51,7 @@ class FilterUniqueSAMCons(utils.DatabaseTask):
             params = {
                 'bam_in':  bam_in.path,
                 'bam_out': bam_path,
-                'readgroup': r'@RG\tID:{sample}\tSM:{sample}'.format(sample=self.sample)
+                'readgroup': r'@RG\tID:{sample}-rmdup\tSM:{sample}'.format(sample=self.sample)
             }
 
             # NOTE FilterUniqueSAMCons strips the RG tag from merged reads, so we add a new readgroup to orphaned reads

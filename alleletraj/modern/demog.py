@@ -389,11 +389,16 @@ class DadiPipeline(utils.PipelineWrapperTask):
     Find the best fitting of 5 sequential epoch ∂a∂i models (i.e. 1 epoch, 2 epochs, etc.).
 
     :type species: str
+    :type population: str
     """
     species = luigi.Parameter()
+    population = luigi.OptionalParameter(default=None)
 
     def requires(self):
-        for pop in self.list_populations(modern=True):
+
+        populations = [self.population] if self.population else self.list_populations(modern=True)
+
+        for pop in populations:
             for folded in [False, True]:
                 yield DadiDemography(self.species, pop, folded)
 

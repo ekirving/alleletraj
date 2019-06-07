@@ -290,31 +290,47 @@ class DadiEpochBestModel(utils.PipelineTask):
             pickle.dump(epochs, fout)
 
 
-class CountCallableSites(utils.PipelineTask):
+class CountCallableSites(utils.DatabaseTask):
     """
     Count the number of callable sites, as dadi needs this number to estimate the ancestral population size from theta.
 
     :type species: str
+    :type population: str
     """
     species = luigi.Parameter()
+    population = luigi.Parameter()
 
     def requires(self):
         for chrom in self.chromosomes:
             yield PolarizeVCF(self.species, chrom)
 
     def output(self):
-        return luigi.LocalTarget('data/dadi/{}.L'.format(self.basename))
+        yield luigi.LocalTarget('data/dadi/{}.L'.format(self.basename))
+        yield luigi.LocalTarget('data/vcf/{}.samples'.format(self.basename))
 
     def run(self):
+        # unpack the params
+        size_file, samples_file = self.output()
+        vcf_files = self.input()
+
+        samples = self.dbc.get_records('samples', {'population': self.population}, key='name')
+
+        # make a samples file to filter the VCF with
+        with samples_file.open('w') as fout:
+            for sample in samples:
+                fout.write(sample)
+
         total = 0
 
         # count all unique sites
-        for vcf_file in self.input():
-            size = utils.run_cmd(["bcftools query --format '%CHROM %POS\\n' {} | uniq | wc -l"
-                                 .format(vcf_file.path)], shell=True)
+        for vcf_file in vcf_files:
+            cmd = "bcftools view --samples-file {} --exclude-uncalled {} | " \
+                  "bcftools query --format '%CHROM %POS\\n' | uniq | wc -l".format(samples_file.path, vcf_file.path)
+
+            size = utils.run_cmd([cmd], shell=True)
             total += int(size)
 
-        with self.output().open('w') as fout:
+        with size_file.open('w') as fout:
             fout.write(str(total))
 
 

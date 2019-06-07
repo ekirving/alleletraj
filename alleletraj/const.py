@@ -78,6 +78,20 @@ GENERATION_TIME = {
     'pig':    5,  # https://www.nature.com/articles/ng.3197
 }
 
+# TODO deprecated
+# the reference effective population size
+# POPULATION_SIZE = {
+#     'pig': {  # see https://www.nature.com/articles/ng.3394
+#         'EUD': 20563,
+#         'EUW': 8497
+#     },
+#     'horse': {  # see https://www.sciencedirect.com/science/article/pii/S0960982215010039
+#         'DOM2': 16000,
+#         'DOM2WLD': 16000
+#     }
+# }
+
+
 
 # how many CPU cores does this machine have
 TOTAL_CORES = cpu_count()

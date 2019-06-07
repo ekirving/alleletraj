@@ -394,7 +394,8 @@ class DadiPipeline(utils.PipelineWrapperTask):
 
     def requires(self):
         for pop in self.list_populations(modern=True):
-            yield DadiDemography(self.species, pop)
+            for folded in [False, True]:
+                yield DadiDemography(self.species, pop, folded)
 
 
 if __name__ == '__main__':

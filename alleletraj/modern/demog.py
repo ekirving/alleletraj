@@ -313,7 +313,7 @@ class CountCallableSites(utils.DatabaseTask):
         size_file, samples_file = self.output()
         vcf_files = self.input()
 
-        samples = self.dbc.get_records('samples', {'population': self.population}, key='name')
+        samples = self.dbc.get_records('samples', {'population': self.population, 'ancient': 0}, key='name')
 
         # make a samples file to filter the VCF with
         with samples_file.open('w') as fout:

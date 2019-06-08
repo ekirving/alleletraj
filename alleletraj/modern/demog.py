@@ -348,7 +348,7 @@ class DadiDemography(utils.PipelineTask):
 
     def requires(self):
         yield DadiEpochBestModel(self.species, self.population, self.folded)
-        yield CountCallableSites(self.species)
+        yield CountCallableSites(self.species, self.population)
 
     def output(self):
         return [luigi.LocalTarget('data/dadi/{}.{}'.format(self.basename, ext)) for ext in ['pop', 'nref']]

@@ -318,7 +318,7 @@ class CountCallableSites(utils.DatabaseTask):
         # make a samples file to filter the VCF with
         with samples_file.open('w') as fout:
             for sample in samples:
-                fout.write(sample)
+                fout.write('{}\n'.format(sample))
 
         total = 0
 

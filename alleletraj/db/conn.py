@@ -91,7 +91,11 @@ class Database:
         if key is None:
             return [self.__encode_utf8(item) for item in self.cursor]
         else:
-            return OrderedDict((item[key], self.__encode_utf8(item)) for item in self.cursor)
+            data = OrderedDict()
+            for item in self.cursor:
+                item = self.__encode_utf8(item)
+                data[item[key]] = item
+            return data
 
     # noinspection SqlResolve
     def __get_records(self, table, conds=None, sort=None):

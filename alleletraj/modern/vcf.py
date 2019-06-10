@@ -198,7 +198,7 @@ class FilterVCF(utils.PipelineTask):
     """
     Remove low quality sites and sites in the upper and lower quantiles of the depth of coverage distribution.
 
-    Also, normalise indels and merge multiallelic sites.
+    Also, normalise indels and merge multiallelic sites, then recalculate AN and AC tags as `norm` doesn't do this.
 
     :type species: str
     :type chrom: str
@@ -234,7 +234,8 @@ class FilterVCF(utils.PipelineTask):
             }
 
             cmd = "bcftools filter --exclude 'QUAL<{qual} | DP<{qlow} | DP>{qhigh}' --output-type u {vcf} | " \
-                  "bcftools norm --fasta-ref {ref} --multiallelics +any --output-type z --output {out}".format(**params)
+                  "bcftools norm --fasta-ref {ref} --multiallelics +any --output-type u {vcf} | " \
+                  "bcftools +fill-tags --output-type z --output {out} -- -t AN,AC ".format(**params)
 
             utils.run_cmd([cmd], shell=True)
 

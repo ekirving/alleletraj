@@ -324,7 +324,7 @@ class CountCallableSites(utils.DatabaseTask):
 
         # count all unique sites
         for vcf_file in vcf_files:
-            cmd = "bcftools view --samples-file {} --exclude-uncalled {} | " \
+            cmd = "bcftools view --samples-file {} --exclude-uncalled --exclude-types indels,mnps,bnd,other {} | " \
                   "bcftools query --format '%CHROM %POS\\n' | uniq | wc -l".format(samples_file.path, vcf_file.path)
 
             size = utils.run_cmd([cmd], shell=True)

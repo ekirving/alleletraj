@@ -100,20 +100,26 @@ class SelectionInputFile(utils.DatabaseTask):
 
         sql = """
             # get the ancient frequencies in each bin
-            SELECT SUM(sr.base = ms.{derived}) AS derived_count,
-                   COUNT(sr.id) AS sample_size,
+            SELECT IFNULL(SUM(base = derived), 0) AS derived_count,
+                   COUNT(read_id) AS sample_size,
                    -(sb.max / {units}) AS max,
-                   -(sb.min / {units}) AS min                   
-              FROM modern_snps ms
-              JOIN sample_reads sr
-                ON sr.chrom = ms.chrom
-               AND sr.site = ms.site
-              JOIN samples s
-                ON s.id = sr.sample_id
-              JOIN sample_bins sb
-                ON sb.id = s.bin_id  
-             WHERE ms.id = {modsnp}
-               AND s.population = '{population}'
+                   -(sb.min / {units}) AS min                    
+              FROM sample_bins sb
+         LEFT JOIN (
+                    SELECT s.bin_id,
+                           sr.id AS read_id,
+                           sr.base,
+                           ms.{derived} AS derived
+                      FROM modern_snps ms
+                      JOIN sample_reads sr
+                        ON sr.chrom = ms.chrom
+                       AND sr.site = ms.site
+                      JOIN samples s
+                        ON s.id = sr.sample_id
+                     WHERE ms.id = {modsnp}
+                       AND s.population = '{population}'
+                   
+                   ) AS rec ON rec.bin_id = sb.id
           GROUP BY sb.id
                """.format(**params)
 

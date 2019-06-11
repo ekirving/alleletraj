@@ -12,7 +12,7 @@ import unicodecsv as csv
 from alleletraj import utils
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.const import GENERATION_TIME
-from alleletraj.modern.demog import DadiDemography
+from alleletraj.modern.demog import DadiBestModel
 from alleletraj.qtl.load import MIN_DAF
 
 # number of independent MCMC replicates to run
@@ -71,7 +71,7 @@ class SelectionInputFile(utils.DatabaseTask):
     mispolar = luigi.BoolParameter()
 
     def requires(self):
-        yield DadiDemography(self.species, self.population)
+        yield DadiBestModel(self.species, self.population)
         yield AncientSNPsPipeline(self.species)
 
     def output(self):
@@ -79,7 +79,7 @@ class SelectionInputFile(utils.DatabaseTask):
 
     def run(self):
         # unpack the inputs
-        (_, nref_file), _ = self.input()
+        (_, nref_file, _), _ = self.input()
 
         # get the Nref population size
         with nref_file.open() as fin:
@@ -171,7 +171,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     chain = luigi.IntParameter()
 
     def requires(self):
-        yield DadiDemography(self.species, self.population)
+        yield DadiBestModel(self.species, self.population)
         yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
 
     def output(self):
@@ -180,7 +180,7 @@ class SelectionRunMCMC(utils.PipelineTask):
 
     def run(self):
         # compose the input and output file paths
-        (pop_file, _), input_file = self.input()
+        (pop_file, _, _), input_file = self.input()
         param_file, time_file, traj_file, log_file = self.output()
 
         output_prefix = utils.trim_ext(log_file.path)
@@ -254,7 +254,7 @@ class SelectionPlot(utils.PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 64}  # TODO need to refactor Josh's code to fix massive memory requirement
 
     def requires(self):
-        yield DadiDemography(self.species, self.population)
+        yield DadiBestModel(self.species, self.population)
         yield SelectionInputFile(self.species, self.population, self.modsnp)
         yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.no_modern,
                                self.mispolar, self.chain)
@@ -264,7 +264,7 @@ class SelectionPlot(utils.PipelineTask):
 
     def run(self):
         # unpack the inputs
-        (_, nref_file), input_file, (param_file, _, _, _) = self.input()
+        (_, nref_file, _), input_file, (param_file, _, _, _) = self.input()
         pdf_file = self.output()
 
         # compose the input and output file paths

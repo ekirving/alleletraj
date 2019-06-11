@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
+import csv
 import math
 
 # third party modules
@@ -196,79 +197,30 @@ class DadiEpochMaximumLikelihood(utils.PipelineTask):
     epoch = luigi.IntParameter()
 
     def requires(self):
+        yield EasySFS(self.species, self.population, self.folded)
+
         for n in range(1, DADI_REPLICATES + 1):
             yield DadiEpochOptimizeParams(self.species, self.population, self.folded, self.epoch, n)
 
     def output(self):
-        return luigi.LocalTarget('data/dadi/{}/{}-maxlnL.pkl'.format(self.basename, self.basename))
+        yield luigi.LocalTarget('data/dadi/{}/{}-maxlnL.pkl'.format(self.basename, self.basename))
+        yield luigi.LocalTarget('data/dadi/{}.params'.format(self.basename))
+        yield luigi.LocalTarget('data/dadi/{}.pdf'.format(self.basename))
 
     def run(self):
+        # unpack the params
+        (sfs_file, _), pkl_files = self.input()[0], self.input()[1:]
+        pkl_out, params_file, pdf_file = self.output()
 
         params = []
 
         # load all the pickled param values from the replicate runs
-        for pkl_file, log_file in self.input():
+        for pkl_file, _ in pkl_files:
             with pkl_file.open('r') as fin:
                 params.append(pickle.load(fin))
 
         # find the params that produced the highest maximum likelihood
         max_lnl = max(params, key=lambda x: x['lnL'])
-
-        # save the results by pickling them in a file
-        with self.output().open('w') as fout:
-            pickle.dump(max_lnl, fout)
-
-
-class DadiEpochBestModel(utils.PipelineTask):
-    """
-    Find the best fitting model across all epochs, using the Akaike information criterion (AIC).
-
-    :type species: str
-    :type population: str
-    :type folded: bool
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    folded = luigi.BoolParameter()
-
-    def requires(self):
-        yield EasySFS(self.species, self.population, self.folded)
-
-        for epoch in range(1, DADI_EPOCHS + 1):
-            yield DadiEpochMaximumLikelihood(self.species, self.population, self.folded, epoch)
-
-    def output(self):
-        return [luigi.LocalTarget('data/dadi/{}.{}'.format(self.basename, ext)) for ext in ['pkl', 'pdf']]
-
-    def run(self):
-        # unpack the inputs/outputs
-        (sfs_file, _), epoch_pkls = self.input()[0], self.input()[1:]
-        pkl_out, pdf_out = self.output()
-
-        epochs = []
-
-        # load the pickled max lnL params from each of the epoch models
-        for pkl_file in epoch_pkls:
-            with pkl_file.open('r') as fin:
-                epochs.append(pickle.load(fin))
-
-        # calculate the AIC = 2 * num_params - 2 * lnL
-        for epoch in epochs:
-            epoch['aic'] = (2 * len(epoch['params'])) - (2 * epoch['lnL'])
-
-        # get the min AIC
-        min_aic = min(e['aic'] for e in epochs)
-
-        # compute the relative likelihood of each model = exp((AICmin − AICi)/2)
-        for epoch in epochs:
-            epoch['relL'] = math.exp((min_aic - epoch['aic']) / 2)
-
-        # reverse sort by relative likelihood
-        epochs.sort(key=lambda x: x['relL'], reverse=True)
-
-        # reject modelling if 2nd best model has a relative likelihood greater than acceptable
-        if epochs[1]['relL'] > DADI_MAX_RELATIVE_LL:
-            raise Exception('ERROR: Cannot reject second best model based on relative likelihood.\n' + str(epochs[:2]))
 
         # load the frequency spectrum
         fs = dadi.Spectrum.from_file(sfs_file.path)
@@ -277,17 +229,20 @@ class DadiEpochBestModel(utils.PipelineTask):
         dadi_n_epoch_extrap = dadi.Numerics.make_extrap_log_func(dadi_n_epoch)
 
         # fit the optimised model
-        model = dadi_n_epoch_extrap(epochs[0]['params'], fs.sample_sizes, DADI_GRID_PTS)
+        model = dadi_n_epoch_extrap(max_lnl['params'], fs.sample_sizes, DADI_GRID_PTS)
 
         # plot the figure
         fig = plt.figure(1)
         dadi.Plotting.plot_1d_comp_multinom(model, fs, fig_num=1, plot_masked=True)
-        fig.savefig(pdf_out.path)
+        fig.savefig(pdf_file.path)
         plt.close(fig)
 
-        # save the results by pickling them in a file
+        # save the pickle and the params
         with pkl_out.open('w') as fout:
-            pickle.dump(epochs, fout)
+            pickle.dump(max_lnl, fout)
+
+        with params_file.open('w') as fout:
+            fout.write('{}'.format(max_lnl))
 
 
 class CountCallableSites(utils.DatabaseTask):
@@ -310,8 +265,8 @@ class CountCallableSites(utils.DatabaseTask):
 
     def run(self):
         # unpack the params
-        size_file, samples_file = self.output()
         vcf_files = self.input()
+        size_file, samples_file = self.output()
 
         samples = self.dbc.get_records('samples', {'population': self.population, 'ancient': 0}, key='name')
 
@@ -331,36 +286,41 @@ class CountCallableSites(utils.DatabaseTask):
             total += int(size)
 
         with size_file.open('w') as fout:
-            fout.write(str(total))
+            fout.write('{}'.format(total))
 
 
-class DadiDemography(utils.PipelineTask):
+class DadiEpochDemography(utils.PipelineTask):
     """
-    Convert the best fitting dadi model into a demography file for `selection`.
+    Convert the best fitting dadi model for a given epoch into a demography file for `selection`.
 
     :type species: str
     :type population: str
     :type folded: bool
+    :type epoch: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
-    folded = luigi.BoolParameter(default=False)
+    folded = luigi.BoolParameter()
+    epoch = luigi.IntParameter()
 
     def requires(self):
-        yield DadiEpochBestModel(self.species, self.population, self.folded)
+        yield DadiEpochMaximumLikelihood(self.species, self.population, self.folded, self.epoch)
         yield CountCallableSites(self.species, self.population)
 
     def output(self):
-        return [luigi.LocalTarget('data/dadi/{}.{}'.format(self.basename, ext)) for ext in ['pop', 'nref']]
+        (pkl_file, _, _), _ = self.input()
+        yield pkl_file  # pass on the pickle file
+        yield luigi.LocalTarget('data/dadi/{}.pop'.format(self.basename))
+        yield luigi.LocalTarget('data/dadi/{}.nref'.format(self.basename))
 
     def run(self):
         # unpack the inputs/outputs
-        (pkl_file, _), (size_file, _) = self.input()
-        pop_file, nfef_file = self.output()
+        (pkl_file, _, _), (size_file, _) = self.input()
+        _, pop_file, nref_file = self.output()
 
-        # load the best epoch model
+        # load the best params for the epoch
         with pkl_file.open('r') as fin:
-            best = pickle.load(fin)[0]
+            best = pickle.load(fin)
 
         # unpack the values
         theta, params, epoch = best['theta'], list(best['params']), best['epoch']
@@ -376,7 +336,7 @@ class DadiDemography(utils.PipelineTask):
         nref = theta / (4 * rate * length)
 
         # save the Nref, so we can interpret the modelling results
-        with nfef_file.open('w') as fout:
+        with nref_file.open('w') as fout:
             fout.write(str(int(nref)))
 
         # unpack the dadi model params
@@ -400,6 +360,74 @@ class DadiDemography(utils.PipelineTask):
             fout.write('1.0\t0\t-Inf\n')
 
 
+class DadiBestModel(utils.PipelineTask):
+    """
+    Find the best fitting model across all epochs, using the Akaike information criterion (AIC).
+
+    :type species: str
+    :type population: str
+    :type folded: bool
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    folded = luigi.BoolParameter()
+
+    def requires(self):
+        for epoch in range(1, DADI_EPOCHS + 1):
+            yield DadiEpochDemography(self.species, self.population, self.folded, epoch)
+
+    def output(self):
+        return [luigi.LocalTarget('data/dadi/{}.{}'.format(self.basename, ext)) for ext in ['pop', 'nref', 'aic']]
+
+    def run(self):
+        # unpack the params
+        epoch_pkls = self.input()
+        pop_out, nref_out, aic_file = self.output()
+
+        epochs = []
+        files = {}
+
+        # load the pickled max lnL params from each of the epoch models
+        for pkl_file, pop_in, nref_in in epoch_pkls:
+            with pkl_file.open('r') as fin:
+                epoch = pickle.load(fin)
+
+            epochs.append(epoch)
+            files[epoch['epoch']] = (pop_in, nref_in)
+
+        # calculate the AIC = 2 * num_params - 2 * lnL
+        for epoch in epochs:
+            epoch['aic'] = (2 * len(epoch['params'])) - (2 * epoch['lnL'])
+
+        # get the min AIC
+        min_aic = min(e['aic'] for e in epochs)
+
+        # compute the relative likelihood of each model = exp((AICmin − AICi)/2)
+        for epoch in epochs:
+            epoch['relL'] = math.exp((min_aic - epoch['aic']) / 2)
+
+        # reverse sort by relative likelihood and AIC
+        epochs.sort(key=lambda x: x['relL'], reverse=True)
+
+        # reject modelling if 2nd best model has a relative likelihood greater than acceptable
+        if epochs[1]['relL'] > DADI_MAX_RELATIVE_LL:
+            raise Exception('ERROR: Cannot reject second best model based on relative likelihood.\n' + str(epochs[:2]))
+
+        # copy the files from the the best epoch
+        pop_in, nref_in = files[epochs[0]['epoch']]
+        pop_in.copy(pop_out.path)
+        nref_in.copy(nref_out.path)
+
+        # save the results
+        with aic_file.open('w') as tsv_file:
+            fields = ['relL', 'aic', 'lnL', 'theta', 'epoch', 'params', 'n']
+            writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
+            writer.writeheader()
+
+            for epoch in epochs:
+                writer.writerow(epoch)
+
+
 class DadiPipeline(utils.PipelineWrapperTask):
     """
     Find the best fitting of 5 sequential epoch ∂a∂i models (i.e. 1 epoch, 2 epochs, etc.).
@@ -416,7 +444,7 @@ class DadiPipeline(utils.PipelineWrapperTask):
 
         for pop in populations:
             for folded in [True, False]:
-                yield DadiDemography(self.species, pop, folded)
+                yield DadiBestModel(self.species, pop, folded)
 
 
 if __name__ == '__main__':

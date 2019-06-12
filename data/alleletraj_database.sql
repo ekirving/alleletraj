@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # https://github.com/sequelpro/sequelpro
 #
-# Host: 127.0.0.1 (MySQL 5.6.19)
+# Host: 127.0.0.1 (MySQL 5.7.21)
 # Database: alleletraj_horse_equcab2_rel38
-# Generation Time: 2019-06-12 15:45:08 +0000
+# Generation Time: 2019-06-12 17:37:39 +0000
 # ************************************************************
 
 
@@ -429,7 +429,8 @@ CREATE TABLE `selection` (
   `model` decimal(1,1) NOT NULL,
   `no_modern` tinyint(1) NOT NULL,
   `mispolar` tinyint(1) NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `modsnp_id` (`modsnp_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

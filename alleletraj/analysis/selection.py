@@ -13,6 +13,7 @@ import unicodecsv as csv
 from alleletraj import utils
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.const import GENERATION_TIME
+from alleletraj.db.conn import Database
 from alleletraj.modern.demog import DadiBestModel, DADI_FOLDED
 from alleletraj.qtl.load import MIN_DAF
 
@@ -42,6 +43,50 @@ MODEL_DOMINANT = 1
 
 # minimum number of time bins
 MCMC_MIN_BINS = 3
+
+# number of DAF paired neutral SNPs to run for every non-neutral SNP
+NEUTRAL_REPLICATES = 5
+
+
+def selection_neutral_snps(species, population, modsnp_id):
+    """
+    Find 'neutral' SNPs, by pairing the non-neutral SNP based on chromosome, mutation type and DAF.
+
+    If the SNP is flagged as mispolar then the mutation type and DAF are reversed.
+    """
+    dbc = Database(species)
+
+    # TODO should we also consider the SNP coverage?
+    modsnps = dbc.get_records_sql("""
+        SELECT ms.id
+          FROM (
+
+        SELECT msd.population, ms.chrom, type, IF(ms.mispolar, 1-msd.daf, msd.daf) AS daf
+          FROM modern_snps ms
+          JOIN modern_snp_daf msd
+            ON msd.modsnp_id = ms.id 
+         WHERE msd.population = '{population}'
+           AND ms.id = {modsnp}
+
+          ) AS nn
+          JOIN modern_snps ms
+            ON ms.chrom = nn.chrom
+           AND ms.type = nn.type
+           AND ms.neutral = 1
+           AND ms.mispolar IS NULL
+           AND ms.variant_id IS NOT NULL
+          JOIN modern_snp_daf msd
+            ON msd.modsnp_id = ms.id
+           AND msd.population = nn.population
+           AND round(msd.daf, 2) = round(nn.daf, 2)
+      ORDER BY RAND({modsnp})
+         LIMIT {num}
+           """.format(population=population, modsnp=modsnp_id, num=NEUTRAL_REPLICATES)).keys()
+
+    if len(modsnps) != NEUTRAL_REPLICATES:
+        raise RuntimeError('ERROR: Insufficient neutral SNPs to run `selection` (n={})'.format(len(modsnps)))
+
+    return modsnps
 
 
 class SelectionInputFile(utils.DatabaseTask):
@@ -532,7 +577,7 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
     def requires(self):
 
         # get the modsnp id for every GWAS hit
-        modsnps = self.dbc.get_records_sql("""
+        gwas_snps = self.dbc.get_records_sql("""
             SELECT DISTINCT ms.id, ms.mispolar
               FROM qtls q
               JOIN qtl_snps qs
@@ -543,15 +588,22 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
                 ON ms.variant_id = ev.id
                AND ev.rsnumber = q.peak
              WHERE q.associationType = 'Association'
-               AND q.valid = 1""")
+               AND q.valid = 1""", key=None)
 
         for pop in self.list_populations(modern=True):
-            for modsnp in modsnps:
-                for no_modern in [True, False]:
-                    yield LoadSelectionPSRF(self.species, pop, modsnp, no_modern=no_modern)
+            for gwas_snp in gwas_snps:
 
-                    if modsnps[modsnp]['mispolar']:
-                        yield LoadSelectionPSRF(self.species, pop, modsnp, no_modern=no_modern, mispolar=True)
+                # get the neutral controls
+                neutral = selection_neutral_snps(self.species, self.pop, gwas_snp['id'])
+
+                for no_modern in [True, False]:
+                    yield LoadSelectionPSRF(self.species, pop, gwas_snp['id'], no_modern=no_modern)
+
+                    if gwas_snp['mispolar']:
+                        yield LoadSelectionPSRF(self.species, pop, gwas_snp['id'], no_modern=no_modern, mispolar=True)
+
+                    for modsnp in neutral:
+                        yield LoadSelectionPSRF(self.species, pop, modsnp, no_modern=no_modern)
 
 
 class SelectionPipeline(utils.PipelineWrapperTask):

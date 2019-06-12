@@ -256,9 +256,9 @@ class DepthOfCoveragePipeline(utils.PipelineWrapperTask):
     :type outgroup: bool
     """
     species = luigi.Parameter()
-    ancient = luigi.OptionalParameter()
-    modern = luigi.OptionalParameter()
-    outgroup = luigi.OptionalParameter()
+    ancient = luigi.OptionalParameter(default=None)
+    modern = luigi.OptionalParameter(default=None)
+    outgroup = luigi.OptionalParameter(default=None)
 
     def requires(self):
         for pop, sample in self.list_samples(ancient=self.ancient, modern=self.modern, outgroup=self.outgroup):

@@ -121,6 +121,9 @@ class BwaSamSe(utils.PipelineTask):
             cmd = "bwa samse -r '{readgroup}' {reference} {sai} {fastq} " \
                   " | samtools sort -@ {threads} -O bam -o {bam} -".format(**params)
 
+            # TODO drop unaligned reads
+            # https://paleomix.readthedocs.io/en/latest/bam_pipeline/overview.html
+
             # perform the alignment
             utils.run_cmd([cmd], shell=True, stderr=fout)
 

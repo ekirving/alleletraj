@@ -65,6 +65,11 @@ class BwaMem(utils.PipelineTask):
             cmd = "bwa mem -t {threads} -R '{readgroup}' {reference} {fastq} " \
                   " | samtools sort -@ {threads} -O bam -o {bam} -".format(**params)
 
+            # TODO samtools fixmate | drop unaligned reads
+            # samtools fixmate -O bam <lane.sam> <lane_fixmate.bam>
+            # -r Remove secondary and unmapped reads.
+            # http://www.htslib.org/workflow/
+
             # perform the alignment
             utils.run_cmd([cmd], shell=True, stderr=fout)
 

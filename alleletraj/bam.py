@@ -251,11 +251,17 @@ class DepthOfCoveragePipeline(utils.PipelineWrapperTask):
     Calculate the depth of coverage for all samples.
 
     :type species: str
+    :type ancient: bool
+    :type modern: bool
+    :type outgroup: bool
     """
     species = luigi.Parameter()
+    ancient = luigi.OptionalParameter()
+    modern = luigi.OptionalParameter()
+    outgroup = luigi.OptionalParameter()
 
     def requires(self):
-        for pop, sample in self.list_samples():
+        for pop, sample in self.list_samples(ancient=self.ancient, modern=self.modern, outgroup=self.outgroup):
             yield LoadDepthOfCoverage(self.species, pop, sample)
 
 

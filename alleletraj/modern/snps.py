@@ -10,6 +10,7 @@ import pysam
 
 # local modules
 from alleletraj import utils
+from alleletraj.bam import DepthOfCoveragePipeline
 from alleletraj.db.load import CreateDatabase
 from vcf import BiallelicSNPsVCF
 
@@ -102,6 +103,9 @@ class ModernSNPsPipeline(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
+        # calculate the depth of coverage for all modern samples
+        yield DepthOfCoveragePipeline(self.species, modern=True, outgroup=True)
+
         # process SNPs for all chromosomes
         for chrom in self.chromosomes:
             yield LoadModernSNPs(self.species, chrom)

@@ -6,10 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-# from alleletraj.analysis.selection import SelectionBestQTLSNPs
-# from alleletraj.ancient.graphs import GraphsPipeline
 from alleletraj.ancient.snps import AncientSNPsPipeline
-from alleletraj.bam import DepthOfCoveragePipeline
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.demog import DadiPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
@@ -47,22 +44,15 @@ class RunAll(utils.PipelineWrapperTask):
         # load the ancient sample reads for each ascertained SNP
         yield AncientSNPsPipeline(self.species)
 
-        # calculate the depth of coverage for all samples
-        yield DepthOfCoveragePipeline(self.species)
-
         # analyse the coverage and quality for SNPs in each QTLs
         yield AnalyseQTLsPipeline(self.species)
 
         # TODO replace with analysis pipeline when fully tested
         yield PlinkMergeBeds(self.species)
 
-        # # run `selection` on all the 'best' QTL SNPs
-        # yield SelectionBestQTLSNPs(self.species)
-        #
-        # # make all the plots
-        # yield GraphsPipeline(self.species)
+        # TODO run `selection` on all the 'best' QTL SNPs
 
-        # TODO add analysis modules
+        # TODO make all the plots
 
 
 if __name__ == '__main__':

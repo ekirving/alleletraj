@@ -14,7 +14,7 @@ import pysam
 
 # local modules
 from alleletraj import utils
-from alleletraj.bam import SampleBAM
+from alleletraj.bam import SampleBAM, DepthOfCoveragePipeline
 from alleletraj.ensembl.link import EnsemblLinkPipeline
 from alleletraj.modern.snps import ModernSNPsPipeline
 from alleletraj.modern.vcf import ReferencePloidy, MIN_GENO_QUAL
@@ -341,6 +341,10 @@ class AncientSNPsPipeline(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
+        # calculate the depth of coverage for all ancient samples
+        yield DepthOfCoveragePipeline(self.species, ancient=True)
+
+        # process SNPs for all chromosomes
         for chrom in self.chromosomes:
             yield FlagMispolarizedSNPs(self.species, chrom)
 

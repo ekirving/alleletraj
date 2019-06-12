@@ -36,7 +36,7 @@ chain.length <- nrow(mcmc.chain)
 burnin = burn_perc * chain.length
 
 cat("Chain length: ", chain.length * thin, "\n")
-cat("Burn in: ", burnin, "\n")
+cat("Burn in: ", burnin * thin, "\n")
 cat("Thin: ", thin, "\n")
 
 # check the acceptance rate (ideal is 0.234)
@@ -45,7 +45,7 @@ cat("Thin: ", thin, "\n")
 # plot ESS vs. burn-in
 cat("Plotting ESS vs. burn-in.", "\n\n")
 pdf(file=ess_pdf)  # , width=21, height=14
-plotESSBurn(mcmc.chain, step.size=round(burnin/thin/2, 0))
+plotESSBurn(mcmc.chain, step.size=round(burnin/2, 0))
 off <- dev.off()
 
 # burn in the chain (thinning is already done)

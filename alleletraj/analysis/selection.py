@@ -398,7 +398,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
         record = self.dbc.get_record('selection', selection)
         selection_id = self.dbc.save_record('selection', selection) if not record else record['id']
 
-        # load the ess
+        # load the ESS
         with ess_file.open('r') as fin:
             ess = json.load(fin)
 
@@ -428,11 +428,11 @@ class SelectionPSRF(utils.PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    n = luigi.IntParameter(default=MCMC_CYCLES)
-    s = luigi.IntParameter(default=MCMC_THIN)
-    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
-    no_modern = luigi.BoolParameter(default=False)
-    mispolar = luigi.BoolParameter(default=False)
+    n = luigi.IntParameter()
+    s = luigi.IntParameter()
+    h = luigi.FloatParameter()
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
 
     def requires(self):
         params = self.all_params()
@@ -445,14 +445,14 @@ class SelectionPSRF(utils.PipelineTask):
 
     def output(self):
         yield luigi.LocalTarget('data/selection/{}-chainAll.ess'.format(self.basename))
-        yield luigi.LocalTarget('data/selection/{}-chainAll.diag'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}-chainAll.psrf'.format(self.basename))
+        yield luigi.LocalTarget('data/selection/{}-chainAll.diag'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-trace.pdf'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-gelman.pdf'.format(self.basename))
 
     def run(self):
         param_paths = [param_file.path for param_file in self.input_targets(ext='param.gz')]
-        ess_file, diag_file, psrf_file, trace_pdf, gelman_pdf = self.output()
+        ess_file, psrf_file, diag_file, trace_pdf, gelman_pdf = self.output()
 
         with diag_file.temporary_path() as diag_path:
             utils.run_cmd(['Rscript',
@@ -463,6 +463,62 @@ class SelectionPSRF(utils.PipelineTask):
                            psrf_file.path,
                            trace_pdf.path,
                            gelman_pdf.path] + param_paths, stdout=open(diag_path, 'w'))
+
+
+class LoadSelectionPSRF(utils.MySQLTask):
+    """
+    Load the PSRF diagnostics for for all the replicate chains.
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type n: int
+    :type s: int
+    :type h: float
+    :type no_modern: bool
+    :type mispolar: bool
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    modsnp = luigi.IntParameter()
+    n = luigi.IntParameter(default=MCMC_CYCLES)
+    s = luigi.IntParameter(default=MCMC_THIN)
+    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
+    no_modern = luigi.BoolParameter(default=False)
+    mispolar = luigi.BoolParameter(default=False)
+
+    def requires(self):
+        return SelectionPSRF(**self.all_params())
+
+    def queries(self):
+        # unpack the params
+        ess_file, psrf_file, _, _, _ = self.input()
+
+        selection = {
+            'population': self.population,
+            'modsnp_id':  self.modsnp,
+            'length':     self.n,
+            'thin':       self.s,
+            'model':      self.h,
+            'no_modern':  self.no_modern,
+            'mispolar':   self.mispolar,
+        }
+
+        selection_id = self.dbc.get_record('selection', selection)['id']
+
+        # load the ESS
+        with ess_file.open('r') as fin:
+            ess = json.load(fin)
+
+        ess['selection_id'] = selection_id
+        self.dbc.save_record('selection_ess', ess)
+
+        # load the PSRF
+        with psrf_file.open('r') as fin:
+            psrf = json.load(fin)
+
+        psrf['selection_id'] = selection_id
+        self.dbc.save_record('selection_psrf', psrf)
 
 
 class SelectionGWASSNPs(utils.PipelineWrapperTask):
@@ -492,23 +548,22 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
         for pop in self.list_populations(modern=True):
             for modsnp in modsnps:
                 for no_modern in [True, False]:
-                    yield SelectionPSRF(self.species, pop, modsnp, no_modern=no_modern)
+                    yield LoadSelectionPSRF(self.species, pop, modsnp, no_modern=no_modern)
 
                     if modsnps[modsnp]['mispolar']:
-                        yield SelectionPSRF(self.species, pop, modsnp, no_modern=no_modern, mispolar=True)
+                        yield LoadSelectionPSRF(self.species, pop, modsnp, no_modern=no_modern, mispolar=True)
 
 
-class SelectionExportSLURM(utils.PipelineWrapperTask):
+class SelectionPipeline(utils.PipelineWrapperTask):
     """
-    Export a script for batch running `selection` on the HPC, using SLURM.
+    Run all the `selection` jobs.
 
     :type species: str
     """
     species = luigi.Parameter()
 
     def requires(self):
-        # TODO implement this
-        pass
+        yield SelectionGWASSNPs(self.species)
 
 
 if __name__ == '__main__':

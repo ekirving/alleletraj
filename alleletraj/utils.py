@@ -238,6 +238,32 @@ class PipelineTask(luigi.Task):
         """
         return [(name, getattr(self, name)) for name in self.get_param_names()]
 
+    def all_params(self):
+        """
+        Get all the params as a dictionary, so we can use the **kwargs syntax.
+        """
+        return dict(self._all_params())
+
+    def input_targets(self, ext=None):
+        """
+        Get all input targets, filtered by extension.
+        """
+        inputs = self.input()
+
+        targets = []
+
+        if isinstance(inputs, luigi.LocalTarget):
+            targets.append(inputs)
+        else:
+            for task in inputs:
+                if isinstance(task, luigi.LocalTarget):
+                    targets.append(task)
+                else:
+                    for target in task:
+                        targets.append(target)
+
+        return [target for target in targets if target.path.endswith(ext)] if ext else targets
+
 
 class DatabaseTask(PipelineTask):
     """

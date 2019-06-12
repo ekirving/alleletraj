@@ -2,10 +2,11 @@
 library(coda, quietly=T)
 library(fitR, quietly=T)
 library(data.table, quietly=T)
+library(rjson, quietly=T)
 
 # get the command line arguments
 args <- commandArgs(trailingOnly = TRUE)
-burnin <- as.numeric(args[1])
+burn_perc <- as.numeric(args[1])
 thin <- as.numeric(args[2])
 ess_file  <- args[3]
 psrf_file <- args[4]
@@ -15,7 +16,7 @@ param_files <- args[7:length(args)]
 
 # TODO remove when done testing
 # prefix <- 'horse-DOM2-modsnp9016431-n50000-s100-h0.5'
-# burnin <- 10000
+# burn_perc <- 0.2
 # thin <- 100
 # ess_file  <- paste0('data/selection/', prefix, '-chainAll.ess')
 # psrf_file <- paste0('data/selection/', prefix, '-chainAll.psrf')
@@ -32,12 +33,16 @@ cat("Analysing combined chains.", "\n\n")
 chains <- c()
 
 for (i in param_files) {
-    # load and burn in all chains
+    # load the chain
+    mcmc.chain <- mcmc(fread(i, header = T, sep = '\t', drop = c('gen')))
+
+    # convert burn % to number of records
+    burnin = burn_perc * nrow(mcmc.chain)
+
+    # burn in the chain (thinning is already done)
     chains[[i]] <- mcmc(
-        burnAndThin(
-            mcmc(fread(i, header = T, sep = '\t', drop = c('gen'))),
-            burn = burnin/thin),
-        start = burnin,
+        burnAndThin(mcmc.chain, burn = burnin),
+        start = burnin * thin,
         thin = thin)
 }
 
@@ -48,7 +53,7 @@ print(summary(chains.all))
 
 # calculate the ESS for all params across all the replicates
 ess <- effectiveSize(chains.all)
-write.table(data.frame(as.list(ess)), file=ess_file, sep='\t')
+cat(toJSON(ess, indent = 2), file=ess_file)
 
 cat("Effective Sample Size.\n")
 print(ess)
@@ -69,9 +74,12 @@ off <- dev.off()
 # NB. values substantially above 1 indicate lack of convergence.
 gelman <- gelman.diag(chains.all, multivariate=TRUE, autoburnin=FALSE)
 
+gelman.list <- gelman$psrf[,1]
+gelman.list['mpsrf'] <- gelman$mpsrf
+cat(toJSON(gelman.list, indent = 2), file=psrf_file)
+
 cat("Gelman and Rubin's convergence diagnostic.", "\n")
 print(gelman)
-write.table(gelman$psrf, file=psrf_file, sep='\t')
 
 if (gelman$psrf['lnL', 1] > 1.1) {
     cat(paste0("WARNING: PSRF of likelihood above threshold = ", round(gelman$psrf['lnL', 1], 3)))

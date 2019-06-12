@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
+import json
 import os
 
 # third party modules
@@ -261,9 +262,8 @@ class SelectionPlot(utils.PipelineTask):
 
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED)
-        yield SelectionInputFile(self.species, self.population, self.modsnp)
-        yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.no_modern,
-                               self.mispolar, self.chain)
+        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
+        yield SelectionRunMCMC(**self.all_params())
 
     def output(self):
         return luigi.LocalTarget('data/pdf/selection/{}-traj.pdf'.format(self.basename))
@@ -283,8 +283,6 @@ class SelectionPlot(utils.PipelineTask):
         # time is measured in diffusion units
         units = 2 * pop_size * GENERATION_TIME[self.species]
 
-        burn_in = self.n * MCMC_BURN_IN
-
         try:
             # plot the allele trajectory
             utils.run_cmd(['Rscript',
@@ -292,8 +290,7 @@ class SelectionPlot(utils.PipelineTask):
                            input_file.path,
                            output_prefix,
                            units,
-                           burn_in,
-                           self.s,
+                           MCMC_BURN_IN,
                            pdf_file.path])
 
         except RuntimeError as e:
@@ -331,13 +328,11 @@ class SelectionDiagnostics(utils.PipelineTask):
     chain = luigi.IntParameter()
 
     def requires(self):
-        return SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.no_modern,
-                                self.mispolar, self.chain)
+        return SelectionRunMCMC(**self.all_params())
 
     def output(self):
-        yield self.input()[0]  # pass along the param file
-        yield luigi.LocalTarget('data/selection/{}.diag'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}.ess'.format(self.basename))
+        yield luigi.LocalTarget('data/selection/{}.diag'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-ess-burn.pdf'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-autocorr.pdf'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-trace.pdf'.format(self.basename))
@@ -345,20 +340,72 @@ class SelectionDiagnostics(utils.PipelineTask):
     def run(self):
         # unpack the params
         param_file, _, _, _ = self.input()
-        _, diag_file, ess_file, ess_pdf, autocorr_pdf, trace_pdf = self.output()
-
-        burn_in = self.n * MCMC_BURN_IN
+        ess_file, diag_file, ess_pdf, autocorr_pdf, trace_pdf = self.output()
 
         with diag_file.temporary_path() as diag_path:
             utils.run_cmd(['Rscript',
                            'rscript/mcmc_diagnostics.R',
                            param_file.path,
-                           burn_in,
+                           MCMC_BURN_IN,
                            self.s,
                            ess_file.path,
                            ess_pdf.path,
                            autocorr_pdf.path,
                            trace_pdf.path], stdout=open(diag_path, 'w'))
+
+
+class LoadSelectionDiagnostics(utils.MySQLTask):
+    """
+    Load the diagnostics for an MCMC run into the db.
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type n: int
+    :type s: int
+    :type h: float
+    :type no_modern: bool
+    :type mispolar: bool
+    :type chain: int
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    modsnp = luigi.IntParameter()
+    n = luigi.IntParameter()
+    s = luigi.IntParameter()
+    h = luigi.FloatParameter()
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
+    chain = luigi.IntParameter()
+
+    def requires(self):
+        return SelectionDiagnostics(**self.all_params())
+
+    def queries(self):
+        # unpack the params
+        ess_file, _, _, _, _ = self.input()
+
+        selection = {
+            'population': self.population,
+            'modsnp_id':  self.modsnp,
+            'length':     self.n,
+            'thin':       self.s,
+            'model':      self.h,
+            'no_modern':  self.no_modern,
+            'mispolar':   self.mispolar,
+        }
+
+        record = self.dbc.get_record('selection', selection)
+        selection_id = self.dbc.save_record('selection', selection) if not record else record['id']
+
+        # load the ess
+        with ess_file.open('r') as fin:
+            ess = json.load(fin)
+
+        ess['selection_id'] = selection_id
+        ess['chain'] = self.chain
+
+        self.dbc.save_record('selection_ess', ess)
 
 
 class SelectionPSRF(utils.PipelineTask):
@@ -388,27 +435,29 @@ class SelectionPSRF(utils.PipelineTask):
     mispolar = luigi.BoolParameter(default=False)
 
     def requires(self):
+        params = self.all_params()
         for chain in range(1, MCMC_REPLICATES + 1):
-            yield SelectionDiagnostics(self.species, self.population, self.modsnp, self.n, self.s, self.h,
-                                       self.no_modern, self.mispolar, chain)
+            params['chain'] = chain
+
+            yield SelectionRunMCMC(**params)
+            yield SelectionPlot(**params)
+            yield LoadSelectionDiagnostics(**params)
 
     def output(self):
-        yield luigi.LocalTarget('data/selection/{}-chainAll.diag'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}-chainAll.ess'.format(self.basename))
+        yield luigi.LocalTarget('data/selection/{}-chainAll.diag'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}-chainAll.psrf'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-trace.pdf'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-gelman.pdf'.format(self.basename))
 
     def run(self):
-        param_paths = [param_file.path for param_file, _, _, _, _, _ in self.input()]
-        diag_file, ess_file, psrf_file, trace_pdf, gelman_pdf = self.output()
-
-        burn_in = self.n * MCMC_BURN_IN
+        param_paths = [param_file.path for param_file in self.input_targets(ext='param.gz')]
+        ess_file, diag_file, psrf_file, trace_pdf, gelman_pdf = self.output()
 
         with diag_file.temporary_path() as diag_path:
             utils.run_cmd(['Rscript',
                            'rscript/mcmc_gelman.R',
-                           burn_in,
+                           MCMC_BURN_IN,
                            self.s,
                            ess_file.path,
                            psrf_file.path,

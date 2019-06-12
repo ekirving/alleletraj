@@ -3,7 +3,7 @@
 
 # standard modules
 import itertools
-from collections import OrderedDict
+from collections import OrderedDict, Mapping
 from datetime import timedelta
 from pprint import pprint
 from time import time
@@ -59,6 +59,9 @@ class Database:
         params = self.__decode_utf8(params)
 
         for key in params:
+            if isinstance(params[key], bool):
+                params[key] = int(params[key])
+
             new_key = u"`{}`".format(key)
             new_val = u"'{}'".format(self.cnx.converter.escape(params[key])) \
                 if params[key] is not None and params[key] != '' else 'NULL'
@@ -75,8 +78,9 @@ class Database:
 
     @staticmethod
     def __encode_utf8(data):
-        for key in data:
-            data[key] = data[key].encode('utf-8') if isinstance(data[key], unicode) else data[key]
+        if isinstance(data, Mapping):
+            for key in data:
+                data[key] = data[key].encode('utf-8') if isinstance(data[key], unicode) else data[key]
 
         return data
 

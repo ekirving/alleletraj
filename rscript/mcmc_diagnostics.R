@@ -2,11 +2,12 @@
 library(coda, quietly=T)
 library(fitR, quietly=T)
 library(data.table, quietly=T)
+library(rjson, quietly=T)
 
 # get the command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 param_file <- args[1]
-burnin <- as.numeric(args[2])
+burn_perc <- as.numeric(args[2])
 thin <- as.numeric(args[3])
 ess_file <- args[4]
 ess_pdf <- args[5]
@@ -16,7 +17,7 @@ trace_pdf <- args[7]
 # TODO remove when done testing
 # prefix <- 'horse-DOM2-modsnp9016431-n50000-s100-h0.5-chain1'
 # param_file <- paste0('data/selection/', prefix, '.param.gz')
-# burnin <- 10000
+# burn_perc <- 0.2
 # thin <- 100
 # ess_file <- paste0('data/selection/', prefix, '.ess')
 # ess_pdf <- paste0('data/pdf/selection/', prefix, '-ess-burn.pdf')
@@ -30,6 +31,9 @@ cat("Param: ", param_file, "\n")
 # load the chain and convert to an MCMC object
 mcmc.chain <- mcmc(fread(param_file, header = T, sep = '\t', drop=c('gen')))
 chain.length <- nrow(mcmc.chain)
+
+# convert burn % to number of records
+burnin = burn_perc * chain.length
 
 cat("Chain length: ", chain.length * thin, "\n")
 cat("Burn in: ", burnin, "\n")
@@ -45,14 +49,17 @@ plotESSBurn(mcmc.chain, step.size=round(burnin/thin/2, 0))
 off <- dev.off()
 
 # burn in the chain (thinning is already done)
-mcmc.burn <- mcmc(burnAndThin(mcmc.chain, burn=burnin/thin), start=burnin, thin=thin)
+mcmc.burn <- mcmc(
+    burnAndThin(mcmc.chain, burn = burnin),
+    start = burnin * thin,
+    thin = thin)
 
 # print the summary stats
 print(summary(mcmc.burn))
 
 # calculate the ESS for all params
 ess <- effectiveSize(mcmc.burn)
-write.table(data.frame(as.list(ess)), file=ess_file, sep='\t')
+cat(toJSON(ess, indent = 2), file=ess_file)
 
 cat("Effective Sample Size.\n")
 print(ess)

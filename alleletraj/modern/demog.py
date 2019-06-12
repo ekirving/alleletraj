@@ -30,6 +30,9 @@ DADI_GRID_PTS = 100
 # maximum relative log likelihood to not reject the second best model
 DADI_MAX_RELATIVE_LL = 0.10
 
+# is spectrum folded or polarised
+DADI_FOLDED = True
+DADI_UNFOLDED = False
 
 def dadi_n_epoch(params, ns, pts):
     """
@@ -443,7 +446,7 @@ class DadiPipeline(utils.PipelineWrapperTask):
         populations = [self.population] if self.population else self.list_populations(modern=True)
 
         for pop in populations:
-            for folded in [True, False]:
+            for folded in [DADI_FOLDED, DADI_UNFOLDED]:
                 yield DadiBestModel(self.species, pop, folded)
 
 

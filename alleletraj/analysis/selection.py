@@ -12,7 +12,7 @@ import unicodecsv as csv
 from alleletraj import utils
 from alleletraj.ancient.snps import AncientSNPsPipeline
 from alleletraj.const import GENERATION_TIME
-from alleletraj.modern.demog import DadiBestModel
+from alleletraj.modern.demog import DadiBestModel, DADI_FOLDED
 from alleletraj.qtl.load import MIN_DAF
 
 # number of independent MCMC replicates to run
@@ -71,7 +71,7 @@ class SelectionInputFile(utils.DatabaseTask):
     mispolar = luigi.BoolParameter()
 
     def requires(self):
-        yield DadiBestModel(self.species, self.population)
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
         yield AncientSNPsPipeline(self.species)
 
     def output(self):
@@ -177,7 +177,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     chain = luigi.IntParameter()
 
     def requires(self):
-        yield DadiBestModel(self.species, self.population)
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
         yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
 
     def output(self):
@@ -260,7 +260,7 @@ class SelectionPlot(utils.PipelineTask):
     resources = {'cpu-cores': 1, 'ram-gb': 64}  # TODO need to refactor Josh's code to fix massive memory requirement
 
     def requires(self):
-        yield DadiBestModel(self.species, self.population)
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
         yield SelectionInputFile(self.species, self.population, self.modsnp)
         yield SelectionRunMCMC(self.species, self.population, self.modsnp, self.n, self.s, self.h, self.no_modern,
                                self.mispolar, self.chain)

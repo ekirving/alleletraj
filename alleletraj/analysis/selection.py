@@ -205,21 +205,21 @@ class SelectionRunMCMC(utils.PipelineTask):
     :type species: str
     :type population: str
     :type modsnp: int
+    :type no_modern: bool
+    :type mispolar: bool
     :type n: int
     :type s: int
     :type h: float
-    :type no_modern: bool
-    :type mispolar: bool
     :type chain: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
-    no_modern = luigi.BoolParameter()
-    mispolar = luigi.BoolParameter()
     chain = luigi.IntParameter()
 
     def requires(self):
@@ -286,21 +286,21 @@ class SelectionPlot(utils.PipelineTask):
     :type species: str
     :type population: str
     :type modsnp: int
+    :type no_modern: bool
+    :type mispolar: bool
     :type n: int
     :type s: int
     :type h: float
-    :type no_modern: bool
-    :type mispolar: bool
     :type chain: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
-    no_modern = luigi.BoolParameter()
-    mispolar = luigi.BoolParameter()
     chain = luigi.IntParameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 64}  # TODO need to refactor Josh's code to fix massive memory requirement
@@ -355,21 +355,21 @@ class SelectionDiagnostics(utils.PipelineTask):
     :type species: str
     :type population: str
     :type modsnp: int
+    :type no_modern: bool
+    :type mispolar: bool
     :type n: int
     :type s: int
     :type h: float
-    :type no_modern: bool
-    :type mispolar: bool
     :type chain: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
-    no_modern = luigi.BoolParameter()
-    mispolar = luigi.BoolParameter()
     chain = luigi.IntParameter()
 
     def requires(self):
@@ -406,21 +406,21 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
     :type species: str
     :type population: str
     :type modsnp: int
+    :type no_modern: bool
+    :type mispolar: bool
     :type n: int
     :type s: int
     :type h: float
-    :type no_modern: bool
-    :type mispolar: bool
     :type chain: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
-    no_modern = luigi.BoolParameter()
-    mispolar = luigi.BoolParameter()
     chain = luigi.IntParameter()
 
     def requires(self):
@@ -464,20 +464,20 @@ class SelectionPSRF(utils.PipelineTask):
     :type species: str
     :type population: str
     :type modsnp: int
+    :type no_modern: bool
+    :type mispolar: bool
     :type n: int
     :type s: int
     :type h: float
-    :type no_modern: bool
-    :type mispolar: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
-    no_modern = luigi.BoolParameter()
-    mispolar = luigi.BoolParameter()
 
     def requires(self):
         params = self.all_params()
@@ -517,20 +517,20 @@ class LoadSelectionPSRF(utils.MySQLTask):
     :type species: str
     :type population: str
     :type modsnp: int
+    :type no_modern: bool
+    :type mispolar: bool
     :type n: int
     :type s: int
     :type h: float
-    :type no_modern: bool
-    :type mispolar: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter(default=False)
+    mispolar = luigi.BoolParameter(default=False)
     n = luigi.IntParameter(default=MCMC_CYCLES)
     s = luigi.IntParameter(default=MCMC_THIN)
     h = luigi.FloatParameter(default=MODEL_ADDITIVE)
-    no_modern = luigi.BoolParameter(default=False)
-    mispolar = luigi.BoolParameter(default=False)
 
     def requires(self):
         return SelectionPSRF(**self.all_params())
@@ -571,13 +571,17 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
     Run `selection` on all the direct GWAS hits.
 
     :type species: str
+    :type population: str
+
     """
     species = luigi.Parameter()
+    population = luigi.Parameter()
+    no_modern = luigi.BoolParameter(default=False)
 
     def requires(self):
 
         # get the modsnp id for every GWAS hit
-        gwas_snps = self.dbc.get_records_sql("""
+        modsnps = self.dbc.get_records_sql("""
             SELECT DISTINCT ms.id, ms.mispolar
               FROM qtls q
               JOIN qtl_snps qs
@@ -590,32 +594,41 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
              WHERE q.associationType = 'Association'
                AND q.valid = 1""", key=None)
 
-        for pop in self.list_populations(modern=True):
-            for gwas_snp in gwas_snps:
+        for modsnp in modsnps:
 
-                # get the neutral controls
-                neutral = selection_neutral_snps(self.species, self.pop, gwas_snp['id'])
+            # get the neutral controls for this modsnp
+            neutral = selection_neutral_snps(self.species, self.pop, modsnp['id'])
 
-                for no_modern in [True, False]:
-                    yield LoadSelectionPSRF(self.species, pop, gwas_snp['id'], no_modern=no_modern)
+            yield LoadSelectionPSRF(self.species, self.population, modsnp['id'], self.no_modern)
 
-                    if gwas_snp['mispolar']:
-                        yield LoadSelectionPSRF(self.species, pop, gwas_snp['id'], no_modern=no_modern, mispolar=True)
+            if modsnp['mispolar']:
+                # run the modsnp with the ancestral/derived alleles reversed
+                yield LoadSelectionPSRF(self.species, self.population, modsnp['id'], self.no_modern, mispolar=True)
 
-                    for modsnp in neutral:
-                        yield LoadSelectionPSRF(self.species, pop, modsnp, no_modern=no_modern)
+            for modsnp_id in neutral:
+                yield LoadSelectionPSRF(self.species, self.population, modsnp_id, self.no_modern)
 
 
 class SelectionPipeline(utils.PipelineWrapperTask):
     """
     Run all the `selection` jobs.
 
+
     :type species: str
+    :type population: str
     """
     species = luigi.Parameter()
+    population = luigi.OptionalParameter(default=None)
 
     def requires(self):
-        yield SelectionGWASSNPs(self.species)
+
+        # use all ancient populations, if population is not set
+        populations = [self.population] if self.population else self.list_populations(ancient=True)
+
+        # TODO run all SNPs without the modern frequency to see how different the inference is
+
+        for pop in populations:
+            yield SelectionGWASSNPs(self.species, pop)
 
 
 if __name__ == '__main__':

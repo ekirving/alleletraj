@@ -91,7 +91,7 @@ for (param in varnames(mcmc.burn)) {
         map[[param]] <- (1 - cos(map[[param]])) / 2
 
     } else if (str_detect(param, 'alpha')) {
-        # convert alpha into 's'
+        # convert alpha params into s values
         map[[param]] <- map[[param]] / (2 * pop_size)
     }
 }

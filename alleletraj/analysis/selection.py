@@ -24,7 +24,7 @@ MCMC_REPLICATES = 4
 MCMC_CYCLES = int(5e7)
 
 # fraction of MCMC cycles to discard as burn in
-MCMC_BURN_IN = 0.2
+MCMC_BURN_PCT = 0.2
 
 # thinning in analytically unnecessary, but makes the MCMC run much faster
 # see https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.2041-210X.2011.00131.x
@@ -52,7 +52,7 @@ def selection_neutral_snps(species, population, modsnp_id):
     """
     Find 'neutral' SNPs, by pairing the non-neutral SNP based on chromosome, mutation type and DAF.
 
-    If the SNP is flagged as mispolar then the mutation type and DAF are reversed.
+    If the SNP is flagged as mispolar then the DAF is inverted.
     """
     dbc = Database(species)
 
@@ -132,7 +132,7 @@ class SelectionInputFile(utils.DatabaseTask):
             pop_size = int(fin.read())
 
         # time is measured in diffusion units
-        units = 2 * pop_size * GENERATION_TIME[self.species]
+        diff_units = 2 * pop_size * GENERATION_TIME[self.species]
 
         # NOTE some SNPs may be mispolarised, so we switch the derived/ancestral alleles in those cases
         derived = 'derived' if not self.mispolar else 'ancestral'
@@ -141,7 +141,7 @@ class SelectionInputFile(utils.DatabaseTask):
             'derived': derived,
             'modsnp': self.modsnp,
             'population': self.population,
-            'units': units,
+            'units': diff_units,
         }
 
         sql = """
@@ -326,16 +326,16 @@ class SelectionPlot(utils.PipelineTask):
             pop_size = int(fin.read())
 
         # time is measured in diffusion units
-        units = 2 * pop_size * GENERATION_TIME[self.species]
+        diff_units = 2 * pop_size * GENERATION_TIME[self.species]
 
         try:
             # plot the allele trajectory
             utils.run_cmd(['Rscript',
-                           'rscript/plot-selection.R',
+                           'rscript/mcmc_plot_selection.R',
                            input_file.path,
                            output_prefix,
-                           units,
-                           MCMC_BURN_IN,
+                           diff_units,
+                           MCMC_BURN_PCT,
                            pdf_file.path])
 
         except RuntimeError as e:
@@ -373,10 +373,12 @@ class SelectionDiagnostics(utils.PipelineTask):
     chain = luigi.IntParameter()
 
     def requires(self):
-        return SelectionRunMCMC(**self.all_params())
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
+        yield SelectionRunMCMC(**self.all_params())
 
     def output(self):
         yield luigi.LocalTarget('data/selection/{}.ess'.format(self.basename))
+        yield luigi.LocalTarget('data/selection/{}.map'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}.diag'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-ess-burn.pdf'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-autocorr.pdf'.format(self.basename))
@@ -384,16 +386,26 @@ class SelectionDiagnostics(utils.PipelineTask):
 
     def run(self):
         # unpack the params
-        param_file, _, _, _ = self.input()
-        ess_file, diag_file, ess_pdf, autocorr_pdf, trace_pdf = self.output()
+        (_, nref_file, _), (param_file, _, _, _) = self.input()
+        ess_file, map_file, diag_file, ess_pdf, autocorr_pdf, trace_pdf = self.output()
+
+        # get the Nref population size
+        with nref_file.open() as fin:
+            pop_size = int(fin.read())
+
+        # time is measured in diffusion units
+        diff_units = 2 * pop_size * GENERATION_TIME[self.species]
 
         with diag_file.temporary_path() as diag_path:
             utils.run_cmd(['Rscript',
                            'rscript/mcmc_diagnostics.R',
                            param_file.path,
-                           MCMC_BURN_IN,
+                           MCMC_BURN_PCT,
                            self.s,
+                           diff_units,
+                           pop_size,
                            ess_file.path,
+                           map_file.path,
                            ess_pdf.path,
                            autocorr_pdf.path,
                            trace_pdf.path], stdout=open(diag_path, 'w'))
@@ -428,7 +440,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
 
     def queries(self):
         # unpack the params
-        ess_file, _, _, _, _ = self.input()
+        ess_file, map_file, _, _, _, _ = self.input()
 
         selection = {
             'population': self.population,
@@ -440,8 +452,13 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
             'mispolar':   self.mispolar,
         }
 
+        # get the parent record
         record = self.dbc.get_record('selection', selection)
-        selection_id = self.dbc.save_record('selection', selection) if not record else record['id']
+
+        if record:
+            selection_id = record['id']
+        else:
+            selection_id = self.dbc.save_record('selection', selection)
 
         # load the ESS
         with ess_file.open('r') as fin:
@@ -451,6 +468,15 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
         ess['chain'] = self.chain
 
         self.dbc.save_record('selection_ess', ess)
+
+        # load the MAP
+        with map_file.open('r') as fin:
+            map = json.load(fin)
+
+        map['selection_id'] = selection_id
+        map['chain'] = self.chain
+
+        self.dbc.save_record('selection_map', map)
 
 
 class SelectionPSRF(utils.PipelineTask):
@@ -502,7 +528,7 @@ class SelectionPSRF(utils.PipelineTask):
         with diag_file.temporary_path() as diag_path:
             utils.run_cmd(['Rscript',
                            'rscript/mcmc_gelman.R',
-                           MCMC_BURN_IN,
+                           MCMC_BURN_PCT,
                            self.s,
                            ess_file.path,
                            psrf_file.path,

@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-source("rscript/path_utilities.r")
+source('rscript/mcmc_path_utilities.r')
 
 # get the command line arguments
 args <- commandArgs(trailingOnly = TRUE)

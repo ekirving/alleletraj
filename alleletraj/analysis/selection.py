@@ -52,16 +52,20 @@ def selection_neutral_snps(species, population, modsnp_id):
     """
     Find 'neutral' SNPs, by pairing the non-neutral SNP based on chromosome, mutation type and DAF.
 
-    If the SNP is flagged as mispolar then the DAF is inverted.
+    If the SNP is flagged as mispolar then the allele polarization and DAF are inverted.
     """
     dbc = Database(species)
 
-    # TODO should we also consider the SNP coverage?
+    # TODO match on SNP coverage
     modsnps = dbc.get_records_sql("""
         SELECT ms.id
           FROM (
 
-        SELECT msd.population, ms.chrom, type, IF(ms.mispolar, 1-msd.daf, msd.daf) AS daf
+        SELECT msd.population, 
+               ms.chrom, 
+               IF(ms.mispolar, ms.ancestral, ms.derived) AS derived,
+               IF(ms.mispolar, ms.derived, ms.ancestral) AS ancestral,
+               IF(ms.mispolar, 1-msd.daf, msd.daf) AS daf
           FROM modern_snps ms
           JOIN modern_snp_daf msd
             ON msd.modsnp_id = ms.id 
@@ -71,7 +75,8 @@ def selection_neutral_snps(species, population, modsnp_id):
           ) AS nn
           JOIN modern_snps ms
             ON ms.chrom = nn.chrom
-           AND ms.type = nn.type
+           AND ms.derived = nn.derived
+           AND ms.ancestral = nn.ancestral
            AND ms.neutral = 1
            AND ms.mispolar IS NULL
            AND ms.variant_id IS NOT NULL

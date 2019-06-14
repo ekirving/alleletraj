@@ -149,6 +149,7 @@ class SelectionInputFile(utils.DatabaseTask):
             'units': diff_units,
         }
 
+        # TODO revert this to previous version
         sql = """
             # get the ancient frequencies in each bin
             SELECT IFNULL(SUM(base = derived), 0) AS derived_count,
@@ -177,7 +178,10 @@ class SelectionInputFile(utils.DatabaseTask):
         # noinspection SqlResolve
         modern_sql = """
             # get the modern frequencies
-            SELECT {derived}_count, ancestral_count + derived_count, 0, 0
+            SELECT {derived}_count AS derived_count,
+                   ancestral_count + derived_count AS sample_size,
+                   0 AS max,
+                   0 AS min
               FROM modern_snps ms
               JOIN modern_snp_daf msd
                 ON msd.modsnp_id = ms.id

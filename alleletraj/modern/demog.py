@@ -294,7 +294,7 @@ class CountChromSites(utils.DatabaseTask):
         yield PolarizeVCF(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('data/dadi/{}.size'.format(self.basename))
+        return luigi.LocalTarget('data/sfs/{}.size'.format(self.basename))
 
     def run(self):
         # unpack the params

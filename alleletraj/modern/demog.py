@@ -15,7 +15,7 @@ import random
 
 # local modules
 from alleletraj.const import MUTATION_RATE
-from vcf import PolarizeVCF, WholeGenomeSNPsVCF
+from vcf import PolarizeVCF, WholeGenomeSNPsVCF, BCFToolsSamplesFile
 from alleletraj import utils
 
 # number of sequential epochs to test
@@ -82,6 +82,8 @@ class EasySFS(utils.DatabaseTask):
     resources = {'cpu-cores': 1, 'ram-gb': 96}
 
     def requires(self):
+        # TODO what about sex chroms?
+        # TODO should we filter for 'neutrals'?
         return WholeGenomeSNPsVCF(self.species)
 
     def output(self):
@@ -253,9 +255,43 @@ class DadiEpochMaximumLikelihood(utils.PipelineTask):
             fout.write('{}'.format(max_lnl))
 
 
+class CountChromSites(utils.DatabaseTask):
+    """
+    Count the number of callable sites in a chromosome.
+
+    :type species: str
+    :type population: str
+    :type chrom: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    chrom = luigi.Parameter()
+
+    def requires(self):
+        yield BCFToolsSamplesFile(self.species, self.population)
+        yield PolarizeVCF(self.species, self.chrom)
+
+    def output(self):
+        return luigi.LocalTarget('data/vcf/{}.sites'.format(self.basename))
+
+    def run(self):
+        # unpack the params
+        (samples_file, _), vcf_file = self.input()
+        sites_file = self.output()
+
+        # count the unique sites
+        cmd = "bcftools view --samples-file {} --exclude-uncalled --exclude-types indels,mnps,bnd,other {} | " \
+              "bcftools query --format '%CHROM %POS\\n' | uniq | wc -l".format(samples_file.path, vcf_file.path)
+
+        sites = utils.run_cmd([cmd], shell=True)
+
+        with sites_file.open('w') as fout:
+            fout.write('{}'.format(sites))
+
+
 class CountCallableSites(utils.DatabaseTask):
     """
-    Count the number of callable sites, as dadi needs this number to estimate the ancestral population size from theta.
+    Count the total number of callable sites, so dadi cant estimate the ancestral population size from theta.
 
     :type species: str
     :type population: str
@@ -264,34 +300,24 @@ class CountCallableSites(utils.DatabaseTask):
     population = luigi.Parameter()
 
     def requires(self):
+        # TODO should this be self.autosomes?
         for chrom in self.chromosomes:
-            yield PolarizeVCF(self.species, chrom)
+            yield CountChromSites(self.species, self.population, chrom)
 
     def output(self):
-        yield luigi.LocalTarget('data/dadi/{}.L'.format(self.basename))
-        yield luigi.LocalTarget('data/vcf/{}.samples'.format(self.basename))
+        return luigi.LocalTarget('data/dadi/{}.L'.format(self.basename))
 
     def run(self):
         # unpack the params
-        vcf_files = self.input()
-        size_file, samples_file = self.output()
-
-        samples = self.dbc.get_records('samples', {'population': self.population, 'ancient': 0}, key='name')
-
-        # make a samples file to filter the VCF with
-        with samples_file.open('w') as fout:
-            for sample in samples:
-                fout.write('{}\n'.format(sample))
+        chrom_files = self.input()
+        size_file = self.output()
 
         total = 0
 
-        # count all unique sites
-        for vcf_file in vcf_files:
-            cmd = "bcftools view --samples-file {} --exclude-uncalled --exclude-types indels,mnps,bnd,other {} | " \
-                  "bcftools query --format '%CHROM %POS\\n' | uniq | wc -l".format(samples_file.path, vcf_file.path)
-
-            size = utils.run_cmd([cmd], shell=True)
-            total += int(size)
+        # sum all the chromosome sizes
+        for chrom_file in chrom_files:
+            with chrom_file.open() as fin:
+                total += int(fin.read())
 
         with size_file.open('w') as fout:
             fout.write('{}'.format(total))

@@ -15,7 +15,7 @@ import random
 
 # local modules
 from alleletraj.const import MUTATION_RATE
-from vcf import PolarizeVCF, WholeGenomeSNPsVCF, BCFToolsSamplesFile
+from vcf import PolarizeVCF, WholeGenomeSNPsVCF
 from alleletraj import utils
 
 # number of sequential epochs to test
@@ -255,6 +255,31 @@ class DadiEpochMaximumLikelihood(utils.PipelineTask):
             fout.write('{}'.format(max_lnl))
 
 
+class SFSSamplesFile(utils.DatabaseTask):
+    """
+    Make a samples file for the just the samples used to calculate the SFS.
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def output(self):
+        return luigi.LocalTarget('data/dadi/{}.samples'.format(self.basename))
+
+    def run(self):
+        samples_file = self.output()
+
+        # get the samples used to calculate the SFS
+        samples = self.dbc.get_records('samples', {'population': self.population, 'ancient': 0, 'sfs': 1}, key='name')
+
+        # make a samples file to filter the VCF with
+        with samples_file.open('w') as fout:
+            for sample in samples:
+                fout.write('{}\n'.format(sample))
+
+
 class CountChromSites(utils.DatabaseTask):
     """
     Count the number of callable sites in a chromosome.
@@ -268,25 +293,25 @@ class CountChromSites(utils.DatabaseTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        yield BCFToolsSamplesFile(self.species, self.population)
+        yield SFSSamplesFile(self.species, self.population)
         yield PolarizeVCF(self.species, self.chrom)
 
     def output(self):
-        return luigi.LocalTarget('data/vcf/{}.sites'.format(self.basename))
+        return luigi.LocalTarget('data/dadi/{}.size'.format(self.basename))
 
     def run(self):
         # unpack the params
-        (samples_file, _), vcf_file = self.input()
-        sites_file = self.output()
+        samples_file, vcf_file = self.input()
+        size_file = self.output()
 
         # count the unique sites
         cmd = "bcftools view --samples-file {} --exclude-uncalled --exclude-types indels,mnps,bnd,other {} | " \
               "bcftools query --format '%CHROM %POS\\n' | uniq | wc -l".format(samples_file.path, vcf_file.path)
 
-        sites = utils.run_cmd([cmd], shell=True)
+        size = utils.run_cmd([cmd], shell=True)
 
-        with sites_file.open('w') as fout:
-            fout.write('{}'.format(sites))
+        with size_file.open('w') as fout:
+            fout.write('{}'.format(size))
 
 
 class CountCallableSites(utils.DatabaseTask):

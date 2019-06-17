@@ -77,20 +77,11 @@ class BCFToolsSamplesFile(utils.DatabaseTask):
     BAM files containing multiple libraries with different accession codes are treated as one sample.
 
     :type species: str
-    :type population: str
     """
     species = luigi.Parameter()
-    population = luigi.OptionalParameter(default=None)
-
-    @property
-    def samples(self):
-        if self.population:
-            return self.list_samples(modern=True, population=self.population)
-        else:
-            return self.list_samples(modern=True, outgroup=True)
 
     def requires(self):
-        for pop, sample in self.samples:
+        for pop, sample in self.list_samples(modern=True, outgroup=True):
             yield SampleBAM(self.species, pop, sample)
 
     def output(self):
@@ -101,8 +92,8 @@ class BCFToolsSamplesFile(utils.DatabaseTask):
         bam_files = [bam_file for bam_file, _ in self.input()]
         sex_file, rgs_file = self.output()
 
-        # get all the samples
-        samples = self.samples
+        # get all the modern samples
+        samples = self.list_samples(modern=True, outgroup=True)
 
         # bcftools needs the sex specified in a separate file
         with sex_file.open('w') as fout:

@@ -67,6 +67,32 @@ def dadi_n_epoch(params, ns, pts):
     return fs
 
 
+class EasySFSPopFile(utils.DatabaseTask):
+    """
+    Make samples and populations files for the just the samples used to calculate the SFS.
+
+    :type species: str
+    :type population: str
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+
+    def output(self):
+        return [luigi.LocalTarget('data/sfs/{}.{}'.format(self.basename, ext)) for ext in ['pops', 'spl']]
+
+    def run(self):
+        pop_file, spl_file = self.output()
+
+        # get the list of samples to use for the SFS calculation
+        samples = self.dbc.get_records('samples', {'population': self.population, 'ancient': 0, 'sfs': 1}, key='name')
+
+        # make both the samples and populations files
+        with open(pop_file, 'w') as pop_fout, spl_file.open('w') as spl_fout:
+            for sample in samples:
+                pop_fout.write('{}\t{}\n'.format(sample, self.population))
+                spl_fout.write('{}\n'.format(sample))
+
+
 class EasySFS(utils.DatabaseTask):
     """
     Calculate the Site Frequency Spectrum.
@@ -84,30 +110,26 @@ class EasySFS(utils.DatabaseTask):
     def requires(self):
         # TODO what about sex chroms?
         # TODO should we filter for 'neutrals'?
-        return WholeGenomeSNPsVCF(self.species)
+        yield EasySFSPopFile(self.species, self.population)
+        yield WholeGenomeSNPsVCF(self.species)
 
     def output(self):
         return [luigi.LocalTarget('data/sfs/{}/dadi/{}.{}'.format(self.basename, self.population, ext))
                 for ext in ['sfs', 'log']]
 
     def run(self):
-        # unpack the outputs
+        # unpack the params
+        (pop_file, _), vcf_file = self.input()
         sfs_file, log_file = self.output()
 
-        # get the list of samples to use for the SFS calculation
-        samples = self.dbc.get_records('samples', {'population': self.population, 'sfs': 1}, key='name')
-
-        # make a sample/population file
-        pop_file = 'data/sfs/{}.pops'.format(self.basename)
-        with open(pop_file, 'w') as fout:
-            for sample in samples:
-                fout.write('{}\t{}\n'.format(sample, self.population))
+        # get the number of samples in the pop file
+        num_samples = int(utils.run_cmd(['wc', '-l', pop_file.path]))
 
         params = {
-            'vcf': self.input().path,
+            'vcf': vcf_file.path,
             'pops': pop_file,
             'out': self.basename,
-            'proj': len(samples) * 2,  # don't project down
+            'proj': num_samples * 2,  # don't project down
             'fold': '--unfolded' if not self.folded else ''
         }
 
@@ -255,31 +277,6 @@ class DadiEpochMaximumLikelihood(utils.PipelineTask):
             fout.write('{}'.format(max_lnl))
 
 
-class SFSSamplesFile(utils.DatabaseTask):
-    """
-    Make a samples file for the just the samples used to calculate the SFS.
-
-    :type species: str
-    :type population: str
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-
-    def output(self):
-        return luigi.LocalTarget('data/dadi/{}.samples'.format(self.basename))
-
-    def run(self):
-        samples_file = self.output()
-
-        # get the samples used to calculate the SFS
-        samples = self.dbc.get_records('samples', {'population': self.population, 'ancient': 0, 'sfs': 1}, key='name')
-
-        # make a samples file to filter the VCF with
-        with samples_file.open('w') as fout:
-            for sample in samples:
-                fout.write('{}\n'.format(sample))
-
-
 class CountChromSites(utils.DatabaseTask):
     """
     Count the number of callable sites in a chromosome.
@@ -293,7 +290,7 @@ class CountChromSites(utils.DatabaseTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        yield SFSSamplesFile(self.species, self.population)
+        yield EasySFSPopFile(self.species, self.population)
         yield PolarizeVCF(self.species, self.chrom)
 
     def output(self):
@@ -301,12 +298,12 @@ class CountChromSites(utils.DatabaseTask):
 
     def run(self):
         # unpack the params
-        samples_file, vcf_file = self.input()
+        (_, spl_file), vcf_file = self.input()
         size_file = self.output()
 
         # count the unique sites
         cmd = "bcftools view --samples-file {} --exclude-uncalled --exclude-types indels,mnps,bnd,other {} | " \
-              "bcftools query --format '%CHROM %POS\\n' | uniq | wc -l".format(samples_file.path, vcf_file.path)
+              "bcftools query --format '%CHROM %POS\\n' | uniq | wc -l".format(spl_file.path, vcf_file.path)
 
         size = utils.run_cmd([cmd], shell=True)
 

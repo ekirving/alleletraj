@@ -34,6 +34,7 @@ DADI_MAX_RELATIVE_LL = 0.10
 DADI_FOLDED = True
 DADI_UNFOLDED = False
 
+
 def dadi_n_epoch(params, ns, pts):
     """
     Sequential epoch model for dadi.
@@ -154,6 +155,10 @@ class DadiEpochOptimizeParams(utils.PipelineTask):
         # set the upper and lower parameter bounds (0.01 < nu < 100 | 0 < T < 5)
         lower = [.01] * self.epoch + [0] * self.epoch
         upper = [100] * self.epoch + [5] * self.epoch
+
+        # make a deterministic random seed (helps keep everything easily reproducible)
+        seed = int('{}{}'.format(self.epoch, self.n))
+        random.seed(seed)
 
         # pick random starting values, bounded by the upper and lower parameter limits
         start = [random.uniform(lower[i], upper[i]) for i in range(0, self.epoch * 2)]
@@ -409,7 +414,7 @@ class DadiBestModel(utils.PipelineTask):
         for epoch in epochs:
             epoch['relL'] = math.exp((min_aic - epoch['aic']) / 2)
 
-        # reverse sort by relative likelihood and AIC
+        # reverse sort by relative likelihood
         epochs.sort(key=lambda x: x['relL'], reverse=True)
 
         # reject modelling if 2nd best model has a relative likelihood greater than acceptable

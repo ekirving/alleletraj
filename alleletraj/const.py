@@ -17,10 +17,10 @@ BINOMIAL_NAME = {
 
 # which reference assembly should we use for each species (changing the assembly will trigger a complete db rebuild)
 REF_ASSEMBLY = {
-    'cattle': 'UMD3.1',
+    'cattle': 'UMD3.1',       # TODO replace with ARS-UCD1.2
     'goat':   'ARS1',
-    'horse':  'EquCab2',
-    'pig':    'Sscrofa10.2',
+    'horse':  'EquCab2',      # TODO replace with EquCab3.0
+    'pig':    'Sscrofa10.2',  # TODO replace with Sscrofa11.1
 }
 
 # the name of the chromosomes in each assembly (NOTE: MT omitted intentionally)

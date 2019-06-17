@@ -87,7 +87,7 @@ class EasySFSPopFile(utils.DatabaseTask):
         samples = self.dbc.get_records('samples', {'population': self.population, 'ancient': 0, 'sfs': 1}, key='name')
 
         # make both the samples and populations files
-        with open(pop_file, 'w') as pop_fout, spl_file.open('w') as spl_fout:
+        with pop_file.open('w') as pop_fout, spl_file.open('w') as spl_fout:
             for sample in samples:
                 pop_fout.write('{}\t{}\n'.format(sample, self.population))
                 spl_fout.write('{}\n'.format(sample))

@@ -371,7 +371,7 @@ class DadiEpochDemography(utils.PipelineTask):
 
     def run(self):
         # unpack the inputs/outputs
-        (pkl_file, _, _), (size_file, _) = self.input()
+        (pkl_file, _, _), size_file = self.input()
         _, pop_file, nref_file = self.output()
 
         # load the best params for the epoch

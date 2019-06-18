@@ -85,12 +85,21 @@ class LoadSamples(utils.MySQLTask):
 
                 sample_id = self.dbc.save_record('samples', sample)
 
-                # use entrez to get the SRA run accessions
-                accessions = entrez_direct_esearch(row['biosample'])
+                for row_biosample in [acc.strip() for acc in row['biosample'].split(';') if acc.strip() != '']:
+                    # use entrez to get the SRA run accessions
+                    accessions = entrez_direct_esearch(row_biosample)
 
-                for biosample, accession, layout in itertools.izip(accessions, itertools.cycle(layout)):
-                    run = {'sample_id': sample_id, 'accession': accession, 'paired': layout == 'paired'}
-                    self.dbc.save_record('sample_runs', run)
+                    for bioproject, biosample, run_accession, library_name, library_layout, file_format in accessions:
+                        # make sure the data belongs to the right project and sample (and isn't actually a BAM file)
+                        if bioproject == row['bioproject'] and biosample == row_biosample and file_format == 'fastq':
+                            run = {
+                                'sample_id': sample_id,
+                                'biosample': biosample,
+                                'accession': run_accession,
+                                'name':      library_name if library_name != 'unspecified' else None,
+                                'paired':    library_layout == 'paired'
+                            }
+                            self.dbc.save_record('sample_runs', run)
 
 
 class CreateSampleBins(utils.MySQLTask):

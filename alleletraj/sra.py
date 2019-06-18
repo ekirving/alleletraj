@@ -16,14 +16,19 @@ def entrez_direct_esearch(biosample):
     """
     Get the list of SRA run accessions for a given BioSample code.
 
-    Returns: [(biosample, run_accession, library_layout), ...]
+    Returns: [(bioproject, biosample, run_accession, library_name, library_layout, file_format), ...]
 
     https://www.ncbi.nlm.nih.gov/books/NBK179288/
     """
-    cmd = "esearch -db sra -query 'SAMEA2821680' | " \
+    cmd = "esearch -db sra -query '{}' | " \
           "efetch -format xml | " \
-          "xtract -pattern EXPERIMENT_PACKAGE -element SAMPLE@alias RUN@accession " \
-          "-block LIBRARY_LAYOUT -if PAIRED -lbl 'paired' -else -lbl 'single'".format(biosample)
+          "xtract -pattern EXPERIMENT_PACKAGE " \
+          "-block STUDY -element EXTERNAL_ID " \
+          "-block SAMPLE_DESCRIPTOR -element EXTERNAL_ID " \
+          "-block RUN_SET -element RUN@accession " \
+          "-block LIBRARY_DESCRIPTOR -element LIBRARY_NAME " \
+          "-block LIBRARY_LAYOUT -if PAIRED@NOMINAL_LENGTH -equals 0 -lbl 'paired' -else -lbl 'single' " \
+          "-block RUN_SET -if AlignInfo -lbl 'bam' -else -lbl 'fastq'".format(biosample)
 
     runs = utils.run_cmd([cmd], shell=True)
 

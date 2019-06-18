@@ -15,6 +15,8 @@ from alleletraj import utils
 from alleletraj.db.load import CreateDatabase
 
 # number of years in a sample bin
+from alleletraj.sra import entrez_direct_esearch
+
 BIN_WIDTH = 500
 
 
@@ -83,15 +85,11 @@ class LoadSamples(utils.MySQLTask):
 
                 sample_id = self.dbc.save_record('samples', sample)
 
-                # get the SRA run accessions
-                accessions = [acc.strip() for acc in row['accessions'].split(';') if acc.strip() != '']
+                # use entrez to get the SRA run accessions
+                accessions = entrez_direct_esearch(row['biosample'])
 
-                # are the accessions paired end or not
-                layout = [1 if lib == 'PAIRED' else 0
-                          for lib in row.get('librarylayout').split(';') if lib.strip() != '']
-
-                for accession, paired in itertools.izip(accessions, itertools.cycle(layout)):
-                    run = {'sample_id': sample_id, 'accession': accession, 'paired': paired}
+                for biosample, accession, layout in itertools.izip(accessions, itertools.cycle(layout)):
+                    run = {'sample_id': sample_id, 'accession': accession, 'paired': layout == 'paired'}
                     self.dbc.save_record('sample_runs', run)
 
 

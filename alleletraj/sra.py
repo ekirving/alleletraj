@@ -12,6 +12,24 @@ from alleletraj import utils
 from alleletraj.const import CPU_CORES_LOW
 
 
+def entrez_direct_esearch(biosample):
+    """
+    Get the list of SRA run accessions for a given BioSample code.
+
+    Returns: [(biosample, run_accession, library_layout), ...]
+
+    https://www.ncbi.nlm.nih.gov/books/NBK179288/
+    """
+    cmd = "esearch -db sra -query 'SAMEA2821680' | " \
+          "efetch -format xml | " \
+          "xtract -pattern EXPERIMENT_PACKAGE -element SAMPLE@alias RUN@accession " \
+          "-block LIBRARY_LAYOUT -if PAIRED -lbl 'paired' -else -lbl 'single'".format(biosample)
+
+    runs = utils.run_cmd([cmd], shell=True)
+
+    return [run.split('\t') for run in runs.strip().split('\n')]
+
+
 class SraToolsFasterqDump(utils.PipelineTask):
     """
     Fetches the paired-end and single end FASTQ files for a given accession code, using SRA Tools.

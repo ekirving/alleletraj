@@ -117,12 +117,10 @@ class BwaSamSe(utils.PipelineTask):
             # get the temporary path for the bam file
             params['bam'] = bam_path
 
-            # align using the ALN algorithm, and convert to a sorted BAM file
-            cmd = "bwa samse -r '{readgroup}' {reference} {sai} {fastq} " \
-                  " | samtools sort -@ {threads} -O bam -o {bam} -".format(**params)
-
-            # TODO drop unaligned reads
-            # https://paleomix.readthedocs.io/en/latest/bam_pipeline/overview.html
+            # align using the ALN algorithm, drop unaligned reads, and convert to a sorted BAM file
+            cmd = "bwa samse -r '{readgroup}' {reference} {sai} {fastq} | " \
+                  "samtools view -h -F 0x0004 | " \
+                  "samtools sort -@ {threads} -O bam -o {bam}".format(**params)
 
             # perform the alignment
             utils.run_cmd([cmd], shell=True, stderr=fout)

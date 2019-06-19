@@ -347,6 +347,36 @@ class BiallelicSNPsVCF(utils.PipelineTask):
         utils.run_cmd(['bcftools', 'index', '--tbi', self.output().path])
 
 
+class WholeAutosomeSNPsVCF(utils.PipelineTask):
+    """
+    Concatenate the all autosomal chromosome VCFs into a single file.
+
+    :type species: str
+    """
+    species = luigi.Parameter()
+
+    def requires(self):
+        for chrom in self.autosomes:
+            yield BiallelicSNPsVCF(self.species, chrom)
+
+    def output(self):
+        return luigi.LocalTarget('data/vcf/{}-chrAuto-quant-polar-polar-SNPs.vcf.gz'.format(self.species))
+
+    def run(self):
+        # get all the vcf files to concatenate
+        vcf_files = [vcf.path for vcf in self.input()]
+
+        with self.output().temporary_path() as tmp_out:
+            utils.run_cmd(['bcftools',
+                           'concat',
+                           '--output-type', 'z',
+                           '--output', tmp_out
+                           ] + vcf_files)
+
+        # index the vcf
+        utils.run_cmd(['bcftools', 'index', '--tbi', self.output().path])
+
+
 class WholeGenomeSNPsVCF(utils.PipelineTask):
     """
     Concatenate the all chromosome VCFs into a single file.

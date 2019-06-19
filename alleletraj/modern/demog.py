@@ -15,7 +15,7 @@ import random
 
 # local modules
 from alleletraj.const import MUTATION_RATE
-from vcf import PolarizeVCF, WholeGenomeSNPsVCF
+from vcf import PolarizeVCF, WholeAutosomeSNPsVCF
 from alleletraj import utils
 
 # number of sequential epochs to test
@@ -69,7 +69,7 @@ def dadi_n_epoch(params, ns, pts):
 
 class EasySFSPopFile(utils.DatabaseTask):
     """
-    Make samples and populations files for the just the samples used to calculate the SFS.
+    Make sample and population files for the just those samples used to calculate the SFS.
 
     :type species: str
     :type population: str
@@ -108,10 +108,8 @@ class EasySFS(utils.DatabaseTask):
     resources = {'cpu-cores': 1, 'ram-gb': 96}
 
     def requires(self):
-        # TODO what about sex chroms?
-        # TODO should we filter for 'neutrals'?
         yield EasySFSPopFile(self.species, self.population)
-        yield WholeGenomeSNPsVCF(self.species)
+        yield WholeAutosomeSNPsVCF(self.species)
 
     def output(self):
         return [luigi.LocalTarget('data/sfs/{}/dadi/{}.{}'.format(self.basename, self.population, ext))
@@ -322,8 +320,7 @@ class CountCallableSites(utils.DatabaseTask):
     population = luigi.Parameter()
 
     def requires(self):
-        # TODO should this be self.autosomes?
-        for chrom in self.chromosomes:
+        for chrom in self.autosomes:
             yield CountChromSites(self.species, self.population, chrom)
 
     def output(self):

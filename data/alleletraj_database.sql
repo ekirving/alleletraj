@@ -380,7 +380,7 @@ CREATE TABLE `sample_runs` (
   `bioproject` varchar(255) NOT NULL DEFAULT '',
   `biosample` varchar(255) NOT NULL DEFAULT '',
   `accession` varchar(255) NOT NULL,
-  `name` varchar(255) DEFAULT '',
+  `libname` varchar(255) DEFAULT '',
   `paired` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `accession` (`accession`)

@@ -12,7 +12,7 @@ from alleletraj import utils
 from alleletraj.const import CPU_CORES_LOW
 
 
-def entrez_direct_esearch(bioproject, biosample, fastq_only = True):
+def entrez_direct_esearch(bioproject, biosample, fastq_only=True, libname_filter=''):
     """
     Get the list of SRA run accessions for a given BioSample code.
 
@@ -22,7 +22,7 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only = True):
     """
     cmd = "esearch -db sra -query '{}' | " \
           "efetch -format xml | " \
-          "xtract -pattern EXPERIMENT_PACKAGE -unless RUN@unavailable " \
+          "xtract -pattern EXPERIMENT_PACKAGE " \
           "-block STUDY -def '-' -element EXTERNAL_ID " \
           "-block SAMPLE_DESCRIPTOR -def '-' -element EXTERNAL_ID " \
           "-block RUN_SET -def '-' -element RUN@accession " \
@@ -52,6 +52,8 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only = True):
             elif fastq_only and record[5] != 'fastq':
                 print('WARNING: Record is not a fastq ({}, {}) - {}'.format(bioproject, biosample, record))
 
+            elif libname_filter and libname_filter in record[3]:
+                print('WARNING: Record matches library name filter ({}, {}) - {}'.format(bioproject, biosample, record))
             else:
                 records.append(record)
 

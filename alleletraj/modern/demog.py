@@ -126,7 +126,7 @@ class EasySFS(utils.DatabaseTask):
 
         params = {
             'vcf': vcf_file.path,
-            'pops': pop_file,
+            'pops': pop_file.path,
             'out': self.basename,
             'proj': num_samples * 2,  # don't project down
             'fold': '--unfolded' if not self.folded else ''

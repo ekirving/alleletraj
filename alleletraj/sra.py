@@ -22,7 +22,7 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only = True):
     """
     cmd = "esearch -db sra -query '{}' | " \
           "efetch -format xml | " \
-          "xtract -pattern EXPERIMENT_PACKAGE " \
+          "xtract -pattern EXPERIMENT_PACKAGE -unless RUN@unavailable " \
           "-block STUDY -def '-' -element EXTERNAL_ID " \
           "-block SAMPLE_DESCRIPTOR -def '-' -element EXTERNAL_ID " \
           "-block RUN_SET -def '-' -element RUN@accession " \
@@ -30,26 +30,30 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only = True):
           "-block LIBRARY_LAYOUT -if PAIRED@NOMINAL_LENGTH -lbl 'paired' -else -lbl 'single' " \
           "-block RUN_SET -if AlignInfo -lbl 'bam' -else -lbl 'fastq'".format(biosample)
 
-    result = utils.run_cmd([cmd], shell=True, verbose=False)
+    result = utils.run_cmd([cmd], shell=True, verbose=False).strip()
 
     records = []
 
-    for line in result.strip().split('\n'):
-        record = line.split('\t')
+    if result == '':
+        print('WARNING: No data returned from entrez ({}, {})'.format(bioproject, biosample))
 
-        if len(record) != 6:
-            print('WARNING: Missing fields returned from entrez ({}, {}) - {}'.format(bioproject, biosample, record))
+    else:
+        for line in result.split('\n'):
+            record = line.split('\t')
 
-        # elif bioproject != record[0] or biosample != record[1]:
-        elif biosample != record[1]:
-            # make sure the data belongs to the right project and sample
-            print('WARNING: Record contains incorrect data ({}, {}) - {}'.format(bioproject, biosample, record))
+            if len(record) != 6:
+                print('WARNING: Missing data returned from entrez ({}, {}) - {}'.format(bioproject, biosample, record))
 
-        elif fastq_only and record[5] != 'fastq':
-            print('WARNING: Record is not a fastq ({}, {}) - {}'.format(bioproject, biosample, record))
+            # elif bioproject != record[0] or biosample != record[1]:
+            elif biosample != record[1]:
+                # make sure the data belongs to the right project and sample
+                print('WARNING: Record contains incorrect data ({}, {}) - {}'.format(bioproject, biosample, record))
 
-        else:
-            records.append(record)
+            elif fastq_only and record[5] != 'fastq':
+                print('WARNING: Record is not a fastq ({}, {}) - {}'.format(bioproject, biosample, record))
+
+            else:
+                records.append(record)
 
     return records
 

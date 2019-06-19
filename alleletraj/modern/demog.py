@@ -121,7 +121,8 @@ class EasySFS(utils.DatabaseTask):
         sfs_file, log_file = self.output()
 
         # get the number of samples in the pop file
-        num_samples = int(utils.run_cmd(['wc', '-l', pop_file.path]))
+        count = utils.run_cmd(['wc', '-l', pop_file.path])
+        num_samples = int(count.split()[0])
 
         params = {
             'vcf': vcf_file.path,

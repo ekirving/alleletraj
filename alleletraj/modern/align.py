@@ -61,16 +61,17 @@ class BwaMem(utils.PipelineTask):
             # get the temporary path for the bam file
             params['bam'] = bam_path
 
-            # align using bwa-mem and convert to a sorted BAM file
-            cmd = "bwa mem -t {threads} -R '{readgroup}' {reference} {fastq} " \
-                  " | samtools sort -@ {threads} -O bam -o {bam} -".format(**params)
+            # align using bwa-mem
+            cmd = "bwa mem -t {threads} -R '{readgroup}' {reference} {fastq} | "
 
-            # TODO samtools fixmate | drop unaligned reads
-            # samtools fixmate -O bam <lane.sam> <lane_fixmate.bam>
-            # -r Remove secondary and unmapped reads.
-            # http://www.htslib.org/workflow/
+            if self.paired:
+                # fix paired end flags
+                cmd += "samtools fixmate - - | "
 
-            # perform the alignment
+            # drop unaligned reads and convert to a sorted BAM file
+            cmd += "samtools view -h -F 0x0004 | " \
+                   "samtools sort -@ {threads} -O bam -o {bam}".format(**params)
+
             utils.run_cmd([cmd], shell=True, stderr=fout)
 
         # index the BAM file

@@ -175,7 +175,11 @@ class BinSamples(utils.MySQLTask):
               ON num.id = sb.id
             SET sb.num_samples = num.cnt""")
 
-        # TODO delete unused bins
+        # delete unused bins
+        self.dbc.execute_sql("""
+            DELETE
+              FROM sample_bins
+             WHERE num_samples IS NULL""")
 
 
 class LoadAllSamples(utils.PipelineWrapperTask):

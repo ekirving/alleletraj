@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
-import itertools
 import math
 import re
 
@@ -13,10 +12,9 @@ import unicodecsv as csv
 # local modules
 from alleletraj import utils
 from alleletraj.db.load import CreateDatabase
-
-# number of years in a sample bin
 from alleletraj.sra import entrez_direct_esearch
 
+# number of years in a sample bin
 BIN_WIDTH = 500
 
 
@@ -46,6 +44,9 @@ class LoadSamples(utils.MySQLTask):
     """
     species = luigi.Parameter()
     ancient = luigi.BoolParameter(default=False)
+
+    # entrez direct does not like us making concurrent requests
+    resources = {'entrez_query': 1}
 
     def requires(self):
         yield CreateDatabase(self.species)
@@ -87,19 +88,18 @@ class LoadSamples(utils.MySQLTask):
 
                 for row_biosample in [acc.strip() for acc in row['biosample'].split(';') if acc.strip() != '']:
                     # use entrez to get the SRA run accessions
-                    accessions = entrez_direct_esearch(row_biosample)
+                    records = entrez_direct_esearch(row['bioproject'], row_biosample)
 
-                    for bioproject, biosample, run_accession, library_name, library_layout, file_format in accessions:
-                        # make sure the data belongs to the right project and sample (and isn't actually a BAM file)
-                        if bioproject == row['bioproject'] and biosample == row_biosample and file_format == 'fastq':
-                            run = {
-                                'sample_id': sample_id,
-                                'biosample': biosample,
-                                'accession': run_accession,
-                                'name':      library_name if library_name != 'unspecified' else None,
-                                'paired':    library_layout == 'paired'
-                            }
-                            self.dbc.save_record('sample_runs', run)
+                    for bioproject, biosample, run_accession, library_name, library_layout, file_format in records:
+                        run = {
+                            'sample_id': sample_id,
+                            'bioproject': bioproject,
+                            'biosample': biosample,
+                            'accession': run_accession,
+                            'name':      library_name if library_name != 'unspecified' else None,
+                            'paired':    library_layout == 'paired'
+                        }
+                        self.dbc.save_record('sample_runs', run)
 
 
 class CreateSampleBins(utils.MySQLTask):

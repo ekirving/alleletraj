@@ -12,7 +12,7 @@ from alleletraj import utils
 from alleletraj.const import CPU_CORES_LOW
 
 
-def entrez_direct_esearch(biosample):
+def entrez_direct_esearch(bioproject, biosample, fastq_only = True):
     """
     Get the list of SRA run accessions for a given BioSample code.
 
@@ -23,16 +23,35 @@ def entrez_direct_esearch(biosample):
     cmd = "esearch -db sra -query '{}' | " \
           "efetch -format xml | " \
           "xtract -pattern EXPERIMENT_PACKAGE " \
-          "-block STUDY -element EXTERNAL_ID " \
-          "-block SAMPLE_DESCRIPTOR -element EXTERNAL_ID " \
-          "-block RUN_SET -element RUN@accession " \
-          "-block LIBRARY_DESCRIPTOR -element LIBRARY_NAME " \
-          "-block LIBRARY_LAYOUT -if PAIRED@NOMINAL_LENGTH -equals 0 -lbl 'paired' -else -lbl 'single' " \
+          "-block STUDY -def '-' -element EXTERNAL_ID " \
+          "-block SAMPLE_DESCRIPTOR -def '-' -element EXTERNAL_ID " \
+          "-block RUN_SET -def '-' -element RUN@accession " \
+          "-block LIBRARY_DESCRIPTOR -def '-' -element LIBRARY_NAME " \
+          "-block LIBRARY_LAYOUT -if PAIRED@NOMINAL_LENGTH -lbl 'paired' -else -lbl 'single' " \
           "-block RUN_SET -if AlignInfo -lbl 'bam' -else -lbl 'fastq'".format(biosample)
 
-    runs = utils.run_cmd([cmd], shell=True)
+    result = utils.run_cmd([cmd], shell=True, verbose=False)
 
-    return [run.split('\t') for run in runs.strip().split('\n')]
+    records = []
+
+    for line in result.strip().split('\n'):
+        record = line.split('\t')
+
+        if len(record) != 6:
+            print('WARNING: Missing fields returned from entrez ({}, {}) - {}'.format(bioproject, biosample, record))
+
+        # elif bioproject != record[0] or biosample != record[1]:
+        elif biosample != record[1]:
+            # make sure the data belongs to the right project and sample
+            print('WARNING: Record contains incorrect data ({}, {}) - {}'.format(bioproject, biosample, record))
+
+        elif fastq_only and record[5] != 'fastq':
+            print('WARNING: Record is not a fastq ({}, {}) - {}'.format(bioproject, biosample, record))
+
+        else:
+            records.append(record)
+
+    return records
 
 
 class SraToolsFasterqDump(utils.PipelineTask):

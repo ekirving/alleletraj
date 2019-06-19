@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.6.19)
 # Database: alleletraj_horse_equcab2_rel38
-# Generation Time: 2019-06-13 13:51:00 +0000
+# Generation Time: 2019-06-18 16:48:50 +0000
 # ************************************************************
 
 
@@ -377,7 +377,10 @@ CREATE TABLE `sample_reads` (
 CREATE TABLE `sample_runs` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `sample_id` int(11) NOT NULL,
+  `bioproject` varchar(255) NOT NULL DEFAULT '',
+  `biosample` varchar(255) NOT NULL DEFAULT '',
   `accession` varchar(255) NOT NULL,
+  `name` varchar(255) DEFAULT '',
   `paired` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `accession` (`accession`)
@@ -467,8 +470,9 @@ CREATE TABLE `selection_ess` (
   `sample_time_15` float DEFAULT NULL,
   `sample_time_16` float DEFAULT NULL,
   `sample_time_17` float DEFAULT NULL,
-  `first_nonzero` float DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `first_nonzero` float NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `selection_id` (`selection_id`,`chain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -479,34 +483,35 @@ CREATE TABLE `selection_ess` (
 CREATE TABLE `selection_map` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `selection_id` int(11) NOT NULL,
-  `chain` int(11) DEFAULT NULL,
+  `chain` int(11) NOT NULL,
   `lnL` float NOT NULL,
   `pathlnL` float NOT NULL,
   `alpha1` float NOT NULL,
   `alpha2` float NOT NULL,
   `F` float NOT NULL,
-  `age` float NOT NULL,
+  `age` int(11) unsigned NOT NULL,
   `end_freq` float NOT NULL,
-  `sample_time_0` float DEFAULT NULL,
-  `sample_time_1` float DEFAULT NULL,
-  `sample_time_2` float DEFAULT NULL,
-  `sample_time_3` float DEFAULT NULL,
-  `sample_time_4` float DEFAULT NULL,
-  `sample_time_5` float DEFAULT NULL,
-  `sample_time_6` float DEFAULT NULL,
-  `sample_time_7` float DEFAULT NULL,
-  `sample_time_8` float DEFAULT NULL,
-  `sample_time_9` float DEFAULT NULL,
-  `sample_time_10` float DEFAULT NULL,
-  `sample_time_11` float DEFAULT NULL,
-  `sample_time_12` float DEFAULT NULL,
-  `sample_time_13` float DEFAULT NULL,
-  `sample_time_14` float DEFAULT NULL,
-  `sample_time_15` float DEFAULT NULL,
-  `sample_time_16` float DEFAULT NULL,
-  `sample_time_17` float DEFAULT NULL,
-  `first_nonzero` float DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `sample_time_0` int(11) unsigned DEFAULT NULL,
+  `sample_time_1` int(11) unsigned DEFAULT NULL,
+  `sample_time_2` int(11) unsigned DEFAULT NULL,
+  `sample_time_3` int(11) unsigned DEFAULT NULL,
+  `sample_time_4` int(11) unsigned DEFAULT NULL,
+  `sample_time_5` int(11) unsigned DEFAULT NULL,
+  `sample_time_6` int(11) unsigned DEFAULT NULL,
+  `sample_time_7` int(11) unsigned DEFAULT NULL,
+  `sample_time_8` int(11) unsigned DEFAULT NULL,
+  `sample_time_9` int(11) unsigned DEFAULT NULL,
+  `sample_time_10` int(11) unsigned DEFAULT NULL,
+  `sample_time_11` int(11) unsigned DEFAULT NULL,
+  `sample_time_12` int(11) unsigned DEFAULT NULL,
+  `sample_time_13` int(11) unsigned DEFAULT NULL,
+  `sample_time_14` int(11) unsigned DEFAULT NULL,
+  `sample_time_15` int(11) unsigned DEFAULT NULL,
+  `sample_time_16` int(11) unsigned DEFAULT NULL,
+  `sample_time_17` int(11) unsigned DEFAULT NULL,
+  `first_nonzero` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `selection_id` (`selection_id`,`chain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
@@ -543,8 +548,9 @@ CREATE TABLE `selection_psrf` (
   `sample_time_15` float DEFAULT NULL,
   `sample_time_16` float DEFAULT NULL,
   `sample_time_17` float DEFAULT NULL,
-  `first_nonzero` float DEFAULT NULL,
-  PRIMARY KEY (`id`)
+  `first_nonzero` float NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `selection_id` (`selection_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

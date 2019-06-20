@@ -112,7 +112,7 @@ class Database:
             sql += self.__format_conditions(conds)
 
         if sort:
-            sql += "ORDER BY {sort} ".format(sort=sort)
+            sql += " ORDER BY {sort} ".format(sort=sort)
 
         self.cursor.execute(sql)
 

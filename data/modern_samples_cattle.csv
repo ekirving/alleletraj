@@ -1,23 +1,23 @@
 ﻿Population,Sample,Bioproject,Biosample,Breed,Alias,Sex,Reference,SFS,Path
-TEU,Angus_19,PRJNA238491,SAMN02671514,Angus,,Male,Daetwyler_et_al_2014,1,Angus_19_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Angus_28,PRJNA238491,SAMN02671523,Angus,,Male,Daetwyler_et_al_2014,1,Angus_28_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Angus_33,PRJNA238491,SAMN02671528,Angus,,Male,Daetwyler_et_al_2014,1,Angus_33_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Angus_39,PRJNA238491,SAMN02671534 ,Angus,,Male,Daetwyler_et_al_2014,1,Angus_39_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Angus_40,PRJNA238491,SAMN02671535,Angus,,Male,Daetwyler_et_al_2014,1,Angus_40_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Fleckvieh_39,PRJNA238491,SAMN02671663 ,Fleckvieh/Simmental,,Male,Daetwyler_et_al_2014,1,Fleckvieh_39_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Fleckvieh_40,PRJNA238491,SAMN02671664 ,Fleckvieh/Simmental,,Male,Daetwyler_et_al_2014,1,Fleckvieh_40_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Fleckvieh_42,PRJNA238491,SAMN02671666,Fleckvieh/Simmental,,Male,Daetwyler_et_al_2014,1,Fleckvieh_42_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Fleckvieh_5,PRJNA238491,SAMN02671629,Fleckvieh/Simmental,,Male,Daetwyler_et_al_2014,1,Fleckvieh_5_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Holstein_116,PRJNA238491,SAMN02671669 ,Holstein,,Male,Daetwyler_et_al_2014,1,Holstein_116_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Holstein_71,PRJNA238491,SAMN02671465 ,Holstein,,Male,Daetwyler_et_al_2014,1,Holstein_71_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Holstein_79,PRJNA238491,SAMN02671473,Holstein,,Male,Daetwyler_et_al_2014,1,Holstein_79_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Holstein_88,PRJNA238491,SAMN02671482,Holstein,,Male,Daetwyler_et_al_2014,1,Holstein_88_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Holstein_90,PRJNA238491,SAMN02671484,Holstein,,Male,Daetwyler_et_al_2014,1,Holstein_90_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Jersey_12,PRJNA238491,SAMN02671608 ,Jersey,,Male,Daetwyler_et_al_2014,1,Jersey_12_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Jersey_2,PRJNA238491,SAMN02671598,Jersey,,Male,Daetwyler_et_al_2014,1,Jersey_2_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Jersey_4,PRJNA238491,SAMN02671600,Jersey,,Male,Daetwyler_et_al_2014,1,Jersey_4_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Jersey_5,PRJNA238491,SAMN02671601 ,Jersey,,Male,Daetwyler_et_al_2014,1,Jersey_5_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Jersey_7,PRJNA238491,SAMN02671603,Jersey,,Male,Daetwyler_et_al_2014,1,Jersey_7_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Aln_12,,,Alentejana,,,Verdugo_et_al_in_review,1,Aln_12_fixmate_f2_F8_sort_rmdup.realigned.bam
-TEU,Hl_8059,,,Highland,,Male,Verdugo_et_al_in_review,1,Hl_8059_fixmate_f2_F8_sort_rmdup.realigned.bam
-TJP,Wag_1a,,,Wagyu,,Male,Verdugo_et_al_in_review,1,Wag_1a_sampe_rg_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Angus_19,PRJNA238491,SAMN02671514,Angus,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Angus_19_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Angus_28,PRJNA238491,SAMN02671523,Angus,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Angus_28_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Angus_33,PRJNA238491,SAMN02671528,Angus,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Angus_33_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Angus_39,PRJNA238491,SAMN02671534 ,Angus,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Angus_39_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Angus_40,PRJNA238491,SAMN02671535,Angus,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Angus_40_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Fleckvieh_39,PRJNA238491,SAMN02671663 ,Fleckvieh/Simmental,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Fleckvieh_39_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Fleckvieh_40,PRJNA238491,SAMN02671664 ,Fleckvieh/Simmental,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Fleckvieh_40_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Fleckvieh_42,PRJNA238491,SAMN02671666,Fleckvieh/Simmental,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Fleckvieh_42_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Fleckvieh_5,PRJNA238491,SAMN02671629,Fleckvieh/Simmental,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Fleckvieh_5_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Holstein_116,PRJNA238491,SAMN02671669 ,Holstein,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Holstein_116_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Holstein_71,PRJNA238491,SAMN02671465 ,Holstein,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Holstein_71_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Holstein_79,PRJNA238491,SAMN02671473,Holstein,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Holstein_79_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Holstein_88,PRJNA238491,SAMN02671482,Holstein,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Holstein_88_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Holstein_90,PRJNA238491,SAMN02671484,Holstein,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Holstein_90_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Jersey_12,PRJNA238491,SAMN02671608 ,Jersey,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Jersey_12_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Jersey_2,PRJNA238491,SAMN02671598,Jersey,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Jersey_2_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Jersey_4,PRJNA238491,SAMN02671600,Jersey,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Jersey_4_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Jersey_5,PRJNA238491,SAMN02671601 ,Jersey,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Jersey_5_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Jersey_7,PRJNA238491,SAMN02671603,Jersey,,Male,Daetwyler_et_al_2014,1,/home/trinity/inbox/cattle/modern/Jersey_7_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Aln_12,,,Alentejana,,,Verdugo_et_al_in_review,1,/home/trinity/inbox/cattle/modern/Aln_12_fixmate_f2_F8_sort_rmdup.realigned.bam
+TEU,Hl_8059,,,Highland,,Male,Verdugo_et_al_in_review,1,/home/trinity/inbox/cattle/modern/Hl_8059_fixmate_f2_F8_sort_rmdup.realigned.bam
+TJP,Wag_1a,,,Wagyu,,Male,Verdugo_et_al_in_review,1,/home/trinity/inbox/cattle/modern/Wag_1a_sampe_rg_fixmate_f2_F8_sort_rmdup.realigned.bam

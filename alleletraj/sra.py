@@ -58,7 +58,7 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only=True, libname_filter
                 # split multiple run accessions
                 record[2] = record[2].split(';')
 
-                records.append(record)
+                records.append([None if field == '-' else field for field in record])
 
     return records
 

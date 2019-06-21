@@ -1,32 +1,32 @@
-﻿Population,Sample,Bioproject,Accessions,Breed,Alias,Sex,LibraryLayout,Reference,SFS,Note,Path
-DOM2,Arab_0237A,PRJNA230019,SRR1046129,Arabian,Arabian_0237A_0,male,PAIRED,Metzger_et_al_2014,1,SAMN02439777,/home/ludo/inbox/BAMs/modern/Arab_0237A_SAMN02439777.Horse_nuc_wY.realigned.bam
-DOM2,Conn_0004A,PRJNA273402,SRR1769893,Connemara Pony,Connemara_0004A_0,male,PAIRED,Finno_et_al_2015,1,CON15,/home/ludo/inbox/BAMs/modern/Conn_0004A_CON15.Horse_nuc_wY.realigned.bam
-DOM2,Duel_0238A,PRJNA230019,SRR1048526,Duelmener,Duelmener_0238A_0,female,PAIRED,Metzger_et_al_2014,1,SAMN02422919,/home/ludo/inbox/BAMs/modern/Duel_0238A_SAMN02422919.Horse_nuc_wY.realigned.bam
-DOM2,Frie_0296A,PRJEB13863,ERR1397960,Friesian dwarf,Friesian_0296A_0,male,PAIRED,Leegwater_et_al_2016,0,SAMEA3951218,/home/ludo/inbox/BAMs/modern/Frie_0296A_SAMEA3951218.Horse_nuc_wY.realigned.bam
-DOM2,FrMo_0065A,PRJEB10098,ERR979791,Franches-Montagnes,FMontagnes_0065A_0,male,PAIRED,Der_Sarkissian_et_al_2015,1,FM1798,/home/ludo/inbox/BAMs/modern/FrMo_0065A_FM1798.Horse_nuc_wY.realigned.bam
-DOM2,Hano_0235A,PRJNA230019,SRR1046147,Hanoverian,Hanoverian_0235A_0,male,PAIRED,Metzger_et_al_2014,1,SAMN02439779,/home/ludo/inbox/BAMs/modern/Hano_0235A_SAMN02439779.Horse_nuc_wY.realigned.bam
-DOM2,Heav_0269A,PRJNA291776,SRR2142311,Saxon-Thuringian Heavy Warmblood,HeavyWarmblood_0269A_0,male,PAIRED,Metzger_et_al_2014,1,SAMN03955412,/home/ludo/inbox/BAMs/modern/Heav_0269A_SAMN03955412.Horse_nuc_wY.realigned.bam
-DOM2,Icel_0144A,N/A,SRR488214,Icelandic,Icelandic_0144A_0,male,PAIRED,Andersson_et_al_2012,0,P5782,/home/ludo/inbox/BAMs/modern/Icel_0144A_P5782.Horse_nuc_wY.realigned.bam
-DOM2,Icel_0247A,PRJEB8911,ERR793393,Icelandic,Icelandic_0247A_0,male,PAIRED,Haase_et_al_2015,0,IS074,/home/ludo/inbox/BAMs/modern/Icel_0247A_IS074.Horse_nuc_wY.realigned.bam
-DOM2,Jeju_0275A,PRJNA169102,SRR516118,Jeju pony,Jeju_0275A_0,male,PAIRED,Do_et_al_2014,0,SAMN01057172,/home/ludo/inbox/BAMs/modern/Jeju_0275A_SAMN01057172.Horse_nuc_wY.realigned.bam
-DOM2,Marw_0239A,PRJNA246445,SRR1275408,Marwari horse,Marwari_0239A_0,male,PAIRED,Jun_et_al_2014,1,SRR1275408,/home/ludo/inbox/BAMs/modern/Marw_0239A_SRR1275408.Horse_nuc_wY.realigned.bam
-DOM2,Mong_0153A,PRJEB10098,ERR982704,Mongolian,Mongolian_0153A_0,male,PAIRED,Der_Sarkissian_et_al_2015,0,KB7754,/home/ludo/inbox/BAMs/modern/Mong_0153A_KB7754.Horse_nuc_wY.realigned.bam
-DOM2,Mong_0215A,PRJNA277815,SRR3017573,Mongolian,Mongolian_0215A_0,male,PAIRED,Do_et_al_2014,0,TG1111D2628,/home/ludo/inbox/BAMs/modern/Mong_0215A_TG1111D2628.Horse_nuc_wY.realigned.bam
-DOM2,Morg_0096A,PRJEB10098,ERR979796,Morgan,Morgan_0096A_0,female,PAIRED,Der_Sarkissian_et_al_2015,1,EMS595,/home/ludo/inbox/BAMs/modern/Morg_0096A_EMS595.Horse_nuc_wY.realigned.bam
-DOM2,Quar_0073A,PRJEB10098,ERR979800,American Quarter Horse,Quarter_0073A_0,male,PAIRED,Der_Sarkissian_et_al_2015,1,A2085,/home/ludo/inbox/BAMs/modern/Quar_0073A_A2085.Horse_nuc_wY.realigned.bam
-DOM2,Shet_0249A,PRJEB9269,ERR868004,Shetland pony,Shetland_0249A_0,female,PAIRED,Frischkhnecht_et_al_2015,0,SPH020,/home/ludo/inbox/BAMs/modern/Shet_0249A_SPH020.Horse_nuc_wY.realigned.bam
-DOM2,Shet_0250A,PRJEB9267,ERR868003,Shetland pony,Shetland_0250A_0,female,PAIRED,Frischkhnecht_et_al_2015,0,SPH041,/home/ludo/inbox/BAMs/modern/Shet_0250A_SPH041.Horse_nuc_wY.realigned.bam
-DOM2,Sorr_0236A,PRJNA230019,SRR1046135,Sorraia,Sorraia_0236A_0,male,PAIRED,Metzger_et_al_2014,1,SAMN02439778,/home/ludo/inbox/BAMs/modern/Sorr_0236A_SAMN02439778.Horse_nuc_wY.realigned.bam
-DOM2,Stan_0081A,PRJEB10098,ERR979802,Standardbred,Standardbred_0081A_0,male,PAIRED,Warmuth_et_al_2011,1,M5256,/home/ludo/inbox/BAMs/modern/Stan_0081A_M5256.Horse_nuc_wY.realigned.bam
-DOM2,Thor_0145A,PRJNA277815,SRR3017575,Thoroughbred,Thoroughbred_0145A_0,female,PAIRED,Orlando_et_al_2013,1,Twilight,/home/ludo/inbox/BAMs/modern/Thor_0145A_Twilight.Horse_nuc_wY.realigned.bam
-DOM2,Thor_0290A,PRJNA168142,SRR515216,Thoroughbred,Thoroughbred_0290A_0,male,PAIRED,Kim_et_al_2013,1,SAMN01047706,/home/ludo/inbox/BAMs/modern/Thor_0290A_SAMN01047706.Horse_nuc_wY.realigned.bam
-DOM2,Yaku_0163A,PRJEB10854,ERR1021816,Yakutian,Yakutian_0163A_0,male,PAIRED,Librado_et_al_2015,0,Yak1,/home/ludo/inbox/BAMs/modern/Yaku_0163A_Yak1.Horse_nuc_wY.realigned.bam
-DOM2,Yaku_0170A,PRJEB10854,ERR1021823,Yakutian,Yakutian_0170A_0,male,PAIRED,Librado_et_al_2015,0,Yak8,/home/ludo/inbox/BAMs/modern/Yaku_0170A_Yak8.Horse_nuc_wY.realigned.bam
-DOM2,Yaku_0171A,PRJEB10854,ERR1021824,Yakutian,Yakutian_0171A_0,male,PAIRED,Librado_et_al_2015,0,Yak9,/home/ludo/inbox/BAMs/modern/Yaku_0171A_Yak9.Horse_nuc_wY.realigned.bam
-DOM,Prze_0150A,PRJEB10098,ERR982705,Przewalski,Przewalski_0150A_0,female,PAIRED,Der_Sarkissian_et_al_2015,1,KB3879,/home/ludo/inbox/BAMs/modern/Prze_0150A_KB3879.Horse_nuc_wY.realigned.bam
-DOM,Prze_0151A,PRJEB10098,ERR982712,Przewalski,Przewalski_0151A_0,male,PAIRED,Der_Sarkissian_et_al_2015,1,KB7674,/home/ludo/inbox/BAMs/modern/Prze_0151A_KB7674.Horse_nuc_wY.realigned.bam
-DOM,Prze_0157A,PRJEB10099,ERR982715,Przewalski,Przewalski_0157A_0,male,PAIRED,Der_Sarkissian_et_al_2015,1,SB293,/home/ludo/inbox/BAMs/modern/Prze_0157A_SB293.Horse_nuc_wY.realigned.bam
-DOM,Prze_0158A,PRJEB10100,ERR982708,Przewalski,Przewalski_0158A_0,female,PAIRED,Der_Sarkissian_et_al_2015,1,SB339,/home/ludo/inbox/BAMs/modern/Prze_0158A_SB339.Horse_nuc_wY.realigned.bam
-DOM,Prze_0159A,PRJEB10101,ERR982716,Przewalski,Przewalski_0159A_0,male,PAIRED,Der_Sarkissian_et_al_2015,1,SB4329,/home/ludo/inbox/BAMs/modern/Prze_0159A_SB4329.Horse_nuc_wY.realigned.bam
-DOM,Prze_0160A,PRJEB10102,ERR982717,Przewalski,Przewalski_0160A_0,male,PAIRED,Der_Sarkissian_et_al_2015,1,SB533,/home/ludo/inbox/BAMs/modern/Prze_0160A_SB533.Horse_nuc_wY.realigned.bam
-OUT,Esom_0226A,PRJEB7446,ERR650540; ERR650541; ERR650542; ERR650543; ERR650544; ERR650545; ERR650546; ERR650547; ERR650570; ERR650571; ERR650572; ERR650573; ERR650574; ERR650575; ERR650576; ERR650577; ERR650578; ERR650579; ERR650580; ERR650581; ERR650582; ERR650583; ERR650584; ERR650585; ERR650586; ERR650587; ERR650588; ERR650589; ERR650590; ERR650591; ERR650592; ERR650593; ERR650594; ERR650595; ERR650596; ERR650597; ERR650598; ERR650599; ERR650600; ERR650601; ERR650602; ERR650603; ERR650604; ERR650605; ERR650606; ERR650607; ERR650608; ERR650609; ERR650610; ERR650611; ERR650612; ERR650613; ERR650614; ERR650615; ERR650616; ERR650617; ERR650618; ERR650619; ERR650620; ERR650621; ERR650622; ERR650623; ERR650624; ERR650625; ERR650626; ERR650627; ERR650628; ERR650629; ERR650630; ERR650631; ERR650632; ERR650633; ERR650634; ERR650635; ERR650636; ERR650637; ERR650638; ERR650639; ERR650640; ERR650641; ERR650642; ERR650643; ERR650644; ERR650645; ERR650646; ERR650647; ERR650648; ERR650649; ERR650650; ERR650651; ERR650652; ERR650653; ERR650654; ERR650655; ERR650656; ERR650657; ERR650658; ERR650659; ERR650660; ERR650661; ERR650662; ERR650663; ERR650664; ERR650665; ERR650666; ERR650667; ERR650668; ERR650669; ERR650670; ERR650671; ERR650672; ERR650673; ERR650674; ERR650675; ERR650676; ERR650677; ERR650678; ERR650679; ERR650680; ERR650681; ERR650682; ERR650683; ERR650684; ERR650685; ERR650686; ERR650687; ERR650688; ERR650689; ERR650690; ERR650691; ERR650692; ERR650693; ERR650694; ERR650695; ERR650696; ERR650697; ERR650698; ERR650699; ERR650700; ERR650701; ERR650702; ERR650703;,Somali wild ass,Somali_0226A_0,female,PAIRED,Jónsson_et_al_2014,0,Esomalicus,/home/ludo/inbox/BAMs/modern/Esom_0226A_Esomalicus.Horse_nuc_wY.realigned.bam
+﻿Population,Sample,Bioproject,Biosample,Breed,Alias,Sex,LibraryLayout,Reference,SFS,Path
+DOM,Prze_0150A,PRJEB10098,SAMEA3498579,Przewalski,KB3879_SB274,female,PAIRED,Der_Sarkissian_et_al_2015,1,/home/ludo/inbox/BAMs/modern/Prze_0150A_KB3879.Horse_nuc_wY.realigned.bam
+DOM,Prze_0151A,PRJEB10098,SAMEA3498580,Przewalski,KB7674_SB285,male,PAIRED,Der_Sarkissian_et_al_2015,1,/home/ludo/inbox/BAMs/modern/Prze_0151A_KB7674.Horse_nuc_wY.realigned.bam
+DOM,Prze_0157A,PRJEB10098,SAMEA3498586,Przewalski,SB293,male,PAIRED,Der_Sarkissian_et_al_2015,1,/home/ludo/inbox/BAMs/modern/Prze_0157A_SB293.Horse_nuc_wY.realigned.bam
+DOM,Prze_0158A,PRJEB10098,SAMEA3498587,Przewalski,SB339,female,PAIRED,Der_Sarkissian_et_al_2015,1,/home/ludo/inbox/BAMs/modern/Prze_0158A_SB339.Horse_nuc_wY.realigned.bam
+DOM,Prze_0159A,PRJEB10098,SAMEA3498588,Przewalski,SB4329_SB159,male,PAIRED,Der_Sarkissian_et_al_2015,1,/home/ludo/inbox/BAMs/modern/Prze_0159A_SB4329.Horse_nuc_wY.realigned.bam
+DOM,Prze_0160A,PRJEB10098,SAMEA3498589,Przewalski,SB533,male,PAIRED,Der_Sarkissian_et_al_2015,1,/home/ludo/inbox/BAMs/modern/Prze_0160A_SB533.Horse_nuc_wY.realigned.bam
+DOM2,Arab_0237A,PRJNA230019,SAMN02439777,Arabian,NGSHORSE002,male,PAIRED,Metzger_et_al_2014,1,/home/ludo/inbox/BAMs/modern/Arab_0237A_SAMN02439777.Horse_nuc_wY.realigned.bam
+DOM2,Conn_0004A,PRJNA273402,SAMN03291442,Connemara Pony,Con15,male,PAIRED,Finno_et_al_2015,1,/home/ludo/inbox/BAMs/modern/Conn_0004A_CON15.Horse_nuc_wY.realigned.bam
+DOM2,Duel_0238A,PRJNA230019,SAMN02422919,Duelmener,NGSHORSE001,female,PAIRED,Metzger_et_al_2014,1,/home/ludo/inbox/BAMs/modern/Duel_0238A_SAMN02422919.Horse_nuc_wY.realigned.bam
+DOM2,Frie_0296A,PRJEB13863,SAMEA3951218,Friesian dwarf,23CONTROL,male,PAIRED,Leegwater_et_al_2016,0,/home/ludo/inbox/BAMs/modern/Frie_0296A_SAMEA3951218.Horse_nuc_wY.realigned.bam
+DOM2,FrMo_0065A,PRJEB10098,SAMEA3498888,Franches-Montagnes,FM1798,male,PAIRED,Der_Sarkissian_et_al_2015,1,/home/ludo/inbox/BAMs/modern/FrMo_0065A_FM1798.Horse_nuc_wY.realigned.bam
+DOM2,Hano_0235A,PRJNA230019,SAMN02439779,Hanoverian,NGSHORSE004,male,PAIRED,Metzger_et_al_2014,1,/home/ludo/inbox/BAMs/modern/Hano_0235A_SAMN02439779.Horse_nuc_wY.realigned.bam
+DOM2,Heav_0269A,PRJNA291776,SAMN03955412,Saxon-Thuringian Heavy Warmblood,NGSHORSE015,male,PAIRED,Metzger_et_al_2014,1,/home/ludo/inbox/BAMs/modern/Heav_0269A_SAMN03955412.Horse_nuc_wY.realigned.bam
+DOM2,Icel_0144A,,SAMN00857894,Icelandic,NULL,male,PAIRED,Andersson_et_al_2012,0,/home/ludo/inbox/BAMs/modern/Icel_0144A_P5782.Horse_nuc_wY.realigned.bam
+DOM2,Icel_0247A,PRJEB8911,SAMEA3311207,Icelandic,IS074,male,PAIRED,Haase_et_al_2015,0,/home/ludo/inbox/BAMs/modern/Icel_0247A_IS074.Horse_nuc_wY.realigned.bam
+DOM2,Jeju_0275A,PRJNA169102,SAMN01057172,Jeju pony,P06074M1,male,PAIRED,Do_et_al_2014,0,/home/ludo/inbox/BAMs/modern/Jeju_0275A_SAMN01057172.Horse_nuc_wY.realigned.bam
+DOM2,Marw_0239A,PRJNA246445,SAMN02767683,Marwari horse,PGI-MARWARI-WGS,male,PAIRED,Jun_et_al_2014,1,/home/ludo/inbox/BAMs/modern/Marw_0239A_SRR1275408.Horse_nuc_wY.realigned.bam
+DOM2,Mong_0153A,PRJEB10098,SAMEA3498582,Mongolian,KB7754,male,PAIRED,Der_Sarkissian_et_al_2015,0,/home/ludo/inbox/BAMs/modern/Mong_0153A_KB7754.Horse_nuc_wY.realigned.bam
+DOM2,Mong_0215A,PRJNA277815,SAMN04002338,Mongolian,Mongolian Domestic1,male,PAIRED,Do_et_al_2014,0,/home/ludo/inbox/BAMs/modern/Mong_0215A_TG1111D2628.Horse_nuc_wY.realigned.bam
+DOM2,Morg_0096A,PRJEB10098,SAMEA3499838,Morgan,Mor_EMS595_MOR1,female,PAIRED,Der_Sarkissian_et_al_2015,1,/home/ludo/inbox/BAMs/modern/Morg_0096A_EMS595.Horse_nuc_wY.realigned.bam
+DOM2,Quar_0073A,PRJEB10098,SAMEA3499837,American Quarter Horse,Qrt_A2085_QH4,male,PAIRED,Der_Sarkissian_et_al_2015,1,/home/ludo/inbox/BAMs/modern/Quar_0073A_A2085.Horse_nuc_wY.realigned.bam
+DOM2,Shet_0249A,PRJEB9269,SAMEA3367610,Shetland pony,SPH020,female,PAIRED,Frischkhnecht_et_al_2015,0,/home/ludo/inbox/BAMs/modern/Shet_0249A_SPH020.Horse_nuc_wY.realigned.bam
+DOM2,Shet_0250A,PRJEB9267,SAMEA3367609,Shetland pony,SPH041,female,PAIRED,Frischkhnecht_et_al_2015,0,/home/ludo/inbox/BAMs/modern/Shet_0250A_SPH041.Horse_nuc_wY.realigned.bam
+DOM2,Sorr_0236A,PRJNA230019,SAMN02439778,Sorraia,NGSHORSE003,male,PAIRED,Metzger_et_al_2014,1,/home/ludo/inbox/BAMs/modern/Sorr_0236A_SAMN02439778.Horse_nuc_wY.realigned.bam
+DOM2,Stan_0081A,PRJEB10098,SAMEA3499832,Standardbred,Std_M5256_STDB12,male,PAIRED,Warmuth_et_al_2011,1,/home/ludo/inbox/BAMs/modern/Stan_0081A_M5256.Horse_nuc_wY.realigned.bam
+DOM2,Thor_0145A,PRJNA277815,SAMN04002340,Thoroughbred,Thoroughbred,female,PAIRED,Orlando_et_al_2013,1,/home/ludo/inbox/BAMs/modern/Thor_0145A_Twilight.Horse_nuc_wY.realigned.bam
+DOM2,Thor_0290A,PRJNA168142,SAMN01047706,Thoroughbred,thb14,male,PAIRED,Kim_et_al_2013,1,/home/ludo/inbox/BAMs/modern/Thor_0290A_SAMN01047706.Horse_nuc_wY.realigned.bam
+DOM2,Yaku_0163A,PRJEB10854,SAMEA3542237,Yakutian,Yak1,male,PAIRED,Librado_et_al_2015,0,/home/ludo/inbox/BAMs/modern/Yaku_0163A_Yak1.Horse_nuc_wY.realigned.bam
+DOM2,Yaku_0170A,PRJEB10854,SAMEA3542244,Yakutian,Yak8,male,PAIRED,Librado_et_al_2015,0,/home/ludo/inbox/BAMs/modern/Yaku_0170A_Yak8.Horse_nuc_wY.realigned.bam
+DOM2,Yaku_0171A,PRJEB10854,SAMEA3542245,Yakutian,Yak9,male,PAIRED,Librado_et_al_2015,0,/home/ludo/inbox/BAMs/modern/Yaku_0171A_Yak9.Horse_nuc_wY.realigned.bam
+OUT,Esom_0226A,PRJEB7446,SAMEA2802531,Somali wild ass,SOM,female,PAIRED,Jónsson_et_al_2014,0,/home/ludo/inbox/BAMs/modern/Esom_0226A_Esomalicus.Horse_nuc_wY.realigned.bam

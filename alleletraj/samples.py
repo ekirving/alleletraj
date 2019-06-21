@@ -93,12 +93,12 @@ class LoadSamples(utils.MySQLTask):
                     for bioproject, biosample, run_accessions, library_name, library_layout, file_format in records:
                         for accession in run_accessions:
                             run = {
-                                'sample_id': sample_id,
+                                'sample_id':  sample_id,
                                 'bioproject': bioproject,
-                                'biosample': biosample,
-                                'accession': accession,
-                                'libname':   library_name if library_name != 'unspecified' else None,
-                                'paired':    library_layout == 'paired'
+                                'biosample':  biosample,
+                                'accession':  accession,
+                                'libname':    library_name if library_name != 'unspecified' else None,
+                                'paired':     library_layout == 'paired'
                             }
                             self.dbc.save_record('sample_runs', run)
 

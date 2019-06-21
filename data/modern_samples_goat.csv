@@ -1,4 +1,4 @@
-﻿Population,Sample,bioproject,biosample,Breed,Alias,Sex,Reference,SFS,Path
+﻿Population,Sample,Bioproject,Biosample,Breed,Alias,Sex,Reference,SFS,Path
 AFR,Moroccan1,PRJEB3134,SAMEA2012964,Moroccan village goat,MOCH-T6-0074,male,Alberto_et_al_2018,1,/home/trinity/inbox/goats/modern/ERR219543_realigned_dups-removed_q30.bam
 AFR,Moroccan10,PRJEB3134,SAMEA2012711,Moroccan village goat,MOCH-L14-0418,female,Alberto_et_al_2018,1,
 AFR,Moroccan11,PRJEB3134,SAMEA2012901,Moroccan village goat,MOCH-S4-0026,female,Alberto_et_al_2018,1,

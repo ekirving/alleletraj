@@ -16,17 +16,17 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only=True, libname_filter
     """
     Get the list of SRA run accessions for a given BioSample code.
 
-    Returns: [(bioproject, biosample, run_accession, library_name, library_layout, file_format), ...]
+    Returns: [(bioproject, biosample, run_accessions, library_name, library_layout, file_format), ...]
 
     https://www.ncbi.nlm.nih.gov/books/NBK179288/
     """
     cmd = "esearch -db sra -query '{}' | " \
           "efetch -format xml | " \
           "xtract -pattern EXPERIMENT_PACKAGE " \
-          "-block STUDY -def '-' -element EXTERNAL_ID " \
-          "-block SAMPLE_DESCRIPTOR -def '-' -element EXTERNAL_ID " \
-          "-block RUN_SET -def '-' -element RUN@accession " \
-          "-block LIBRARY_DESCRIPTOR -def '-' -element LIBRARY_NAME " \
+          "-block STUDY -def '-' -first EXTERNAL_ID " \
+          "-block SAMPLE -def '-' -first EXTERNAL_ID " \
+          "-block RUN_SET -def '-' -sep ';' -element RUN@accession " \
+          "-block LIBRARY_DESCRIPTOR -def '-' -first LIBRARY_NAME " \
           "-block LIBRARY_LAYOUT -if PAIRED@NOMINAL_LENGTH -lbl 'paired' -else -lbl 'single' " \
           "-block RUN_SET -if AlignInfo -lbl 'bam' -else -lbl 'fastq'".format(biosample)
 
@@ -42,11 +42,11 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only=True, libname_filter
             record = line.split('\t')
 
             if len(record) != 6:
-                print('WARNING: Missing data returned from entrez ({}, {}) - {}'.format(bioproject, biosample, record))
+                print('WARNING: Malformed data from entrez ({}, {}) - {}'.format(bioproject, biosample, record))
 
             # elif bioproject != record[0] or biosample != record[1]:
             elif biosample != record[1]:
-                # make sure the data belongs to the right project and sample
+                # make sure the data belongs to the right biosample
                 print('WARNING: Record contains incorrect data ({}, {}) - {}'.format(bioproject, biosample, record))
 
             elif fastq_only and record[5] != 'fastq':
@@ -55,6 +55,9 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only=True, libname_filter
             elif libname_filter and libname_filter in record[3]:
                 print('WARNING: Record matches library name filter ({}, {}) - {}'.format(bioproject, biosample, record))
             else:
+                # split multiple run accessions
+                record[2] = record[2].split(';')
+
                 records.append(record)
 
     return records

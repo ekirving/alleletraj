@@ -90,16 +90,17 @@ class LoadSamples(utils.MySQLTask):
                     # use entrez to get the SRA run accessions
                     records = entrez_direct_esearch(row['bioproject'], row_biosample, libname_filter='Merged')
 
-                    for bioproject, biosample, run_accession, library_name, library_layout, file_format in records:
-                        run = {
-                            'sample_id': sample_id,
-                            'bioproject': bioproject,
-                            'biosample': biosample,
-                            'accession': run_accession,
-                            'libname':   library_name if library_name != 'unspecified' else None,
-                            'paired':    library_layout == 'paired'
-                        }
-                        self.dbc.save_record('sample_runs', run)
+                    for bioproject, biosample, run_accessions, library_name, library_layout, file_format in records:
+                        for accession in run_accessions:
+                            run = {
+                                'sample_id': sample_id,
+                                'bioproject': bioproject,
+                                'biosample': biosample,
+                                'accession': accession,
+                                'libname':   library_name if library_name != 'unspecified' else None,
+                                'paired':    library_layout == 'paired'
+                            }
+                            self.dbc.save_record('sample_runs', run)
 
 
 class CreateSampleBins(utils.MySQLTask):

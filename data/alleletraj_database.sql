@@ -377,7 +377,7 @@ CREATE TABLE `sample_reads` (
 CREATE TABLE `sample_runs` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `sample_id` int(11) NOT NULL,
-  `bioproject` varchar(255) NOT NULL DEFAULT '',
+  `bioproject` varchar(255) DEFAULT '',
   `biosample` varchar(255) NOT NULL DEFAULT '',
   `accession` varchar(255) NOT NULL,
   `libname` varchar(255) DEFAULT '',

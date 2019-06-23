@@ -97,6 +97,7 @@ class BwaSamSe(utils.PipelineTask):
         yield ReferenceFASTA(self.species)
 
     def output(self):
+        # TODO add assembly name, and propagate through
         return [luigi.LocalTarget('data/bam/{}.sort.{}'.format(self.accession, ext)) for ext in
                 ['bam', 'bam.bai', 'log']]
 
@@ -106,6 +107,7 @@ class BwaSamSe(utils.PipelineTask):
         bam_out, _, log_file = self.output()
 
         params = {
+            # TODO add library name
             'readgroup': r'@RG\tID:{sample}\tSM:{sample}'.format(sample=self.sample),
             'reference': ref_file.path,
             'sai':       sai_file.path,

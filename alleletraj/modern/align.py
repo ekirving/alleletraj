@@ -35,6 +35,7 @@ class BwaMem(utils.PipelineTask):
         yield BwaIndexBWTSW(self.species)
 
     def output(self):
+        # TODO add assembly name, and propagate through
         return [luigi.LocalTarget('data/bam/{}.sort.{}'.format(self.accession, ext)) for ext in
                 ['bam', 'bam.bai', 'log']]
 
@@ -47,6 +48,7 @@ class BwaMem(utils.PipelineTask):
             # CPU threads to use
             'threads': self.resources['cpu-cores'],
 
+            # TODO add library name
             # compose the read group metadata
             'readgroup': r'@RG\tID:{sample}\tSM:{sample}'.format(sample=self.sample),
 

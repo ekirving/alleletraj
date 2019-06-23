@@ -1,4 +1,4 @@
-﻿Population,Sample,Bioproject,Accessions,group_a,group_b,Site,Location,Alias,BP_max,BP_min,BP_median,Age ,Period,Lat,Long,Sex,mtDNA,USER ,librarylayout,reference,Path
+﻿Population,Sample,Bioproject,Biosample,group_a,group_b,Site,Location,Alias,BP_max,BP_min,BP_median,Age ,Period,Lat,Long,Sex,mtDNA,USER ,librarylayout,reference,Path
 Dom,Ace1,,,,,Acemhöyük,"Acemhöyük, Turkey",,4750,3700,4225,2800-1750 BC,Early Bronze,38.4114,33.8357,F,T2,Yes,SINGLE,Verdugo_et_al_in_review,/home/trinity/inbox/cattle/ancient/Ace1_rmdup_q25_masked6.bam
 Dom,Bal1,,,,,Ballybane,"Ballybane, Galway",,1550,1150,1350,5th-8th Century AD,Medieval,53.278928,-9.008853,F,T3,Yes,SINGLE,Mullin_et_al_in_progress,/home/trinity/inbox/cattle/ancient/Bal1-VEM235_rmdup_q25_masked6.bam
 Dom,Bal2,,,,,Ballybane,"Ballybane, Galway",,1550,1150,1350,5th-8th Century AD,Medieval,53.278928,-9.008853,F,T3,Yes,SINGLE,Mullin_et_al_in_progress,/home/trinity/inbox/cattle/ancient/Bal2-VEM238_rmdup_q25_masked6.bam

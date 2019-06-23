@@ -410,7 +410,7 @@ CREATE TABLE `samples` (
   `lat` varchar(255) DEFAULT NULL,
   `long` varchar(255) DEFAULT NULL,
   `sex` char(1) DEFAULT '',
-  `mtdna` varchar(1) DEFAULT NULL,
+  `mtdna` varchar(2) DEFAULT NULL,
   `sfs` tinyint(1) DEFAULT NULL,
   `coverage` float DEFAULT NULL,
   `path` varchar(255) DEFAULT NULL,

@@ -42,7 +42,7 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only=True, libname_filter
             record = line.split('\t')
 
             if len(record) != 6:
-                print('WARNING: Malformed data from entrez ({}, {}) - {}'.format(bioproject, biosample, record))
+                raise RuntimeError('Malformed data from entrez ({}, {}) - {}'.format(bioproject, biosample, record))
 
             # elif bioproject != record[0] or biosample != record[1]:
             elif biosample != record[1]:

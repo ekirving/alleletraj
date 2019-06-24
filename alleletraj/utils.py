@@ -157,6 +157,8 @@ class PipelineTask(luigi.Task):
     def priority(self):
         """
         Dynamically set task priority.
+
+        NOTE luigi task inherit the priority from their children
         """
 
         # deprioritise large values of K, m or n
@@ -168,7 +170,7 @@ class PipelineTask(luigi.Task):
         except AttributeError:
             pass
 
-        return 10000 - offset
+        return 10000 - offset if offset else 0
 
     @property
     def basename(self):

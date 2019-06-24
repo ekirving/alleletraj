@@ -22,7 +22,7 @@ from alleletraj import utils
 DADI_EPOCHS = 5
 
 # how many independent replicates should we run to find the global maximum params (dadi can get stuck in local maxima)
-DADI_REPLICATES = 1000
+DADI_REPLICATES = 5000
 
 # number of points to use in the grid
 DADI_GRID_PTS = 100
@@ -132,6 +132,7 @@ class EasySFS(utils.DatabaseTask):
             'fold': '--unfolded' if not self.folded else ''
         }
 
+        # TODO include all populations so we only have to load the VCF once!!
         # NOTE easySFS expects the REF allele to be ancestral, rather than using the INFO/AA field
         # pipe 'yes' into easySFS to get past the interactive prompt which complains about excluded samples
         cmd = "echo 'yes' | easySFS.py -a -f -i {vcf} -p {pops} -o data/sfs/{out} --proj {proj} {fold}".format(**params)

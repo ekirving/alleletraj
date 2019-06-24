@@ -35,8 +35,9 @@ class RunAll(utils.PipelineWrapperTask):
         # link the SNPChip data to the modern SNPs
         yield SNPChipLinkPipeline(self.species)
 
+        # TODO temp disable of dadi pipline
         # find the best fitting ∂a∂i model
-        yield DadiPipeline(self.species)
+        # yield DadiPipeline(self.species)
 
         # link QTLs and modern snps
         yield QTLPipeline(self.species)

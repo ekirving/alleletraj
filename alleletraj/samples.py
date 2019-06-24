@@ -87,6 +87,7 @@ class LoadSamples(utils.MySQLTask):
                 sample_id = self.dbc.save_record('samples', sample)
 
                 for row_biosample in [acc.strip() for acc in row['biosample'].split(';') if acc.strip() != '']:
+                    # TODO buffer the warnings and save to a log file
                     # use entrez to get the SRA run accessions
                     records = entrez_direct_esearch(row['bioproject'], row_biosample, libname_filter='Merged')
 

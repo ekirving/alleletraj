@@ -149,7 +149,6 @@ class SelectionInputFile(utils.DatabaseTask):
             'units': diff_units,
         }
 
-        # TODO revert this to previous version
         sql = """
             # get the ancient frequencies in each bin
             SELECT SUM(sr.base = ms.{derived}) AS derived_count,
@@ -474,12 +473,12 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
 
         # load the MAP
         with map_file.open('r') as fin:
-            map = json.load(fin)
+            posteriori = json.load(fin)
 
-        map['selection_id'] = selection_id
-        map['chain'] = self.chain
+        posteriori['selection_id'] = selection_id
+        posteriori['chain'] = self.chain
 
-        self.dbc.save_record('selection_map', map)
+        self.dbc.save_record('selection_map', posteriori)
 
 
 class SelectionPSRF(utils.PipelineTask):
@@ -641,7 +640,6 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
 class SelectionPipeline(utils.PipelineWrapperTask):
     """
     Run all the `selection` jobs.
-
 
     :type species: str
     :type population: str

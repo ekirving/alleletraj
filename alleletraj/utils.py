@@ -150,6 +150,9 @@ class PipelineTask(luigi.Task):
     """
     resources = {'cpu-cores': 1}
 
+    # TODO consider recursing through the whole dependency tree
+    # https://stackoverflow.com/questions/42465710/can-python-task-scheduler-luigi-detect-indirect-dependencies
+
     @property
     def priority(self):
         """
@@ -159,11 +162,13 @@ class PipelineTask(luigi.Task):
         # deprioritise large values of K, m or n
         offset = sum([getattr(self, name) for name in self.get_param_names() if name in ['k', 'm', 'n']])
 
-        # prioritise chromosomes by number, as running the largest chroms first is more efficient for multithreading
-        if hasattr(self, 'chrom') and hasattr(self, 'species'):
+        try:
+            # prioritise chromosomes by number, as running the largest chroms first is more efficient for multithreading
             offset = CHROMOSOMES[self.assembly].index(self.chrom) + 1
+        except AttributeError:
+            pass
 
-        return 1000 - offset if offset else 0
+        return 10000 - offset
 
     @property
     def basename(self):

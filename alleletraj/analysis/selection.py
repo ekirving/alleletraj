@@ -65,7 +65,7 @@ def selection_neutral_snps(species, population, modsnp_id):
     # squared error of the differences in bin counts, then randomise
     for bin_id in bins:
         bid.append('SUM(s.bin_id = {id}) AS bin{id}'.format(id=bin_id))
-        lsq.append('POW(ABS(sum(s.bin_id = {id}) - nn.bin{id}), 2)'.format(id=bin_id))
+        lsq.append('POW(ABS(SUM(s.bin_id = {id}) - nn.bin{id}), 2)'.format(id=bin_id))
 
     bin_sql = ','.join(bid)
     sqr_sql = '+'.join(lsq)

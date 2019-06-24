@@ -38,12 +38,13 @@ def plink_sex_code(sex):
     """
     Return the plink sex code for the given string.
     """
-    if sex.upper().startswith('M'):
-        return PLINK_SEX_MALE
-    elif sex.upper().startswith('F'):
-        return PLINK_SEX_FEMALE
-    else:
-        return PLINK_SEX_UNKNOWN
+    if isinstance(sex, basestring):
+        if sex.upper().startswith('M'):
+            return PLINK_SEX_MALE
+        elif sex.upper().startswith('F'):
+            return PLINK_SEX_FEMALE
+
+    return PLINK_SEX_UNKNOWN
 
 
 class PlinkTask(utils.PipelineTask):

@@ -26,11 +26,11 @@ MCMC_CYCLES = int(5e7)
 # fraction of MCMC cycles to discard as burn in
 MCMC_BURN_PCT = 0.2
 
-# thinning in analytically unnecessary, but makes the MCMC run much faster
+# thinning is analytically unnecessary, but makes the MCMC run much faster (as Josh's method writes directly to disk)
 # see https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.2041-210X.2011.00131.x
 MCMC_THIN = 1000
 
-# frequency of printing output to the screen
+# frequency of printing output to the log
 MCMC_PRINT = 1000
 
 # fraction of the allele frequency to update during a trajectory update move
@@ -56,21 +56,42 @@ def selection_neutral_snps(species, population, modsnp_id):
     """
     dbc = Database(species)
 
-    # TODO match on SNP coverage
+    bins = dbc.get_records('sample_bins')
+
+    bid = []
+    lsq = []
+
+    # we need to ensure that there is a comparable number of calls in each bin, so we sort the neutrals by the least
+    # squared error of the differences in bin counts, then randomise
+    for bin_id in bins:
+        bid.append('SUM(s.bin_id = {id}) AS bin{id}'.format(id=bin_id))
+        lsq.append('POW(ABS(sum(s.bin_id = {id}) - nn.bin{id}), 2)'.format(id=bin_id))
+
+    bin_sql = ','.join(bid)
+    sqr_sql = '+'.join(lsq)
+
     modsnps = dbc.get_records_sql("""
-        SELECT ms.id
+        SELECT ms.id, {sqr_sql} AS diff
           FROM (
 
-        SELECT msd.population, 
+        SELECT ms.id,
+               msd.population, 
                ms.chrom, 
                IF(ms.mispolar, ms.ancestral, ms.derived) AS derived,
                IF(ms.mispolar, ms.derived, ms.ancestral) AS ancestral,
-               IF(ms.mispolar, 1-msd.daf, msd.daf) AS daf
+               IF(ms.mispolar, 1-msd.daf, msd.daf) AS daf,
+               {bin_sql}
           FROM modern_snps ms
           JOIN modern_snp_daf msd
             ON msd.modsnp_id = ms.id 
+          JOIN sample_reads sr
+            ON sr.chrom = ms.chrom
+           AND sr.site = ms.site
+          JOIN samples s
+            ON s.id = sr.sample_id  
          WHERE msd.population = '{population}'
            AND ms.id = {modsnp}
+      GROUP BY ms.id
 
           ) AS nn
           JOIN modern_snps ms
@@ -80,13 +101,21 @@ def selection_neutral_snps(species, population, modsnp_id):
            AND ms.neutral = 1
            AND ms.mispolar IS NULL
            AND ms.variant_id IS NOT NULL
+           AND ms.id != nn.id
           JOIN modern_snp_daf msd
             ON msd.modsnp_id = ms.id
            AND msd.population = nn.population
            AND round(msd.daf, 2) = round(nn.daf, 2)
-      ORDER BY RAND({modsnp})
+          JOIN sample_reads sr
+            ON sr.chrom = ms.chrom
+           AND sr.site = ms.site
+          JOIN samples s
+            ON s.id = sr.sample_id  
+      GROUP BY ms.id
+      ORDER BY diff, RAND({modsnp})
          LIMIT {num}
-           """.format(population=population, modsnp=modsnp_id, num=NEUTRAL_REPLICATES)).keys()
+           """.format(sqr_sql=sqr_sql, bin_sql=bin_sql, population=population, modsnp=modsnp_id,
+                      num=NEUTRAL_REPLICATES)).keys()
 
     if len(modsnps) != NEUTRAL_REPLICATES:
         raise RuntimeError('ERROR: Insufficient neutral SNPs to run `selection` (n={})'.format(len(modsnps)))

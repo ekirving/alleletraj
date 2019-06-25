@@ -34,11 +34,10 @@ class BCFToolsTargetsFile(utils.DatabaseTask):
         vcf_file = self.input()
         tsv_file, _ = self.output()
 
-        with tsv_file.temporary_path() as tsv_path:
-            cmd = "bcftools query -f'%CHROM\\t%POS\\t%REF,%ALT\\n' {vcf} | " \
-                  "bgzip -c > {tsv} && tabix -s1 -b2 -e2 {tsv}".format(vcf=vcf_file.path, tsv=tsv_path)
+        cmd = "bcftools query -f'%CHROM\\t%POS\\t%REF,%ALT\\n' {vcf} | " \
+              "bgzip -c > {tsv} && tabix -s1 -b2 -e2 {tsv}".format(vcf=vcf_file.path, tsv=tsv_file.path)
 
-            utils.run_cmd([cmd], shell=True)
+        utils.run_cmd([cmd], shell=True)
 
 
 class BCFToolsCallAncient(utils.DatabaseTask):
@@ -94,7 +93,7 @@ class BCFToolsCallAncient(utils.DatabaseTask):
             utils.run_cmd([cmd], shell=True, stderr=fout)
 
 
-class FilterSNPsAncient(utils.PipelineTask):
+class BiallelicSNPsAncientVCF(utils.PipelineTask):
     """
     Remove all sites with low quality or low depth, and only keep biallelic SNPs.
 

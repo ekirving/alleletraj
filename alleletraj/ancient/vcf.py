@@ -41,6 +41,7 @@ class BCFToolsTargetsFile(utils.DatabaseTask):
             'tsv': tsv_file.path
         }
 
+        # use `bcftools norm` to unpolarize the SNP VCF
         cmd = "bcftools norm --check-ref s --fasta-ref {ref} --do-not-normalize {vcf} | " \
               "bcftools query -f'%CHROM\\t%POS\\t%REF,%ALT\\n' | " \
               "bgzip -c > {tsv} && tabix -s1 -b2 -e2 {tsv}".format(**params)

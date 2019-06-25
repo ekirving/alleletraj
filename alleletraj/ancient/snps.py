@@ -36,6 +36,7 @@ HARD_BASEQ_CUTOFF = 30
 MISPOLAR_SNPS = 10
 MISPOLAR_DAF = 0.8
 
+
 def list_snps_in_locus(species, chrom, start, end):
     """
     Get all the modern SNPs in this locus that fall within a QTL.

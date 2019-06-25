@@ -686,13 +686,13 @@ class SelectionPairNeutrals(utils.MySQLTask):
             self.dbc.save_record('selection_neutrals', {'selection_id': selection_id, 'neutral_id': neutral_id})
 
 
-class SelectionGWASSNPs(utils.PipelineWrapperTask):
+class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
     """
     Run `selection` on all the direct GWAS hits.
 
     :type species: str
     :type population: str
-
+    :type no_modern: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -704,21 +704,18 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
         modsnps = self.dbc.get_records_sql("""
             SELECT DISTINCT ms.id, ms.mispolar
               FROM qtls q
-              JOIN qtl_snps qs
-                ON qs.qtl_id = q.id
               JOIN modern_snps ms
-                ON qs.modsnp_id = ms.id 
-              JOIN ensembl_variants ev              
-                ON ms.variant_id = ev.id
-               AND ev.rsnumber = q.peak
+                ON ms.chrom = q.chrom
+               AND ms.site = q.site
              WHERE q.associationType = 'Association'
-               AND q.valid = 1""", key=None)
+               AND q.valid = 1
+               """, key=None)
 
         for modsnp in modsnps:
             yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern)
 
             if modsnp['mispolar']:
-                # run the modsnp with the ancestral/derived alleles reversed
+                # also run the modsnp with the ancestral/derived alleles reversed
                 yield SelectionPairNeutrals(self.species, self.population, self.modsnp, self.no_modern, mispolar=True)
 
 
@@ -727,19 +724,13 @@ class SelectionPipeline(utils.PipelineWrapperTask):
     Run all the `selection` jobs.
 
     :type species: str
-    :type population: str
     """
     species = luigi.Parameter()
-    population = luigi.OptionalParameter(default=None)
 
     def requires(self):
-
-        # use all ancient populations, if population is not set
-        populations = [self.population] if self.population else self.list_populations(ancient=True)
-
-        # TODO run all SNPs without the modern frequency to see how different the inference is
-        for pop in populations:
-            yield SelectionGWASSNPs(self.species, pop)
+        for pop in self.list_populations(ancient=True):
+            for no_modern in [True, False]:
+                yield SelectionGWASPeakSNPs(self.species, pop, no_modern)
 
 
 if __name__ == '__main__':

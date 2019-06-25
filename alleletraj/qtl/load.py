@@ -15,6 +15,7 @@ from alleletraj import utils
 from alleletraj.const import QTLDB_RELEASE, SWEEP_DATA
 from alleletraj.db.load import CreateDatabase
 from alleletraj.ensembl.load import LoadEnsemblVariants, LoadEnsemblGenes
+from alleletraj.modern.snps import LoadModernSNPs
 from alleletraj.qtl.qtldb_api import QTLdbAPI
 from alleletraj.ref import ReferenceFASTA
 
@@ -570,6 +571,7 @@ class PopulateQTLSNPs(utils.MySQLTask):
 
     def requires(self):
         yield PopulateAllLoci(self.species)
+        yield LoadModernSNPs(self.species, self.chrom)
 
     # noinspection SqlResolve
     def queries(self):

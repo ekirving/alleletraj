@@ -48,7 +48,7 @@ MCMC_MIN_BINS = 3
 NEUTRAL_REPLICATES = 5
 
 
-def selection_neutral_snps(species, population, modsnp_id):
+def selection_neutral_snps(species, population, modsnp_id, mispolar):
     """
     Find 'neutral' SNPs, by pairing the non-neutral SNP based on chromosome, mutation type and DAF.
 
@@ -61,6 +61,7 @@ def selection_neutral_snps(species, population, modsnp_id):
     bid = []
     lsq = []
 
+    # TODO should we round this before randomising? as informally there are very few exact matches
     # we need to ensure that there is a comparable number of calls in each bin, so we sort the neutrals by the least
     # squared error of the differences in bin counts, then randomise
     for bin_id in bins:
@@ -77,9 +78,9 @@ def selection_neutral_snps(species, population, modsnp_id):
         SELECT ms.id,
                msd.population, 
                ms.chrom, 
-               IF(ms.mispolar, ms.ancestral, ms.derived) AS derived,
-               IF(ms.mispolar, ms.derived, ms.ancestral) AS ancestral,
-               IF(ms.mispolar, 1-msd.daf, msd.daf) AS daf,
+               IF({mispolar}, ms.ancestral, ms.derived) AS derived,
+               IF({mispolar}, ms.derived, ms.ancestral) AS ancestral,
+               IF({mispolar}, 1-msd.daf, msd.daf) AS daf,
                {bin_sql}
           FROM modern_snps ms
           JOIN modern_snp_daf msd
@@ -99,7 +100,7 @@ def selection_neutral_snps(species, population, modsnp_id):
            AND ms.derived = nn.derived
            AND ms.ancestral = nn.ancestral
            AND ms.neutral = 1
-           AND ms.mispolar IS NULL
+           # AND ms.mispolar IS NULL  # TODO what to do about this?
            AND ms.variant_id IS NOT NULL
            AND ms.id != nn.id
           JOIN modern_snp_daf msd
@@ -114,7 +115,7 @@ def selection_neutral_snps(species, population, modsnp_id):
       GROUP BY ms.id
       ORDER BY diff, RAND({modsnp})
          LIMIT {num}
-           """.format(sqr_sql=sqr_sql, bin_sql=bin_sql, population=population, modsnp=modsnp_id,
+           """.format(sqr_sql=sqr_sql, mispolar=int(mispolar), bin_sql=bin_sql, population=population, modsnp=modsnp_id,
                       num=NEUTRAL_REPLICATES)).keys()
 
     if len(modsnps) != NEUTRAL_REPLICATES:
@@ -583,11 +584,11 @@ class LoadSelectionPSRF(utils.MySQLTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    no_modern = luigi.BoolParameter(default=False)
-    mispolar = luigi.BoolParameter(default=False)
-    n = luigi.IntParameter(default=MCMC_CYCLES)
-    s = luigi.IntParameter(default=MCMC_THIN)
-    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
+    n = luigi.IntParameter()
+    s = luigi.IntParameter()
+    h = luigi.FloatParameter()
 
     def requires(self):
         return SelectionPSRF(**self.all_params())
@@ -606,7 +607,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
             'mispolar':   self.mispolar,
         }
 
-        selection_id = self.dbc.get_record('selection', selection)['id']
+        selection_id = self.dbc.get_record('selection', selection).pop('id')
 
         # load the ESS
         with ess_file.open('r') as fin:
@@ -621,6 +622,68 @@ class LoadSelectionPSRF(utils.MySQLTask):
 
         psrf['selection_id'] = selection_id
         self.dbc.save_record('selection_psrf', psrf)
+
+
+class SelectionPairNeutrals(utils.MySQLTask):
+    """
+    Pair the given modSNP with some neutral replicates, and run `selection` on them all.
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type no_modern: bool
+    :type mispolar: bool
+    :type n: int
+    :type s: int
+    :type h: float
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter(default=False)
+    mispolar = luigi.BoolParameter(default=False)
+    n = luigi.IntParameter(default=MCMC_CYCLES)
+    s = luigi.IntParameter(default=MCMC_THIN)
+    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
+
+    _neutrals = None
+
+    @property
+    def neutrals(self):
+        """Get the neutral controls for this modsnp"""
+        if not self._neutrals:
+            self._neutrals = selection_neutral_snps(self.species, self.pop, self.modsnp, self.mispolar)
+
+        return self._neutrals
+
+    def requires(self):
+        yield LoadSelectionPSRF(**self.all_params())
+
+        params = self.all_params()
+        for neutral in self.neutrals:
+            params.update({'modsnp': neutral, 'mispolar': False})
+            yield LoadSelectionPSRF(**params)
+
+    def queries(self):
+
+        # TODO refactor into a function
+        selection = {
+            'population': self.population,
+            'modsnp_id': self.modsnp,
+            'length': self.n,
+            'thin': self.s,
+            'model': self.h,
+            'no_modern': self.no_modern,
+            'mispolar': self.mispolar,
+        }
+
+        selection_id = self.dbc.get_record('selection', selection).pop('id')
+
+        # link the modSNP to the neutrals
+        for neutral in self.neutrals:
+            selection['modsnp'] = neutral
+            neutral_id = self.dbc.get_record('selection', selection).pop('id')
+            self.dbc.save_record('selection_neutrals', {'selection_id': selection_id, 'neutral_id': neutral_id})
 
 
 class SelectionGWASSNPs(utils.PipelineWrapperTask):
@@ -652,18 +715,11 @@ class SelectionGWASSNPs(utils.PipelineWrapperTask):
                AND q.valid = 1""", key=None)
 
         for modsnp in modsnps:
-
-            # get the neutral controls for this modsnp
-            neutral = selection_neutral_snps(self.species, self.pop, modsnp['id'])
-
-            yield LoadSelectionPSRF(self.species, self.population, modsnp['id'], self.no_modern)
+            yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern)
 
             if modsnp['mispolar']:
                 # run the modsnp with the ancestral/derived alleles reversed
-                yield LoadSelectionPSRF(self.species, self.population, modsnp['id'], self.no_modern, mispolar=True)
-
-            for modsnp_id in neutral:
-                yield LoadSelectionPSRF(self.species, self.population, modsnp_id, self.no_modern)
+                yield SelectionPairNeutrals(self.species, self.population, self.modsnp, self.no_modern, mispolar=True)
 
 
 class SelectionPipeline(utils.PipelineWrapperTask):
@@ -682,7 +738,6 @@ class SelectionPipeline(utils.PipelineWrapperTask):
         populations = [self.population] if self.population else self.list_populations(ancient=True)
 
         # TODO run all SNPs without the modern frequency to see how different the inference is
-
         for pop in populations:
             yield SelectionGWASSNPs(self.species, pop)
 

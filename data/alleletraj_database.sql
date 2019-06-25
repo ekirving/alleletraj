@@ -5,9 +5,9 @@
 # http://www.sequelpro.com/
 # https://github.com/sequelpro/sequelpro
 #
-# Host: 127.0.0.1 (MySQL 5.6.19)
+# Host: 127.0.0.1 (MySQL 5.7.21)
 # Database: alleletraj_horse_equcab2_rel38
-# Generation Time: 2019-06-18 16:48:50 +0000
+# Generation Time: 2019-06-25 08:05:18 +0000
 # ************************************************************
 
 
@@ -512,6 +512,18 @@ CREATE TABLE `selection_map` (
   `first_nonzero` int(11) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `selection_id` (`selection_id`,`chain`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+# Dump of table selection_neutrals
+# ------------------------------------------------------------
+
+CREATE TABLE `selection_neutrals` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `selection_id` int(11) unsigned NOT NULL,
+  `neutral_id` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 

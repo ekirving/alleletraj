@@ -38,7 +38,7 @@ class BCFToolsTargetsFile(utils.DatabaseTask):
             cmd = "bcftools query -f'%CHROM\\t%POS\\t%REF,%ALT\\n' {vcf} | " \
                   "bgzip -c > {tsv} && tabix -s1 -b2 -e2 {tsv}".format(vcf=vcf_file.path, tsv=tsv_path)
 
-            utils.run_cmd(cmd, shell=True)
+            utils.run_cmd([cmd], shell=True)
 
 
 class BCFToolsCallAncient(utils.DatabaseTask):
@@ -85,13 +85,13 @@ class BCFToolsCallAncient(utils.DatabaseTask):
                 'vcf': vcf_path
             }
 
-        cmd = "bcftools mpileup --fasta-ref {ref} --targets-file {tsv} --ignore-RG --output-type u {bam} | " \
-              "bcftools call --multiallelic-caller --ploidy-file {pld} --samples-file {sex} --targets-file {tsv} " \
-              "--constrain alleles --output-type u | " \
-              "bcftools norm --fasta-ref {ref} --multiallelics +any --output-type u | " \
-              "bcftools +fill-tags --output-type z --output {vcf} -- -t AN,AC ".format(**params)
+            cmd = "bcftools mpileup --fasta-ref {ref} --targets-file {tsv} --ignore-RG --output-type u {bam} | " \
+                  "bcftools call --multiallelic-caller --ploidy-file {pld} --samples-file {sex} --targets-file {tsv} " \
+                  "--constrain alleles --output-type u | " \
+                  "bcftools norm --fasta-ref {ref} --multiallelics +any --output-type u | " \
+                  "bcftools +fill-tags --output-type z --output {vcf} -- -t AN,AC ".format(**params)
 
-        utils.run_cmd([cmd], shell=True, stderr=fout)
+            utils.run_cmd([cmd], shell=True, stderr=fout)
 
 
 class FilterSNPsAncient(utils.PipelineTask):

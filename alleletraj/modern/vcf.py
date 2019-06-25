@@ -3,7 +3,6 @@
 
 # third party modules
 import itertools
-
 import luigi
 import numpy
 import pysam
@@ -417,6 +416,7 @@ class SNPCallPipeline(utils.PipelineWrapperTask):
     species = luigi.Parameter()
 
     def requires(self):
+        yield WholeAutosomeSNPsVCF(self.species)
         yield WholeGenomeSNPsVCF(self.species)
 
 

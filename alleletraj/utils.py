@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
+import itertools
 import os
 import subprocess
 from collections import Iterable, OrderedDict, defaultdict
@@ -110,6 +111,15 @@ def dump(obj):
     for attr in dir(obj):
         if hasattr(obj, attr):
             print("obj.%s = %s" % (attr, getattr(obj, attr)))
+
+
+def chunk(iterable, n):
+    it = iter(iterable)
+    while True:
+        chunk = tuple(itertools.islice(it, n))
+        if not chunk:
+            return
+        yield chunk
 
 
 def curl_download(url, filename):

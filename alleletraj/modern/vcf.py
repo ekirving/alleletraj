@@ -205,7 +205,7 @@ class FilterVCF(utils.PipelineTask):
     """
     species = luigi.Parameter()
     chrom = luigi.Parameter()
-    qual = luigi.IntParameter()
+    qual = luigi.IntParameter(default=MIN_GENO_QUAL)
 
     def requires(self):
         yield ReferenceFASTA(self.species)

@@ -7,7 +7,7 @@ import luigi
 # local modules
 from alleletraj import utils
 from alleletraj.bam import SampleBAM
-from alleletraj.modern.vcf import ReferencePloidy, WholeGenomeSNPsVCF, MIN_GENO_QUAL
+from alleletraj.modern.vcf import ReferencePloidy, BiallelicSNPsVCF, MIN_GENO_QUAL, FilterVCF
 from alleletraj.ref import ReferenceFASTA
 
 # minimum depth of coverage to call diploid genotypes
@@ -16,14 +16,16 @@ MIN_GENO_DEPTH = 10
 
 class BCFToolsTargetsFile(utils.DatabaseTask):
     """
-    Make a targets file to contstrain the callable sites and alleles in the ancint samples.
+    Make a targets file to contstrain the callable sites and alleles in the ancient samples.
 
     :type species: str
     """
     species = luigi.Parameter()
 
     def requires(self):
-        return WholeGenomeSNPsVCF(self.species)
+        for chrom in self.chromosomes:
+            yield FilterVCF(self.species, chrom)
+            yield BiallelicSNPsVCF(self.species, chrom)
 
     def output(self):
         return [luigi.LocalTarget('data/vcf/{}-chrAll-quant-polar-SNPs.{}'.format(self.species, ext))
@@ -31,12 +33,27 @@ class BCFToolsTargetsFile(utils.DatabaseTask):
 
     def run(self):
         # unpack the params
-        vcf_file = self.input()
+        vcf_files = self.input()
         tsv_file, _ = self.output()
 
-        # TODO doesn't work because it's been polarised already
-        cmd = "bcftools query -f'%CHROM\\t%POS\\t%REF,%ALT\\n' {vcf} | " \
-              "bgzip -c > {tsv} && tabix -s1 -b2 -e2 {tsv}".format(vcf=vcf_file.path, tsv=tsv_file.path)
+        tmp_file = luigi.LocalTarget(is_tmp=True)
+
+        # we only want targets from the biallelic SNPs VCF, but bcftools needs to know the the original ref/alt alleles,
+        # so we need to use the SNPs VCF to mask the unpolarized version
+        for vcf_filter, vcf_snps in utils.chunk(vcf_files, 2):
+            params = {
+                'orig': vcf_filter.path,
+                'snps': vcf_snps.path,
+                'tmp':  tmp_file.path
+            }
+
+            cmd = "bedtools intersect -a {orig} -b {snps} | " \
+                  "bcftools query -f'%CHROM\\t%POS\\t%REF,%ALT\\n' >> {tmp}".format(**params)
+
+            utils.run_cmd([cmd], shell=True)
+
+        # now make the combined targets file
+        cmd = "bgzip --stdout {tmp} > {tsv} && tabix -s1 -b2 -e2 {tsv}".format(tmp=tmp_file.path, tsv=tsv_file.path)
 
         utils.run_cmd([cmd], shell=True)
 

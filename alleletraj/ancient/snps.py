@@ -2,11 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
-import glob
 import itertools
-import os
 import random
-from collections import defaultdict
 
 # third party modules
 import luigi
@@ -15,13 +12,9 @@ import pysam
 # local modules
 from alleletraj import utils
 from alleletraj.ancient.vcf import BiallelicSNPsAncientVCF
-from alleletraj.bam import SampleBAM, DepthOfCoveragePipeline
+from alleletraj.bam import DepthOfCoveragePipeline
 from alleletraj.db.conn import Database
-from alleletraj.ensembl.link import EnsemblLinkPipeline
-from alleletraj.modern.snps import ModernSNPsPipeline
-from alleletraj.modern.vcf import ReferencePloidy, MIN_GENO_QUAL
-from alleletraj.qtl.load import MIN_DAF, MergeAllLoci, PopulateQTLSNPs
-from alleletraj.ref import ReferenceFASTA
+from alleletraj.qtl.load import MergeAllLoci, PopulateQTLSNPs
 
 # number of bases to hard clip
 HARD_CLIP_DIST = 5
@@ -79,6 +72,8 @@ class LoadAncientDiploidSNPs(utils.MySQLTask):
 
         with bed_file.open('r') as qtl_loci, self.output().open('w') as log:
 
+            samples = self.list_samples(ancient=True)
+
             # iterate over the loci in the BED file
             for locus in qtl_loci:
                 chrom, start, end = locus.split()
@@ -91,8 +86,6 @@ class LoadAncientDiploidSNPs(utils.MySQLTask):
                 fields = ('sample_id', 'chrom', 'site', 'base', 'genoq')
 
                 num_reads = 0
-
-                samples = self.list_samples(ancient=True)
 
                 # check every sample for reads in this locus
                 for (pop, sample), vcf_file in itertools.izip(samples, vcf_files):
@@ -134,9 +127,9 @@ class LoadAncientDiploidSNPs(utils.MySQLTask):
                 log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end) + '\n')
 
 
-class LoadAncientSNPs(utils.MySQLTask):
+class LoadAncientHaploidSNPs(utils.MySQLTask):
     """
-    Load all the ancient data for SNPs that fall within the loci of interest.
+    Load all the ancient data for SNPs where we cannot make a diploid call.
 
     :type species: str
     :type chrom: str
@@ -145,21 +138,20 @@ class LoadAncientSNPs(utils.MySQLTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        yield ReferenceFASTA(self.species)
-        yield ReferencePloidy(self.species)
         yield MergeAllLoci(self.species, self.chrom)
-        yield ModernSNPsPipeline(self.species)
-        yield EnsemblLinkPipeline(self.species)
+        yield LoadAncientDiploidSNPs(self.species, self.chrom)
 
         for pop, sample in self.list_samples(ancient=True):
-            yield SampleBAM(self.species, pop, sample)
+            yield BiallelicSNPsAncientVCF(self.species, pop, sample)
 
     def run(self):
         # unpack the params
-        (ref_file, _), pld_file, bed_file = self.input()[0:3]
-        bam_files = [bam_file for bam_file, _ in self.input()[5:]]
+        bed_file, _ = self.input()[:2]
+        bam_files = [bam_file for bam_file, _ in self.input()[2:]]
 
         with bed_file.open('r') as qtl_loci, self.output().open('w') as log:
+
+            samples = self.list_samples(ancient=True)
 
             # iterate over the loci in the BED file
             for locus in qtl_loci:
@@ -173,8 +165,6 @@ class LoadAncientSNPs(utils.MySQLTask):
                 fields = ('sample_id', 'chrom', 'site', 'base', 'mapq', 'baseq', 'dist')
 
                 num_reads = 0
-
-                samples = self.list_samples(ancient=True)
 
                 # check every sample for reads in this locus
                 for (pop, sample), bam_file in itertools.izip(samples, bam_files):
@@ -261,7 +251,7 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        return LoadAncientSNPs(self.species, self.chrom)
+        return LoadAncientHaploidSNPs(self.species, self.chrom)
 
     # noinspection SqlAggregates
     def queries(self):

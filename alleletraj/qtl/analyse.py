@@ -6,7 +6,7 @@ import luigi
 
 # local modules
 from alleletraj import utils
-from alleletraj.ancient.snps import LoadAncientSNPs
+from alleletraj.ancient.snps import LoadAncientHaploidSNPs
 
 # the number of SNPs to model per QTL
 SNPS_PER_QTL = 3
@@ -25,7 +25,7 @@ class CountSNPCoverage(utils.MySQLTask):
     db_lock_tables = ['qtl_snps']
 
     def requires(self):
-        return LoadAncientSNPs(self.species, self.chrom)
+        return LoadAncientHaploidSNPs(self.species, self.chrom)
 
     # noinspection SqlWithoutWhere
     def queries(self):

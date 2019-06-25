@@ -233,6 +233,7 @@ class FilterVCF(utils.PipelineTask):
                 'out': vcf_out,
             }
 
+            # TODO move `bcftools norm` to `BCFToolsCall`
             cmd = "bcftools filter --exclude 'QUAL<{qual} | DP<{qlow} | DP>{qhigh}' --output-type u {vcf} | " \
                   "bcftools norm --fasta-ref {ref} --multiallelics +any --output-type u | " \
                   "bcftools +fill-tags --output-type z --output {out} -- -t AN,AC ".format(**params)
@@ -360,7 +361,7 @@ class WholeAutosomeSNPsVCF(utils.PipelineTask):
             yield BiallelicSNPsVCF(self.species, chrom)
 
     def output(self):
-        return luigi.LocalTarget('data/vcf/{}-chrAuto-quant-polar-polar-SNPs.vcf.gz'.format(self.species))
+        return luigi.LocalTarget('data/vcf/{}-chrAuto-quant-polar-SNPs.vcf.gz'.format(self.species))
 
     def run(self):
         # get all the vcf files to concatenate
@@ -390,7 +391,7 @@ class WholeGenomeSNPsVCF(utils.PipelineTask):
             yield BiallelicSNPsVCF(self.species, chrom)
 
     def output(self):
-        return luigi.LocalTarget('data/vcf/{}-chrAll-quant-polar-polar-SNPs.vcf.gz'.format(self.species))
+        return luigi.LocalTarget('data/vcf/{}-chrAll-quant-polar-SNPs.vcf.gz'.format(self.species))
 
     def run(self):
         # get all the vcf files to concatenate

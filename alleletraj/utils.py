@@ -344,14 +344,14 @@ class DatabaseTask(PipelineTask):
 
         return self._accession
 
-    def list_samples(self, ancient=None, modern=None, outgroup=False):
+    def list_samples(self, ancient=False, modern=False, outgroup=False):
         """
         List of all the population and sample tuples.
 
         :return: {(pop, sample): record, ...}
         """
         conds = {}
-        if ancient or modern:
+        if ancient ^ modern:  # xor
             conds['ancient'] = 1 if ancient else 0
 
         samples = self.dbc.get_records('samples', conds, sort='population, name', key=None)

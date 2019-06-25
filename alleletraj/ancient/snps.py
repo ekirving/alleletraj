@@ -215,7 +215,9 @@ class LoadAncientSNPs(utils.MySQLTask):
                         'vcf': vcf_file
                     }
 
-                    # call bases with bcftools (and drop indels and other junk, but keen non-variant sites)
+                    # TODO make this into a task... call whole genome vcf (per sample), then filter for DP and qual
+                    #      then load into db, and use to skip sites here
+                    # call bases with bcftools (and drop indels and other junk, but keep non-variant sites)
                     # uses both --region (random access) and --targets (streaming) for optimal speed
                     # see https://samtools.github.io/bcftools/bcftools.html#mpileup
                     cmd = "bcftools mpileup --fasta-ref {ref} --regions {reg} --targets-file {tgz} --read-groups {rgs}"\

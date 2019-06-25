@@ -189,6 +189,8 @@ class LoadAncientHaploidSNPs(utils.MySQLTask):
                             if site not in snps:
                                 continue
 
+                            alleles = [snps[site]['ancestral'], snps[site]['derived']]
+
                             quality = []
 
                             # iterate over all the reads for this site
@@ -220,7 +222,8 @@ class LoadAncientHaploidSNPs(utils.MySQLTask):
                                 read = (sample_id, chrom, site, base, mapq, baseq, dist)
 
                                 # apply the hard filters
-                                if mapq >= HARD_MAPQ_CUTOFF and baseq >= HARD_BASEQ_CUTOFF and dist >= HARD_CLIP_DIST:
+                                if mapq >= HARD_MAPQ_CUTOFF and baseq >= HARD_BASEQ_CUTOFF \
+                                        and dist >= HARD_CLIP_DIST and base in alleles:
                                     quality.append(read)
 
                             # call a pseudo-haploid genotype at random

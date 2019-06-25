@@ -34,6 +34,7 @@ class BCFToolsTargetsFile(utils.DatabaseTask):
         vcf_file = self.input()
         tsv_file, _ = self.output()
 
+        # TODO doesn't work because it's been polarised already
         cmd = "bcftools query -f'%CHROM\\t%POS\\t%REF,%ALT\\n' {vcf} | " \
               "bgzip -c > {tsv} && tabix -s1 -b2 -e2 {tsv}".format(vcf=vcf_file.path, tsv=tsv_file.path)
 
@@ -120,9 +121,9 @@ class BiallelicSNPsAncientVCF(utils.PipelineTask):
             params = {
                 'qual': MIN_GENO_QUAL,
                 'dp':   MIN_GENO_DEPTH,
-                'vcf': vcf_input.path,
-                'ref': ref_file.path,
-                'out': vcf_out,
+                'vcf':  vcf_input.path,
+                'ref':  ref_file.path,
+                'out':  vcf_out,
             }
 
             cmd = "bcftools filter --exclude 'QUAL<{qual} | DP<{dp}' --output-type u {vcf} | " \

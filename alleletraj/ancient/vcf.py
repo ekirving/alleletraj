@@ -23,7 +23,8 @@ class BCFToolsTargetsFile(utils.DatabaseTask):
     species = luigi.Parameter()
 
     def requires(self):
-        return WholeGenomeSNPsVCF(self.species)
+        yield ReferenceFASTA(self.species)
+        yield WholeGenomeSNPsVCF(self.species)
 
     def output(self):
         return [luigi.LocalTarget('data/vcf/{}-chrAll-quant-polar-SNPs.{}'.format(self.species, ext))
@@ -31,12 +32,18 @@ class BCFToolsTargetsFile(utils.DatabaseTask):
 
     def run(self):
         # unpack the params
-        vcf_file = self.input()
+        (ref_file, _), vcf_file = self.input()
         tsv_file, _ = self.output()
 
-        # TODO doesn't work because it's been polarised already
-        cmd = "bcftools query -f'%CHROM\\t%POS\\t%REF,%ALT\\n' {vcf} | " \
-              "bgzip -c > {tsv} && tabix -s1 -b2 -e2 {tsv}".format(vcf=vcf_file.path, tsv=tsv_file.path)
+        params = {
+            'ref': ref_file.path,
+            'vcf': vcf_file.path,
+            'tsv': tsv_file.path
+        }
+
+        cmd = "bcftools norm --check-ref s --fasta-ref {ref} --do-not-normalize {vcf} | " \
+              "bcftools query -f'%CHROM\\t%POS\\t%REF,%ALT\\n' | " \
+              "bgzip -c > {tsv} && tabix -s1 -b2 -e2 {tsv}".format(**params)
 
         utils.run_cmd([cmd], shell=True)
 

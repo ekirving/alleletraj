@@ -4,6 +4,7 @@
 # standard modules
 import itertools
 import random
+from collections import defaultdict
 
 # third party modules
 import luigi
@@ -12,7 +13,7 @@ import pysam
 # local modules
 from alleletraj import utils
 from alleletraj.ancient.vcf import BiallelicSNPsAncientVCF
-from alleletraj.bam import DepthOfCoveragePipeline
+from alleletraj.bam import DepthOfCoveragePipeline, SampleBAM
 from alleletraj.db.conn import Database
 from alleletraj.qtl.load import MergeAllLoci, PopulateQTLSNPs
 
@@ -48,6 +49,34 @@ def list_snps_in_locus(species, chrom, start, end):
     return snps
 
 
+def list_genotypes_in_locus(species, chrom, start, end):
+    """
+    Get all the SNPs in this locus that have a diploid call.
+    """
+    dbc = Database(species)
+
+    records = dbc.get_records_sql("""
+        SELECT DISTINCT sr.sample_id, ms.site
+          FROM modern_snps ms
+          JOIN qtl_snps qs 
+            ON qs.modsnp_id = ms.id
+          JOIN sample_reads sr
+            ON sr.chrom = ms.chrom
+           AND sr.site = ms.site
+           AND sr.genoq IS NOT NULL  # only diploid calls have genotype qualities
+         WHERE ms.chrom = '{chrom}'
+           AND ms.site BETWEEN {start} AND {end}
+           """.format(chrom=chrom, start=start, end=end), key=None)
+
+    diploids = defaultdict(set)
+
+    # nest by sample
+    for rec in records:
+        diploids[rec['sample_id']].add(rec['site'])
+
+    return diploids
+
+
 class LoadAncientDiploidSNPs(utils.MySQLTask):
     """
     Load all the ancient data for SNPs with sufficient coverage to make a high quality diploid call.
@@ -79,6 +108,7 @@ class LoadAncientDiploidSNPs(utils.MySQLTask):
                 chrom, start, end = locus.split()
 
                 snps = list_snps_in_locus(self.species, chrom, start, end)
+                qtl_sites = set(snps.keys())  # convert to set for much faster lookups
 
                 log.write("INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)) + '\n')
 
@@ -104,7 +134,7 @@ class LoadAncientDiploidSNPs(utils.MySQLTask):
                         site = rec.pos
 
                         # skip all sites not ascertained in the modern samples
-                        if site not in snps:
+                        if site not in qtl_sites:
                             continue
 
                         # get the genotype quality
@@ -142,7 +172,7 @@ class LoadAncientHaploidSNPs(utils.MySQLTask):
         yield LoadAncientDiploidSNPs(self.species, self.chrom)
 
         for pop, sample in self.list_samples(ancient=True):
-            yield BiallelicSNPsAncientVCF(self.species, pop, sample)
+            yield SampleBAM(self.species, pop, sample)
 
     def run(self):
         # unpack the params
@@ -158,6 +188,10 @@ class LoadAncientHaploidSNPs(utils.MySQLTask):
                 chrom, start, end = locus.split()
 
                 snps = list_snps_in_locus(self.species, chrom, start, end)
+                qtl_sites = set(snps.keys())  # convert to set for much faster lookups
+
+                # get the list of diploid calls for all samples in this locus
+                diploids = list_genotypes_in_locus(self.species, chrom, start, end)
 
                 log.write("INFO: Scanning locus chr{}:{}-{} for {:,} SNPs".format(chrom, start, end, len(snps)) + '\n')
 
@@ -186,7 +220,11 @@ class LoadAncientHaploidSNPs(utils.MySQLTask):
                             site = pileup_column.reference_pos + 1
 
                             # skip all sites not ascertained in the modern samples
-                            if site not in snps:
+                            if site not in qtl_sites:
+                                continue
+
+                            # also skip sites where we have a diploid call for this sample
+                            if site in diploids.get(sample_id):
                                 continue
 
                             alleles = [snps[site]['ancestral'], snps[site]['derived']]

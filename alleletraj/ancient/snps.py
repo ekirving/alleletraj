@@ -39,11 +39,14 @@ def list_snps_in_locus(species, chrom, start, end):
 
     snps = dbc.get_records_sql("""
         SELECT DISTINCT ms.site, ms.ancestral, ms.derived
-          FROM modern_snps ms
+          FROM qtls q
           JOIN qtl_snps qs 
-            ON qs.modsnp_id = ms.id
-         WHERE ms.chrom = '{chrom}'
-           AND ms.site BETWEEN {start} AND {end}
+            ON qs.qtl_id = q.id
+          JOIN modern_snps ms
+            ON ms.id = qs.modsnp_id
+         WHERE q.chrom = '{chrom}'
+           AND q.start BETWEEN {start} AND {end}
+           AND q.valid = 1
            """.format(chrom=chrom, start=start, end=end), key='site')
 
     return snps
@@ -51,21 +54,24 @@ def list_snps_in_locus(species, chrom, start, end):
 
 def list_genotypes_in_locus(species, chrom, start, end):
     """
-    Get all the SNPs in this locus that have a diploid call.
+    Get all the sites in this locus that have a diploid call.
     """
     dbc = Database(species)
 
     records = dbc.get_records_sql("""
-        SELECT DISTINCT sr.sample_id, ms.site
-          FROM modern_snps ms
+       SELECT SQL_NO_CACHE DISTINCT sr.sample_id, ms.site
+          FROM qtls q
           JOIN qtl_snps qs 
-            ON qs.modsnp_id = ms.id
+            ON qs.qtl_id = q.id
+          JOIN modern_snps ms
+            ON ms.id = qs.modsnp_id
           JOIN sample_reads sr
             ON sr.chrom = ms.chrom
            AND sr.site = ms.site
-           AND sr.genoq IS NOT NULL  # only diploid calls have genotype qualities
-         WHERE ms.chrom = '{chrom}'
-           AND ms.site BETWEEN {start} AND {end}
+           AND sr.genoq IS NOT NULL  # only diploid calls have genotype qualities            
+         WHERE q.chrom = '{chrom}'
+           AND q.start BETWEEN {start} AND {end}
+           AND q.valid = 1
            """.format(chrom=chrom, start=start, end=end), key=None)
 
     diploids = defaultdict(set)
@@ -224,7 +230,7 @@ class LoadAncientHaploidSNPs(utils.MySQLTask):
                                 continue
 
                             # also skip sites where we have a diploid call for this sample
-                            if site in diploids.get(sample_id):
+                            if site in diploids.get(sample_id, {}):
                                 continue
 
                             alleles = [snps[site]['ancestral'], snps[site]['derived']]

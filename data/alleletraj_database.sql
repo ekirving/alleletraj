@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
 # Database: alleletraj_horse_equcab2_rel38
-# Generation Time: 2019-06-25 08:05:18 +0000
+# Generation Time: 2019-06-26 09:53:46 +0000
 # ************************************************************
 
 
@@ -382,6 +382,7 @@ CREATE TABLE `sample_runs` (
   `accession` varchar(255) NOT NULL,
   `libname` varchar(255) DEFAULT '',
   `paired` tinyint(1) NOT NULL,
+  `format` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `accession` (`accession`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -427,11 +428,11 @@ CREATE TABLE `selection` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `population` varchar(255) NOT NULL DEFAULT '',
   `modsnp_id` int(11) unsigned NOT NULL,
+  `no_modern` tinyint(1) NOT NULL,
+  `mispolar` tinyint(1) NOT NULL,
   `length` int(11) unsigned NOT NULL,
   `thin` int(11) unsigned NOT NULL,
   `model` decimal(1,1) NOT NULL,
-  `no_modern` tinyint(1) NOT NULL,
-  `mispolar` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `modsnp_id` (`modsnp_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -12,7 +12,7 @@ from alleletraj import utils
 from alleletraj.const import CPU_CORES_LOW
 
 
-def entrez_direct_esearch(bioproject, biosample, fastq_only=True, libname_filter=''):
+def entrez_direct_esearch(biosample, fastq_only=False, libname_filter='', verbose=False):
     """
     Get the list of SRA run accessions for a given BioSample code.
 
@@ -35,25 +35,22 @@ def entrez_direct_esearch(bioproject, biosample, fastq_only=True, libname_filter
     records = []
 
     if result == '':
-        print('WARNING: No data returned from entrez ({}, {})'.format(bioproject, biosample))
+        raise RuntimeError('WARNING: No data returned from entrez ({})'.format(biosample))
 
     else:
         for line in result.split('\n'):
             record = line.split('\t')
 
-            if len(record) != 6:
-                raise RuntimeError('Malformed data from entrez ({}, {}) - {}'.format(bioproject, biosample, record))
-
-            # elif bioproject != record[0] or biosample != record[1]:
-            elif biosample != record[1]:
-                # make sure the data belongs to the right biosample
-                print('WARNING: Record contains incorrect data ({}, {}) - {}'.format(bioproject, biosample, record))
-
-            elif fastq_only and record[5] != 'fastq':
-                print('WARNING: Record is not a fastq ({}, {}) - {}'.format(bioproject, biosample, record))
+            if len(record) != 6 or biosample != record[1]:
+                raise RuntimeError('Malformed data from entrez ({}) - {}'.format(biosample, record))
 
             elif libname_filter and libname_filter in record[3]:
-                print('WARNING: Record matches library name filter ({}, {}) - {}'.format(bioproject, biosample, record))
+                if verbose:
+                    print('INFO: Record matches library name filter ({}) - {}'.format(biosample, record))
+
+            elif fastq_only and record[5] != 'fastq':
+                print('WARNING: Record is not a fastq ({}) - {}'.format(biosample, record))
+
             else:
                 # split multiple run accessions
                 record[2] = record[2].split(';')

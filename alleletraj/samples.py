@@ -11,6 +11,7 @@ import unicodecsv as csv
 
 # local modules
 from alleletraj import utils
+from alleletraj.const import OUTGROUP_POP
 from alleletraj.db.load import CreateDatabase
 from alleletraj.sra import entrez_direct_esearch
 
@@ -89,7 +90,7 @@ class LoadSamples(utils.MySQLTask):
                 for row_biosample in [acc.strip() for acc in row['biosample'].split(';') if acc.strip() != '']:
                     # TODO buffer the warnings and save to a log file
                     # use entrez to get the SRA run accessions
-                    records = entrez_direct_esearch(row['bioproject'], row_biosample, libname_filter='Merged')
+                    records = entrez_direct_esearch(row_biosample, libname_filter='Merged')
 
                     for bioproject, biosample, run_accessions, library_name, library_layout, file_format in records:
                         for accession in run_accessions:
@@ -99,9 +100,15 @@ class LoadSamples(utils.MySQLTask):
                                 'biosample':  biosample,
                                 'accession':  accession,
                                 'libname':    library_name if library_name != 'unspecified' else None,
-                                'paired':     library_layout == 'paired'
+                                'paired':     library_layout == 'paired',
+                                'format':     file_format
                             }
                             self.dbc.save_record('sample_runs', run)
+
+        # ensure there is an outgroup population
+        if not self.ancient and not self.dbc.exists_record('samples', {'population': OUTGROUP_POP}):
+            raise RuntimeError('ERROR: No outgroup population in {}'.format(csv_file.path))
+
 
 
 class CreateSampleBins(utils.MySQLTask):

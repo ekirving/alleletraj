@@ -22,7 +22,7 @@ from alleletraj import utils
 DADI_EPOCHS = 5
 
 # how many independent replicates should we run to find the global maximum params (dadi can get stuck in local maxima)
-DADI_REPLICATES = 5000
+DADI_REPLICATES = 1000
 
 # number of points to use in the grid
 DADI_GRID_PTS = 100

@@ -12,7 +12,7 @@ import pysam
 
 # local modules
 from alleletraj import utils
-from alleletraj.ancient.vcf import BiallelicSNPsAncientVCF
+from alleletraj.ancient.vcf import BCFToolsFilterAncientVCF
 from alleletraj.bam import DepthOfCoveragePipeline, SampleBAM
 from alleletraj.db.conn import Database
 from alleletraj.qtl.load import MergeAllLoci, PopulateQTLSNPs
@@ -92,7 +92,7 @@ class LoadAncientDiploidSNPs(utils.MySQLTask):
         yield PopulateQTLSNPs(self.species, self.chrom)
 
         for pop, sample in self.list_samples(ancient=True):
-            yield BiallelicSNPsAncientVCF(self.species, pop, sample)
+            yield BCFToolsFilterAncientVCF(self.species, pop, sample)
 
     def run(self):
         # unpack the params

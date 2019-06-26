@@ -109,9 +109,11 @@ class BCFToolsCallAncient(utils.DatabaseTask):
             utils.run_cmd([cmd], shell=True, stderr=fout)
 
 
-class BiallelicSNPsAncientVCF(utils.PipelineTask):
+class BCFToolsFilterAncientVCF(utils.PipelineTask):
     """
-    Remove all sites with low quality or low depth, and only keep biallelic SNPs.
+    Filter out sites with low quality or low depth, and all INDELS and other junk.
+
+    Retains only high quality biallelic SNPs and homozygous reference calls.
 
     :type species: str
     :type population: str
@@ -126,7 +128,7 @@ class BiallelicSNPsAncientVCF(utils.PipelineTask):
         yield BCFToolsCallAncient(self.species, self.population, self.sample)
 
     def output(self):
-        return [luigi.LocalTarget('data/vcf/{}-SNPs.vcf.{}'.format(self.basename, ext)) for ext in ['gz', 'gz.tbi']]
+        return [luigi.LocalTarget('data/vcf/{}-filter.vcf.{}'.format(self.basename, ext)) for ext in ['gz', 'gz.tbi']]
 
     def run(self):
         # unpack the input params
@@ -144,8 +146,7 @@ class BiallelicSNPsAncientVCF(utils.PipelineTask):
             }
 
             cmd = "bcftools filter --exclude 'QUAL<{qual} | DP<{dp}' --output-type u {vcf} | " \
-                  "bcftools view --types snps --min-alleles 2 --max-alleles 2 --min-ac 1:minor --exclude INFO/INDEL=1" \
-                  " --output-type z --output-file {out}".format(**params)
+                  "bcftools view --exclude-types indels,mnps,bnd,other -O z --output-file {out}".format(**params)
 
             utils.run_cmd([cmd], shell=True)
 

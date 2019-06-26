@@ -77,25 +77,32 @@ class BCFToolsCallAncient(utils.DatabaseTask):
         (ref_file, _), pld_file, (tsv_file, _), (bam_file, _) = self.input()
         vcf_file, log_file = self.output()
 
-        # bcftools needs the sex specified in a separate file
         sex_file = luigi.LocalTarget(is_tmp=True)
+        rgs_file = luigi.LocalTarget(is_tmp=True)
+
+        # bcftools needs the sex specified in a separate file
         with sex_file.open('w') as fout:
             fout.write('{}\t{}\n'.format(self.sample, self.sample_data['sex']))
+
+        # sample names in the BAM file(s) may not be consistent, so override the @SM code
+        with rgs_file.open('w') as fout:
+            fout.write('*\t{}\t{}\n'.format(bam_file.path, self.sample))
 
         with vcf_file.temporary_path() as vcf_path, log_file.open('w') as fout:
 
             params = {
                 'ref': ref_file.path,
                 'tsv': tsv_file.path,
+                'rgs': rgs_file.path,
                 'bam': bam_file.path,
                 'pld': pld_file.path,
                 'sex': sex_file.path,
                 'vcf': vcf_path
             }
 
-            cmd = "bcftools mpileup --fasta-ref {ref} --targets-file {tsv} --ignore-RG --output-type u {bam} | " \
+            cmd = "bcftools mpileup --fasta-ref {ref} --targets-file {tsv} --read-groups {rgs} -O u {bam} | " \
                   "bcftools call --multiallelic-caller --ploidy-file {pld} --samples-file {sex} --targets-file {tsv} " \
-                  "--constrain alleles --output-type u | " \
+                  " --constrain alleles --output-type u | " \
                   "bcftools norm --fasta-ref {ref} --multiallelics +any --output-type u | " \
                   "bcftools +fill-tags --output-type z --output {vcf} -- -t AN,AC ".format(**params)
 

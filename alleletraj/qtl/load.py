@@ -577,17 +577,17 @@ class PopulateQTLSNPs(utils.MySQLTask):
     def queries(self):
         self.dbc.execute_sql("""
             INSERT INTO qtl_snps (qtl_id, modsnp_id)
-                 SELECT DISTINCT q.id, ms.id
-                   FROM qtls q
-                   JOIN modern_snps ms
-                     ON ms.chrom = q.chrom
-                    AND ms.site BETWEEN q.start AND q.end
-                   JOIN modern_snp_daf msd
-                     ON msd.modsnp_id = ms.id
-                  WHERE q.chrom = '{chrom}'
-                    AND q.valid = 1
-                    AND msd.daf >= {daf}
-                    """.format(chrom=self.chrom, daf=MIN_DAF))
+            SELECT DISTINCT q.id, ms.id
+              FROM qtls q
+              JOIN modern_snps ms
+                ON ms.chrom = q.chrom
+               AND ms.site BETWEEN q.start AND q.end
+              JOIN modern_snp_daf msd
+                ON msd.modsnp_id = ms.id
+             WHERE q.chrom = '{chrom}'
+               AND q.valid = 1
+               AND msd.daf >= {daf}
+               """.format(chrom=self.chrom, daf=MIN_DAF))
 
 
 class MarkNeutralSNPs(utils.MySQLTask):

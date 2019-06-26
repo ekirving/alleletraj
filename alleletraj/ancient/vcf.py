@@ -126,14 +126,14 @@ class BiallelicSNPsAncientVCF(utils.PipelineTask):
         yield BCFToolsCallAncient(self.species, self.population, self.sample)
 
     def output(self):
-        return [luigi.LocalTarget('data/vcf/{}-SNPs.vcf.{}'.format(self.basename, ext)) for ext in ['gz', 'log']]
+        return [luigi.LocalTarget('data/vcf/{}-SNPs.vcf.{}'.format(self.basename, ext)) for ext in ['gz', 'gz.tbi']]
 
     def run(self):
         # unpack the input params
         (ref_file, _), (vcf_input, _) = self.input()
-        vcf_file, log_file = self.output()
+        vcf_file, _ = self.output()
 
-        with vcf_file.temporary_path() as vcf_out, log_file.open('w') as fout:
+        with vcf_file.temporary_path() as vcf_out:
 
             params = {
                 'qual': MIN_GENO_QUAL,
@@ -147,4 +147,7 @@ class BiallelicSNPsAncientVCF(utils.PipelineTask):
                   "bcftools view --types snps --min-alleles 2 --max-alleles 2 --min-ac 1:minor --exclude INFO/INDEL=1" \
                   " --output-type z --output-file {out}".format(**params)
 
-            utils.run_cmd([cmd], shell=True, stderr=fout)
+            utils.run_cmd([cmd], shell=True)
+
+        # index the vcf
+        utils.run_cmd(['bcftools', 'index', '--tbi', vcf_file.path])

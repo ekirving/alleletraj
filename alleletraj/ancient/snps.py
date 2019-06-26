@@ -127,7 +127,7 @@ class LoadAncientDiploidSNPs(utils.MySQLTask):
                     reads = []
 
                     # parse the vcf with pysam
-                    for rec in pysam.VariantFile(vcf_file).fetch(chrom, int(start), int(end)):
+                    for rec in pysam.VariantFile(vcf_file.path).fetch(chrom, int(start), int(end)):
 
                         # NOTE VariantRecord.pos is 1 based
                         # https://pysam.readthedocs.io/en/latest/api.html#pysam.VariantRecord.pos

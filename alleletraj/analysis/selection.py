@@ -100,7 +100,7 @@ def selection_neutral_snps(species, population, modsnp_id, mispolar):
            AND ms.derived = nn.derived  # TODO if there are not enough neutrals then this can be a sort condition
            AND ms.ancestral = nn.ancestral
            AND ms.neutral = 1
-           # AND ms.mispolar IS NULL  # TODO what to do about this?
+           AND ms.mispolar IS NULL  # TODO what to do about this?
            AND ms.variant_id IS NOT NULL
            AND ms.id != nn.id
           JOIN modern_snp_daf msd

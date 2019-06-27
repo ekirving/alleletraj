@@ -281,30 +281,41 @@ class PolarizeVCF(utils.DatabaseTask):
 
                 ingroup_alleles = []
 
-                # get all the alleles at this site, minus the ancestral
-                alt = set([rec.ref] + list(rec.alts))
-                alt.remove(anc)
+                # do we need to polarize this site
+                if rec.ref != anc:
 
-                # VCFs store the GT as an allele index, so we have to update the indices
-                alleles = [anc] + list(alt)  # NOTE important distinction between [] and list()
-                indices = dict(zip(alleles, range(0, len(alleles))))
+                    # get all the alleles at this site, minus the ancestral
+                    alt = set([rec.ref] + list(rec.alts))
+                    alt.remove(anc)
 
-                for sample in rec.samples:
-                    # keep track of all the ingroup alleles
-                    if sample != self.outgroup:
-                        ingroup_alleles += rec.samples[sample].alleles
+                    # VCFs store the GT as an allele index, so we have to update the indices
+                    alleles = [anc] + list(alt)  # NOTE important distinction between [] and list()
+                    indices = dict(zip(alleles, range(0, len(alleles))))
 
-                    # update the allele indexes for each sample
-                    rec.samples[sample].allele_indices = [indices.get(gt, None)
-                                                          for gt in rec.samples[sample].alleles]
+                    for sample in rec.samples:
+                        # keep track of all the ingroup alleles
+                        if sample != self.outgroup:
+                            ingroup_alleles += rec.samples[sample].alleles
 
-                # skip sites that are private to the outgroup (as these are likely to be mispolarised)
-                if anc not in ingroup_alleles:
-                    continue
+                        # update the allele indexes for each sample
+                        rec.samples[sample].allele_indices = [indices.get(gt, None)
+                                                              for gt in rec.samples[sample].alleles]
 
-                # polarize the REF/ALT alleles
-                rec.ref = anc
-                rec.alts = alt
+                    # skip sites that are private to the outgroup (as these are likely to be mispolarised)
+                    if anc not in ingroup_alleles:
+                        continue
+
+                    # polarize the REF/ALT alleles
+                    rec.ref = anc
+                    rec.alts = alt
+
+                else:
+                    # make sure the site is actually variable
+                    ingroup_alleles = [allele for allele in rec.samples[sample].alleles for sample in rec.samples
+                                       if sample != self.outgroup]
+
+                    if anc not in ingroup_alleles:
+                        continue
 
                 vcf_out.write(rec)
 

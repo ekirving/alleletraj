@@ -61,7 +61,6 @@ def selection_neutral_snps(species, population, modsnp_id, mispolar):
     bid = []
     lsq = []
 
-    # TODO should we round this before randomising? as informally there are very few exact matches
     # we need to ensure that there is a comparable number of calls in each bin, so we sort the neutrals by the least
     # squared error of the differences in bin counts, then randomise
     for bin_id in bins:
@@ -72,7 +71,8 @@ def selection_neutral_snps(species, population, modsnp_id, mispolar):
     sqr_sql = '+'.join(lsq)
 
     modsnps = dbc.get_records_sql("""
-        SELECT ms.id, {sqr_sql} AS diff
+        SELECT ms.id, 
+               round(({sqr_sql})/{bins})*{bins} AS diff
           FROM (
 
         SELECT ms.id,
@@ -97,10 +97,10 @@ def selection_neutral_snps(species, population, modsnp_id, mispolar):
           ) AS nn
           JOIN modern_snps ms
             ON ms.chrom = nn.chrom
-           AND ms.derived = nn.derived  # TODO if there are not enough neutrals then this can be a sort condition
+           AND ms.derived = nn.derived
            AND ms.ancestral = nn.ancestral
            AND ms.neutral = 1
-           AND ms.mispolar IS NULL  # TODO what to do about this?
+           AND ms.mispolar IS NULL
            AND ms.variant_id IS NOT NULL
            AND ms.id != nn.id
           JOIN modern_snp_daf msd
@@ -115,8 +115,8 @@ def selection_neutral_snps(species, population, modsnp_id, mispolar):
       GROUP BY ms.id
       ORDER BY diff, RAND({modsnp})
          LIMIT {num}
-           """.format(sqr_sql=sqr_sql, mispolar=int(mispolar), bin_sql=bin_sql, population=population, modsnp=modsnp_id,
-                      num=NEUTRAL_REPLICATES)).keys()
+           """.format(sqr_sql=sqr_sql, bins=len(bins), mispolar=int(mispolar), bin_sql=bin_sql, population=population,
+                      modsnp=modsnp_id, num=NEUTRAL_REPLICATES)).keys()
 
     if len(modsnps) != NEUTRAL_REPLICATES:
         raise RuntimeError('ERROR: Insufficient neutral SNPs to run `selection` (n={})'.format(len(modsnps)))

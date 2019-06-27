@@ -652,7 +652,7 @@ class SelectionPairNeutrals(utils.MySQLTask):
     def neutrals(self):
         """Get the neutral controls for this modsnp"""
         if not self._neutrals:
-            self._neutrals = selection_neutral_snps(self.species, self.pop, self.modsnp, self.mispolar)
+            self._neutrals = selection_neutral_snps(self.species, self.population, self.modsnp, self.mispolar)
 
         return self._neutrals
 

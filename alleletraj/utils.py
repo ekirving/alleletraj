@@ -359,7 +359,7 @@ class DatabaseTask(PipelineTask):
         return OrderedDict([((sample['population'], sample['name']), sample)
                             for sample in samples if outgroup or sample['population'] != OUTGROUP_POP])
 
-    def list_populations(self, ancient=None, modern=None, outgroup=False):
+    def list_populations(self, ancient=False, modern=False, outgroup=False):
         """
         Nested list of all the populations and their samples.
 

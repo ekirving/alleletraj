@@ -40,6 +40,9 @@ class LoadModernSNPs(utils.MySQLTask):
         # unpack the inputs
         _, vcf_file = self.input()
 
+        # get all the modern populations and samples (except the outgroup)
+        populations = self.list_populations(modern=True)
+
         # iterate over the VCF with pysam
         for rec in pysam.VariantFile(vcf_file.path).fetch():
 
@@ -59,9 +62,6 @@ class LoadModernSNPs(utils.MySQLTask):
             }
 
             modsnp_id = self.dbc.save_record('modern_snps', modern_snp)
-
-            # get all the populations and samples (except the outgroup)
-            populations = self.list_populations(modern=True)
 
             # resolve the genotypes of the samples in one population at a time
             for pop in populations:

@@ -288,8 +288,8 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
     """
     Flag SNPs which may be mispolarized.
 
-    Get the first MISPOLAR_SNPS snps and calculate the derived allele frequency. If daf > MISPOLAR_DAF then flag the SNP
-    as mispolarized.
+    Calculate the DAF for the oldest and youngest 10 observations, and flag as possibly mispolarised if the DAF in the
+    oldest bin is > 80% and the DAF in the youngest bin is the same or lower.
 
     :type species: str
     :type chrom: str
@@ -310,7 +310,14 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
                             IF(sr.base = ms.derived, 1, 0)
                             ORDER BY s.bp_median DESC
                             SEPARATOR ''
-                        ), 1, {snps}), 0, '')) / {snps} AS daf
+                        ), 1, {snps}), 0, '')) / {snps} AS daf_oldest,
+
+                   LENGTH(REPLACE(SUBSTRING(
+                        GROUP_CONCAT(
+                            IF(sr.base = ms.derived, 1, 0)
+                            ORDER BY s.bp_median ASC
+                            SEPARATOR ''
+                        ), 1, {snps}), 0, '')) / {snps} AS daf_youngest
               FROM modern_snps ms
               JOIN sample_reads sr
                 ON sr.chrom = ms.chrom
@@ -319,7 +326,8 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
                 ON s.id = sr.sample_id
             WHERE ms.chrom = '{chrom}'
           GROUP BY ms.id
-            HAVING daf >= {daf}
+            HAVING daf_oldest >= {daf}
+               AND daf_oldest >= daf_youngest
                """.format(chrom=self.chrom, snps=MISPOLAR_SNPS, daf=MISPOLAR_DAF))
 
         for modsnp_id in mispolar:

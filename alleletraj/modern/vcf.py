@@ -311,8 +311,9 @@ class PolarizeVCF(utils.DatabaseTask):
 
                 else:
                     # make sure the site is actually variable
-                    ingroup_alleles = [allele for allele in rec.samples[sample].alleles for sample in rec.samples
-                                       if sample != self.outgroup]
+                    for sample in rec.samples:
+                        if sample != self.outgroup:
+                            ingroup_alleles += rec.samples[sample].alleles
 
                     if anc not in ingroup_alleles:
                         continue

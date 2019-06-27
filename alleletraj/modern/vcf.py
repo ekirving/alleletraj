@@ -233,6 +233,7 @@ class FilterVCF(utils.PipelineTask):
             }
 
             # TODO move `bcftools norm` to `BCFToolsCall`
+            # TODO consider using `filter --SnpGap` to drop sites around indels
             cmd = "bcftools filter --exclude 'QUAL<{qual} | DP<{qlow} | DP>{qhigh}' --output-type u {vcf} | " \
                   "bcftools norm --fasta-ref {ref} --multiallelics +any --output-type u | " \
                   "bcftools +fill-tags --output-type z --output {out} -- -t AN,AC ".format(**params)

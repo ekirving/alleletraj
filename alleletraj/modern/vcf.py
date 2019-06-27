@@ -281,33 +281,30 @@ class PolarizeVCF(utils.DatabaseTask):
 
                 ingroup_alleles = []
 
-                # do we need to polarize this site
-                if rec.ref != anc:
+                # get all the alleles at this site, minus the ancestral
+                alt = set([rec.ref] + list(rec.alts))
+                alt.remove(anc)
 
-                    # get all the alleles at this site, minus the ancestral
-                    alt = set([rec.ref] + list(rec.alts))
-                    alt.remove(anc)
+                # VCFs store the GT as an allele index, so we have to update the indices
+                alleles = [anc] + list(alt)  # NOTE important distinction between [] and list()
+                indices = dict(zip(alleles, range(0, len(alleles))))
 
-                    # VCFs store the GT as an allele index, so we have to update the indices
-                    alleles = [anc] + list(alt)  # NOTE important distinction between [] and list()
-                    indices = dict(zip(alleles, range(0, len(alleles))))
+                for sample in rec.samples:
+                    # keep track of all the ingroup alleles
+                    if sample != self.outgroup:
+                        ingroup_alleles += rec.samples[sample].alleles
 
-                    for sample in rec.samples:
-                        # keep track of all the ingroup alleles
-                        if sample != self.outgroup:
-                            ingroup_alleles += rec.samples[sample].alleles
+                    # update the allele indexes for each sample
+                    rec.samples[sample].allele_indices = [indices.get(gt, None)
+                                                          for gt in rec.samples[sample].alleles]
 
-                        # update the allele indexes for each sample
-                        rec.samples[sample].allele_indices = [indices.get(gt, None)
-                                                              for gt in rec.samples[sample].alleles]
+                # skip sites that are private to the outgroup (as these are likely to be mispolarised)
+                if anc not in ingroup_alleles:
+                    continue
 
-                    # skip sites that are private to the outgroup (as these are likely to be mispolarised)
-                    if anc not in ingroup_alleles:
-                        continue
-
-                    # polarize the REF/ALT alleles
-                    rec.ref = anc
-                    rec.alts = alt
+                # polarize the REF/ALT alleles
+                rec.ref = anc
+                rec.alts = alt
 
                 vcf_out.write(rec)
 

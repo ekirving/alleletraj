@@ -300,10 +300,13 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
     def requires(self):
         return LoadAncientHaploidSNPs(self.species, self.chrom)
 
-    # noinspection SqlAggregates
     def queries(self):
 
-        mispolar = self.dbc.get_records_sql("""
+        # noinspection SqlAggregates, SqlWithoutWhere
+        self.dbc.execute_sql("""
+            UPDATE modern_snps ms
+              JOIN (
+              
             SELECT ms.id,
                    LENGTH(REPLACE(SUBSTRING(
                         GROUP_CONCAT(
@@ -328,10 +331,11 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
           GROUP BY ms.id
             HAVING daf_oldest >= {daf}
                AND daf_oldest >= daf_youngest
+               
+              ) AS mis 
+                ON mis.id = ms.id
+               SET ms.mispolar = 1
                """.format(chrom=self.chrom, snps=MISPOLAR_SNPS, daf=MISPOLAR_DAF))
-
-        for modsnp_id in mispolar:
-            self.dbc.save_record('modern_snps', {'id': modsnp_id, 'mispolar': 1})
 
 
 class AncientSNPsPipeline(utils.PipelineWrapperTask):

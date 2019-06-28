@@ -294,6 +294,36 @@ class LoadAncientHaploidSNPs(utils.MySQLTask):
                 log.write("INFO: Found {:,} reads for locus chr{}:{}-{}".format(num_reads, chrom, start, end) + '\n')
 
 
+class ValidateSampleReads(utils.MySQLTask):
+    """
+    Validate that all the ancient data was loaded correctly.
+
+    Specifically, check that there are exactly 1 haploid read, or 2 diploid reads, per sample for every site in the db.
+
+    :type species: str
+    :type chrom: str
+    """
+    species = luigi.Parameter()
+    chrom = luigi.Parameter()
+
+    def requires(self):
+        return LoadAncientHaploidSNPs(self.species, self.chrom)
+
+    def queries(self):
+
+        malformed = self.dbc.get_records_sql("""
+            SELECT chrom, site, sample_id, COUNT(baseq) haploid, COUNT(genoq) diploid
+              FROM sample_reads sr
+             WHERE chrom = '{chrom}'
+          GROUP BY sample_id, site
+        HAVING NOT ((haploid = 1 AND diploid = 0)
+                OR  (haploid = 0 AND diploid = 2))
+               """.format(chrom=self.chrom), key=None)
+
+        if malformed:
+            raise Exception("ERROR: Bad data in sample_reads table - {}".format(malformed))
+
+
 class FlagMispolarizedSNPs(utils.MySQLTask):
     """
     Flag SNPs which may be mispolarized.
@@ -308,7 +338,7 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
     chrom = luigi.Parameter()
 
     def requires(self):
-        return LoadAncientHaploidSNPs(self.species, self.chrom)
+        return ValidateSampleReads(self.species, self.chrom)
 
     def queries(self):
 

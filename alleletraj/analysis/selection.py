@@ -4,6 +4,7 @@
 # standard modules
 import json
 import os
+import random
 
 # third party modules
 import luigi
@@ -270,7 +271,8 @@ class SelectionRunMCMC(utils.PipelineTask):
         output_prefix = utils.trim_ext(log_file.path)
 
         # make a deterministic random seed (helps keep everything easily reproducible)
-        seed = int('{}{}'.format(self.modsnp, self.chain))
+        # seed = int('{}{}'.format(self.modsnp, self.chain))
+        seed = random.randint(1,100) # let's try a random seed
 
         param_path = utils.trim_ext(param_file.path)
         time_path = utils.trim_ext(time_file.path)
@@ -291,6 +293,9 @@ class SelectionRunMCMC(utils.PipelineTask):
                        '-f', MCMC_PRINT,        # frequency of printing output to the screen
                        '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory move
                        '-e', seed]              # random number seed
+
+                # log the command
+                fout.write(' '.join([str(args) for args in cmd]) + '\n')
 
                 utils.run_cmd(cmd, stdout=fout)
 

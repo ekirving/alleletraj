@@ -337,6 +337,8 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
     species = luigi.Parameter()
     chrom = luigi.Parameter()
 
+    db_lock_tables = ['modern_snps_{chrom}']
+
     def requires(self):
         return ValidateSampleReads(self.species, self.chrom)
 
@@ -346,7 +348,7 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
         self.dbc.execute_sql("""
             UPDATE modern_snps ms
               JOIN (
-              
+
             SELECT ms.id,
                    LENGTH(REPLACE(SUBSTRING(
                         GROUP_CONCAT(
@@ -371,10 +373,11 @@ class FlagMispolarizedSNPs(utils.MySQLTask):
           GROUP BY ms.id
             HAVING daf_oldest >= {daf}
                AND daf_oldest >= daf_youngest
-               
+
               ) AS mis 
                 ON mis.id = ms.id
                SET ms.mispolar = 1
+             WHERE ms.chrom = '{chrom}'
                """.format(chrom=self.chrom, snps=MISPOLAR_SNPS, daf=MISPOLAR_DAF))
 
 

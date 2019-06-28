@@ -402,7 +402,10 @@ class MySQLTask(DatabaseTask):
 
     _variables = {
         # reduce spurious locking errors when running lots of updates on the same table
-        'innodb_lock_wait_timeout': 600
+        'innodb_lock_wait_timeout': 600,
+
+        # don't truncate long group concat queries
+        'group_concat_max_len': 1048576
     }
 
     @property

@@ -60,7 +60,7 @@ def list_genotypes_in_locus(species, chrom, start, end):
     dbc = Database(species)
 
     records = dbc.get_records_sql("""
-       SELECT SQL_NO_CACHE DISTINCT sr.sample_id, ms.site
+       SELECT DISTINCT sr.sample_id, ms.site
           FROM qtls q
           JOIN qtl_snps qs 
             ON qs.qtl_id = q.id
@@ -69,7 +69,7 @@ def list_genotypes_in_locus(species, chrom, start, end):
           JOIN sample_reads sr
             ON sr.chrom = ms.chrom
            AND sr.site = ms.site
-           AND sr.genoq IS NOT NULL  # only diploid calls have genotype qualities            
+           AND sr.genoq IS NOT NULL  # only diploid calls have genotype qualities
          WHERE q.chrom = '{chrom}'
            AND q.start BETWEEN {start} AND {end}
            AND q.valid = 1
@@ -298,7 +298,7 @@ class ValidateSampleReads(utils.MySQLTask):
     """
     Validate that all the ancient data was loaded correctly.
 
-    Specifically, check that there are exactly 1 haploid read, or 2 diploid reads, per sample for every site in the db.
+    Specifically, check that there are exactly 1 haploid read, or 2 diploid reads, per sample per site in the db.
 
     :type species: str
     :type chrom: str

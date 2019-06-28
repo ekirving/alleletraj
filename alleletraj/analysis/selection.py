@@ -716,7 +716,7 @@ class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
 
             if modsnp['mispolar']:
                 # also run the modsnp with the ancestral/derived alleles reversed
-                yield SelectionPairNeutrals(self.species, self.population, self.modsnp, self.no_modern, mispolar=True)
+                yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern, mispolar=True)
 
 
 class SelectionPipeline(utils.PipelineWrapperTask):

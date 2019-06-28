@@ -312,7 +312,7 @@ class ValidateSampleReads(utils.MySQLTask):
     def queries(self):
 
         if self.chrom in self.autosomes:
-            malformed = self.dbc.get_records_sql("""
+            bad = self.dbc.get_records_sql("""
                 SELECT chrom, site, sample_id, COUNT(baseq) haploid, COUNT(genoq) diploid
                   FROM sample_reads
                  WHERE chrom = '{chrom}'
@@ -324,7 +324,7 @@ class ValidateSampleReads(utils.MySQLTask):
             # handle sex chromosomes
             sex1, sex2 = ('M', 'F') if self.chrom == 'X' else ('F', 'M')
 
-            malformed = self.dbc.get_records_sql("""
+            bad = self.dbc.get_records_sql("""
                 SELECT sr.chrom, sr.site, sr.sample_id, s.sex, COUNT(sr.baseq) haploid, COUNT(sr.genoq) diploid
                   FROM samples s
                   JOIN sample_reads sr
@@ -336,9 +336,8 @@ class ValidateSampleReads(utils.MySQLTask):
                     OR  (haploid = 0 AND diploid = 2 AND sex = '{sex2}'))
                    """.format(chrom=self.chrom, sex1=sex1, sex2=sex2), key=None)
 
-
-        if malformed:
-            raise Exception("ERROR: Bad data in sample_reads table - {}".format(malformed))
+        if bad:
+            raise Exception("ERROR: Failed ValidateSampleReads chr{} ({} records)".format(self.chrom, len(bad)))
 
 
 class FlagMispolarizedSNPs(utils.MySQLTask):

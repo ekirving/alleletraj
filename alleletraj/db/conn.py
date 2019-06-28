@@ -32,13 +32,16 @@ class Database:
     # the maximum number of conditions in a single query
     max_query_size = 5000
 
-    def __init__(self, species):
+    def __init__(self, species, variables=None):
         # set the db name
         self.db_config['db'] = Database.get_name(species)
 
         # connect to the db
         self.cnx = mysql.connector.connect(**self.db_config)
         self.cursor = self.cnx.cursor(dictionary=True)
+
+        if variables:
+            self.set_variables(variables)
 
     def __del__(self):
         # close the connection
@@ -139,6 +142,13 @@ class Database:
             sql += self.__format_conditions(conds)
 
         self.cursor.execute(sql)
+
+    def set_variables(self, variables):
+        """
+        Set session level variables.
+        """
+        for var in variables:
+            self.cursor.execute(u"SET {} = {}".format(var, variables[var]))
 
     @staticmethod
     def create_database(species):

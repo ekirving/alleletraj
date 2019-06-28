@@ -400,13 +400,18 @@ class MySQLTask(DatabaseTask):
     """
     _dbc = None
 
+    _variables = {
+        # reduce spurious locking errors when running lots of updates on the same table
+        'innodb_lock_wait_timeout': 600
+    }
+
     @property
     def dbc(self):
         """
         Create a persistent connection to the database.
         """
         if self._dbc is None:
-            self._dbc = Database(self.species)
+            self._dbc = Database(self.species, self._variables)
 
         return self._dbc
 

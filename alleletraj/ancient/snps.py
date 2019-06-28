@@ -311,14 +311,31 @@ class ValidateSampleReads(utils.MySQLTask):
 
     def queries(self):
 
-        malformed = self.dbc.get_records_sql("""
-            SELECT chrom, site, sample_id, COUNT(baseq) haploid, COUNT(genoq) diploid
-              FROM sample_reads sr
-             WHERE chrom = '{chrom}'
-          GROUP BY sample_id, site
-        HAVING NOT ((haploid = 1 AND diploid = 0)
-                OR  (haploid = 0 AND diploid = 2))
-               """.format(chrom=self.chrom), key=None)
+        if self.chrom in self.autosomes:
+            malformed = self.dbc.get_records_sql("""
+                SELECT chrom, site, sample_id, COUNT(baseq) haploid, COUNT(genoq) diploid
+                  FROM sample_reads
+                 WHERE chrom = '{chrom}'
+              GROUP BY sample_id, site
+            HAVING NOT ((haploid = 1 AND diploid = 0)
+                    OR  (haploid = 0 AND diploid = 2))
+                   """.format(chrom=self.chrom), key=None)
+        else:
+            # handle sex chromosomes
+            sex1, sex2 = ('M', 'F') if self.chrom == 'X' else ('F', 'M')
+
+            malformed = self.dbc.get_records_sql("""
+                SELECT sr.chrom, sr.site, sr.sample_id, s.sex, COUNT(sr.baseq) haploid, COUNT(sr.genoq) diploid
+                  FROM samples s
+                  JOIN sample_reads sr
+                    ON sr.sample_id = s.id
+                 WHERE chrom = '{chrom}'
+              GROUP BY sample_id, site
+            HAVING NOT ((haploid = 1 AND diploid = 0)
+                    OR  (haploid = 0 AND diploid = 1 AND sex = '{sex1}')
+                    OR  (haploid = 0 AND diploid = 2 AND sex = '{sex2}'))
+                   """.format(chrom=self.chrom, sex1=sex1, sex2=sex2), key=None)
+
 
         if malformed:
             raise Exception("ERROR: Bad data in sample_reads table - {}".format(malformed))

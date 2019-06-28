@@ -3,6 +3,7 @@
 
 # standard modules
 import itertools
+import os
 import random
 from collections import defaultdict
 
@@ -132,8 +133,17 @@ class LoadAncientDiploidSNPs(utils.MySQLTask):
 
                     reads = []
 
-                    # parse the vcf with pysam
-                    for rec in pysam.VariantFile(vcf_file.path).fetch(chrom, int(start), int(end)):
+                    try:
+                        # parse the vcf with pysam
+                        records = pysam.VariantFile(vcf_file.path).fetch(chrom, int(start), int(end))
+
+                    except ValueError as error:
+                        if os.path.isfile(vcf_file.path + '.tbi'):
+                            continue  # VCF is empty
+                        else:
+                            raise error
+
+                    for rec in records:
 
                         # NOTE VariantRecord.pos is 1 based
                         # https://pysam.readthedocs.io/en/latest/api.html#pysam.VariantRecord.pos

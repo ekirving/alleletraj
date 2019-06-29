@@ -309,7 +309,7 @@ class SelectionRunMCMC(utils.PipelineTask):
 
         else:
             # gzip the output files
-            utils.run_cmd(['gzip', param_path])
+            utils.run_cmd(['gzip', '--force', param_path])  # overwrite any existing output
             utils.run_cmd(['gzip', time_path])
             utils.run_cmd(['gzip', traj_path])
 

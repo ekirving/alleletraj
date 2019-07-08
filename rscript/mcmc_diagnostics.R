@@ -76,7 +76,7 @@ print(ess)
 cat("\n")
 
 if (min(ess) < 100) {
-    cat(paste0("WARNING: ESS below threshold. min(ess) = ", min(ess)))
+    cat(paste0("WARNING: ESS below threshold. min(ess) = ", min(ess), "\n\n"))
 }
 
 # calculate the maximum a posteriori of all the parameters
@@ -114,3 +114,5 @@ pdf(file=trace_pdf)
 # png(file=trace_png, width=7, height=7, units='in', res=300)
 plot(mcmc.burn)
 off <- dev.off()
+
+cat("FINISHED\n")

@@ -15,9 +15,9 @@ gelman_pdf <- args[6]
 param_files <- args[7:length(args)]
 
 # TODO remove when done testing
-# prefix <- 'horse-DOM2-modsnp9016431-n50000-s100-h0.5'
+# prefix <- 'horse-DOM2-modsnp10654592-n50000000-s1000-h0.5'
 # burn_perc <- 0.2
-# thin <- 100
+# thin <- 1000
 # ess_file  <- paste0('data/selection/', prefix, '-chainAll.ess')
 # psrf_file <- paste0('data/selection/', prefix, '-chainAll.psrf')
 # trace_pdf <- paste0('data/pdf/selection/', prefix, '-chainAll-trace.pdf')
@@ -34,7 +34,10 @@ chains <- c()
 
 for (i in param_files) {
     # load the chain
-    mcmc.chain <- mcmc(fread(i, header = T, sep = '\t', drop = c('gen')))
+    mcmc.chain <- mcmc(fread(i, header = T, sep = '\t', drop = c('gen', 'first_nonzero')))
+
+    # fix infinite errors
+    mcmc.chain[,'lnL'][mcmc.chain[,'lnL'] == '-Inf'] <- -.Machine$integer.max
 
     # convert burn % to number of records
     burnin = burn_perc * nrow(mcmc.chain)

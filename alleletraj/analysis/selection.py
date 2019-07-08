@@ -153,6 +153,9 @@ class SelectionInputFile(utils.DatabaseTask):
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
 
+    # do not retry after failure, as this just chews CPU cycles
+    retry_count = 0
+
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED)
         yield AncientSNPsPipeline(self.species)
@@ -409,6 +412,9 @@ class SelectionDiagnostics(utils.PipelineTask):
     h = luigi.FloatParameter()
     chain = luigi.IntParameter()
 
+    # do not retry after failure, as this just chews CPU cycles
+    retry_count = 0
+
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED)
         yield SelectionRunMCMC(**self.all_params())
@@ -541,6 +547,9 @@ class SelectionPSRF(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+
+    # do not retry after failure, as this just chews CPU cycles
+    retry_count = 0
 
     def requires(self):
         params = self.all_params()

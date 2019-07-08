@@ -19,12 +19,12 @@ auto_pdf <- args[9]
 trace_pdf <- args[10]
 
 # TODO remove when done testing
-# prefix <- 'horse-DOM2-modsnp9016431-n50000-s100-h0.5-chain1'
+# prefix <- 'horse-DOM2-modsnp9948933-n50000000-s1000-h0.5-chain2'
 # param_file <- paste0('data/selection/', prefix, '.param.gz')
 # burn_perc <- 0.2
-# thin <- 100
-# diff_units <- 100000  # TODO fix me
-# pop_size <- 100000  # TODO fix me
+# thin <- 1000
+# diff_units <- 274400
+# pop_size <- 17150
 # ess_file <- paste0('data/selection/', prefix, '.ess')
 # map_file <- paste0('data/selection/', prefix, '.map')
 # ess_pdf <- paste0('data/pdf/selection/', prefix, '-ess-burn.pdf')
@@ -39,6 +39,9 @@ cat("Param: ", param_file, "\n")
 mcmc.chain <- mcmc(fread(param_file, header = T, sep = '\t', drop=c('gen')))
 chain.length <- nrow(mcmc.chain)
 
+# fix infinite errors
+mcmc.chain[,'lnL'][mcmc.chain[,'lnL'] == '-Inf'] <- -.Machine$integer.max
+
 # convert burn % to number of records
 burnin = burn_perc * chain.length
 
@@ -46,7 +49,7 @@ cat("Chain length: ", chain.length * thin, "\n")
 cat("Burn in: ", burnin * thin, "\n")
 cat("Thin: ", thin, "\n")
 
-# check the acceptance rate (ideal is 0.234)
+# check the acceptance rate / except this doesn't work for pre-thinnned chains
 # cat("Acceptance Rate (ideal is 0.234) = ", 1 - rejectionRate(mcmc.chain)[1], "\n\n")
 
 # plot ESS vs. burn-in

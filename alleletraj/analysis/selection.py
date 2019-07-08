@@ -120,7 +120,8 @@ def selection_neutral_snps(species, population, modsnp_id, mispolar):
 
     if len(modsnps) != NEUTRAL_REPLICATES:
         # TODO handle this better
-        print('WARNING: Insufficient neutral SNPs to run `selection` (n={})'.format(len(modsnps)))
+        params = [species, population, modsnp_id, mispolar]
+        print('WARNING: Insufficient neutral SNPs to run `selection` {} (n={})'.format(params, len(modsnps)))
 
     return modsnps
 

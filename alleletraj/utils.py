@@ -170,7 +170,7 @@ class PipelineTask(luigi.Task):
         except AttributeError:
             pass
 
-        return 10000 - offset if offset else 0
+        return max(10000 - offset if offset else 0, 0)
 
     @property
     def basename(self):

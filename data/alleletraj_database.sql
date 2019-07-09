@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
 # Database: alleletraj_horse_equcab2_rel38
-# Generation Time: 2019-06-26 09:53:46 +0000
+# Generation Time: 2019-07-09 09:38:32 +0000
 # ************************************************************
 
 
@@ -471,7 +471,7 @@ CREATE TABLE `selection_ess` (
   `sample_time_15` float DEFAULT NULL,
   `sample_time_16` float DEFAULT NULL,
   `sample_time_17` float DEFAULT NULL,
-  `first_nonzero` float NOT NULL,
+  `first_nonzero` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `selection_id` (`selection_id`,`chain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -510,7 +510,7 @@ CREATE TABLE `selection_map` (
   `sample_time_15` int(11) unsigned DEFAULT NULL,
   `sample_time_16` int(11) unsigned DEFAULT NULL,
   `sample_time_17` int(11) unsigned DEFAULT NULL,
-  `first_nonzero` int(11) unsigned NOT NULL,
+  `first_nonzero` int(11) unsigned DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `selection_id` (`selection_id`,`chain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -561,7 +561,7 @@ CREATE TABLE `selection_psrf` (
   `sample_time_15` float DEFAULT NULL,
   `sample_time_16` float DEFAULT NULL,
   `sample_time_17` float DEFAULT NULL,
-  `first_nonzero` float NOT NULL,
+  `first_nonzero` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `selection_id` (`selection_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

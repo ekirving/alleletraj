@@ -308,15 +308,15 @@ class SelectionRunMCMC(utils.PipelineTask):
             os.remove(traj_path)
 
             # but keep the param file, as this may be useful for diagnosing the error
-            utils.run_cmd(['gzip', param_path])
+            utils.run_cmd(['gzip', '--force', param_path])
 
             raise RuntimeError(e)
 
         else:
             # gzip the output files
             utils.run_cmd(['gzip', '--force', param_path])  # overwrite any existing output
-            utils.run_cmd(['gzip', time_path])
-            utils.run_cmd(['gzip', traj_path])
+            utils.run_cmd(['gzip', '--force', time_path])
+            utils.run_cmd(['gzip', '--force', traj_path])
 
 
 class SelectionPlot(utils.PipelineTask):

@@ -24,7 +24,7 @@ MCMC_REPLICATES = 4
 MCMC_CYCLES = int(5e7)
 
 # fraction of MCMC cycles to discard as burn in
-MCMC_BURN_PCT = 0.2
+MCMC_BURN_PCT = 0.5
 
 # thinning is analytically unnecessary, but makes the MCMC run much faster (as Josh's method writes directly to disk)
 # see https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.2041-210X.2011.00131.x

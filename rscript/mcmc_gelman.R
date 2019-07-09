@@ -16,7 +16,7 @@ param_files <- args[7:length(args)]
 
 # TODO remove when done testing
 # prefix <- 'horse-DOM2-modsnp10654592-n50000000-s1000-h0.5'
-# burn_perc <- 0.2
+# burn_perc <- 0.5
 # thin <- 1000
 # ess_file  <- paste0('data/selection/', prefix, '-chainAll.ess')
 # psrf_file <- paste0('data/selection/', prefix, '-chainAll.psrf')

@@ -21,7 +21,7 @@ trace_pdf <- args[10]
 # TODO remove when done testing
 # prefix <- 'horse-DOM2-modsnp9948933-n50000000-s1000-h0.5-chain2'
 # param_file <- paste0('data/selection/', prefix, '.param.gz')
-# burn_perc <- 0.2
+# burn_perc <- 0.5
 # thin <- 1000
 # diff_units <- 274400
 # pop_size <- 17150

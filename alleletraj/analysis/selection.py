@@ -287,7 +287,7 @@ class SelectionRunMCMC(utils.PipelineTask):
         try:
             with log_file.open('w') as fout:
                 # run `selection`
-                cmd = ['sr',
+                cmd = ['sr.e',  # FIXME revert to normal version when done testing
                        '-D', input_file.path,   # path to data input file
                        '-P', pop_file.path,     # path to population size history file
                        '-o', output_prefix,     # output file prefix
@@ -731,6 +731,33 @@ class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
             if modsnp['mispolar']:
                 # also run the modsnp with the ancestral/derived alleles reversed
                 yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern, mispolar=True)
+
+
+class SelectionTestChainParams(utils.PipelineWrapperTask):
+    """
+    Run a bunch of different MCMC chain options to see which performs best.
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    modsnp = luigi.IntParameter()
+
+    def requires(self):
+
+        params = [
+            (1e8, 1e3),
+            (5e7, 1e3),  # default
+            (1e7, 1e3),
+            (1e7, 1e2),
+            (1e6, 1e3),
+            (1e6, 1e2),
+        ]
+
+        for n, s in params:
+            yield SelectionPairNeutrals(self.species, self.population, self.modsnp, n=int(n), s=int(s))
 
 
 class SelectionPipeline(utils.PipelineWrapperTask):

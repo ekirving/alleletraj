@@ -28,7 +28,7 @@ MCMC_BURN_PCT = 0.5
 
 # thinning is analytically unnecessary, but makes the MCMC run much faster (as Josh's method writes directly to disk)
 # see https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.2041-210X.2011.00131.x
-MCMC_THIN = 1000
+MCMC_THIN = 100
 
 # frequency of printing output to the log
 MCMC_PRINT = 1000
@@ -695,7 +695,7 @@ class SelectionPairNeutrals(utils.MySQLTask):
 
         # link the modSNP to the neutrals
         for neutral in self.neutrals:
-            selection['modsnp'] = neutral
+            selection['modsnp_id'] = neutral
             neutral_id = self.dbc.get_record('selection', selection).pop('id')
             self.dbc.save_record('selection_neutrals', {'selection_id': selection_id, 'neutral_id': neutral_id})
 

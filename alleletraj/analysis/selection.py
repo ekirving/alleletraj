@@ -21,7 +21,7 @@ from alleletraj.qtl.load import MIN_DAF
 MCMC_REPLICATES = 4
 
 # number of MCMC cycles to run
-MCMC_CYCLES = int(5e7)
+MCMC_CYCLES = int(1e8)
 
 # fraction of MCMC cycles to discard as burn in
 MCMC_BURN_PCT = 0.5
@@ -45,7 +45,7 @@ MODEL_DOMINANT = 1
 MCMC_MIN_BINS = 3
 
 # number of DAF paired neutral SNPs to run for every non-neutral SNP
-NEUTRAL_REPLICATES = 5
+NEUTRAL_REPLICATES = 4
 
 
 def selection_neutral_snps(species, population, modsnp_id, mispolar):
@@ -749,11 +749,7 @@ class SelectionTestChainParams(utils.PipelineWrapperTask):
 
         params = [
             (1e8, 1e3),
-            (5e7, 1e3),  # default
-            (1e7, 1e3),
-            (1e7, 1e2),
-            (1e6, 1e3),
-            (1e6, 1e2),
+            (1e8, 1e2),
         ]
 
         for n, s in params:

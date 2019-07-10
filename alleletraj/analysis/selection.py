@@ -748,8 +748,7 @@ class SelectionTestChainParams(utils.PipelineWrapperTask):
     def requires(self):
 
         params = [
-            (1e8, 1e3),
-            (1e8, 1e2),
+            (1e8, 10)
         ]
 
         for n, s in params:

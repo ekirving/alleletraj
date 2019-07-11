@@ -36,11 +36,14 @@ cat("Loading MCMC...\n")
 cat("Param: ", param_file, "\n")
 
 # load the chain and convert to an MCMC object
-mcmc.chain <- mcmc(fread(param_file, header = T, sep = '\t', drop=c('gen')))
-chain.length <- nrow(mcmc.chain)
+chain <- fread(param_file, header = T, sep = '\t', drop=c('gen'))
 
 # fix infinite errors
-mcmc.chain[,'lnL'][mcmc.chain[,'lnL'] == '-Inf'] <- -.Machine$integer.max
+chain$lnL[chain$lnL == '-Inf'] <- -.Machine$integer.max
+
+# convert to MCMC object
+mcmc.chain <- mcmc(chain)
+chain.length <- nrow(mcmc.chain)
 
 # convert burn % to number of records
 burnin = burn_perc * chain.length
@@ -52,10 +55,13 @@ cat("Thin: ", thin, "\n")
 # check the acceptance rate / except this doesn't work for pre-thinnned chains
 # cat("Acceptance Rate (ideal is 0.234) = ", 1 - rejectionRate(mcmc.chain)[1], "\n\n")
 
+# drop all the sample_time and first_nonzero params as they overdominate the ESS space
+mcmc.notime <- mcmc(chain[,c('lnL','pathlnL','alpha1','alpha2','F','age','end_freq')])
+
 # plot ESS vs. burn-in
 cat("Plotting ESS vs. burn-in.", "\n\n")
 pdf(file=ess_pdf)  # , width=21, height=14
-plotESSBurn(mcmc.chain, step.size=round(burnin/2, 0))
+plotESSBurn(mcmc.notime, longest.burn.in=chain.length * 0.5, step.size=chain.length * 0.1)
 off <- dev.off()
 
 # burn in the chain (thinning is already done)

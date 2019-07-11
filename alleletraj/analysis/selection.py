@@ -33,9 +33,6 @@ MCMC_THIN = 100
 # frequency of printing output to the log
 MCMC_PRINT = 1000
 
-# fraction of the allele frequency to update during a trajectory update move
-MCMC_FRACTION = 20  # TODO what units is this in?
-
 # genetic model
 MODEL_RECESSIVE = 0
 MODEL_ADDITIVE = 0.5
@@ -297,7 +294,6 @@ class SelectionRunMCMC(utils.PipelineTask):
                        '-s', self.s,            # frequency of sampling from the posterior
                        '-h', self.h,            # genetic model (additive, recessive, dominant)
                        '-f', MCMC_PRINT,        # frequency of printing output to the screen
-                       '-F', MCMC_FRACTION,     # fraction of the allele frequency to update during a trajectory move
                        '-e', seed]              # random number seed
 
                 utils.run_cmd(cmd, stdout=fout)

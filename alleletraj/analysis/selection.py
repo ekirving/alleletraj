@@ -421,12 +421,12 @@ class SelectionDiagnostics(utils.PipelineTask):
         yield luigi.LocalTarget('data/selection/{}.diag'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-ess-burn.pdf'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-autocorr.pdf'.format(self.basename))
-        yield luigi.LocalTarget('data/pdf/selection/{}-trace.pdf'.format(self.basename))
+        yield luigi.LocalTarget('data/pdf/selection/{}-trace-pt1.png'.format(self.basename))
 
     def run(self):
         # unpack the params
         (_, nref_file, _), (param_file, _, _, _) = self.input()
-        ess_file, map_file, diag_file, ess_pdf, autocorr_pdf, trace_pdf = self.output()
+        ess_file, map_file, diag_file, ess_pdf, autocorr_pdf, trace_png = self.output()
 
         # get the Nref population size
         with nref_file.open() as fin:
@@ -447,7 +447,7 @@ class SelectionDiagnostics(utils.PipelineTask):
                            map_file.path,
                            ess_pdf.path,
                            autocorr_pdf.path,
-                           trace_pdf.path], stdout=open(diag_path, 'w'))
+                           trace_png.path], stdout=open(diag_path, 'w'))
 
 
 class LoadSelectionDiagnostics(utils.MySQLTask):
@@ -560,12 +560,12 @@ class SelectionPSRF(utils.PipelineTask):
         yield luigi.LocalTarget('data/selection/{}-chainAll.ess'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}-chainAll.psrf'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}-chainAll.diag'.format(self.basename))
-        yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-trace.pdf'.format(self.basename))
-        yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-gelman.pdf'.format(self.basename))
+        yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-trace-pt1.png'.format(self.basename))
+        yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-gelman-pt1.png'.format(self.basename))
 
     def run(self):
         param_paths = [param_file.path for param_file in self.input_targets(ext='param.gz')]
-        ess_file, psrf_file, diag_file, trace_pdf, gelman_pdf = self.output()
+        ess_file, psrf_file, diag_file, trace_png, gelman_png = self.output()
 
         with diag_file.temporary_path() as diag_path:
             utils.run_cmd(['Rscript',
@@ -574,8 +574,8 @@ class SelectionPSRF(utils.PipelineTask):
                            self.s,
                            ess_file.path,
                            psrf_file.path,
-                           trace_pdf.path,
-                           gelman_pdf.path] + param_paths, stdout=open(diag_path, 'w'))
+                           trace_png.path,
+                           gelman_png.path] + param_paths, stdout=open(diag_path, 'w'))
 
 
 class LoadSelectionPSRF(utils.MySQLTask):

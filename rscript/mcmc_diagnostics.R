@@ -16,7 +16,7 @@ ess_file <- args[6]
 map_file <- args[7]
 ess_pdf <- args[8]
 auto_pdf <- args[9]
-trace_pdf <- args[10]
+trace_png <- args[10]
 
 # TODO remove when done testing
 # prefix <- 'horse-DOM2-modsnp9948933-n50000000-s1000-h0.5-chain2'
@@ -29,8 +29,7 @@ trace_pdf <- args[10]
 # map_file <- paste0('data/selection/', prefix, '.map')
 # ess_pdf <- paste0('data/pdf/selection/', prefix, '-ess-burn.pdf')
 # auto_pdf <- paste0('data/pdf/selection/', prefix, '-burn-thin-autocorr.pdf')
-# trace_pdf <- paste0('data/pdf/selection/', prefix, '-burn-trace.pdf')
-# # trace_png <- paste0('data/pdf/selection/', prefix, '-burn-trace-pt%d.png')
+# trace_png <- paste0('data/pdf/selection/', prefix, '-burn-trace-pt1.png')
 
 cat("Loading MCMC...\n")
 cat("Param: ", param_file, "\n")
@@ -116,8 +115,7 @@ autocorr.plot(mcmc.burn, lag.max=50)
 off <- dev.off()
 
 cat("Plotting the trace.\n\n")
-pdf(file=trace_pdf)
-# png(file=trace_png, width=7, height=7, units='in', res=300)
+png(file=str_replace(trace_png, 'pt1', 'pt%d'), width=7, height=7, units='in', res=300)
 plot(mcmc.burn)
 off <- dev.off()
 

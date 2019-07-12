@@ -10,8 +10,8 @@ burn_perc <- as.numeric(args[1])
 thin <- as.numeric(args[2])
 ess_file  <- args[3]
 psrf_file <- args[4]
-trace_pdf <- args[5]
-gelman_pdf <- args[6]
+trace_png <- args[5]
+gelman_png <- args[6]
 param_files <- args[7:length(args)]
 
 # TODO remove when done testing
@@ -20,9 +20,8 @@ param_files <- args[7:length(args)]
 # thin <- 1000
 # ess_file  <- paste0('data/selection/', prefix, '-chainAll.ess')
 # psrf_file <- paste0('data/selection/', prefix, '-chainAll.psrf')
-# trace_pdf <- paste0('data/pdf/selection/', prefix, '-chainAll-trace.pdf')
-# # trace_png <- paste0('data/pdf/selection/', prefix, '-chainAll-trace-pt%d.png')
-# gelman_pdf <- paste0('data/pdf/selection/', prefix, '-chainAll-gelman.pdf')
+# trace_png <- paste0('data/pdf/selection/', prefix, '-chainAll-trace-pt1.png')
+# gelman_png <- paste0('data/pdf/selection/', prefix, '-chainAll-gelman-pt1.png')
 # param_files <- c(paste0('data/selection/', prefix, '-chain1.param.gz'),
 #                  paste0('data/selection/', prefix, '-chain2.param.gz'),
 #                  paste0('data/selection/', prefix, '-chain3.param.gz'),
@@ -64,13 +63,12 @@ cat("\n")
 
 # plot the combined traces
 cat("Plotting combined traces.", "\n\n")
-pdf(file=trace_pdf)
-# png(file=trace_png, width=7, height=7, units='in', res=300)
+png(file=str_replace(trace_png, 'pt1', 'pt%d'), width=7, height=7, units='in', res=300)
 plot(chains.all)
 off <- dev.off()
 
 cat("Plotting the Gelman and Rubin's convergence diagnostic.", "\n\n")
-pdf(file=gelman_pdf)
+png(file=str_replace(gelman_png, 'pt1', 'pt%d'), width=7, height=7, units='in', res=300)
 gelman.plot(chains.all)
 off <- dev.off()
 

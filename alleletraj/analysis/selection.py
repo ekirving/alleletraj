@@ -42,7 +42,7 @@ MODEL_DOMINANT = 1
 MCMC_MIN_BINS = 3
 
 # number of DAF paired neutral SNPs to run for every non-neutral SNP
-NEUTRAL_REPLICATES = 4
+NEUTRAL_REPLICATES = 5
 
 
 def selection_neutral_snps(species, population, modsnp_id, mispolar):
@@ -284,7 +284,7 @@ class SelectionRunMCMC(utils.PipelineTask):
         try:
             with log_file.open('w') as fout:
                 # run `selection`
-                cmd = ['sr.e',  # FIXME revert to normal version when done testing
+                cmd = ['sr',
                        '-D', input_file.path,   # path to data input file
                        '-P', pop_file.path,     # path to population size history file
                        '-o', output_prefix,     # output file prefix
@@ -729,28 +729,6 @@ class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
             if modsnp['mispolar']:
                 # also run the modsnp with the ancestral/derived alleles reversed
                 yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern, mispolar=True)
-
-
-class SelectionTestChainParams(utils.PipelineWrapperTask):
-    """
-    Run a bunch of different MCMC chain options to see which performs best.
-
-    :type species: str
-    :type population: str
-    :type modsnp: int
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    modsnp = luigi.IntParameter()
-
-    def requires(self):
-
-        params = [
-            (1e8, 10)
-        ]
-
-        for n, s in params:
-            yield SelectionPairNeutrals(self.species, self.population, self.modsnp, n=int(n), s=int(s))
 
 
 class SelectionPipeline(utils.PipelineWrapperTask):

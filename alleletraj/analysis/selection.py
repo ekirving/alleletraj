@@ -567,6 +567,8 @@ class SelectionPSRF(utils.PipelineTask):
         param_paths = [param_file.path for param_file in self.input_targets(ext='param.gz')]
         ess_file, psrf_file, diag_file, trace_png, gelman_png = self.output()
 
+        # TODO calculate the MAP for the combined chains
+
         with diag_file.temporary_path() as diag_path:
             utils.run_cmd(['Rscript',
                            'rscript/mcmc_gelman.R',

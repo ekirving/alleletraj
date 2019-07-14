@@ -3,6 +3,7 @@ library(coda, quietly=T)
 library(fitR, quietly=T)
 library(data.table, quietly=T)
 library(rjson, quietly=T)
+library(stringr, quietly=T)
 
 # get the command line arguments
 args <- commandArgs(trailingOnly = TRUE)

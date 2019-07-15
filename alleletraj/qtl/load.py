@@ -586,7 +586,8 @@ class PopulateQTLSNPs(utils.MySQLTask):
                 ON msd.modsnp_id = ms.id
              WHERE q.chrom = '{chrom}'
                AND q.valid = 1
-               AND msd.daf >= {daf}
+               AND (msd.daf >= {daf}
+                OR  ms.site = q.site)  # always include direct GWAS hits
                """.format(chrom=self.chrom, daf=MIN_DAF))
 
 

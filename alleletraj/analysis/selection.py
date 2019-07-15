@@ -668,10 +668,16 @@ class SelectionPairNeutrals(utils.MySQLTask):
 
         return self._neutrals
 
-    def requires(self):
+    def queries(self):
+
+        # run the requested model
         yield LoadSelectionPSRF(**self.all_params())
 
-    def queries(self):
+        # also run some neutrals
+        params = self.all_params()
+        for neutral in self.neutrals:
+            params.update({'modsnp': neutral, 'mispolar': False})
+            yield LoadSelectionPSRF(**params)
 
         # TODO refactor into a function
         selection = {
@@ -687,11 +693,7 @@ class SelectionPairNeutrals(utils.MySQLTask):
         selection_id = self.dbc.get_record('selection', selection).pop('id')
 
         # link the modSNP to the neutrals
-        params = self.all_params()
         for neutral in self.neutrals:
-            params.update({'modsnp': neutral, 'mispolar': False})
-            yield LoadSelectionPSRF(**params)
-
             selection['modsnp_id'] = neutral
             neutral_id = self.dbc.get_record('selection', selection).pop('id')
             self.dbc.save_record('selection_neutrals', {'selection_id': selection_id, 'neutral_id': neutral_id})

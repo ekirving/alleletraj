@@ -17,7 +17,7 @@ NUMBER_CPUS=16          # how many CPUs are available on each node
 pwd; hostname; date
 
 # we need the GSL library to run selection
-#module load gsl
+module load gsl
 
 # magic setting that lets us read the file properly
 IFS=$'\r\n'

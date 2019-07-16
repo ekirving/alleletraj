@@ -9,7 +9,7 @@
 #SBATCH --output=array_%A-%a.out    # Standard output and error log
 
 # TODO remove when done testing
-#SLURM_ARRAY_TASK_ID=1
+# SLURM_ARRAY_TASK_ID=1
 
 # fixed params for running the models
 NUMBER_CPUS=16          # how many CPUs are available on each node

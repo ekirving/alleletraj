@@ -5,3 +5,7 @@ rsync -avz --partial --relative \
     ~/alleletraj/./data/selection \
     ~/alleletraj/./slurm-jobs.list \
     scro2860@arcus-b.arc.ox.ac.uk:~/alleletraj/
+
+rsync -avz --partial --relative \
+    ~/./bin/sr \
+    scro2860@arcus-b.arc.ox.ac.uk:~/

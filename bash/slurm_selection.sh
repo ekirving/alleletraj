@@ -4,7 +4,7 @@
 #SBATCH --mail-user=evan.irving-pease@arch.ox.ac.uk # Where to send mail
 #SBATCH --nodes=1                   # Use one node
 #SBATCH --ntasks=1                  # Run a single task
-#SBATCH --mem-per-cpu=1gb           # Memory per processor
+#SBATCH --cpus-per-task=16          # But use all the available cores
 #SBATCH --time=48:00:00             # Time limit hrs:min:sec
 #SBATCH --output=array_%A-%a.out    # Standard output and error log
 

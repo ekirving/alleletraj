@@ -18,7 +18,7 @@ from alleletraj.modern.demog import DadiBestModel, DADI_FOLDED
 from alleletraj.qtl.load import MIN_DAF
 
 # number of independent MCMC replicates to run
-MCMC_REPLICATES = 4
+MCMC_REPLICATES = 2  # TODO put back to 4 for production run
 
 # number of MCMC cycles to run
 MCMC_CYCLES = int(1e8)

@@ -5,7 +5,7 @@
 #SBATCH --nodes=1                   # Use one node
 #SBATCH --ntasks=1                  # Run a single task
 #SBATCH --cpus-per-task=16          # But use all the available cores
-#SBATCH --time=48:00:00             # Time limit hrs:min:sec
+#SBATCH --time=24:30:00             # Time limit hrs:min:sec
 #SBATCH --output=array_%A-%a.out    # Standard output and error log
 
 # TODO remove when done testing

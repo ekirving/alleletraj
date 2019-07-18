@@ -64,7 +64,7 @@ class BwaMem(utils.PipelineTask):
             params['bam'] = bam_path
 
             # align using bwa-mem
-            cmd = "bwa mem -t {threads} -R '{readgroup}' {reference} {fastq} | "
+            cmd = "bwa mem -t {threads} -R '{readgroup}' {reference} {fastq} | ".format(**params)
 
             if self.paired:
                 # fix paired end flags

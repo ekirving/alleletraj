@@ -45,7 +45,7 @@ MCMC_MIN_BINS = 3
 NEUTRAL_REPLICATES = 5
 
 
-def selection_fetch_neutral_snps(species, population, modsnp_id, mispolar):
+def selection_fetch_neutral_snps(species, population, modsnp_id, mispolar=False):
     """
     Fetch the 'neutral' SNPs paired to the modsnp in this population.
     """
@@ -667,57 +667,32 @@ class SelectionPairNeutrals(utils.MySQLTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
-    :type n: int
-    :type s: int
-    :type h: float
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    no_modern = luigi.BoolParameter(default=False)
-    mispolar = luigi.BoolParameter(default=False)
-    n = luigi.IntParameter(default=MCMC_CYCLES)
-    s = luigi.IntParameter(default=MCMC_THIN)
-    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
-
-    _neutrals = None
-
-    @property
-    def neutrals(self):
-        """Get the neutral controls for this modsnp"""
-        if not self._neutrals:
-            self._neutrals = selection_fetch_neutral_snps(self.species, self.population, self.modsnp, self.mispolar)
-
-        return self._neutrals
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
 
     def requires(self):
-        yield LoadSelectionPSRF(**self.all_params())
 
-        params = self.all_params()
-        for neutral in self.neutrals:
-            params.update({'modsnp': neutral, 'mispolar': False})
-            yield LoadSelectionPSRF(**params)
+        yield LoadSelectionPSRF(self.species, self.population, self.modsnp, self.no_modern)
 
-    def queries(self):
+        # get the neutral controls for this modsnp
+        neutral = selection_fetch_neutral_snps(self.species, self.population, self.modsnp)
 
-        # TODO refactor into a function
-        selection = {
-            'population': self.population,
-            'modsnp_id': self.modsnp,
-            'length': self.n,
-            'thin': self.s,
-            'model': self.h,
-            'no_modern': self.no_modern,
-            'mispolar': self.mispolar,
-        }
+        for modsnp_id in neutral:
+            yield LoadSelectionPSRF(self.species, self.population, modsnp_id, self.no_modern)
 
-        selection_id = self.dbc.get_record('selection', selection).pop('id')
+        if self.mispolar:
+            # also run the modsnp with the ancestral/derived alleles reversed
+            yield LoadSelectionPSRF(self.species, self.population, self.modsnp, self.no_modern, mispolar=True)
 
-        # link the modSNP to the neutrals
-        for neutral in self.neutrals:
-            selection['modsnp_id'] = neutral
-            neutral_id = self.dbc.get_record('selection', selection).pop('id')
-            self.dbc.save_record('selection_neutrals', {'selection_id': selection_id, 'neutral_id': neutral_id})
+            # and paired to neutral controls using the onverted DAF
+            neutral = selection_fetch_neutral_snps(self.species, self.population, self.modsnp, mispolar=True)
+
+            for modsnp_id in neutral:
+                yield LoadSelectionPSRF(self.species, self.population, modsnp_id, self.no_modern)
 
 
 class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
@@ -746,11 +721,7 @@ class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
                """, key=None)
 
         for modsnp in modsnps:
-            yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern)
-
-            if modsnp['mispolar']:
-                # also run the modsnp with the ancestral/derived alleles reversed
-                yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern, mispolar=True)
+            yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern, modsnp['mispolar'])
 
 
 class SelectionPipeline(utils.PipelineWrapperTask):

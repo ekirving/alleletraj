@@ -597,11 +597,11 @@ class LoadSelectionPSRF(utils.MySQLTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    no_modern = luigi.BoolParameter()
-    mispolar = luigi.BoolParameter()
-    n = luigi.IntParameter()
-    s = luigi.IntParameter()
-    h = luigi.FloatParameter()
+    no_modern = luigi.BoolParameter(default=False)
+    mispolar = luigi.BoolParameter(default=False)
+    n = luigi.IntParameter(default=MCMC_CYCLES)
+    s = luigi.IntParameter(default=MCMC_THIN)
+    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
 
     def requires(self):
         return SelectionPSRF(**self.all_params())
@@ -650,8 +650,8 @@ class SelectionPairNeutrals(utils.MySQLTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    no_modern = luigi.BoolParameter()
-    mispolar = luigi.BoolParameter()
+    no_modern = luigi.BoolParameter(default=False)
+    mispolar = luigi.BoolParameter(default=False)
 
     def requires(self):
 

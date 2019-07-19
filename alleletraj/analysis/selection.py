@@ -299,42 +299,21 @@ class SelectionRunMCMC(utils.PipelineTask):
         # make a deterministic random seed (helps keep everything easily reproducible)
         seed = int('{}{}'.format(self.modsnp, self.chain))
 
-        param_path = utils.trim_ext(param_file.path)
-        time_path = utils.trim_ext(time_file.path)
-        traj_path = utils.trim_ext(traj_file.path)
+        with log_file.open('w') as fout:
+            # run `selection`
+            cmd = ['sr',
+                   '-D', input_file.path,   # path to data input file
+                   '-P', pop_file.path,     # path to population size history file
+                   '-o', output_prefix,     # output file prefix
+                   '-a',                    # flag to infer allele age
+                   '-A', MIN_DAF,           # ascertainment in modern individuals
+                   '-n', self.n,            # number of MCMC cycles to run
+                   '-s', self.s,            # frequency of sampling from the posterior
+                   '-h', self.h,            # genetic model (additive, recessive, dominant)
+                   '-f', MCMC_PRINT,        # frequency of printing output to the screen
+                   '-e', seed]              # random number seed
 
-        try:
-            with log_file.open('w') as fout:
-                # run `selection`
-                cmd = ['sr',
-                       '-D', input_file.path,   # path to data input file
-                       '-P', pop_file.path,     # path to population size history file
-                       '-o', output_prefix,     # output file prefix
-                       '-a',                    # flag to infer allele age
-                       '-A', MIN_DAF,           # ascertainment in modern individuals
-                       '-n', self.n,            # number of MCMC cycles to run
-                       '-s', self.s,            # frequency of sampling from the posterior
-                       '-h', self.h,            # genetic model (additive, recessive, dominant)
-                       '-f', MCMC_PRINT,        # frequency of printing output to the screen
-                       '-e', seed]              # random number seed
-
-                utils.run_cmd(cmd, stdout=fout)
-
-        except RuntimeError as e:
-            # delete the unfinished .time and .traj files (as these can be very large)
-            os.remove(time_path)
-            os.remove(traj_path)
-
-            # but keep the param file, as this may be useful for diagnosing the error
-            utils.run_cmd(['gzip', '--force', param_path])
-
-            raise RuntimeError(e)
-
-        else:
-            # gzip the output files
-            utils.run_cmd(['gzip', '--force', param_path])  # overwrite any existing output
-            utils.run_cmd(['gzip', '--force', time_path])
-            utils.run_cmd(['gzip', '--force', traj_path])
+            utils.run_cmd(cmd, stdout=fout)
 
 
 class SelectionPlot(utils.PipelineTask):

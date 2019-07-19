@@ -140,7 +140,7 @@ def selection_pair_neutral_snps(species, population, modsnp_id, mispolar):
       ORDER BY round(({sqr_sql})/{bins})*{bins}, RAND({modsnp})
          LIMIT {num}
            """.format(sqr_sql=sqr_sql, bins=len(bins), mispolar=int(mispolar), bin_sql=bin_sql, population=population,
-                      modsnp=modsnp_id, num=NEUTRAL_REPLICATES)).keys()
+                      modsnp=modsnp_id, num=NEUTRAL_REPLICATES))
 
     return selection_fetch_neutral_snps(species, population, modsnp_id, mispolar)
 

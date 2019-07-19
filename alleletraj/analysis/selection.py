@@ -45,9 +45,32 @@ MCMC_MIN_BINS = 3
 NEUTRAL_REPLICATES = 5
 
 
-def selection_neutral_snps(species, population, modsnp_id, mispolar):
+def selection_fetch_neutral_snps(species, population, modsnp_id, mispolar):
     """
-    Find 'neutral' SNPs, by pairing the non-neutral SNP based on chromosome, mutation type and DAF.
+    Fetch the 'neutral' SNPs paired to the modsnp in this population.
+    """
+    dbc = Database(species)
+
+    params = {
+        'population': population,
+        'modsnp_id':  modsnp_id,
+        'mispolar':   int(mispolar)
+    }
+
+    modsnps = dbc.get_records('selection_neutrals', params)
+
+    if not modsnps:
+        modsnps = selection_pair_neutral_snps(species, population, modsnp_id, mispolar)
+
+    if len(modsnps) != NEUTRAL_REPLICATES:
+        print('WARNING: Insufficient neutral SNPs for `selection` {} (n={})'.format(params.values(), len(modsnps)))
+
+    return modsnps
+
+
+def selection_pair_neutral_snps(species, population, modsnp_id, mispolar):
+    """
+    Find 'neutral' SNPs, by pairing the non-neutral SNP based on chromosome, mutation and DAF.
 
     If the SNP is flagged as mispolar then the allele polarization and DAF are inverted.
     """
@@ -67,9 +90,13 @@ def selection_neutral_snps(species, population, modsnp_id, mispolar):
     bin_sql = ','.join(bid)
     sqr_sql = '+'.join(lsq)
 
-    modsnps = dbc.get_records_sql("""
-        SELECT ms.id, 
-               round(({sqr_sql})/{bins})*{bins} AS diff
+    dbc.execute_sql("""
+        INSERT 
+          INTO selection_neutrals (population, modsnp_id, mispolar, neutral_id) 
+        SELECT nn.population,
+               nn.id AS modsnp_id,
+               {mispolar} AS mispolar,
+               ms.id AS neutral_id
           FROM (
 
         SELECT ms.id,
@@ -110,17 +137,12 @@ def selection_neutral_snps(species, population, modsnp_id, mispolar):
           JOIN samples s
             ON s.id = sr.sample_id  
       GROUP BY ms.id
-      ORDER BY diff, RAND({modsnp})
+      ORDER BY round(({sqr_sql})/{bins})*{bins}, RAND({modsnp})
          LIMIT {num}
            """.format(sqr_sql=sqr_sql, bins=len(bins), mispolar=int(mispolar), bin_sql=bin_sql, population=population,
                       modsnp=modsnp_id, num=NEUTRAL_REPLICATES)).keys()
 
-    if len(modsnps) != NEUTRAL_REPLICATES:
-        # TODO handle this better
-        params = [species, population, modsnp_id, mispolar]
-        print('WARNING: Insufficient neutral SNPs to run `selection` {} (n={})'.format(params, len(modsnps)))
-
-    return modsnps
+    return selection_fetch_neutral_snps(species, population, modsnp_id, mispolar)
 
 
 class SelectionInputFile(utils.DatabaseTask):
@@ -664,7 +686,7 @@ class SelectionPairNeutrals(utils.MySQLTask):
     def neutrals(self):
         """Get the neutral controls for this modsnp"""
         if not self._neutrals:
-            self._neutrals = selection_neutral_snps(self.species, self.population, self.modsnp, self.mispolar)
+            self._neutrals = selection_fetch_neutral_snps(self.species, self.population, self.modsnp, self.mispolar)
 
         return self._neutrals
 

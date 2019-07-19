@@ -521,11 +521,14 @@ CREATE TABLE `selection_map` (
 # ------------------------------------------------------------
 
 CREATE TABLE `selection_neutrals` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `selection_id` int(11) unsigned NOT NULL,
-  `neutral_id` int(11) unsigned NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `population` VARCHAR(255) NOT NULL DEFAULT '',
+  `modsnp_id` INT(11) UNSIGNED NOT NULL,
+  `mispolar` TINYINT(1) NOT NULL,
+  `neutral_id` INT(11) UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `population_modsnp` (`population`, `modsnp_id`, `mispolar`, `neutral_id`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8;
 
 
 

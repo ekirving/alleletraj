@@ -90,9 +90,7 @@ def selection_pair_neutral_snps(species, population, modsnp_id, mispolar):
     bin_sql = ','.join(bid)
     sqr_sql = '+'.join(lsq)
 
-    dbc.execute_sql("""
-        INSERT 
-          INTO selection_neutrals (population, modsnp_id, mispolar, neutral_id) 
+    modsnps = dbc.get_records_sql("""
         SELECT nn.population,
                nn.id AS modsnp_id,
                {mispolar} AS mispolar,
@@ -142,7 +140,11 @@ def selection_pair_neutral_snps(species, population, modsnp_id, mispolar):
            """.format(sqr_sql=sqr_sql, bins=len(bins), mispolar=int(mispolar), bin_sql=bin_sql, population=population,
                       modsnp=modsnp_id, num=NEUTRAL_REPLICATES))
 
-    return selection_fetch_neutral_snps(species, population, modsnp_id, mispolar)
+    # add them to the table so we don't have to query a second time
+    for modsnp in modsnps:
+        dbc.save_record('selection_neutrals', modsnp)
+
+    return modsnps
 
 
 class SelectionInputFile(utils.DatabaseTask):

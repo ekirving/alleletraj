@@ -26,6 +26,7 @@ rsync -avz --partial \
            --exclude 'data/vcf' \
            --exclude '*.gz' \
            --exclude '*.tgz' \
+           --exclude 'data/selection/*.log' \
            --exclude 'data/selection/*.traj*' \
            --exclude 'data/selection/*.time*' \
            --exclude 'data/selection/*.param' \

@@ -256,7 +256,7 @@ class SelectionInputFile(utils.DatabaseTask):
                 writer.writerow(b)
 
 
-class SelectionRunMCMC(utils.PipelineExternalTask):
+class SelectionRunMCMC(utils.PipelineExternalTask):  # TODO put back to `utils.PipelineTask` when done with SLURM
     """
     Run `selection` for the given SNP.
 
@@ -291,6 +291,7 @@ class SelectionRunMCMC(utils.PipelineExternalTask):
         return [luigi.LocalTarget('data/selection/{}.{}'.format(self.basename, ext))
                 for ext in ['param.gz', 'time.gz', 'traj.gz', 'log']]
 
+    # TODO uncomment when done with SLURM
     # def run(self):
     #     # compose the input and output file paths
     #     (pop_file, _, _), input_file = self.input()
@@ -342,7 +343,7 @@ class SelectionPlot(utils.PipelineTask):
     h = luigi.FloatParameter()
     chain = luigi.IntParameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 64}  # TODO need to refactor Josh's code to fix massive memory requirement
+    resources = {'cpu-cores': 1, 'ram-gb': 16}
 
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED)
@@ -410,6 +411,8 @@ class SelectionDiagnostics(utils.PipelineTask):
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
     chain = luigi.IntParameter()
+
+    resources = {'cpu-cores': 1, 'ram-gb': 4}
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0

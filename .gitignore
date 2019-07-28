@@ -35,3 +35,6 @@ bash
 
 # java jars
 *.jar
+
+# slurm job files
+slurm-*

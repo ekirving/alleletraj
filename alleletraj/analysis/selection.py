@@ -639,7 +639,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
         self.dbc.save_record('selection_psrf', psrf)
 
 
-class SelectionPairNeutrals(utils.MySQLTask):
+class SelectionPairNeutrals(utils.PipelineWrapperTask):
     """
     Pair the given modSNP with some neutral replicates, and run `selection` on them all.
 

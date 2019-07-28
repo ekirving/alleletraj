@@ -4,7 +4,7 @@ rsync -avz --partial --relative \
     ~/alleletraj/./bash \
     ~/alleletraj/./data/selection/*.input \
     ~/alleletraj/./data/dadi/*.pop \
-    ~/alleletraj/./slurm-jobs.list \
+    ~/alleletraj/./slurm-* \
     scro2860@arcus-b.arc.ox.ac.uk:~/alleletraj/
 
 rsync -avz --partial --relative \

@@ -306,6 +306,9 @@ class ValidateSampleReads(utils.MySQLTask):
     species = luigi.Parameter()
     chrom = luigi.Parameter()
 
+    # do not retry after failure, as this just chews CPU cycles
+    retry_count = 0
+
     def requires(self):
         return LoadAncientHaploidSNPs(self.species, self.chrom)
 

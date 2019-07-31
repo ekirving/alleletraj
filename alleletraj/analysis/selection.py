@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # standard modules
+import glob
 import json
 import os
 
@@ -720,6 +721,22 @@ class SelectionPipeline(utils.PipelineWrapperTask):
         for pop in self.list_populations(ancient=True):
             for no_modern in [True, False]:
                 yield SelectionGWASPeakSNPs(self.species, pop, no_modern)
+
+
+class SelectionTidyPipeline(utils.PipelineWrapperTask):
+    """
+    Tidy up all the `selection` jobs that were completed by SLURM.
+    """
+
+    def requires(self):
+
+        # get all the completed models
+        completed = glob.glob('data/selection/*.param.gz')
+
+        # data/selection/horse-DOM2-modsnp9876899-n100000000-s100-h0.5-chain1.param.gz
+        for filename in completed:
+            species, population, modsnp, n, s, h, _ = os.path.basename(filename).split('-')
+            yield LoadSelectionPSRF(species, population, modsnp[6:], n=n[1:], s=s[1:], h=h[1:])
 
 
 if __name__ == '__main__':

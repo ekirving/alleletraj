@@ -740,7 +740,7 @@ class SelectionTidyPipeline(utils.PipelineWrapperTask):
             # e.g. data/selection/horse-DOM2-modsnp9876899-n100000000-s100-h0.5-chain1.param.gz
             _, population, modsnp, n, s, h, _ = os.path.basename(filename).split('-')
 
-            yield LoadSelectionPSRF(self.species, population, modsnp[6:], n=n[1:], s=s[1:], h=h[1:])
+            yield LoadSelectionPSRF(self.species, population, int(modsnp[6:]), n=int(n[1:]), s=int(s[1:]), h=float(h[1:]))
 
 
 if __name__ == '__main__':

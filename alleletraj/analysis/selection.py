@@ -344,7 +344,7 @@ class SelectionPlot(utils.PipelineTask):
     h = luigi.FloatParameter()
     chain = luigi.IntParameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 16}
+    resources = {'cpu-cores': 1, 'ram-gb': 24}
 
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED)
@@ -550,6 +550,8 @@ class SelectionPSRF(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+
+    resources = {'cpu-cores': 1, 'ram-gb': 4}
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0

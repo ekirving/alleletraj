@@ -726,17 +726,21 @@ class SelectionPipeline(utils.PipelineWrapperTask):
 class SelectionTidyPipeline(utils.PipelineWrapperTask):
     """
     Tidy up all the `selection` jobs that were completed by SLURM.
+
+    :type species: str
     """
+    species = luigi.Parameter()
 
     def requires(self):
 
         # get all the completed models
-        completed = glob.glob('data/selection/*.param.gz')
+        completed = glob.glob('data/selection/{}-*.param.gz'.format(self.species))
 
-        # data/selection/horse-DOM2-modsnp9876899-n100000000-s100-h0.5-chain1.param.gz
         for filename in completed:
-            species, population, modsnp, n, s, h, _ = os.path.basename(filename).split('-')
-            yield LoadSelectionPSRF(species, population, modsnp[6:], n=n[1:], s=s[1:], h=h[1:])
+            # e.g. data/selection/horse-DOM2-modsnp9876899-n100000000-s100-h0.5-chain1.param.gz
+            _, population, modsnp, n, s, h, _ = os.path.basename(filename).split('-')
+
+            yield LoadSelectionPSRF(self.species, population, modsnp[6:], n=n[1:], s=s[1:], h=h[1:])
 
 
 if __name__ == '__main__':

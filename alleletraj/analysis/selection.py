@@ -705,7 +705,9 @@ class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
                AND ms.site = q.site
              WHERE q.associationType = 'Association'
                AND q.valid = 1
-               """, key=None)
+          ORDER BY mispolar, rand()
+             LIMIT 500
+               """, key=None)  # TODO restore when done with cattle
 
         for modsnp in modsnps:
             yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern, modsnp['mispolar'])

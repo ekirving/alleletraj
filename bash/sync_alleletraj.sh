@@ -30,4 +30,6 @@ rsync -avz --partial \
            --exclude 'data/selection/*.traj*' \
            --exclude 'data/selection/*.time*' \
            --exclude 'data/selection/*.param' \
+           --exclude 'data/selection.partial/' \
+           --exclude 'data/selection.truncated/' \
            evan@palaeoprime:~/alleletraj/ ~/Dropbox/Code/alleletraj/

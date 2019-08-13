@@ -37,4 +37,4 @@ bash
 *.jar
 
 # slurm job files
-slurm-*
+slurm*

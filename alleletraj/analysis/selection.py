@@ -383,7 +383,11 @@ class SelectionBenchmark(utils.MySQLTask):
         # run selection
         utils.run_cmd(cmd)
 
+        # duration is simply the elapsed time
         duration = time() - start
+
+        # now project this forward to get the estimated run time in hours
+        estimated = float(duration) * MCMC_CYCLES / self.s / 3600
 
         # log the duration
         benchmark = {
@@ -394,7 +398,8 @@ class SelectionBenchmark(utils.MySQLTask):
             'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
-            'duration':   duration
+            'duration':   duration,
+            'estimated':  estimated
         }
 
         self.dbc.save_record('selection_benchmarks', benchmark)

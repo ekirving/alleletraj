@@ -728,6 +728,39 @@ class SelectionPipeline(utils.PipelineWrapperTask):
                 yield SelectionGWASPeakSNPs(self.species, pop, no_modern)
 
 
+class SelectionMakeInputFiles(utils.PipelineWrapperTask):
+    """
+    Make all the input files.
+
+    :type species: str
+    :type population: str
+    :type no_modern: bool
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    no_modern = luigi.BoolParameter(default=False)
+
+    def requires(self):
+
+        modsnps = self.dbc.get_records_sql("""
+            SELECT DISTINCT modsnp_id
+              FROM selection_neutrals
+             WHERE population = '{population}'
+               AND mispolar = 0
+             
+             UNION 
+            
+            SELECT DISTINCT neutral_id
+              FROM selection_neutrals
+             WHERE population = '{population}'
+               AND mispolar = 0
+               """.format(population=self.population), key=None)
+
+        for modsnp in modsnps:
+            yield SelectionInputFile(self.species, self.population, modsnp['id'], self.no_modern, modsnp['mispolar'])
+
+
+
 class SelectionTidyPipeline(utils.PipelineWrapperTask):
     """
     Tidy up all the `selection` jobs that were completed by SLURM.

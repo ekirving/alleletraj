@@ -27,7 +27,7 @@ MCMC_NUM_CHAINS = 2  # TODO put back to 4 for production run
 MCMC_CYCLES = int(1e8)
 
 # number of MCMC cycles to benchmark
-MCMC_BENCHMARK = int(5e4)
+MCMC_BENCHMARK = int(1e4)
 
 # fraction of MCMC cycles to discard as burn in
 MCMC_BURN_PCT = 0.5

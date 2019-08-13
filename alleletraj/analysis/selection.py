@@ -64,7 +64,8 @@ def selection_fetch_neutral_snps(species, population, modsnp_id, mispolar=False)
         modsnps = selection_pair_neutral_snps(species, population, modsnp_id, mispolar)
 
     if len(modsnps) != NEUTRAL_REPLICATES:
-        print('WARNING: Insufficient neutral SNPs for `selection` {} (n={})'.format(params.values(), len(modsnps)))
+        print('WARNING: Insufficient neutral SNPs for `selection` {} (n={})'.format([population, modsnp_id, mispolar],
+                                                                                    len(modsnps)))
 
     return modsnps
 

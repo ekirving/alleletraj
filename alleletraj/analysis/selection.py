@@ -5,6 +5,8 @@
 import glob
 import json
 import os
+import random
+from time import time
 
 # third party modules
 import luigi
@@ -19,10 +21,13 @@ from alleletraj.modern.demog import DadiBestModel, DADI_FOLDED
 from alleletraj.qtl.load import MIN_DAF
 
 # number of independent MCMC replicates to run
-MCMC_REPLICATES = 2  # TODO put back to 4 for production run
+MCMC_NUM_CHAINS = 2  # TODO put back to 4 for production run
 
 # number of MCMC cycles to run
 MCMC_CYCLES = int(1e8)
+
+# number of MCMC cycles to benchmark
+MCMC_BENCHMARK = int(5e4)
 
 # fraction of MCMC cycles to discard as burn in
 MCMC_BURN_PCT = 0.5
@@ -321,6 +326,84 @@ class SelectionRunMCMC(utils.PipelineExternalTask):  # TODO put back to `utils.P
     #         utils.run_cmd(cmd, stdout=fout)
 
 
+class SelectionBenchmark(utils.MySQLTask):
+    """
+    Benchmark the speed of the MCMC.
+
+    Models with long trajectories take a lot longer to run.
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type no_modern: bool
+    :type mispolar: bool
+    :type n: int
+    :type s: int
+    :type h: float
+    :type chain: int
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
+    n = luigi.IntParameter()
+    s = luigi.IntParameter()
+    h = luigi.FloatParameter()
+    chain = luigi.IntParameter()
+
+    def requires(self):
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
+        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
+
+    def queries(self):
+        # compose the input and output file paths
+        (pop_file, _, _), input_file = self.input()
+
+        # generate a unique prefix for temporary files
+        output_prefix = 'data/selection/luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
+
+        # make a deterministic random seed (helps keep everything easily reproducible)
+        seed = int('{}{}'.format(self.modsnp, self.chain))
+
+        cmd = ['sr',
+               '-D', input_file.path,   # path to data input file
+               '-P', pop_file.path,     # path to population size history file
+               '-o', output_prefix,     # output file prefix
+               '-a',                    # flag to infer allele age
+               '-A', MIN_DAF,           # ascertainment in modern individuals
+               '-n', self.n,            # number of MCMC cycles to run
+               '-s', self.s,            # frequency of sampling from the posterior
+               '-h', self.h,            # genetic model (additive, recessive, dominant)
+               '-f', MCMC_PRINT,        # frequency of printing output to the screen
+               '-e', seed]              # random number seed
+
+        start = time()
+
+        # run selection
+        utils.run_cmd(cmd)
+
+        duration = time() - start
+
+        # log the duration
+        benchmark = {
+            'population': self.population,
+            'modsnp_id':  self.modsnp,
+            'length':     self.n,
+            'thin':       self.s,
+            'model':      self.h,
+            'no_modern':  self.no_modern,
+            'mispolar':   self.mispolar,
+            'duration':   duration
+        }
+
+        self.dbc.save_record('selection_benchmarks', benchmark)
+
+        # tidy up all the temporary files
+        for tmp in glob.glob('data/plink/*{}*'.format(output_prefix)):
+            os.remove(tmp)
+
+
 class SelectionPlot(utils.PipelineTask):
     """
     Plot the allele trajectory.
@@ -559,7 +642,7 @@ class SelectionPSRF(utils.PipelineTask):
 
     def requires(self):
         params = self.all_params()
-        for chain in range(1, MCMC_REPLICATES + 1):
+        for chain in range(1, MCMC_NUM_CHAINS + 1):
             params['chain'] = chain
 
             yield SelectionRunMCMC(**params)
@@ -728,9 +811,9 @@ class SelectionPipeline(utils.PipelineWrapperTask):
                 yield SelectionGWASPeakSNPs(self.species, pop, no_modern)
 
 
-class SelectionMakeInputFiles(utils.PipelineWrapperTask):
+class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
     """
-    Make all the input files.
+    Benchmark all the GWAS hits and their neutrals.
 
     :type species: str
     :type population: str
@@ -756,9 +839,19 @@ class SelectionMakeInputFiles(utils.PipelineWrapperTask):
                AND mispolar = 0
                """.format(population=self.population), key=None)
 
-        for modsnp in modsnps:
-            yield SelectionInputFile(self.species, self.population, modsnp['id'], self.no_modern, modsnp['mispolar'])
+        params = self.all_params()
 
+        for modsnp in modsnps:
+            params['modsnp'] = modsnp['id']
+            params['mispolar'] = modsnp['mispolar']
+            params['n'] = MCMC_BENCHMARK
+            params['s'] = MCMC_THIN
+            params['h'] = MODEL_ADDITIVE
+
+            for chain in range(1, MCMC_NUM_CHAINS + 1):
+                params['chain'] = chain
+
+                yield SelectionBenchmark(**params)
 
 
 class SelectionTidyPipeline(utils.PipelineWrapperTask):

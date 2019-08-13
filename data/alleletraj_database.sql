@@ -6,8 +6,8 @@
 # https://github.com/sequelpro/sequelpro
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
-# Database: alleletraj_horse_equcab2_rel38
-# Generation Time: 2019-07-09 09:38:32 +0000
+# Database: alleletraj_cattle_umd3.1_rel38
+# Generation Time: 2019-08-13 13:44:14 +0000
 # ************************************************************
 
 
@@ -439,6 +439,25 @@ CREATE TABLE `selection` (
 
 
 
+# Dump of table selection_benchmarks
+# ------------------------------------------------------------
+
+CREATE TABLE `selection_benchmarks` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `population` varchar(255) NOT NULL DEFAULT '',
+  `modsnp_id` int(11) unsigned NOT NULL,
+  `no_modern` tinyint(1) NOT NULL,
+  `mispolar` tinyint(1) NOT NULL,
+  `length` int(11) unsigned NOT NULL,
+  `thin` int(11) unsigned NOT NULL,
+  `model` decimal(1,1) NOT NULL,
+  `duration` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `modsnp_id` (`modsnp_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
 # Dump of table selection_ess
 # ------------------------------------------------------------
 
@@ -521,14 +540,14 @@ CREATE TABLE `selection_map` (
 # ------------------------------------------------------------
 
 CREATE TABLE `selection_neutrals` (
-  `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `population` VARCHAR(255) NOT NULL DEFAULT '',
-  `modsnp_id` INT(11) UNSIGNED NOT NULL,
-  `mispolar` TINYINT(1) NOT NULL,
-  `neutral_id` INT(11) UNSIGNED NOT NULL,
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `population` varchar(255) NOT NULL DEFAULT '',
+  `modsnp_id` int(11) unsigned NOT NULL,
+  `mispolar` tinyint(1) NOT NULL,
+  `neutral_id` int(11) unsigned NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `population_modsnp` (`population`, `modsnp_id`, `mispolar`, `neutral_id`)
-) ENGINE=INNODB DEFAULT CHARSET=utf8;
+  UNIQUE KEY `population_modsnp` (`population`,`modsnp_id`,`mispolar`,`neutral_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 

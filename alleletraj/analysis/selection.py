@@ -743,14 +743,14 @@ class SelectionMakeInputFiles(utils.PipelineWrapperTask):
     def requires(self):
 
         modsnps = self.dbc.get_records_sql("""
-            SELECT DISTINCT modsnp_id AS id 
+            SELECT DISTINCT modsnp_id AS id, mispolar
               FROM selection_neutrals
              WHERE population = '{population}'
                AND mispolar = 0
              
              UNION 
             
-            SELECT DISTINCT neutral_id  AS id
+            SELECT DISTINCT neutral_id  AS id, mispolar
               FROM selection_neutrals
              WHERE population = '{population}'
                AND mispolar = 0

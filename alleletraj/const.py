@@ -57,8 +57,8 @@ SWEEP_DATA = {
 
 # the per-site mutation rate mutation rate per generation
 MUTATION_RATE = {
-    'cattle': 1.10e-8,    # 5 years / see https://www.frontiersin.org/articles/10.3389/fgene.2018.00728/full
-    # 'cattle': 1.26e-8,  # 6 years / see https://www.nature.com/articles/s41467-018-04737-0
+    # 'cattle': 1.10e-8,    # 5 years / see https://www.frontiersin.org/articles/10.3389/fgene.2018.00728/full
+    'cattle': 1.26e-8,  # 6 years / see https://www.nature.com/articles/s41467-018-04737-0
     # 'cattle': 2.20e-9 / 5,        # see https://www.nature.com/articles/s41559-018-0562-y
     #                     actually citing https://www.pnas.org/content/99/2/803
 
@@ -72,7 +72,8 @@ MUTATION_RATE = {
 
 # the average generation time in years
 GENERATION_TIME = {
-    'cattle': 5,  # https://www.frontiersin.org/articles/10.3389/fgene.2018.00728/full
+    # 'cattle': 5,  # https://www.frontiersin.org/articles/10.3389/fgene.2018.00728/full
+    'cattle': 6,  # https://www.nature.com/articles/s41467-018-04737-0
     'goat':   2,  # https://www.nature.com/articles/s41467-018-03206-y
     'horse':  8,  # https://www.pnas.org/content/111/52/E5661.full#sec-17
     'pig':    5,  # https://www.nature.com/articles/ng.3197

@@ -386,8 +386,8 @@ class DadiEpochDemography(utils.PipelineTask):
         # get the count of all callable sites
         length = int(size_file.open().read())
 
-        # dadi scales population size by 2*Nref, where Nref is the size of the most ancient population
-        # in dadi, θ = 4*Nref*µ, where µ = number of mutations per generation, so to solve for Nref
+        # in dadi, θ = 4*Nref*µ*L, where µ = mutation rate and L = size of the region used to estimate the SFS
+        # so to solve for Nref...
         nref = theta / (4 * rate * length)
 
         # save the Nref, so we can interpret the modelling results

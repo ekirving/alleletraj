@@ -110,7 +110,6 @@ class LoadSamples(utils.MySQLTask):
             raise RuntimeError('ERROR: No outgroup population in {}'.format(csv_file.path))
 
 
-
 class CreateSampleBins(utils.MySQLTask):
     """
     Create the sample bins.

@@ -836,7 +836,7 @@ class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
 
     def requires(self):
 
-        limit = 1000
+        limit = 10000
         offset = limit * self.step
 
         modsnps = self.dbc.get_records_sql("""

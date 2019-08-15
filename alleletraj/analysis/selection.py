@@ -856,7 +856,7 @@ class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
 
         for modsnp in modsnps:
             params['modsnp'] = modsnp['id']
-            params['mispolar'] = modsnp['mispolar']
+            params['mispolar'] = bool(modsnp['mispolar'])
             params['n'] = MCMC_BENCHMARK
             params['s'] = MCMC_THIN
             params['h'] = MODEL_ADDITIVE

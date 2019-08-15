@@ -387,7 +387,7 @@ class SelectionBenchmark(utils.MySQLTask):
         duration = time() - start
 
         # now project this forward to get the estimated run time in hours
-        est_hours = duration * MCMC_CYCLES / self.s / 3600
+        est_hours = duration * MCMC_CYCLES / self.n / 3600
 
         # log the duration
         benchmark = {

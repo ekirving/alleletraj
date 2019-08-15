@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
 # Database: alleletraj_cattle_umd3.1_rel38
-# Generation Time: 2019-08-15 08:28:25 +0000
+# Generation Time: 2019-08-15 15:54:55 +0000
 # ************************************************************
 
 
@@ -452,8 +452,8 @@ CREATE TABLE `selection_benchmarks` (
   `thin` int(11) unsigned NOT NULL,
   `model` decimal(1,1) NOT NULL,
   `chain` int(11) NOT NULL,
-  `duration` float NOT NULL,
-  `est_hours` float NOT NULL,
+  `duration` float DEFAULT NULL,
+  `est_hours` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `modsnp_id` (`modsnp_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

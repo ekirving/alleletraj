@@ -6,7 +6,6 @@ import glob
 import json
 import os
 import random
-from time import time
 
 # third party modules
 import luigi
@@ -384,16 +383,25 @@ class SelectionBenchmark(utils.MySQLTask):
                '-f', MCMC_PRINT,        # frequency of printing output to the screen
                '-e', seed]              # random number seed
 
-        start = time()
+        sr = ' '.join([str(args) for args in cmd])
+
+        # time the `sr` command, but enforce an upper limit of 5 mins
+        cmd = "/usr/bin/time -f '%U' timeout 300s " + sr + " > /dev/null"
 
         # run selection
-        utils.run_cmd(cmd)
+        ret = utils.run_cmd([cmd], shell=True)
 
-        # duration is simply the elapsed time
-        duration = time() - start
+        try:
+            # duration is simply the elapsed time
+            duration = float(ret)
 
-        # now project this forward to get the estimated run time in hours
-        est_hours = duration * MCMC_CYCLES / self.n / 3600
+            # now project this forward to get the estimated run time in hours
+            est_hours = duration * MCMC_CYCLES / self.n / 3600
+
+        except ValueError:
+            # we've hit the max timeout and don't know how long it will take
+            duration = None
+            est_hours = None
 
         # log the duration
         benchmark = {

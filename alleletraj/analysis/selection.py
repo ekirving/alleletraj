@@ -405,7 +405,7 @@ class SelectionBenchmark(utils.MySQLTask):
         self.dbc.save_record('selection_benchmarks', benchmark)
 
         # tidy up all the temporary files
-        for tmp in glob.glob('data/plink/*{}*'.format(output_prefix)):
+        for tmp in glob.glob('{}*'.format(output_prefix)):
             os.remove(tmp)
 
 

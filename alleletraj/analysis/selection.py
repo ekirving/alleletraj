@@ -50,6 +50,9 @@ MCMC_MIN_BINS = 3
 # number of DAF paired neutral SNPs to run for every non-neutral SNP
 NEUTRAL_REPLICATES = 5
 
+# max number of models to schedule at one time
+BENCHMARK_LIMIT = 10000
+
 
 def selection_fetch_neutral_snps(species, population, modsnp_id, mispolar=False):
     """
@@ -798,9 +801,7 @@ class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
                AND ms.site = q.site
              WHERE q.associationType = 'Association'
                AND q.valid = 1
-          ORDER BY mispolar, rand()
-             LIMIT 500
-               """, key=None)  # TODO restore when done with cattle
+               """, key=None)
 
         for modsnp in modsnps:
             yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern, modsnp['mispolar'])
@@ -836,8 +837,7 @@ class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
 
     def requires(self):
 
-        limit = 10000
-        offset = limit * self.step
+        offset = BENCHMARK_LIMIT * self.step
 
         modsnps = self.dbc.get_records_sql("""
             SELECT DISTINCT modsnp_id AS id, IFNULL(mispolar, 0) mispolar
@@ -853,7 +853,7 @@ class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
                AND mispolar = 0
                
              LIMIT {limit} OFFSET {offset} 
-               """.format(population=self.population, limit=limit, offset=offset), key=None)
+               """.format(population=self.population, limit=BENCHMARK_LIMIT, offset=offset), key=None)
 
         params = self.all_params()
         params.pop('step')

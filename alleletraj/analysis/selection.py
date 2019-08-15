@@ -398,6 +398,7 @@ class SelectionBenchmark(utils.MySQLTask):
             'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
+            'chain':      self.chain,
             'duration':   duration,
             'est_hours':  est_hours
         }

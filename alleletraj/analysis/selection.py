@@ -823,12 +823,17 @@ class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
     :type species: str
     :type population: str
     :type no_modern: bool
+    :type step: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     no_modern = luigi.BoolParameter(default=False)
+    step = luigi.IntParameter()
 
     def requires(self):
+
+        limit = 1000
+        offset = limit * self.step
 
         modsnps = self.dbc.get_records_sql("""
             SELECT DISTINCT modsnp_id AS id, mispolar
@@ -842,7 +847,9 @@ class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
               FROM selection_neutrals
              WHERE population = '{population}'
                AND mispolar = 0
-               """.format(population=self.population), key=None)
+               
+             LIMIT {limit} OFFSET {offset} 
+               """.format(population=self.population, limit=limit, offset=offset), key=None)
 
         params = self.all_params()
 

@@ -352,6 +352,9 @@ class SelectionBenchmark(utils.MySQLTask):
     h = luigi.FloatParameter()
     chain = luigi.IntParameter()
 
+    # do not retry after failure, as this just chews CPU cycles
+    retry_count = 0
+
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED)
         yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)

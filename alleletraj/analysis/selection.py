@@ -387,7 +387,7 @@ class SelectionBenchmark(utils.MySQLTask):
         duration = time() - start
 
         # now project this forward to get the estimated run time in hours
-        estimated = float(duration) * MCMC_CYCLES / self.s / 3600
+        est_hours = duration * MCMC_CYCLES / self.s / 3600
 
         # log the duration
         benchmark = {
@@ -399,7 +399,7 @@ class SelectionBenchmark(utils.MySQLTask):
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
             'duration':   duration,
-            'estimated':  estimated
+            'est_hours':  est_hours
         }
 
         self.dbc.save_record('selection_benchmarks', benchmark)

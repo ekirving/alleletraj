@@ -50,7 +50,7 @@ MCMC_MIN_BINS = 3
 NEUTRAL_REPLICATES = 5
 
 # max number of models to schedule at one time
-BENCHMARK_LIMIT = 10000
+BENCHMARK_LIMIT = 5000
 
 
 def selection_fetch_neutral_snps(species, population, modsnp_id, mispolar=False):

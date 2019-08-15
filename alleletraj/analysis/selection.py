@@ -836,14 +836,14 @@ class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
         offset = limit * self.step
 
         modsnps = self.dbc.get_records_sql("""
-            SELECT DISTINCT modsnp_id AS id, mispolar
+            SELECT DISTINCT modsnp_id AS id, IFNULL(mispolar, 0) mispolar
               FROM selection_neutrals
              WHERE population = '{population}'
                AND mispolar = 0
              
              UNION 
             
-            SELECT DISTINCT neutral_id  AS id, mispolar
+            SELECT DISTINCT neutral_id  AS id, IFNULL(mispolar, 0) mispolar
               FROM selection_neutrals
              WHERE population = '{population}'
                AND mispolar = 0
@@ -852,6 +852,7 @@ class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
                """.format(population=self.population, limit=limit, offset=offset), key=None)
 
         params = self.all_params()
+        params.pop('step')
 
         for modsnp in modsnps:
             params['modsnp'] = modsnp['id']

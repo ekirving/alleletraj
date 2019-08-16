@@ -389,19 +389,13 @@ class SelectionBenchmark(utils.MySQLTask):
         cmd = "/usr/bin/time -f '%U' timeout 300s " + sr + " > /dev/null"
 
         # run selection
-        ret = utils.run_cmd([cmd], shell=True)
+        user_time = utils.run_cmd([cmd], shell=True)
 
-        try:
-            # duration is simply the elapsed time
-            duration = float(ret)
+        # duration is the 'user' time, reported by /usr/bin/time
+        duration = float(user_time)
 
-            # now project this forward to get the estimated run time in hours
-            est_hours = duration * MCMC_CYCLES / self.n / 3600
-
-        except ValueError:
-            # we've hit the max timeout and don't know how long it will take
-            duration = None
-            est_hours = None
+        # now project this forward to get the estimated run time in hours
+        est_hours = duration * MCMC_CYCLES / self.n / 3600
 
         # log the duration
         benchmark = {

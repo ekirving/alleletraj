@@ -11,6 +11,9 @@ rsync -avz --partial --relative \
 	--exclude '*.ess' \
 	--exclude '*.map' \
 	--exclude '*.psrf' \
+    --exclude '*.done' \
+    --exclude '*.trunc' \
+    --exclude '*luigi-tmp*' \
     scro2860@arcus-b.arc.ox.ac.uk:~/alleletraj/
 
 rsync -avz --partial --relative \

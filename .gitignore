@@ -38,3 +38,4 @@ bash
 
 # slurm job files
 slurm*
+*.list

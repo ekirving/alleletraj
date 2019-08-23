@@ -5,12 +5,12 @@ rsync -avz --partial --relative \
     ~/alleletraj/./data/selection/ \
     ~/alleletraj/./data/dadi/*.pop \
     ~/alleletraj/./slurm-* \
-	--exclude '*.gz' \
-	--exclude '*.log' \
-	--exclude '*.diag' \
-	--exclude '*.ess' \
-	--exclude '*.map' \
-	--exclude '*.psrf' \
+    --exclude '*.gz' \
+    --exclude '*.log' \
+    --exclude '*.diag' \
+    --exclude '*.ess' \
+    --exclude '*.map' \
+    --exclude '*.psrf' \
     --exclude '*.done' \
     --exclude '*.trunc' \
     --exclude '*luigi-tmp*' \

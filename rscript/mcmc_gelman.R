@@ -16,17 +16,15 @@ gelman_png <- args[6]
 param_files <- args[7:length(args)]
 
 # TODO remove when done testing
-# prefix <- 'horse-DOM2-modsnp10654592-n50000000-s1000-h0.5'
+# prefix <- 'horse-DOM2-modsnp10550815-n100000000-s100-h0.5'
 # burn_perc <- 0.5
-# thin <- 1000
+# thin <- 100
 # ess_file  <- paste0('data/selection/', prefix, '-chainAll.ess')
 # psrf_file <- paste0('data/selection/', prefix, '-chainAll.psrf')
 # trace_png <- paste0('data/pdf/selection/', prefix, '-chainAll-trace-pt1.png')
 # gelman_png <- paste0('data/pdf/selection/', prefix, '-chainAll-gelman-pt1.png')
 # param_files <- c(paste0('data/selection/', prefix, '-chain1.param.gz'),
-#                  paste0('data/selection/', prefix, '-chain2.param.gz'),
-#                  paste0('data/selection/', prefix, '-chain3.param.gz'),
-#                  paste0('data/selection/', prefix, '-chain4.param.gz'))
+#                  paste0('data/selection/', prefix, '-chain2.param.gz'))
 
 cat("Analysing combined chains.", "\n\n")
 
@@ -47,6 +45,20 @@ for (i in param_files) {
         burnAndThin(mcmc.chain, burn = burnin),
         start = burnin * thin,
         thin = thin)
+}
+
+# check if chains are all equal length
+min_iter <- min(unlist(lapply(chains, niter)))
+max_iter <- max(unlist(lapply(chains, niter)))
+
+# normalise chain length (necessary if some models did not run to completion)
+if (min_iter != max_iter) {
+    cat(paste0("WARNING: Chains are not of equal length. min=", min_iter, " max=", max_iter))
+    chains <- lapply(chains, function(x) {
+        num_iter <- niter(x)
+        offset <- num_iter - min_iter + 1
+        mcmc(x[offset:num_iter,])
+    })
 }
 
 chains.all = mcmc.list(chains)

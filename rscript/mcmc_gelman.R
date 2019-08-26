@@ -53,7 +53,7 @@ max_iter <- max(unlist(lapply(chains, niter)))
 
 # normalise chain length (necessary if some models did not run to completion)
 if (min_iter != max_iter) {
-    cat(paste0("WARNING: Chains are not of equal length. min=", min_iter, " max=", max_iter))
+    cat(paste0("WARNING: Chains are not of equal length. min=", min_iter, " max=", max_iter, " (", round(min_iter/max_iter*100, 0), "%)"))
     chains <- lapply(chains, function(x) {
         num_iter <- niter(x)
         offset <- num_iter - min_iter + 1

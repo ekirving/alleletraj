@@ -265,7 +265,7 @@ class SelectionInputFile(utils.DatabaseTask):
                 writer.writerow(b)
 
 
-class SelectionRunMCMC(utils.PipelineTask):
+class SelectionRunMCMC(utils.PipelineExternalTask):  # TODO put back to `utils.PipelineTask` when done with SLURM
     """
     Run `selection` for the given SNP.
 
@@ -300,31 +300,32 @@ class SelectionRunMCMC(utils.PipelineTask):
         return [luigi.LocalTarget('data/selection/{}.{}'.format(self.basename, ext))
                 for ext in ['param.gz', 'time.gz', 'traj.gz', 'log']]
 
-    def run(self):
-        # compose the input and output file paths
-        (pop_file, _, _), input_file = self.input()
-        param_file, time_file, traj_file, log_file = self.output()
-
-        output_prefix = utils.trim_ext(log_file.path)
-
-        # make a deterministic random seed (helps keep everything easily reproducible)
-        seed = int('{}{}'.format(self.modsnp, self.chain))
-
-        with log_file.open('w') as fout:
-            # run `selection`
-            cmd = ['sr',
-                   '-D', input_file.path,   # path to data input file
-                   '-P', pop_file.path,     # path to population size history file
-                   '-o', output_prefix,     # output file prefix
-                   '-a',                    # flag to infer allele age
-                   '-A', MIN_DAF,           # ascertainment in modern individuals
-                   '-n', self.n,            # number of MCMC cycles to run
-                   '-s', self.s,            # frequency of sampling from the posterior
-                   '-h', self.h,            # genetic model (additive, recessive, dominant)
-                   '-f', MCMC_PRINT,        # frequency of printing output to the screen
-                   '-e', seed]              # random number seed
-
-            utils.run_cmd(cmd, stdout=fout)
+    # TODO uncomment when done with SLURM
+    # def run(self):
+    #     # compose the input and output file paths
+    #     (pop_file, _, _), input_file = self.input()
+    #     param_file, time_file, traj_file, log_file = self.output()
+    #
+    #     output_prefix = utils.trim_ext(log_file.path)
+    #
+    #     # make a deterministic random seed (helps keep everything easily reproducible)
+    #     seed = int('{}{}'.format(self.modsnp, self.chain))
+    #
+    #     with log_file.open('w') as fout:
+    #         # run `selection`
+    #         cmd = ['sr',
+    #                '-D', input_file.path,   # path to data input file
+    #                '-P', pop_file.path,     # path to population size history file
+    #                '-o', output_prefix,     # output file prefix
+    #                '-a',                    # flag to infer allele age
+    #                '-A', MIN_DAF,           # ascertainment in modern individuals
+    #                '-n', self.n,            # number of MCMC cycles to run
+    #                '-s', self.s,            # frequency of sampling from the posterior
+    #                '-h', self.h,            # genetic model (additive, recessive, dominant)
+    #                '-f', MCMC_PRINT,        # frequency of printing output to the screen
+    #                '-e', seed]              # random number seed
+    #
+    #         utils.run_cmd(cmd, stdout=fout)
 
 
 class SelectionBenchmark(utils.MySQLTask):

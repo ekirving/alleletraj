@@ -442,7 +442,7 @@ class SelectionPlot(utils.PipelineTask):
     h = luigi.FloatParameter()
     chain = luigi.IntParameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 56}
+    resources = {'cpu-cores': 1, 'ram-gb': 56, 'SelectionPlot': 1}  # only allow one plot operation at a time
 
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED)

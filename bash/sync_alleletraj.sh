@@ -32,4 +32,6 @@ rsync -avz --partial \
            --exclude 'data/selection/*.param' \
            --exclude 'data/selection.partial/' \
            --exclude 'data/selection.truncated/' \
+           --exclude '*SelectionBenchmark*' \
+           --exclude 'cattle-Dom-*.input' \
            evan@palaeoprime:~/alleletraj/ ~/Dropbox/Code/alleletraj/

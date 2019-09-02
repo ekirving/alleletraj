@@ -660,7 +660,7 @@ class SelectionPSRF(utils.PipelineTask):
             params['chain'] = chain
 
             yield SelectionRunMCMC(**params)
-            # yield SelectionPlot(**params)  # TODO restore plotting when code is optimised
+            yield SelectionPlot(**params)
             yield LoadSelectionDiagnostics(**params)
 
     def output(self):

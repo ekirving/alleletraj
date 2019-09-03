@@ -742,6 +742,10 @@ class LoadSelectionPSRF(utils.MySQLTask):
         with psrf_file.open('r') as fin:
             psrf = json.load(fin)
 
+        for param in psrf:
+            if psrf[param] in ('Inf', 'NA', 'NaN'):
+                psrf[param] = None
+
         psrf['selection_id'] = selection_id
         self.dbc.save_record('selection_psrf', psrf)
 

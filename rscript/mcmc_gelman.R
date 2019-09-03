@@ -16,7 +16,7 @@ gelman_png <- args[6]
 param_files <- args[7:length(args)]
 
 # TODO remove when done testing
-# prefix <- 'horse-DOM2-modsnp7141916-n100000000-s100-h0.5'
+# prefix <- 'horse-DOM2-modsnp15000674-n100000000-s100-h0.5'
 # burn_perc <- 0.5
 # thin <- 100
 # ess_file  <- paste0('data/selection/', prefix, '-chainAll.ess')
@@ -82,16 +82,16 @@ png(file=str_replace(trace_png, 'pt1', 'pt%d'), width=7, height=7, units='in', r
 plot(chains.all)
 off <- dev.off()
 
-cat("Plotting the Gelman and Rubin's convergence diagnostic.", "\n\n")
-png(file=str_replace(gelman_png, 'pt1', 'pt%d'), width=7, height=7, units='in', res=300)
-gelman.plot(chains.all)
-off <- dev.off()
-
-# NB. values substantially above 1 indicate lack of convergence.
-gelman <- gelman.diag(chains.all, multivariate=TRUE, autoburnin=FALSE)
+result = tryCatch({
+    # NB. values substantially above 1 indicate lack of convergence.
+    gelman <- gelman.diag(chains.all, multivariate=TRUE, autoburnin=FALSE)
+}, error = function(e) {
+    # not all models can compute a value multivariate PSRF
+    gelman <- gelman.diag(chains.all, multivariate=FALSE, autoburnin=FALSE)
+})
 
 gelman.list <- gelman$psrf[,1]
-gelman.list['mpsrf'] <- gelman$mpsrf
+gelman.list['mpsrf'] <- if (is.null(gelman$mpsrf)) NA else gelman$mpsrf;
 cat(toJSON(gelman.list, indent = 2), file=psrf_file)
 
 cat("Gelman and Rubin's convergence diagnostic.", "\n")
@@ -100,3 +100,16 @@ print(gelman)
 if (gelman$psrf['lnL', 1] > 1.1) {
     cat(paste0("WARNING: PSRF of likelihood above threshold = ", round(gelman$psrf['lnL', 1], 3)))
 }
+
+# do any params have infinite variance (very bad!)
+inf.params <- names(gelman$psrf[,1][gelman$psrf[,1] == 'Inf'])
+
+if (length(inf.params) > 0) {
+    # drop the offending columns so we can print the Gelman plot
+    chains.all <- chains.all[,!(colnames(chains.all[[1]]) %in% inf.params)]
+}
+
+cat("Plotting the Gelman and Rubin's convergence diagnostic.", "\n\n")
+png(file=str_replace(gelman_png, 'pt1', 'pt%d'), width=7, height=7, units='in', res=300)
+gelman.plot(chains.all)
+off <- dev.off()

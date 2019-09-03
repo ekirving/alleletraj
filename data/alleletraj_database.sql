@@ -6,8 +6,8 @@
 # https://github.com/sequelpro/sequelpro
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
-# Database: alleletraj_cattle_umd3.1_rel38
-# Generation Time: 2019-08-15 15:54:55 +0000
+# Database: alleletraj_horse_equcab2_rel38
+# Generation Time: 2019-09-03 13:33:49 +0000
 # ************************************************************
 
 
@@ -559,14 +559,14 @@ CREATE TABLE `selection_neutrals` (
 CREATE TABLE `selection_psrf` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `selection_id` int(11) NOT NULL,
-  `mpsrf` float NOT NULL,
-  `lnL` float NOT NULL,
-  `pathlnL` float NOT NULL,
-  `alpha1` float NOT NULL,
-  `alpha2` float NOT NULL,
-  `F` float NOT NULL,
-  `age` float NOT NULL,
-  `end_freq` float NOT NULL,
+  `mpsrf` float DEFAULT NULL,
+  `lnL` float DEFAULT NULL,
+  `pathlnL` float DEFAULT NULL,
+  `alpha1` float DEFAULT NULL,
+  `alpha2` float DEFAULT NULL,
+  `F` float DEFAULT NULL,
+  `age` float DEFAULT NULL,
+  `end_freq` float DEFAULT NULL,
   `sample_time_0` float DEFAULT NULL,
   `sample_time_1` float DEFAULT NULL,
   `sample_time_2` float DEFAULT NULL,

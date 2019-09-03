@@ -16,7 +16,7 @@ gelman_png <- args[6]
 param_files <- args[7:length(args)]
 
 # TODO remove when done testing
-# prefix <- 'horse-DOM2-modsnp10550815-n100000000-s100-h0.5'
+# prefix <- 'horse-DOM2-modsnp7141916-n100000000-s100-h0.5'
 # burn_perc <- 0.5
 # thin <- 100
 # ess_file  <- paste0('data/selection/', prefix, '-chainAll.ess')
@@ -38,7 +38,7 @@ for (i in param_files) {
     mcmc.chain[,'lnL'][mcmc.chain[,'lnL'] == '-Inf'] <- -.Machine$integer.max
 
     # convert burn % to number of records
-    burnin = burn_perc * nrow(mcmc.chain)
+    burnin = round(burn_perc * nrow(mcmc.chain))
 
     # burn in the chain (thinning is already done)
     chains[[i]] <- mcmc(
@@ -57,7 +57,9 @@ if (min_iter != max_iter) {
     chains <- lapply(chains, function(x) {
         num_iter <- niter(x)
         offset <- num_iter - min_iter + 1
-        mcmc(x[offset:num_iter,])
+        mcmc(x[offset:num_iter,],
+             start = round(burn_perc/(1-burn_perc) * min_iter),
+             thin = thin)
     })
 }
 

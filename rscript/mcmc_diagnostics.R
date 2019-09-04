@@ -34,12 +34,11 @@ trace_png <- args[10]
 cat("Loading MCMC...\n")
 cat("Param: ", param_file, "\n")
 
-# load the chain and convert to an MCMC object
-chain <- fread(param_file, header = T, sep = '\t', drop=c('gen'))
+# load the chain and convert to an MCMC object (and cast infinite values to NA)
+chain <- fread(param_file, header = T, sep = '\t', drop=c('gen'), na.strings=c('inf', '-inf'))
 
-# fix infinite errors
-chain[chain == 'Inf'] <- .Machine$integer.max
-chain[chain == '-Inf'] <- -.Machine$integer.max
+# drop NAs
+chain <- na.omit(chain)
 
 # convert to MCMC object
 mcmc.chain <- mcmc(chain)

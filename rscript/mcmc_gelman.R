@@ -31,18 +31,20 @@ cat("Analysing combined chains.", "\n\n")
 chains <- c()
 
 for (i in param_files) {
-    # load the chain
-    mcmc.chain <- mcmc(fread(i, header = T, sep = '\t', drop = c('gen', 'first_nonzero')))
+    # load the chain (and cast infinite values to NA)
+    chain <- fread(i, header = T, sep = '\t', drop=c('gen', 'first_nonzero'), na.strings=c('inf', '-inf'))
 
-    # fix infinite errors
-    mcmc.chain[,'lnL'][mcmc.chain[,'lnL'] == '-Inf'] <- -.Machine$integer.max
+    # drop NAs
+    chain <- na.omit(chain)
+
+    chain.length <- nrow(chain)
 
     # convert burn % to number of records
-    burnin = round(burn_perc * nrow(mcmc.chain))
+    burnin = round(burn_perc * chain.length)
 
     # burn in the chain (thinning is already done)
     chains[[i]] <- mcmc(
-        burnAndThin(mcmc.chain, burn = burnin),
+        chain[(burnin + 1):chain.length,],
         start = burnin * thin,
         thin = thin)
 }

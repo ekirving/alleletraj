@@ -145,9 +145,6 @@ class PopulateQTLs(utils.MySQLTask):
                     pubmed['journal'] = pubmed['journal']['#text'][:-5]
 
                     self.dbc.save_record('pubmeds', pubmed, insert=True)
-                else:
-                    # TODO some records have a bogus pubmed ID, but these appear to work on the website
-                    record['pubmedID'] = None
 
             # flatten the other nested records
             for field in record:

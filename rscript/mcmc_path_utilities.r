@@ -1,5 +1,6 @@
 require(DAAG, quietly=T)
 require(expm, quietly=T)
+require(reader, quietly=T)
 
 ####################MCMC UTILITIES############################
 
@@ -28,23 +29,16 @@ make_command_string = function(sam_times,sam_sizes,sam_counts,outFile,dt=.001,n=
 
 #reads sampled paths from MCMC
 #outname should be the PREFIX, it automatically reads both times and trajectories
-read.path = function(outname,n=-1L) {
-	traj = readLines(paste(outname,".traj.gz",sep=""),n=n)
+read.path = function(outname, lines, skip) {
+	traj = n.readLines(paste0(outname, '.traj.gz'), n=lines, skip=skip, header=F)
 	traj = lapply(traj, function(x) {temp = as.numeric(unlist(strsplit(x,split=" "))); temp[2:length(temp)]})
-	time = readLines(paste(outname,".time.gz",sep=""),n=n)
+	time = n.readLines(paste0(outname, '.time.gz'), n=lines, skip=skip, header=F)
 	time = lapply(time, function(x) {temp = as.numeric(unlist(strsplit(x,split=" "))); temp[2:length(temp)]})
 	return(list(traj=traj,time=time))
 }
 
 #plots posterior distribution of paths from MCMC
 plot.posterior.paths = function(paths,sam_freqs,sam_times,ylim=c(0,1),truePath=c(),trueTime=c(),dt=.001,plot.ages=T, burnin = 0, xlim=NULL) {
-	if (burnin > 0) {
-		#ignore paths that are during burnin
-		pathsTemp = paths
-		paths$time = pathsTemp$time[burnin:length(pathsTemp$time)]
-		paths$traj = pathsTemp$traj[burnin:length(pathsTemp$traj)]
-		rm(pathsTemp)
-	}
 
 	#find the oldest age
 	oldest = min(sapply(paths$time,min))

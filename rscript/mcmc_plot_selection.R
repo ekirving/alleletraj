@@ -1,4 +1,5 @@
 #!/usr/bin/env Rscript
+require(R.utils, quietly=T)
 source('rscript/mcmc_path_utilities.r')
 
 # get the command line arguments
@@ -23,11 +24,14 @@ samples <- read.table(input_file, col.names=c('derived_count', 'sample_size', 'b
 samples$freq <- samples$derived_count/samples$sample_size
 samples$time <- rowMeans(samples[c('bin_high', 'bin_low')])
 
-# load the MCMC run (WARNING: very CPU and memory intensive!)
-paths <- read.path(output_prefix)
+# get the chain length
+chain.length <- countLines(paste0(output_prefix, '.traj.gz'))[1]
 
 # convert burn % to number of records
-burnin = burn_perc * length(paths$traj)
+burnin <- burn_perc * chain.length
+
+# load the MCMC run (WARNING: very CPU and memory intensive!)
+paths <- read.path(output_prefix, chain.length, burnin)
 
 # handle error condition where time and traj are not of equal length
 if (length(paths$traj) != length(paths$time)) {
@@ -41,6 +45,6 @@ if (length(paths$traj) != length(paths$time)) {
 
 # plot the trajectoy
 pdf(file=pdf_file, width = 8, height = 6)
-plot.posterior.paths(paths, samples$freq, samples$time, burnin=burnin)
+plot.posterior.paths(paths, samples$freq, samples$time)
 dev.off()
 

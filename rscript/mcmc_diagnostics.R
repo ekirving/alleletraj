@@ -19,7 +19,7 @@ auto_pdf <- args[9]
 trace_png <- args[10]
 
 # TODO remove when done testing
-# prefix <- 'horse-DOM2-modsnp9948933-n50000000-s1000-h0.5-chain2'
+# prefix <- 'horse-DOM2-modsnp3020195-n100000000-s100-h0.5-chain1'
 # param_file <- paste0('data/selection/', prefix, '.param.gz')
 # burn_perc <- 0.5
 # thin <- 1000
@@ -38,7 +38,8 @@ cat("Param: ", param_file, "\n")
 chain <- fread(param_file, header = T, sep = '\t', drop=c('gen'))
 
 # fix infinite errors
-chain$lnL[chain$lnL == '-Inf'] <- -.Machine$integer.max
+chain[chain == 'Inf'] <- .Machine$integer.max
+chain[chain == '-Inf'] <- -.Machine$integer.max
 
 # convert to MCMC object
 mcmc.chain <- mcmc(chain)
@@ -54,7 +55,7 @@ cat("Thin: ", thin, "\n")
 # check the acceptance rate / except this doesn't work for pre-thinnned chains
 # cat("Acceptance Rate (ideal is 0.234) = ", 1 - rejectionRate(mcmc.chain)[1], "\n\n")
 
-# drop all the sample_time and first_nonzero params as they overdominate the ESS space
+# drop all the sample_time and first_nonzero params as they dominate the ESS space
 mcmc.notime <- mcmc(chain[,c('lnL','pathlnL','alpha1','alpha2','F','age','end_freq')])
 
 # plot ESS vs. burn-in

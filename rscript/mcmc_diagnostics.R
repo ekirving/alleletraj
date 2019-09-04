@@ -19,7 +19,7 @@ auto_pdf <- args[9]
 trace_png <- args[10]
 
 # TODO remove when done testing
-# prefix <- 'horse-DOM2-modsnp3020195-n100000000-s100-h0.5-chain1'
+# prefix <- 'cattle-Dom-modsnp3420346-n100000000-s100-h0.5-chain2'
 # param_file <- paste0('data/selection/', prefix, '.param.gz')
 # burn_perc <- 0.5
 # thin <- 1000
@@ -36,9 +36,15 @@ cat("Param: ", param_file, "\n")
 
 # load the chain and convert to an MCMC object (and cast infinite values to NA)
 chain <- fread(param_file, header = T, sep = '\t', drop=c('gen'), na.strings=c('inf', '-inf'))
+chain.length <- nrow(chain)
 
 # drop NAs
 chain <- na.omit(chain)
+
+if (nrow(chain) < chain.length * 0.9) {
+    perc <- (chain.length-nrow(chain))/chain.length*100
+    stop('Excessive NAs from Inf / -Inf (', perc, '%)')
+}
 
 # convert to MCMC object
 mcmc.chain <- mcmc(chain)

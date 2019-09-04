@@ -82,12 +82,12 @@ png(file=str_replace(trace_png, 'pt1', 'pt%d'), width=7, height=7, units='in', r
 plot(chains.all)
 off <- dev.off()
 
-result = tryCatch({
+gelman <- tryCatch({
     # NB. values substantially above 1 indicate lack of convergence.
-    gelman <- gelman.diag(chains.all, multivariate=TRUE, autoburnin=FALSE)
+    gelman.diag(chains.all, multivariate=TRUE, autoburnin=FALSE)
 }, error = function(e) {
     # not all models can compute a value multivariate PSRF
-    gelman <- gelman.diag(chains.all, multivariate=FALSE, autoburnin=FALSE)
+    gelman.diag(chains.all, multivariate=FALSE, autoburnin=FALSE)
 })
 
 gelman.list <- gelman$psrf[,1]

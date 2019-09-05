@@ -450,11 +450,15 @@ class SelectionPlot(utils.PipelineTask):
     @property
     def priority(self):
         ess_file, _, _, _, _, _ = self.input()[3]
-        with ess_file.open('r') as fin:
-            ess = json.load(fin)
 
-        # prioritise models with a high minimum ESS
-        return int(min(ess.values()))
+        if ess_file.exists():
+            with ess_file.open('r') as fin:
+                ess = json.load(fin)
+
+            # prioritise models with a high minimum ESS
+            return int(min(ess.values()))
+        else:
+            return 0
 
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED)

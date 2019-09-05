@@ -447,17 +447,27 @@ class SelectionPlot(utils.PipelineTask):
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0
 
+    @property
+    def priority(self):
+        ess_file, _, _, _, _, _ = self.input()[3]
+        with ess_file.open('r') as fin:
+            ess = json.load(fin)
+
+        # prioritise models with a high minimum ESS
+        return int(min(ess.values()))
+
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED)
         yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
         yield SelectionRunMCMC(**self.all_params())
+        yield SelectionDiagnostics(**self.all_params())
 
     def output(self):
         return luigi.LocalTarget('data/pdf/selection/{}-traj.pdf'.format(self.basename))
 
     def run(self):
         # unpack the inputs
-        (_, nref_file, _), input_file, (param_file, _, _, _) = self.input()
+        (_, nref_file, _), input_file, (param_file, _, _, _), _ = self.input()
         pdf_file = self.output()
 
         # compose the input and output file paths

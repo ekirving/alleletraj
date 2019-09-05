@@ -34,4 +34,5 @@ rsync -avz --partial \
            --exclude 'data/selection.truncated/' \
            --exclude '*SelectionBenchmark*' \
            --exclude 'cattle-Dom-*.input' \
+           --exclude 'data/db/' \
            evan@palaeoprime:~/alleletraj/ ~/Dropbox/Code/alleletraj/

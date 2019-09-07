@@ -752,6 +752,8 @@ class LoadSelectionPSRF(utils.MySQLTask):
         ess['selection_id'] = selection_id
         self.dbc.save_record('selection_ess', ess)
 
+        # TODO we should calculate the maximum a posteriori based on the combined chains
+
         # load the PSRF
         with psrf_file.open('r') as fin:
             psrf = json.load(fin)

@@ -19,7 +19,7 @@ from vcf import PolarizeVCF, WholeAutosomeSNPsVCF
 from alleletraj import utils
 
 # number of sequential epochs to test
-DADI_EPOCHS = 5
+DADI_EPOCHS = 5  # TODO increase this, as 5 was the best model for cattle and it would be preferable to overshoot
 
 # how many independent replicates should we run to find the global maximum params (dadi can get stuck in local maxima)
 DADI_REPLICATES = 1000

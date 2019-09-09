@@ -23,6 +23,7 @@ samples <- read.table(input_file, col.names=c('derived_count', 'sample_size', 'b
 # get the data in the right format
 samples$freq <- samples$derived_count/samples$sample_size
 samples$time <- rowMeans(samples[c('bin_high', 'bin_low')])
+samples$size <- round(log(samples$sample_size +1))/2
 
 # get the chain length
 chain.length <- countLines(paste0(output_prefix, '.traj.gz'))[1]
@@ -42,6 +43,6 @@ if (length(paths$traj) != length(paths$time)) {
 }
 
 # plot the trajectoy
-pdf(file=pdf_file, width=12, height=6)
-plot.posterior.paths(paths, samples$freq, samples$time, units, xlim=c(-50000/units,0))
+pdf(file=pdf_file, width=8, height=5)
+plot.posterior.paths(paths, samples$freq, samples$time, samples$size, units, xlim=c(-50000/units,0))
 dev.off()

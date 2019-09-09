@@ -1,6 +1,7 @@
 require(DAAG, quietly=T)
 require(expm, quietly=T)
 require(reader, quietly=T)
+require(scales, quietly=T)
 
 ####################MCMC UTILITIES############################
 
@@ -38,7 +39,7 @@ read.path = function(outname, lines, skip) {
 }
 
 #plots posterior distribution of paths from MCMC
-plot.posterior.paths = function(paths,sam_freqs,sam_times,units,ylim=c(0,1),truePath=c(),trueTime=c(),dt=.001,plot.ages=T, burnin = 0, xlim=NULL) {
+plot.posterior.paths = function(paths,sam_freqs,sam_times,sam_size,units,ylim=c(0,1),truePath=c(),trueTime=c(),dt=.001,plot.ages=T, burnin = 0, xlim=NULL) {
 
 	#find the oldest age
 	oldest = min(sapply(paths$time,min))
@@ -82,7 +83,9 @@ plot.posterior.paths = function(paths,sam_freqs,sam_times,units,ylim=c(0,1),true
 	x.ticks <- seq(x.start, present, by=x.step)
 	axis(side=1, at=x.ticks, labels=paste(x.ticks*-units/1000))
 
-	points(sam_times,sam_freqs,pch=21,bg="black")
+	# add the sample points, proportional to the log of their size
+	points(sam_times,sam_freqs,pch=19,col=alpha("black", 0.6), cex=sam_size)
+
 	if (length(truePath)>0 && length(trueTime) > 0) {
 		lines(trueTime,truePath,lty=2)
 	}

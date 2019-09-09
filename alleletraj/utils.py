@@ -188,7 +188,7 @@ class PipelineTask(luigi.Task):
                 if value:
                     params.append(name)
             elif isinstance(value, Iterable):
-                params.append('{}({})'.format(name, u','.join([a for a in value])))
+                params.append('{}({})'.format(name, u','.join([str(a) for a in value])))
             else:
                 if value is not None:
                     params.append('{}{}'.format(name, value))
@@ -249,7 +249,7 @@ class PipelineTask(luigi.Task):
         """
         Get all the params as a dictionary, so we can use the **kwargs syntax.
         """
-        return dict(self._all_params())
+        return OrderedDict(self._all_params())
 
     def input_targets(self, ext=None):
         """

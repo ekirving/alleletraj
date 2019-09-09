@@ -3,6 +3,7 @@
 
 # standard modules
 import glob
+import itertools
 import json
 import os
 import random
@@ -22,6 +23,9 @@ from alleletraj.qtl.load import MIN_DAF
 # number of independent MCMC replicates to run
 MCMC_NUM_CHAINS = 2  # TODO put back to 4 for production run
 
+# maximum number of MCMC replicates to run in search of converged runs
+MCMC_MAX_CHAINS = 3
+
 # number of MCMC cycles to run
 MCMC_CYCLES = int(1e8)
 
@@ -37,6 +41,12 @@ MCMC_THIN = 100
 
 # frequency of printing output to the log
 MCMC_PRINT = 1000
+
+# the minimum ESS threshold for an MCMC run
+MCMC_MIN_ESS = 100
+
+# the maximum MPSRF threshold for a set of MCMC runs
+MCMC_MAX_MPSRF = 1.2
 
 # genetic model
 MODEL_RECESSIVE = 0
@@ -625,6 +635,55 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
         self.dbc.save_record('selection_map', posteriori)
 
 
+class SelectionCalculateMPSRF(utils.PipelineTask):
+    """
+    Calculate the MPSRF for the given set of chains.
+
+    If MPSRF > 1.2 then SelectionPSRF will call this task again with a different set of chains to compare.
+
+    :type species: str
+    :type population: str
+    :type modsnp: int
+    :type no_modern: bool
+    :type mispolar: bool
+    :type n: int
+    :type s: int
+    :type h: float
+    :type chains: list
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    modsnp = luigi.IntParameter()
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
+    n = luigi.IntParameter()
+    s = luigi.IntParameter()
+    h = luigi.FloatParameter()
+    chains = luigi.ListParameter()
+
+    def output(self):
+        return luigi.LocalTarget('data/selection/{}.mpsrf'.format(self.basename))
+
+    def run(self):
+        param_paths = []
+
+        params = self.all_params()
+        params.pop('chains')
+
+        for chain in self.chains:
+            params['chain'] = chain
+
+            # get the path to the MCMC parameter chain
+            mcmc = yield SelectionRunMCMC(**params)
+            param_paths.append(mcmc[0].path)
+
+        with self.output().temporary_path() as mpsrf_path:
+            utils.run_cmd(['Rscript',
+                           'rscript/mcmc_mpsrf.R',
+                           MCMC_BURN_PCT,
+                           self.s] + param_paths, stdout=open(mpsrf_path, 'w'))
+
+
 class SelectionPSRF(utils.PipelineTask):
     """
     Calculate the Potential Scale Reduction Factor (PSRF) for all the replicate chains.
@@ -645,11 +704,11 @@ class SelectionPSRF(utils.PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    no_modern = luigi.BoolParameter()
-    mispolar = luigi.BoolParameter()
-    n = luigi.IntParameter()
-    s = luigi.IntParameter()
-    h = luigi.FloatParameter()
+    no_modern = luigi.BoolParameter(default=False)
+    mispolar = luigi.BoolParameter(default=False)
+    n = luigi.IntParameter(default=MCMC_CYCLES)
+    s = luigi.IntParameter(default=MCMC_THIN)
+    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
 
     resources = {'cpu-cores': 1, 'ram-gb': 4}
 
@@ -658,12 +717,11 @@ class SelectionPSRF(utils.PipelineTask):
 
     def requires(self):
         params = self.all_params()
+
+        # setup the basic replicate chain requirements, these are extended at runtime depending on quality metrics
         for chain in range(1, MCMC_NUM_CHAINS + 1):
             params['chain'] = chain
-
-            yield SelectionRunMCMC(**params)
-            yield SelectionPlot(**params)
-            yield LoadSelectionDiagnostics(**params)
+            yield SelectionDiagnostics(**params)
 
     def output(self):
         yield luigi.LocalTarget('data/selection/{}-chainAll.ess'.format(self.basename))
@@ -673,11 +731,70 @@ class SelectionPSRF(utils.PipelineTask):
         yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-gelman-pt1.png'.format(self.basename))
 
     def run(self):
-        param_paths = [param_file.path for param_file in self.input_targets(ext='param.gz')]
         ess_file, psrf_file, diag_file, trace_png, gelman_png = self.output()
 
-        # TODO calculate the MAP for the combined chains
+        mpsrf_good = False
+        ess_good = []
+        chain = 1
 
+        while not mpsrf_good:
+            if chain > MCMC_MAX_CHAINS + 1:
+                raise RuntimeError('Failed to converge MCMC chains after {} attempts'.format(MCMC_MAX_CHAINS))
+
+            # get the next MCMC chain
+            params = self.all_params()
+            params['chain'] = chain
+            diag_task = yield SelectionDiagnostics(**params)
+
+            # get the ESS of the chain
+            with next(diag_task).open('r') as fin:
+                ess = json.load(fin)
+
+            # get the minimum ESS
+            min_ess = min(ess.values())  # TODO consider replacing with a multivariate ESS
+
+            # enforce the threshold
+            if min_ess > MCMC_MIN_ESS:
+                ess_good.append(chain)
+
+            if len(ess_good) >= MCMC_NUM_CHAINS:
+                # get all possible combinations of the MCMC chains (in sets of size MCMC_NUM_CHAINS)
+                chain_sets = list(itertools.combinations(ess_good, MCMC_NUM_CHAINS))
+
+                params = self.all_params()
+                for chain_set in chain_sets:
+                    params['chains'] = chain_set
+
+                    # calculation the MPSRF for this set of chains
+                    mpsrf_file = yield SelectionCalculateMPSRF(**params)
+
+                    with mpsrf_file.open('r') as fin:
+                        mpsrf = float(fin.read())
+
+                        if mpsrf <= MCMC_MAX_MPSRF:
+                            mpsrf_good = True
+                            break
+
+            chain += 1
+
+        param_paths = []
+
+        # now we have a suitable set, let's finish things off
+        params = self.all_params()
+        for chain in chain_set:
+            params['chain'] = chain
+
+            # load the metadata
+            yield LoadSelectionDiagnostics(**params)
+
+            # get the path to the MCMC parameter chain
+            mcmc = yield SelectionRunMCMC(**params)
+            param_paths.append(mcmc[0].path)
+
+        # and we only need to plot one of the chains
+        yield SelectionPlot(**params)  # TODO this should plot the combined chains
+
+        # TODO this should calculate the maximum a posteriori (MAP) based on the combined chains
         with diag_file.temporary_path() as diag_path:
             utils.run_cmd(['Rscript',
                            'rscript/mcmc_gelman.R',
@@ -736,8 +853,6 @@ class LoadSelectionPSRF(utils.MySQLTask):
 
         ess['selection_id'] = selection_id
         self.dbc.save_record('selection_ess', ess)
-
-        # TODO we should calculate the maximum a posteriori based on the combined chains
 
         # load the PSRF
         with psrf_file.open('r') as fin:

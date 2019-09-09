@@ -11,11 +11,11 @@ burn_perc <- as.numeric(args[4])
 pdf_file <- args[5]
 
 # TODO remove when done testing
-# input_file <- 'data/selection/horse-DOM2-modsnp3020195.input'
-# output_prefix <- 'data/selection/horse-DOM2-modsnp3020195-n100000000-s100-h0.5-chain2'
+# input_file <- 'data/selection/horse-DOM2-modsnp7146976.input'
+# output_prefix <- 'data/selection/horse-DOM2-modsnp7146976-n100000-s100-h0.5-chain1'
 # units <- 274400
 # burn_perc <- 0.5
-# pdf_file <- 'data/pdf/selection/horse-DOM2-modsnp3020195-n100000000-s100-h0.5-chain2-traj.pdf'
+# pdf_file <- 'data/pdf/selection/horse-DOM2-modsnp7146976-n100000-s100-h0.5-chain1-traj.pdf'
 
 # load the samples input file
 samples <- read.table(input_file, col.names=c('derived_count', 'sample_size', 'bin_high', 'bin_low'))
@@ -41,10 +41,7 @@ if (length(paths$traj) != length(paths$time)) {
     paths$time <- paths$time[1:trunc]
 }
 
-# TODO rescale time by units
-
 # plot the trajectoy
-pdf(file=pdf_file, width = 8, height = 6)
-plot.posterior.paths(paths, samples$freq, samples$time)
+pdf(file=pdf_file, width=12, height=6)
+plot.posterior.paths(paths, samples$freq, samples$time, units, xlim=c(-50000/units,0))
 dev.off()
-

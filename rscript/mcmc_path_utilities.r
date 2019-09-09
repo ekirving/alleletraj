@@ -38,7 +38,7 @@ read.path = function(outname, lines, skip) {
 }
 
 #plots posterior distribution of paths from MCMC
-plot.posterior.paths = function(paths,sam_freqs,sam_times,ylim=c(0,1),truePath=c(),trueTime=c(),dt=.001,plot.ages=T, burnin = 0, xlim=NULL) {
+plot.posterior.paths = function(paths,sam_freqs,sam_times,units,ylim=c(0,1),truePath=c(),trueTime=c(),dt=.001,plot.ages=T, burnin = 0, xlim=NULL) {
 
 	#find the oldest age
 	oldest = min(sapply(paths$time,min))
@@ -65,11 +65,23 @@ plot.posterior.paths = function(paths,sam_freqs,sam_times,ylim=c(0,1),truePath=c
 	five_percent_age = quantile(ages,.05)
 	sd_age = sd(ages)
 	first_time_ind = min(which(post_times>five_percent_age-sd_age))
+	x.step <- 5000/units
 	if (is.null(xlim)) {
-		matplot(as.numeric(post_times[first_time_ind:length(post_times)]),path_quantiles[first_time_ind:length(post_times),],type="l",lty=1,col=c(3,2,1,2,3),xlab="time",ylab="Allele frequency",ylim=ylim)
+		matplot(as.numeric(post_times[first_time_ind:length(post_times)]),path_quantiles[first_time_ind:length(post_times),],type="l",lty=1,col=c(3,2,1,2,3),xlab="kyr BP",ylab="",ylim=ylim, axes=F)
+	    x.start <- round(post_times[first_time_ind]/x.step) * x.step
 	} else {
-		matplot(as.numeric(post_times[first_time_ind:length(post_times)]),path_quantiles[first_time_ind:length(post_times),],type="l",lty=1,col=c(3,2,1,2,3),xlab="time",ylab="Allele frequency",ylim=ylim,xlim=xlim)
+		matplot(as.numeric(post_times[first_time_ind:length(post_times)]),path_quantiles[first_time_ind:length(post_times),],type="l",lty=1,col=c(3,2,1,2,3),xlab="kyr BP",ylab="",ylim=ylim,xlim=xlim, axes=F)
+	    x.start <- floor(min(xlim)/x.step) * x.step
 	}
+
+	# add Y-axis
+	axis(4)
+	mtext("Allele frequency",side=4,line=3)
+
+	# add x-axis
+	x.ticks <- seq(x.start, present, by=x.step)
+	axis(side=1, at=x.ticks, labels=paste(x.ticks*-units/1000))
+
 	points(sam_times,sam_freqs,pch=21,bg="black")
 	if (length(truePath)>0 && length(trueTime) > 0) {
 		lines(trueTime,truePath,lty=2)
@@ -89,8 +101,8 @@ plot.posterior.paths = function(paths,sam_freqs,sam_times,ylim=c(0,1),truePath=c
 		} else {
 			plot(post_times[first_time_ind:length(post_times)],c(age_dens_spline(post_times[first_time_ind:first_nonzero_post]),rep(0,length(post_times)-first_nonzero_post)),type="l",col="blue",axes=FALSE,bty="n",xlab="",ylab="",xlim=xlim)
 		}
-		axis(side=4,at=pretty(range(c(age_dens_spline(post_times[1:first_nonzero_post]),rep(0,length(post_times)-first_nonzero_post)))))
-		mtext("Density",side=4,line=3)
+		axis(side=2,at=pretty(range(c(age_dens_spline(post_times[1:first_nonzero_post]),rep(0,length(post_times)-first_nonzero_post)))))
+		mtext("Density",side=2,line=3)
 	}
 	invisible(list(quantiles=path_quantiles,sam_freqs=sam_freqs,sam_times=sam_times,post_times = post_times))
 }

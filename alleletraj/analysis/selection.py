@@ -75,7 +75,7 @@ def selection_fetch_neutral_snps(species, population, modsnp_id, mispolar=False)
         'mispolar':   int(mispolar)
     }
 
-    modsnps = dbc.get_records('selection_neutrals', params)
+    modsnps = dbc.get_records('selection_neutrals', params, key='neutral_id')
 
     if not modsnps:
         modsnps = selection_pair_neutral_snps(species, population, modsnp_id, mispolar)
@@ -864,9 +864,11 @@ class LoadSelectionPSRF(utils.MySQLTask):
         self.dbc.save_record('selection_psrf', psrf)
 
 
-class SelectionPairNeutrals(utils.PipelineWrapperTask):
+class SelectionPairNeutrals(utils.MySQLTask):  # TODO this task type is misleading
     """
     Pair the given modSNP with some neutral replicates, and run `selection` on them all.
+
+    But, wait until the target SNP has been successfully modelled before launching the neutral replicates.
 
     :type species: str
     :type population: str
@@ -881,24 +883,15 @@ class SelectionPairNeutrals(utils.PipelineWrapperTask):
     mispolar = luigi.BoolParameter(default=False)
 
     def requires(self):
+        yield LoadSelectionPSRF(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
 
-        yield LoadSelectionPSRF(self.species, self.population, self.modsnp, self.no_modern)
-
+    def run(self):
         # get the neutral controls for this modsnp
-        neutral = selection_fetch_neutral_snps(self.species, self.population, self.modsnp)
+        neutrals = selection_fetch_neutral_snps(self.species, self.population, self.modsnp, self.mispolar)
 
-        for modsnp_id in neutral:
-            yield LoadSelectionPSRF(self.species, self.population, modsnp_id, self.no_modern)
-
-        if self.mispolar:
-            # also run the modsnp with the ancestral/derived alleles reversed
-            yield LoadSelectionPSRF(self.species, self.population, self.modsnp, self.no_modern, mispolar=True)
-
-            # and paired to neutral controls using the onverted DAF
-            neutral = selection_fetch_neutral_snps(self.species, self.population, self.modsnp, mispolar=True)
-
-            for modsnp_id in neutral:
-                yield LoadSelectionPSRF(self.species, self.population, modsnp_id, self.no_modern)
+        # TODO only run neutrals if the target SNP looks interesting
+        for modsnp_id in neutrals:
+            yield LoadSelectionPSRF(self.species, self.population, modsnp_id, self.no_modern, self.mispolar)
 
 
 class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):

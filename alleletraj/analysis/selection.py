@@ -896,7 +896,7 @@ class SelectionPairNeutrals(utils.MySQLTask):  # TODO this task type is misleadi
 
 class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
     """
-    Run `selection` on all the direct GWAS hits.
+    Run `selection` on all the direct GWAS hits (except any flagged as mispolar)
 
     :type species: str
     :type population: str
@@ -917,10 +917,11 @@ class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
                AND ms.site = q.site
              WHERE q.associationType = 'Association'
                AND q.valid = 1
+               AND ms.mispolar IS NULL
                """, key=None)
 
         for modsnp in modsnps:
-            yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern, modsnp['mispolar'])
+            yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern)
 
 
 class SelectionPipeline(utils.PipelineWrapperTask):

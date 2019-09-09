@@ -704,11 +704,11 @@ class SelectionPSRF(utils.PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
-    no_modern = luigi.BoolParameter(default=False)
-    mispolar = luigi.BoolParameter(default=False)
-    n = luigi.IntParameter(default=MCMC_CYCLES)
-    s = luigi.IntParameter(default=MCMC_THIN)
-    h = luigi.FloatParameter(default=MODEL_ADDITIVE)
+    no_modern = luigi.BoolParameter()
+    mispolar = luigi.BoolParameter()
+    n = luigi.IntParameter()
+    s = luigi.IntParameter()
+    h = luigi.FloatParameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 4}
 
@@ -716,9 +716,8 @@ class SelectionPSRF(utils.PipelineTask):
     retry_count = 0
 
     def requires(self):
-        params = self.all_params()
-
         # setup the basic replicate chain requirements, these are extended at runtime depending on quality metrics
+        params = self.all_params()
         for chain in range(1, MCMC_NUM_CHAINS + 1):
             params['chain'] = chain
             yield SelectionDiagnostics(**params)
@@ -733,12 +732,12 @@ class SelectionPSRF(utils.PipelineTask):
     def run(self):
         ess_file, psrf_file, diag_file, trace_png, gelman_png = self.output()
 
-        mpsrf_good = False
+        mpsrf_good = []
         ess_good = []
         chain = 1
 
         while not mpsrf_good:
-            if chain > MCMC_MAX_CHAINS + 1:
+            if chain > MCMC_MAX_CHAINS:
                 raise RuntimeError('Failed to converge MCMC chains after {} attempts'.format(MCMC_MAX_CHAINS))
 
             # get the next MCMC chain
@@ -757,31 +756,30 @@ class SelectionPSRF(utils.PipelineTask):
             if min_ess > MCMC_MIN_ESS:
                 ess_good.append(chain)
 
-            if len(ess_good) >= MCMC_NUM_CHAINS:
-                # get all possible combinations of the MCMC chains (in sets of size MCMC_NUM_CHAINS)
-                chain_sets = list(itertools.combinations(ess_good, MCMC_NUM_CHAINS))
+                if len(ess_good) >= MCMC_NUM_CHAINS:
+                    # get all possible combinations of the MCMC chains (in sets of size MCMC_NUM_CHAINS)
+                    chain_sets = list(itertools.combinations(ess_good, MCMC_NUM_CHAINS))
 
-                params = self.all_params()
-                for chain_set in chain_sets:
-                    params['chains'] = chain_set
+                    params = self.all_params()
+                    for chain_set in chain_sets:
+                        params['chains'] = chain_set
 
-                    # calculation the MPSRF for this set of chains
-                    mpsrf_file = yield SelectionCalculateMPSRF(**params)
+                        # calculation the MPSRF for this set of chains
+                        mpsrf_file = yield SelectionCalculateMPSRF(**params)
 
-                    with mpsrf_file.open('r') as fin:
-                        mpsrf = float(fin.read())
+                        with mpsrf_file.open('r') as fin:
+                            mpsrf = float(fin.read())
 
-                        if mpsrf <= MCMC_MAX_MPSRF:
-                            mpsrf_good = True
-                            break
-
+                            if mpsrf <= MCMC_MAX_MPSRF:
+                                mpsrf_good = chain_set
+                                break
             chain += 1
 
         param_paths = []
 
         # now we have a suitable set, let's finish things off
         params = self.all_params()
-        for chain in chain_set:
+        for chain in mpsrf_good:
             params['chain'] = chain
 
             # load the metadata

@@ -31,7 +31,7 @@ param_files <- args[7:length(args)]
 cat("Analysing combined chains.", "\n\n")
 
 # load all the chains
-chains.all = load_chains(param_files)
+chains.all = load_chains(param_files, burn_perc, thin)
 
 # print the summary stats
 print(summary(chains.all))

@@ -1,7 +1,9 @@
 #!/usr/bin/env Rscript
 
-load_chains <- function(param_files, verbose=TRUE) {
+load_chains <- function(param_files, burn_perc, thin, verbose=TRUE) {
     chains <- c()
+
+    start <- NA
 
     for (i in param_files) {
         # load the chain (and cast infinite values to NA)
@@ -15,10 +17,15 @@ load_chains <- function(param_files, verbose=TRUE) {
         # convert burn % to number of records
         burnin = round(burn_perc * chain.length)
 
+        if (is.na(start)) {
+            # make sure we're consistent about the start point
+            start <- burnin * thin
+        }
+
         # burn in the chain (thinning is already done)
         chains[[i]] <- mcmc(
             chain[(burnin + 1):chain.length,],
-            start = burnin * thin,
+            start = start,
             thin = thin)
     }
 

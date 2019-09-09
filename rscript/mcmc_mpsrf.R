@@ -18,7 +18,7 @@ param_files <- args[3:length(args)]
 #                  paste0('data/selection/', prefix, '-chain2.param.gz'))
 
 # load all the chains
-chains.all = load_chains(param_files, verbose=FALSE)
+chains.all = load_chains(param_files, burn_perc, thin, verbose=FALSE)
 
 mpsrf <- tryCatch({
     # values substantially above 1.2 indicate lack of convergence

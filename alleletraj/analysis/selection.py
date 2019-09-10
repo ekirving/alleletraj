@@ -40,7 +40,7 @@ MCMC_BURN_PCT = 0.5
 MCMC_THIN = 100
 
 # frequency of printing output to the log
-MCMC_PRINT = 1000
+MCMC_PRINT = 10000
 
 # the minimum ESS threshold for an MCMC run
 MCMC_MIN_ESS = 100

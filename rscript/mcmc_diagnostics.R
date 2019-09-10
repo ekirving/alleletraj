@@ -4,6 +4,7 @@ library(fitR, quietly=T)
 library(data.table, quietly=T)
 library(rjson, quietly=T)
 library(stringr, quietly=T)
+library(ggplot2, quietly=T)
 
 # get the command line arguments
 args <- commandArgs(trailingOnly = TRUE)
@@ -19,10 +20,10 @@ auto_pdf <- args[9]
 trace_png <- args[10]
 
 # TODO remove when done testing
-# prefix <- 'cattle-Dom-modsnp3420346-n100000000-s100-h0.5-chain2'
+# prefix <- 'horse-DOM2-modsnp13076591-n10000000-s100-h0.5-chain2'
 # param_file <- paste0('data/selection/', prefix, '.param.gz')
 # burn_perc <- 0.5
-# thin <- 1000
+# thin <- 100
 # diff_units <- 274400
 # pop_size <- 17150
 # ess_file <- paste0('data/selection/', prefix, '.ess')
@@ -47,7 +48,7 @@ if (nrow(chain) < chain.length * 0.9) {
 }
 
 # convert to MCMC object
-mcmc.chain <- mcmc(chain)
+mcmc.chain <- mcmc(chain, thin=thin)
 chain.length <- nrow(mcmc.chain)
 
 # convert burn % to number of records
@@ -57,22 +58,25 @@ cat("Chain length: ", chain.length * thin, "\n")
 cat("Burn in: ", burnin * thin, "\n")
 cat("Thin: ", thin, "\n")
 
-# check the acceptance rate / except this doesn't work for pre-thinnned chains
-# cat("Acceptance Rate (ideal is 0.234) = ", 1 - rejectionRate(mcmc.chain)[1], "\n\n")
-
-# drop all the sample_time and first_nonzero params as they dominate the ESS space
-mcmc.notime <- mcmc(chain[,c('lnL','pathlnL','alpha1','alpha2','F','age','end_freq')])
-
-# plot ESS vs. burn-in
 cat("Plotting ESS vs. burn-in.", "\n\n")
-pdf(file=ess_pdf)  # , width=21, height=14
-plotESSBurn(mcmc.notime, longest.burn.in=chain.length * 0.5, step.size=chain.length * 0.1)
-off <- dev.off()
+
+# suppress the default output from the plot
+pdf(file='/dev/null')
+burn.plot <- plotESSBurn(mcmc.chain, longest.burn.in=chain.length * 0.9, step.size=chain.length * 0.1)
+dev.off()
+
+# now plot an improved version of ESS vs. burn-in
+pdf(file=ess_pdf)
+burn.plot +
+    scale_y_continuous(trans = 'log10') +
+    geom_hline(yintercept=100, linetype='dashed', color='red') +
+    geom_vline(xintercept=burnin, linetype='solid', color='grey')
+dev.off()
 
 # burn in the chain (thinning is already done)
 mcmc.burn <- mcmc(
     burnAndThin(mcmc.chain, burn = burnin),
-    start = burnin * thin,
+    start = round(burnin * thin),
     thin = thin)
 
 # print the summary stats

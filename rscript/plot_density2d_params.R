@@ -92,6 +92,8 @@ plot_density2d <- function(param, ylab) {
 
     g <- ggplot(mcmc.params) +
 
+        # TODO replace this with 'ggpointdensity'
+        # https://github.com/LKremer/ggpointdensity
         # plot density2d
         stat_density_2d(
             aes_string(x = 'ageyrs', y = param, fill = '..level..'),

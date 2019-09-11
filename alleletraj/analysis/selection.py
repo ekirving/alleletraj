@@ -27,7 +27,7 @@ MCMC_NUM_CHAINS = 2  # TODO put back to 4 for production run
 MCMC_MAX_CHAINS = 3
 
 # number of MCMC cycles to run
-MCMC_CYCLES = int(1e6)
+MCMC_CYCLES = int(1e7)
 
 # number of MCMC cycles to benchmark
 MCMC_BENCHMARK = int(1e4)

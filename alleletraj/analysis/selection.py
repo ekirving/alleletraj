@@ -187,6 +187,7 @@ class SelectionInputFile(utils.DatabaseTask):
     :type no_modern: bool
     :type mispolar: bool
     :type const_pop: bool
+    :type no_age: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -194,6 +195,7 @@ class SelectionInputFile(utils.DatabaseTask):
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
     const_pop = luigi.BoolParameter()
+    no_age = luigi.BoolParameter()
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0
@@ -231,6 +233,7 @@ class SelectionInputFile(utils.DatabaseTask):
             SELECT SUM(sr.base = ms.{derived}) AS derived_count,
                    COUNT(sr.id) AS sample_size,
                    -(sb.max / {units}) AS max,
+                   -((sb.max + sb.min) / 2 / {units}) AS median,
                    -(sb.min / {units}) AS min                   
               FROM modern_snps ms
               JOIN sample_reads sr
@@ -251,6 +254,7 @@ class SelectionInputFile(utils.DatabaseTask):
             SELECT {derived}_count AS derived_count,
                    ancestral_count + derived_count AS sample_size,
                    0 AS max,
+                   0 AS median,
                    0 AS min
               FROM modern_snps ms
               JOIN modern_snp_daf msd
@@ -269,7 +273,11 @@ class SelectionInputFile(utils.DatabaseTask):
 
         # write the sample input file
         with self.output().open('w') as tsv_file:
-            fields = ['derived_count', 'sample_size', 'max', 'min']
+            if self.no_age:
+                fields = ['derived_count', 'sample_size', 'median', 'median']
+            else:
+                fields = ['derived_count', 'sample_size', 'max', 'min']
+
             writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
 
             # write the data to disk
@@ -314,7 +322,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED, self.const_pop)
         yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar,
-                                 self.const_pop)
+                                 self.const_pop, self.no_age)
 
     def output(self):
         return [luigi.LocalTarget('data/selection/{}.{}'.format(self.basename, ext))
@@ -385,7 +393,7 @@ class SelectionBenchmark(utils.MySQLTask):
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED, self.const_pop)
         yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar,
-                                 self.const_pop)
+                                 self.const_pop, self.no_age)
 
     def queries(self):
         # compose the input and output file paths
@@ -484,7 +492,7 @@ class SelectionPlot(utils.PipelineTask):
     def requires(self):
         yield DadiBestModel(self.species, self.population, DADI_FOLDED, self.const_pop)
         yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar,
-                                 self.const_pop)
+                                 self.const_pop, self.no_age)
         yield SelectionRunMCMC(**self.all_params())
 
     def output(self):

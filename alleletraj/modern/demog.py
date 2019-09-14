@@ -19,7 +19,7 @@ from vcf import PolarizeVCF, WholeAutosomeSNPsVCF
 from alleletraj import utils
 
 # number of sequential epochs to test
-DADI_EPOCHS = 5  # TODO increase this, as 5 was the best model for cattle and it would be preferable to overshoot
+DADI_MAX_EPOCHS = 5  # TODO increase this, as 5 was the best model for cattle and it would be preferable to overshoot
 
 # how many independent replicates should we run to find the global maximum params (dadi can get stuck in local maxima)
 DADI_REPLICATES = 1000
@@ -415,7 +415,7 @@ class DadiEpochDemography(utils.PipelineTask):
             fout.write('1.0\t0\t-Inf\n')
 
 
-class DadiBestEpochModel(utils.PipelineTask):
+class DadiBestModel(utils.PipelineTask):
     """
     Find the best fitting model across all epochs, using the Akaike information criterion (AIC).
 
@@ -426,9 +426,11 @@ class DadiBestEpochModel(utils.PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     folded = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter(default=False)
 
     def requires(self):
-        for epoch in range(1, DADI_EPOCHS + 1):
+        max_epochs = 0 if self.const_pop else DADI_MAX_EPOCHS
+        for epoch in range(0, max_epochs + 1):
             yield DadiEpochDemography(self.species, self.population, self.folded, epoch)
 
     def output(self):
@@ -481,27 +483,6 @@ class DadiBestEpochModel(utils.PipelineTask):
 
             for epoch in epochs:
                 writer.writerow(epoch)
-
-
-class DadiBestModel(utils.PipelineWrapperTask):
-    """
-    Find the best fitting model.
-
-    :type species: str
-    :type population: str
-    :type folded: bool
-    :type const_pop: bool
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    folded = luigi.BoolParameter()
-    const_pop = luigi.BoolParameter()
-
-    def requires(self):
-        if self.const_pop:
-            pass  # TODO implement me!
-        else:
-            return DadiBestEpochModel(self.species, self.population, DADI_FOLDED)
 
 
 class DadiPipeline(utils.PipelineWrapperTask):

@@ -6,8 +6,8 @@
 # https://github.com/sequelpro/sequelpro
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
-# Database: alleletraj_horse_equcab2_rel38
-# Generation Time: 2019-09-03 13:33:49 +0000
+# Database: alleletraj_cattle_umd3.1_rel38
+# Generation Time: 2019-09-14 10:02:05 +0000
 # ************************************************************
 
 
@@ -205,6 +205,7 @@ CREATE TABLE `pubmeds` (
   `year` char(255) DEFAULT NULL,
   `title` text,
   `journal` char(255) DEFAULT NULL,
+  `citation` text,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -430,6 +431,7 @@ CREATE TABLE `selection` (
   `modsnp_id` int(11) unsigned NOT NULL,
   `no_modern` tinyint(1) NOT NULL,
   `mispolar` tinyint(1) NOT NULL,
+  `no_age` tinyint(1) NOT NULL,
   `length` int(11) unsigned NOT NULL,
   `thin` int(11) unsigned NOT NULL,
   `model` decimal(1,1) NOT NULL,
@@ -448,6 +450,7 @@ CREATE TABLE `selection_benchmarks` (
   `modsnp_id` int(11) unsigned NOT NULL,
   `no_modern` tinyint(1) NOT NULL,
   `mispolar` tinyint(1) NOT NULL,
+  `no_age` tinyint(1) NOT NULL DEFAULT '0',
   `length` int(11) unsigned NOT NULL,
   `thin` int(11) unsigned NOT NULL,
   `model` decimal(1,1) NOT NULL,

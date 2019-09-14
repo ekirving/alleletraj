@@ -284,6 +284,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type no_age: bool
     :type n: int
     :type s: int
     :type h: float
@@ -294,6 +295,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
@@ -329,13 +331,15 @@ class SelectionRunMCMC(utils.PipelineTask):
                    '-D', input_file.path,   # path to data input file
                    '-P', pop_file.path,     # path to population size history file
                    '-o', output_prefix,     # output file prefix
-                   '-a',                    # flag to infer allele age
                    '-A', MIN_DAF,           # ascertainment in modern individuals
                    '-n', self.n,            # number of MCMC cycles to run
                    '-s', self.s,            # frequency of sampling from the posterior
                    '-h', self.h,            # genetic model (additive, recessive, dominant)
                    '-f', MCMC_PRINT,        # frequency of printing output to the screen
                    '-e', seed]              # random number seed
+
+            if not self.no_age:
+                cmd += ['-a']               # flag to infer allele age
 
             utils.run_cmd(cmd, stdout=fout)
 
@@ -351,6 +355,7 @@ class SelectionBenchmark(utils.MySQLTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type no_age: bool
     :type n: int
     :type s: int
     :type h: float
@@ -361,6 +366,7 @@ class SelectionBenchmark(utils.MySQLTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
@@ -387,13 +393,15 @@ class SelectionBenchmark(utils.MySQLTask):
                '-D', input_file.path,   # path to data input file
                '-P', pop_file.path,     # path to population size history file
                '-o', output_prefix,     # output file prefix
-               '-a',                    # flag to infer allele age
                '-A', MIN_DAF,           # ascertainment in modern individuals
                '-n', self.n,            # number of MCMC cycles to run
                '-s', self.s,            # frequency of sampling from the posterior
                '-h', self.h,            # genetic model (additive, recessive, dominant)
                '-f', MCMC_PRINT,        # frequency of printing output to the screen
                '-e', seed]              # random number seed
+
+        if not self.no_age:
+            cmd += ['-a']               # flag to infer allele age
 
         sr = ' '.join([str(args) for args in cmd])
 
@@ -418,6 +426,7 @@ class SelectionBenchmark(utils.MySQLTask):
             'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
+            'no_age':     self.no_age,
             'chain':      self.chain,
             'duration':   duration,
             'est_hours':  est_hours
@@ -439,6 +448,7 @@ class SelectionPlot(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type no_age: bool
     :type n: int
     :type s: int
     :type h: float
@@ -449,6 +459,7 @@ class SelectionPlot(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
@@ -511,6 +522,7 @@ class SelectionDiagnostics(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type no_age: bool
     :type n: int
     :type s: int
     :type h: float
@@ -521,6 +533,7 @@ class SelectionDiagnostics(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
@@ -579,6 +592,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type no_age: bool
     :type n: int
     :type s: int
     :type h: float
@@ -589,6 +603,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
@@ -609,6 +624,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
             'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
+            'no_age':     self.no_age,
         }
 
         # get the parent record
@@ -649,6 +665,7 @@ class SelectionCalculateMPSRF(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type no_age: bool
     :type n: int
     :type s: int
     :type h: float
@@ -659,6 +676,7 @@ class SelectionCalculateMPSRF(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
@@ -700,6 +718,7 @@ class SelectionPSRF(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type no_age: bool
     :type n: int
     :type s: int
     :type h: float
@@ -709,6 +728,7 @@ class SelectionPSRF(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
@@ -816,6 +836,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type no_age: bool
     :type n: int
     :type s: int
     :type h: float
@@ -825,6 +846,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter(default=False)
     mispolar = luigi.BoolParameter(default=False)
+    no_age = luigi.BoolParameter(default=False)
     n = luigi.IntParameter(default=MCMC_CYCLES)
     s = luigi.IntParameter(default=MCMC_THIN)
     h = luigi.FloatParameter(default=MODEL_ADDITIVE)
@@ -844,6 +866,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
             'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
+            'no_age':     self.no_age,
         }
 
         selection_id = self.dbc.get_record('selection', selection).pop('id')
@@ -878,23 +901,27 @@ class SelectionPairNeutrals(utils.MySQLTask):  # TODO this task type is misleadi
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type no_age: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter(default=False)
     mispolar = luigi.BoolParameter(default=False)
+    no_age = luigi.BoolParameter(default=False)
 
     def requires(self):
-        yield LoadSelectionPSRF(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
+        return LoadSelectionPSRF(**self.all_params())
 
     def run(self):
         # get the neutral controls for this modsnp
         neutrals = selection_fetch_neutral_snps(self.species, self.population, self.modsnp, self.mispolar)
 
         # TODO only run neutrals if the target SNP looks interesting
+        params = self.all_params()
         for modsnp_id in neutrals:
-            yield LoadSelectionPSRF(self.species, self.population, modsnp_id, self.no_modern, self.mispolar)
+            params['modsnp'] = modsnp_id
+            yield LoadSelectionPSRF(**self.all_params())
 
 
 class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):

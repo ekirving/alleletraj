@@ -467,7 +467,7 @@ class DadiBestModel(utils.PipelineTask):
         epochs.sort(key=lambda x: x['relL'], reverse=True)
 
         # reject modelling if 2nd best model has a relative likelihood greater than acceptable
-        if epochs[1]['relL'] > DADI_MAX_RELATIVE_LL:
+        if not self.const_pop and epochs[1]['relL'] > DADI_MAX_RELATIVE_LL:
             print('WARNING: Cannot reject second best model based on relative likelihood.\n' + str(epochs[:2]))
 
         # copy the files from the the best epoch

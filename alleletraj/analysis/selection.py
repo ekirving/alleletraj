@@ -186,18 +186,20 @@ class SelectionInputFile(utils.DatabaseTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter()
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0
 
     def requires(self):
-        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED, self.const_pop)
         yield AncientSNPsPipeline(self.species)
 
     def output(self):
@@ -284,6 +286,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     :type no_age: bool
     :type n: int
     :type s: int
@@ -295,6 +298,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter()
     no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
@@ -308,8 +312,9 @@ class SelectionRunMCMC(utils.PipelineTask):
     retry_count = 0
 
     def requires(self):
-        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
-        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED, self.const_pop)
+        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar,
+                                 self.const_pop)
 
     def output(self):
         return [luigi.LocalTarget('data/selection/{}.{}'.format(self.basename, ext))
@@ -355,6 +360,7 @@ class SelectionBenchmark(utils.MySQLTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     :type no_age: bool
     :type n: int
     :type s: int
@@ -366,6 +372,7 @@ class SelectionBenchmark(utils.MySQLTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter()
     no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
@@ -376,8 +383,9 @@ class SelectionBenchmark(utils.MySQLTask):
     retry_count = 0
 
     def requires(self):
-        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
-        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED, self.const_pop)
+        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar,
+                                 self.const_pop)
 
     def queries(self):
         # compose the input and output file paths
@@ -426,6 +434,7 @@ class SelectionBenchmark(utils.MySQLTask):
             'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
+            'const_pop':  self.const_pop,
             'no_age':     self.no_age,
             'chain':      self.chain,
             'duration':   duration,
@@ -448,6 +457,7 @@ class SelectionPlot(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     :type no_age: bool
     :type n: int
     :type s: int
@@ -459,6 +469,7 @@ class SelectionPlot(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter()
     no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
@@ -471,8 +482,9 @@ class SelectionPlot(utils.PipelineTask):
     retry_count = 0
 
     def requires(self):
-        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
-        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar)
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED, self.const_pop)
+        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar,
+                                 self.const_pop)
         yield SelectionRunMCMC(**self.all_params())
 
     def output(self):
@@ -522,6 +534,7 @@ class SelectionDiagnostics(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     :type no_age: bool
     :type n: int
     :type s: int
@@ -533,6 +546,7 @@ class SelectionDiagnostics(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter()
     no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
@@ -545,7 +559,7 @@ class SelectionDiagnostics(utils.PipelineTask):
     retry_count = 0
 
     def requires(self):
-        yield DadiBestModel(self.species, self.population, DADI_FOLDED)
+        yield DadiBestModel(self.species, self.population, DADI_FOLDED, self.const_pop)
         yield SelectionRunMCMC(**self.all_params())
 
     def output(self):
@@ -592,6 +606,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     :type no_age: bool
     :type n: int
     :type s: int
@@ -603,6 +618,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter()
     no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
@@ -624,6 +640,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
             'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
+            'const_pop':  self.const_pop,
             'no_age':     self.no_age,
         }
 
@@ -665,6 +682,7 @@ class SelectionCalculateMPSRF(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     :type no_age: bool
     :type n: int
     :type s: int
@@ -676,6 +694,7 @@ class SelectionCalculateMPSRF(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter()
     no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
@@ -718,6 +737,7 @@ class SelectionPSRF(utils.PipelineTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     :type no_age: bool
     :type n: int
     :type s: int
@@ -728,6 +748,7 @@ class SelectionPSRF(utils.PipelineTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter()
     mispolar = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter()
     no_age = luigi.BoolParameter()
     n = luigi.IntParameter()
     s = luigi.IntParameter()
@@ -836,6 +857,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     :type no_age: bool
     :type n: int
     :type s: int
@@ -846,6 +868,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter(default=False)
     mispolar = luigi.BoolParameter(default=False)
+    const_pop = luigi.BoolParameter(default=False)
     no_age = luigi.BoolParameter(default=False)
     n = luigi.IntParameter(default=MCMC_CYCLES)
     s = luigi.IntParameter(default=MCMC_THIN)
@@ -866,6 +889,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
             'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
+            'const_pop':  self.const_pop,
             'no_age':     self.no_age,
         }
 
@@ -901,6 +925,7 @@ class SelectionPairNeutrals(utils.MySQLTask):  # TODO this task type is misleadi
     :type modsnp: int
     :type no_modern: bool
     :type mispolar: bool
+    :type const_pop: bool
     :type no_age: bool
     """
     species = luigi.Parameter()
@@ -908,6 +933,7 @@ class SelectionPairNeutrals(utils.MySQLTask):  # TODO this task type is misleadi
     modsnp = luigi.IntParameter()
     no_modern = luigi.BoolParameter(default=False)
     mispolar = luigi.BoolParameter(default=False)
+    const_pop = luigi.BoolParameter(default=False)
     no_age = luigi.BoolParameter(default=False)
 
     def requires(self):
@@ -931,27 +957,35 @@ class SelectionGWASPeakSNPs(utils.PipelineWrapperTask):
     :type species: str
     :type population: str
     :type no_modern: bool
+    :type mispolar: bool
+    :type const_pop: bool
+    :type no_age: bool
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     no_modern = luigi.BoolParameter(default=False)
+    mispolar = luigi.BoolParameter(default=False)
+    const_pop = luigi.BoolParameter(default=False)
+    no_age = luigi.BoolParameter(default=False)
 
     def requires(self):
 
         # get the modsnp id for every GWAS hit
         modsnps = self.dbc.get_records_sql("""
-            SELECT DISTINCT ms.id, ms.mispolar
+            SELECT DISTINCT ms.id
               FROM qtls q
               JOIN modern_snps ms
                 ON ms.chrom = q.chrom
                AND ms.site = q.site
              WHERE q.associationType = 'Association'
                AND q.valid = 1
-               AND ms.mispolar IS NULL
-               """, key=None)
+               AND IFNULL(ms.mispolar, 0) = {mispolar}
+               """.format(mispolar=int(self.mispolar)))
 
+        params = self.all_params()
         for modsnp in modsnps:
-            yield SelectionPairNeutrals(self.species, self.population, modsnp['id'], self.no_modern)
+            params['modsnp'] = modsnp
+            yield SelectionPairNeutrals(**params)
 
 
 class SelectionPipeline(utils.PipelineWrapperTask):
@@ -965,7 +999,8 @@ class SelectionPipeline(utils.PipelineWrapperTask):
     def requires(self):
         for pop in self.list_populations(ancient=True):
             for no_modern in [True, False]:
-                yield SelectionGWASPeakSNPs(self.species, pop, no_modern)
+                for const_pop in [True, False]:
+                    yield SelectionGWASPeakSNPs(self.species, pop, no_modern, const_pop)
 
 
 class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
@@ -975,11 +1010,13 @@ class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
     :type species: str
     :type population: str
     :type no_modern: bool
+    :type const_pop: bool
     :type step: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
     no_modern = luigi.BoolParameter(default=False)
+    const_pop = luigi.BoolParameter(default=False)
     step = luigi.IntParameter()
 
     def requires(self):
@@ -1032,10 +1069,12 @@ class SelectionTidyPipeline(utils.PipelineWrapperTask):
         completed = glob.glob('data/selection/{}-*.param.gz'.format(self.species))
 
         for filename in completed:
+            # TODO this will break with const_pop
             # e.g. data/selection/horse-DOM2-modsnp9876899-n100000000-s100-h0.5-chain1.param.gz
             _, population, modsnp, n, s, h, _ = os.path.basename(filename).split('-')
 
-            yield LoadSelectionPSRF(self.species, population, int(modsnp[6:]), n=int(n[1:]), s=int(s[1:]), h=float(h[1:]))
+            yield LoadSelectionPSRF(self.species, population, int(modsnp[6:]), n=int(n[1:]), s=int(s[1:]),
+                                    h=float(h[1:]))
 
 
 if __name__ == '__main__':

@@ -415,7 +415,7 @@ class DadiEpochDemography(utils.PipelineTask):
             fout.write('1.0\t0\t-Inf\n')
 
 
-class DadiBestModel(utils.PipelineTask):
+class DadiBestEpochModel(utils.PipelineTask):
     """
     Find the best fitting model across all epochs, using the Akaike information criterion (AIC).
 
@@ -483,6 +483,27 @@ class DadiBestModel(utils.PipelineTask):
                 writer.writerow(epoch)
 
 
+class DadiBestModel(utils.PipelineWrapperTask):
+    """
+    Find the best fitting model.
+
+    :type species: str
+    :type population: str
+    :type folded: bool
+    :type const_pop: bool
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    folded = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter()
+
+    def requires(self):
+        if self.const_pop:
+            pass  # TODO implement me!
+        else:
+            return DadiBestEpochModel(self.species, self.population, DADI_FOLDED)
+
+
 class DadiPipeline(utils.PipelineWrapperTask):
     """
     Find the best fitting of 5 sequential epoch ∂a∂i models (i.e. 1 epoch, 2 epochs, etc.).
@@ -499,7 +520,8 @@ class DadiPipeline(utils.PipelineWrapperTask):
 
         for pop in populations:
             for folded in [DADI_FOLDED, DADI_UNFOLDED]:
-                yield DadiBestModel(self.species, pop, folded)
+                for const_pop in [True, False]:
+                    yield DadiBestModel(self.species, pop, folded, const_pop)
 
 
 if __name__ == '__main__':

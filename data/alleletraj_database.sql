@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
 # Database: alleletraj_cattle_umd3.1_rel38
-# Generation Time: 2019-09-14 10:02:05 +0000
+# Generation Time: 2019-09-14 10:40:46 +0000
 # ************************************************************
 
 
@@ -431,6 +431,7 @@ CREATE TABLE `selection` (
   `modsnp_id` int(11) unsigned NOT NULL,
   `no_modern` tinyint(1) NOT NULL,
   `mispolar` tinyint(1) NOT NULL,
+  `const_pop` tinyint(1) NOT NULL,
   `no_age` tinyint(1) NOT NULL,
   `length` int(11) unsigned NOT NULL,
   `thin` int(11) unsigned NOT NULL,
@@ -450,7 +451,8 @@ CREATE TABLE `selection_benchmarks` (
   `modsnp_id` int(11) unsigned NOT NULL,
   `no_modern` tinyint(1) NOT NULL,
   `mispolar` tinyint(1) NOT NULL,
-  `no_age` tinyint(1) NOT NULL DEFAULT '0',
+  `const_pop` tinyint(1) NOT NULL,
+  `no_age` tinyint(1) NOT NULL,
   `length` int(11) unsigned NOT NULL,
   `thin` int(11) unsigned NOT NULL,
   `model` decimal(1,1) NOT NULL,

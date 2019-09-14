@@ -24,7 +24,7 @@ from alleletraj.qtl.load import MIN_DAF
 MCMC_NUM_CHAINS = 2  # TODO put back to 4 for production run
 
 # maximum number of MCMC replicates to run in search of converged runs
-MCMC_MAX_CHAINS = 4
+MCMC_MAX_CHAINS = 6
 
 # number of MCMC cycles to run
 MCMC_CYCLES = int(1e7)

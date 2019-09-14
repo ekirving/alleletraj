@@ -314,7 +314,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     chain = luigi.IntParameter()
 
     # TODO remove when done with SLURM jobs on the cluster
-    # resources = {'SLURM': 2}
+    resources = {'SLURM': 2}
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0

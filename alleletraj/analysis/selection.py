@@ -278,7 +278,7 @@ class SelectionInputFile(utils.DatabaseTask):
             else:
                 fields = ['derived_count', 'sample_size', 'max', 'min']
 
-            writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t')
+            writer = csv.DictWriter(tsv_file, fieldnames=fields, delimiter='\t', extrasaction='ignore')
 
             # write the data to disk
             for b in bins:

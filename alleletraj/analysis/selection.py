@@ -232,9 +232,9 @@ class SelectionInputFile(utils.DatabaseTask):
             # get the ancient frequencies in each bin
             SELECT SUM(sr.base = ms.{derived}) AS derived_count,
                    COUNT(sr.id) AS sample_size,
-                   -(sb.max / {units}) AS max,
-                   -((sb.max + sb.min) / 2 / {units}) AS median,
-                   -(sb.min / {units}) AS min                   
+                   -round((sb.max / {units}), 4) AS max,
+                   -round(((sb.max + sb.min) / 2 / {units}), 4) AS median,
+                   -round((sb.min / {units}), 4) AS min                   
               FROM modern_snps ms
               JOIN sample_reads sr
                 ON sr.chrom = ms.chrom
@@ -314,7 +314,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     chain = luigi.IntParameter()
 
     # TODO remove when done with SLURM jobs on the cluster
-    resources = {'SLURM': 2}
+    # resources = {'SLURM': 2}
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0

@@ -24,7 +24,7 @@ from alleletraj.qtl.load import MIN_DAF
 MCMC_NUM_CHAINS = 2  # TODO put back to 4 for production run
 
 # maximum number of MCMC replicates to run in search of converged runs
-MCMC_MAX_CHAINS = 3
+MCMC_MAX_CHAINS = 4
 
 # number of MCMC cycles to run
 MCMC_CYCLES = int(1e7)
@@ -299,6 +299,9 @@ class SelectionRunMCMC(utils.PipelineTask):
     h = luigi.FloatParameter()
     chain = luigi.IntParameter()
 
+    # TODO remove when done with SLURM jobs on the cluster
+    disabled = True
+
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0
 
@@ -451,7 +454,7 @@ class SelectionPlot(utils.PipelineTask):
     h = luigi.FloatParameter()
     chain = luigi.IntParameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 56, 'SelectionPlot': 1}  # only allow one plot operation at a time
+    resources = {'cpu-cores': 1, 'ram-gb': 16}
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0

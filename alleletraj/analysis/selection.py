@@ -253,9 +253,9 @@ class SelectionInputFile(utils.DatabaseTask):
             # get the modern frequencies
             SELECT {derived}_count AS derived_count,
                    ancestral_count + derived_count AS sample_size,
-                   0 AS max,
-                   0 AS median,
-                   0 AS min
+                   0.0 AS max,
+                   0.0 AS median,
+                   0.0 AS min
               FROM modern_snps ms
               JOIN modern_snp_daf msd
                 ON msd.modsnp_id = ms.id

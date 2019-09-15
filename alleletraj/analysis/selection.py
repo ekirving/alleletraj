@@ -39,6 +39,9 @@ MCMC_BURN_PCT = 0.5
 # see https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/j.2041-210X.2011.00131.x
 MCMC_THIN = 100
 
+# fraction of the path to update (i.e. length/F)
+MCMC_FRACTION = 20
+
 # frequency of printing output to the log
 MCMC_PRINT = 10000
 
@@ -299,6 +302,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type F: int
     :type chain: int
     """
     species = luigi.Parameter()
@@ -311,6 +315,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    F = luigi.IntParameter()
     chain = luigi.IntParameter()
 
     # TODO remove when done with SLURM jobs on the cluster
@@ -348,6 +353,7 @@ class SelectionRunMCMC(utils.PipelineTask):
                    '-n', self.n,            # number of MCMC cycles to run
                    '-s', self.s,            # frequency of sampling from the posterior
                    '-h', self.h,            # genetic model (additive, recessive, dominant)
+                   '-F', self.F,            # fraction of the path to update (i.e. length/F)
                    '-f', MCMC_PRINT,        # frequency of printing output to the screen
                    '-e', seed]              # random number seed
 
@@ -373,6 +379,7 @@ class SelectionBenchmark(utils.MySQLTask):
     :type n: int
     :type s: int
     :type h: float
+    :type F: int
     :type chain: int
     """
     species = luigi.Parameter()
@@ -385,6 +392,7 @@ class SelectionBenchmark(utils.MySQLTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    F = luigi.IntParameter()
     chain = luigi.IntParameter()
 
     # do not retry after failure, as this just chews CPU cycles
@@ -413,6 +421,7 @@ class SelectionBenchmark(utils.MySQLTask):
                '-n', self.n,            # number of MCMC cycles to run
                '-s', self.s,            # frequency of sampling from the posterior
                '-h', self.h,            # genetic model (additive, recessive, dominant)
+               '-F', self.F,            # fraction of the path to update (i.e. length/F)
                '-f', MCMC_PRINT,        # frequency of printing output to the screen
                '-e', seed]              # random number seed
 
@@ -470,6 +479,7 @@ class SelectionPlot(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type F: int
     :type chain: int
     """
     species = luigi.Parameter()
@@ -482,6 +492,7 @@ class SelectionPlot(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    F = luigi.IntParameter()
     chain = luigi.IntParameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 4}
@@ -547,6 +558,7 @@ class SelectionDiagnostics(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type F: int
     :type chain: int
     """
     species = luigi.Parameter()
@@ -559,6 +571,7 @@ class SelectionDiagnostics(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    F = luigi.IntParameter()
     chain = luigi.IntParameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 4}
@@ -619,6 +632,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
     :type n: int
     :type s: int
     :type h: float
+    :type F: int
     :type chain: int
     """
     species = luigi.Parameter()
@@ -631,6 +645,7 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    F = luigi.IntParameter()
     chain = luigi.IntParameter()
 
     def requires(self):
@@ -643,13 +658,14 @@ class LoadSelectionDiagnostics(utils.MySQLTask):
         selection = {
             'population': self.population,
             'modsnp_id':  self.modsnp,
-            'length':     self.n,
-            'thin':       self.s,
-            'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
             'const_pop':  self.const_pop,
             'no_age':     self.no_age,
+            'length':     self.n,
+            'thin':       self.s,
+            'model':      self.h,
+            'frac':       self.F,
         }
 
         # get the parent record
@@ -695,6 +711,7 @@ class SelectionCalculateMPSRF(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type F: int
     :type chains: list
     """
     species = luigi.Parameter()
@@ -707,6 +724,7 @@ class SelectionCalculateMPSRF(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    F = luigi.IntParameter()
     chains = luigi.ListParameter()
 
     def output(self):
@@ -750,6 +768,7 @@ class SelectionPSRF(utils.PipelineTask):
     :type n: int
     :type s: int
     :type h: float
+    :type F: int
     """
     species = luigi.Parameter()
     population = luigi.Parameter()
@@ -761,6 +780,7 @@ class SelectionPSRF(utils.PipelineTask):
     n = luigi.IntParameter()
     s = luigi.IntParameter()
     h = luigi.FloatParameter()
+    F = luigi.IntParameter()
 
     resources = {'cpu-cores': 1, 'ram-gb': 4}
 
@@ -881,6 +901,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
     n = luigi.IntParameter(default=MCMC_CYCLES)
     s = luigi.IntParameter(default=MCMC_THIN)
     h = luigi.FloatParameter(default=MODEL_ADDITIVE)
+    F = luigi.IntParameter(default=MCMC_FRACTION)
 
     def requires(self):
         return SelectionPSRF(**self.all_params())
@@ -892,13 +913,14 @@ class LoadSelectionPSRF(utils.MySQLTask):
         selection = {
             'population': self.population,
             'modsnp_id':  self.modsnp,
-            'length':     self.n,
-            'thin':       self.s,
-            'model':      self.h,
             'no_modern':  self.no_modern,
             'mispolar':   self.mispolar,
             'const_pop':  self.const_pop,
             'no_age':     self.no_age,
+            'length':     self.n,
+            'thin':       self.s,
+            'model':      self.h,
+            'frac':       self.F,
         }
 
         selection_id = self.dbc.get_record('selection', selection).pop('id')

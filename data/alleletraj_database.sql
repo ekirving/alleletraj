@@ -6,8 +6,8 @@
 # https://github.com/sequelpro/sequelpro
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
-# Database: alleletraj_cattle_umd3.1_rel38
-# Generation Time: 2019-09-14 10:40:46 +0000
+# Database: alleletraj_horse_equcab2_rel38
+# Generation Time: 2019-09-15 10:16:19 +0000
 # ************************************************************
 
 
@@ -436,6 +436,7 @@ CREATE TABLE `selection` (
   `length` int(11) unsigned NOT NULL,
   `thin` int(11) unsigned NOT NULL,
   `model` decimal(1,1) NOT NULL,
+  `frac` int(11) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `modsnp_id` (`modsnp_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -456,6 +457,7 @@ CREATE TABLE `selection_benchmarks` (
   `length` int(11) unsigned NOT NULL,
   `thin` int(11) unsigned NOT NULL,
   `model` decimal(1,1) NOT NULL,
+  `frac` int(11) unsigned NOT NULL,
   `chain` int(11) NOT NULL,
   `duration` float DEFAULT NULL,
   `est_hours` float DEFAULT NULL,

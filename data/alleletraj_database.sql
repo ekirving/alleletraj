@@ -443,30 +443,6 @@ CREATE TABLE `selection` (
 
 
 
-# Dump of table selection_benchmarks
-# ------------------------------------------------------------
-
-CREATE TABLE `selection_benchmarks` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `population` varchar(255) NOT NULL DEFAULT '',
-  `modsnp_id` int(11) unsigned NOT NULL,
-  `no_modern` tinyint(1) NOT NULL,
-  `mispolar` tinyint(1) NOT NULL,
-  `const_pop` tinyint(1) NOT NULL,
-  `no_age` tinyint(1) NOT NULL,
-  `length` int(11) unsigned NOT NULL,
-  `thin` int(11) unsigned NOT NULL,
-  `model` decimal(1,1) NOT NULL,
-  `frac` int(11) unsigned NOT NULL,
-  `chain` int(11) NOT NULL,
-  `duration` float DEFAULT NULL,
-  `est_hours` float DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `modsnp_id` (`modsnp_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
-
-
 # Dump of table selection_ess
 # ------------------------------------------------------------
 

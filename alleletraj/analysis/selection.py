@@ -29,9 +29,6 @@ MCMC_MAX_CHAINS = 6
 # number of MCMC cycles to run
 MCMC_CYCLES = int(1e7)
 
-# number of MCMC cycles to benchmark
-MCMC_BENCHMARK = int(1e4)
-
 # fraction of MCMC cycles to discard as burn in
 MCMC_BURN_PCT = 0.5
 
@@ -61,9 +58,6 @@ MCMC_MIN_BINS = 3
 
 # number of DAF paired neutral SNPs to run for every non-neutral SNP
 NEUTRAL_REPLICATES = 5
-
-# max number of models to schedule at one time
-BENCHMARK_LIMIT = 5000
 
 
 def selection_fetch_neutral_snps(species, population, modsnp_id, mispolar=False):
@@ -361,108 +355,6 @@ class SelectionRunMCMC(utils.PipelineTask):
                 cmd += ['-a']               # flag to infer allele age
 
             utils.run_cmd(cmd, stdout=fout)
-
-
-class SelectionBenchmark(utils.MySQLTask):
-    """
-    Benchmark the speed of the MCMC.
-
-    Models with long trajectories take a lot longer to run.
-
-    :type species: str
-    :type population: str
-    :type modsnp: int
-    :type no_modern: bool
-    :type mispolar: bool
-    :type const_pop: bool
-    :type no_age: bool
-    :type n: int
-    :type s: int
-    :type h: float
-    :type F: int
-    :type chain: int
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    modsnp = luigi.IntParameter()
-    no_modern = luigi.BoolParameter()
-    mispolar = luigi.BoolParameter()
-    const_pop = luigi.BoolParameter()
-    no_age = luigi.BoolParameter()
-    n = luigi.IntParameter()
-    s = luigi.IntParameter()
-    h = luigi.FloatParameter()
-    F = luigi.IntParameter()
-    chain = luigi.IntParameter()
-
-    # do not retry after failure, as this just chews CPU cycles
-    retry_count = 0
-
-    def requires(self):
-        yield DadiBestModel(self.species, self.population, DADI_FOLDED, self.const_pop)
-        yield SelectionInputFile(self.species, self.population, self.modsnp, self.no_modern, self.mispolar,
-                                 self.const_pop, self.no_age)
-
-    def queries(self):
-        # compose the input and output file paths
-        (pop_file, _, _), input_file = self.input()
-
-        # generate a unique prefix for temporary files
-        output_prefix = 'data/selection/luigi-tmp-{:010}'.format(random.randrange(0, 1e10))
-
-        # make a deterministic random seed (helps keep everything easily reproducible)
-        seed = int('{}{}'.format(self.modsnp, self.chain))
-
-        cmd = ['sr',
-               '-D', input_file.path,   # path to data input file
-               '-P', pop_file.path,     # path to population size history file
-               '-o', output_prefix,     # output file prefix
-               '-A', MIN_DAF,           # ascertainment in modern individuals
-               '-n', self.n,            # number of MCMC cycles to run
-               '-s', self.s,            # frequency of sampling from the posterior
-               '-h', self.h,            # genetic model (additive, recessive, dominant)
-               '-F', self.F,            # fraction of the path to update (i.e. length/F)
-               '-f', MCMC_PRINT,        # frequency of printing output to the screen
-               '-e', seed]              # random number seed
-
-        if not self.no_age:
-            cmd += ['-a']               # flag to infer allele age
-
-        sr = ' '.join([str(args) for args in cmd])
-
-        # time the `sr` command, but enforce an upper limit of 5 mins
-        cmd = "/usr/bin/time -f '%U' timeout 300s " + sr + " > /dev/null"
-
-        # run selection
-        user_time = utils.run_cmd([cmd], shell=True)
-
-        # duration is the 'user' time, reported by /usr/bin/time
-        duration = float(user_time)
-
-        # now project this forward to get the estimated run time in hours
-        est_hours = duration * MCMC_CYCLES / self.n / 3600
-
-        # log the duration
-        benchmark = {
-            'population': self.population,
-            'modsnp_id':  self.modsnp,
-            'length':     self.n,
-            'thin':       self.s,
-            'model':      self.h,
-            'no_modern':  self.no_modern,
-            'mispolar':   self.mispolar,
-            'const_pop':  self.const_pop,
-            'no_age':     self.no_age,
-            'chain':      self.chain,
-            'duration':   duration,
-            'est_hours':  est_hours
-        }
-
-        self.dbc.save_record('selection_benchmarks', benchmark)
-
-        # tidy up all the temporary files
-        for tmp in glob.glob('{}*'.format(output_prefix)):
-            os.remove(tmp)
 
 
 class SelectionPlot(utils.PipelineTask):
@@ -1031,58 +923,6 @@ class SelectionPipeline(utils.PipelineWrapperTask):
             for no_modern in [True, False]:
                 for const_pop in [True, False]:
                     yield SelectionGWASPeakSNPs(self.species, pop, no_modern, const_pop)
-
-
-class SelectionBenchmarkGWASNeutrals(utils.PipelineWrapperTask):
-    """
-    Benchmark all the GWAS hits and their neutrals.
-
-    :type species: str
-    :type population: str
-    :type no_modern: bool
-    :type const_pop: bool
-    :type step: int
-    """
-    species = luigi.Parameter()
-    population = luigi.Parameter()
-    no_modern = luigi.BoolParameter(default=False)
-    const_pop = luigi.BoolParameter(default=False)
-    step = luigi.IntParameter()
-
-    def requires(self):
-
-        offset = BENCHMARK_LIMIT * self.step
-
-        modsnps = self.dbc.get_records_sql("""
-            SELECT DISTINCT modsnp_id AS id, IFNULL(mispolar, 0) mispolar
-              FROM selection_neutrals
-             WHERE population = '{population}'
-               AND mispolar = 0
-             
-             UNION 
-            
-            SELECT DISTINCT neutral_id  AS id, IFNULL(mispolar, 0) mispolar
-              FROM selection_neutrals
-             WHERE population = '{population}'
-               AND mispolar = 0
-               
-             LIMIT {limit} OFFSET {offset} 
-               """.format(population=self.population, limit=BENCHMARK_LIMIT, offset=offset), key=None)
-
-        params = self.all_params()
-        params.pop('step')
-
-        for modsnp in modsnps:
-            params['modsnp'] = modsnp['id']
-            params['mispolar'] = bool(modsnp['mispolar'])
-            params['n'] = MCMC_BENCHMARK
-            params['s'] = MCMC_THIN
-            params['h'] = MODEL_ADDITIVE
-
-            for chain in range(1, MCMC_NUM_CHAINS + 1):
-                params['chain'] = chain
-
-                yield SelectionBenchmark(**params)
 
 
 class SelectionTidyPipeline(utils.PipelineWrapperTask):

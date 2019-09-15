@@ -21,7 +21,7 @@ from alleletraj.modern.demog import DadiBestModel, DADI_FOLDED
 from alleletraj.qtl.load import MIN_DAF
 
 # number of independent MCMC replicates to run
-MCMC_NUM_CHAINS = 2  # TODO put back to 4 for production run
+MCMC_NUM_CHAINS = 2
 
 # maximum number of MCMC replicates to run in search of converged runs
 MCMC_MAX_CHAINS = 6
@@ -319,7 +319,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     chain = luigi.IntParameter()
 
     # TODO remove when done with SLURM jobs on the cluster
-    resources = {'SLURM': 2}
+    # resources = {'SLURM': 2}
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0
@@ -817,6 +817,12 @@ class SelectionPSRF(utils.PipelineTask):
             params['chain'] = chain
             diag_task = yield SelectionDiagnostics(**params)
 
+            # add the metrics to the db
+            yield LoadSelectionDiagnostics(**params)
+
+            # and plot the trajectory
+            yield SelectionPlot(**params)
+
             # get the ESS of the chain
             with next(diag_task).open('r') as fin:
                 ess = json.load(fin)
@@ -854,15 +860,9 @@ class SelectionPSRF(utils.PipelineTask):
         for chain in mpsrf_good:
             params['chain'] = chain
 
-            # load the metadata
-            yield LoadSelectionDiagnostics(**params)
-
             # get the path to the MCMC parameter chain
             mcmc = yield SelectionRunMCMC(**params)
             param_paths.append(mcmc[0].path)
-
-        # and we only need to plot one of the chains
-        yield SelectionPlot(**params)  # TODO this should plot the combined chains
 
         # TODO this should calculate the maximum a posteriori (MAP) based on the combined chains
         with diag_file.temporary_path() as diag_path:

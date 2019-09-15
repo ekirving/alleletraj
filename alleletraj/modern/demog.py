@@ -540,6 +540,9 @@ class DadiBestModel(utils.PipelineWrapperTask):
         else:
             return DadiBestEpochModel(self.species, self.population, self.folded)
 
+    def output(self):
+        return self.input()
+
 
 class DadiPipeline(utils.PipelineWrapperTask):
     """

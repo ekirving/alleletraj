@@ -415,7 +415,7 @@ class DadiEpochDemography(utils.PipelineTask):
             fout.write('1.0\t0\t-Inf\n')
 
 
-class DadiBestModel(utils.PipelineTask):
+class DadiBestEpochModel(utils.PipelineTask):
     """
     Find the best fitting model across all epochs, using the Akaike information criterion (AIC).
 
@@ -426,11 +426,9 @@ class DadiBestModel(utils.PipelineTask):
     species = luigi.Parameter()
     population = luigi.Parameter()
     folded = luigi.BoolParameter()
-    const_pop = luigi.BoolParameter(default=False)
 
     def requires(self):
-        max_epochs = 0 if self.const_pop else DADI_MAX_EPOCHS
-        for epoch in range(0, max_epochs + 1):
+        for epoch in range(1, DADI_MAX_EPOCHS + 1):
             yield DadiEpochDemography(self.species, self.population, self.folded, epoch)
 
     def output(self):
@@ -467,7 +465,7 @@ class DadiBestModel(utils.PipelineTask):
         epochs.sort(key=lambda x: x['relL'], reverse=True)
 
         # reject modelling if 2nd best model has a relative likelihood greater than acceptable
-        if not self.const_pop and epochs[1]['relL'] > DADI_MAX_RELATIVE_LL:
+        if epochs[1]['relL'] > DADI_MAX_RELATIVE_LL:
             print('WARNING: Cannot reject second best model based on relative likelihood.\n' + str(epochs[:2]))
 
         # copy the files from the the best epoch
@@ -483,6 +481,64 @@ class DadiBestModel(utils.PipelineTask):
 
             for epoch in epochs:
                 writer.writerow(epoch)
+
+
+class DadiConstPopModel(utils.PipelineTask):
+    """
+    Make a constant population size from from the most recent epoch from the best fitting multi-epoch model.
+
+    :type species: str
+    :type population: str
+    :type folded: bool
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    folded = luigi.BoolParameter()
+
+    def requires(self):
+        return DadiBestEpochModel(self.species, self.population, self.folded)
+
+    def output(self):
+        return [luigi.LocalTarget('data/dadi/{}-const_pop.{}'.format(self.basename, ext)) for ext in
+                ['pop', 'nref', 'aic']]
+
+    def run(self):
+        pop_in, nref_in, _ = self.input()
+        pop_out, nref_out, aic_out = self.ouptut()
+
+        # get the effective population size of the most recent epoch
+        with pop_in.open('r') as pop_fin, nref_in.open('r') as nref_fin:
+            nref = float(pop_fin.read().split()[0]) * int(nref_fin.read())
+
+        # make the const pop model
+        with pop_out.open('w') as pop_fout, nref_out.open('w') as nref_out:
+            pop_fout.write('1.0\t0.0\t-Inf')
+            nref_out.write(str(nref))
+
+        # make a blank aic file for symmetry
+        with aic_out.open('w') as fout:
+            fout.write('')
+
+
+class DadiBestModel(utils.PipelineWrapperTask):
+    """
+    Wrapper task to return the best fitting model.
+
+    :type species: str
+    :type population: str
+    :type folded: bool
+    :type const_pop: bool
+    """
+    species = luigi.Parameter()
+    population = luigi.Parameter()
+    folded = luigi.BoolParameter()
+    const_pop = luigi.BoolParameter(default=False)
+
+    def requires(self):
+        if self.const_pop:
+            return DadiConstPopModel(self.species, self.population, self.folded)
+        else:
+            return DadiBestEpochModel(self.species, self.population, self.folded)
 
 
 class DadiPipeline(utils.PipelineWrapperTask):

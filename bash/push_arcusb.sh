@@ -13,6 +13,7 @@ rsync -avz --partial --relative \
     --exclude '*.psrf' \
     --exclude '*.done' \
     --exclude '*.trunc' \
+    --exclude '*.mpsrf' \
     --exclude '*luigi-tmp*' \
     scro2860@arcus-b.arc.ox.ac.uk:~/alleletraj/
 

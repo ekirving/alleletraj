@@ -504,7 +504,7 @@ class DadiConstPopModel(utils.PipelineTask):
 
     def run(self):
         pop_in, nref_in, _ = self.input()
-        pop_out, nref_out, aic_out = self.ouptut()
+        pop_out, nref_out, aic_out = self.output()
 
         # get the effective population size of the most recent epoch
         with pop_in.open('r') as pop_fin, nref_in.open('r') as nref_fin:

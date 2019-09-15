@@ -941,7 +941,7 @@ class SelectionTidyPipeline(utils.PipelineWrapperTask):
         for filename in completed:
             # TODO this will break with const_pop
             # e.g. data/selection/horse-DOM2-modsnp9876899-n100000000-s100-h0.5-chain1.param.gz
-            _, population, modsnp, n, s, h, _ = os.path.basename(filename).split('-')
+            population, modsnp, n, s, h = os.path.basename(filename).split('-')[1:6]
 
             yield LoadSelectionPSRF(self.species, population, int(modsnp[6:]), n=int(n[1:]), s=int(s[1:]),
                                     h=float(h[1:]))

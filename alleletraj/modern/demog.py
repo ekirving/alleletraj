@@ -513,7 +513,7 @@ class DadiConstPopModel(utils.PipelineTask):
         # make the const pop model
         with pop_out.open('w') as pop_fout, nref_out.open('w') as nref_out:
             pop_fout.write('1.0\t0.0\t-Inf')
-            nref_out.write(str(nref))
+            nref_out.write(str(int(nref)))
 
         # make a blank aic file for symmetry
         with aic_out.open('w') as fout:

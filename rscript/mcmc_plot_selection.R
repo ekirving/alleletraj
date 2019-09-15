@@ -43,6 +43,6 @@ if (length(paths$traj) != length(paths$time)) {
 }
 
 # plot the trajectoy
-pdf(file=pdf_file, width=8, height=5)
-plot.posterior.paths(paths, samples$freq, samples$time, samples$size, units, xlim=c(-50000/units,0))
+pdf(file=pdf_file, width=12, height=7.5)
+plot.posterior.paths(paths, samples$freq, samples$time, samples$size, units, xlim=c(-25000/units,0))
 dev.off()

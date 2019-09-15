@@ -484,7 +484,7 @@ class SelectionPlot(utils.PipelineTask):
     h = luigi.FloatParameter()
     chain = luigi.IntParameter()
 
-    resources = {'cpu-cores': 1, 'ram-gb': 16}
+    resources = {'cpu-cores': 1, 'ram-gb': 4}
 
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0

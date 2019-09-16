@@ -684,7 +684,7 @@ class SelectionPSRF(utils.PipelineTask):
         params = self.all_params()
         for chain in range(1, MCMC_NUM_CHAINS + 1):
             params['chain'] = chain
-            yield SelectionDiagnostics(**params)
+            yield LoadSelectionDiagnostics(**params)
 
     def output(self):
         yield luigi.LocalTarget('data/selection/{}-chainAll.ess'.format(self.basename))
@@ -709,7 +709,7 @@ class SelectionPSRF(utils.PipelineTask):
             params['chain'] = chain
             diag_task = yield SelectionDiagnostics(**params)
 
-            # add the metrics to the db
+            # load the metrics into the db
             yield LoadSelectionDiagnostics(**params)
 
             # and plot the trajectory
@@ -734,7 +734,7 @@ class SelectionPSRF(utils.PipelineTask):
                     for chain_set in chain_sets:
                         params['chains'] = chain_set
 
-                        # calculation the MPSRF for this set of chains
+                        # calculate the MPSRF for this set of chains
                         mpsrf_file = yield SelectionCalculateMPSRF(**params)
 
                         with mpsrf_file.open('r') as fin:

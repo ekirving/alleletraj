@@ -932,6 +932,7 @@ class SelectionTidyPipeline(utils.PipelineWrapperTask):
     :type species: str
     """
     species = luigi.Parameter()
+    dummy = luigi.OptionalParameter()
 
     def requires(self):
 

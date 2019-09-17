@@ -26,13 +26,12 @@ rsync -avz --partial \
            --exclude 'data/vcf' \
            --exclude '*.gz' \
            --exclude '*.tgz' \
+           --exclude 'data/ensembl/' \
            --exclude 'data/selection/*.log' \
-           --exclude 'data/selection/*.traj*' \
-           --exclude 'data/selection/*.time*' \
-           --exclude 'data/selection/*.param' \
-           --exclude 'data/selection.partial/' \
-           --exclude 'data/selection.truncated/' \
-           --exclude '*SelectionBenchmark*' \
-           --exclude 'cattle-Dom-*.input' \
+           --exclude 'data/selection/*.input' \
+           --exclude 'data/selection.*/' \
            --exclude 'data/db/' \
+           --exclude 'data/pdf/selection/*autocorr*' \
+           --exclude 'data/pdf/selection/*trace*' \
+           --exclude 'data/pdf/selection/*ess-burn*' \
            evan@palaeoprime:~/alleletraj/ ~/Dropbox/Code/alleletraj/

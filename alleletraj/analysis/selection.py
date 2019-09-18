@@ -6,7 +6,7 @@ import glob
 import itertools
 import json
 import os
-import random
+from collections import defaultdict
 
 # third party modules
 import luigi
@@ -951,6 +951,67 @@ class SelectionTidyPipeline(utils.PipelineWrapperTask):
 
             yield LoadSelectionPSRF(self.species, population, int(modsnp[6:]), n=int(n[1:]), s=int(s[1:]),
                                     h=float(h[1:]))
+
+
+class SelectionTidy2Pipeline(luigi.Task):
+    """
+    Tidy up all the `selection` jobs that were completed by SLURM.
+
+    :type species: str
+    :type dummy: int
+    """
+    species = luigi.OptionalParameter()
+    dummy = luigi.OptionalParameter()
+
+    def complete(self):
+        return False
+
+    def run(self):
+
+        models = defaultdict(list)
+
+        # get all the completed models
+        completed = glob.glob('data/selection/{}*.param.gz'.format(self.species or ''))
+
+        for filename in completed:
+            # TODO this will break with const_pop
+            # e.g. data/selection/horse-DOM2-modsnp9876899-n100000000-s100-h0.5-chain1.param.gz
+            species, population, modsnp, n, s, h, chain = os.path.basename(filename).split('-')[0:7]
+
+            # trim the prefixes
+            key = (species, population, int(modsnp[6:]), int(n[1:]), int(s[1:]), float(h[1:]))
+
+            models[key].append(int(chain[5:]))
+
+        done_tasks = []
+        todo_tasks = defaultdict(list)
+        final_tasks = []
+
+        for (species, population, modsnp, n, s, h), chains in models.iteritems():
+
+            # load the metadata for all the completed chains
+            for chain in range(1, MCMC_MAX_CHAINS + 1):
+
+                # compose the task to run
+                task = LoadSelectionDiagnostics(species, population, modsnp, n=n, s=s, h=h, chain=chain)
+
+                if chain in chains:
+                    done_tasks.append(task)
+                else:
+                    todo_tasks[chain].append(task)
+
+            final_tasks.append(LoadSelectionPSRF(species, population, modsnp, n=n, s=s, h=h))
+
+        # make sure the completed chains have been loaded into the db
+        yield done_tasks
+
+        # now process the chains in batches
+        for chain in range(1, MCMC_MAX_CHAINS + 1):
+            if chain in todo_tasks:
+                yield todo_tasks[chain]
+
+        # now run the final tasks
+        yield final_tasks
 
 
 if __name__ == '__main__':

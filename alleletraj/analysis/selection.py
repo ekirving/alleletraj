@@ -971,31 +971,31 @@ class SelectionTidy2Pipeline(luigi.Task):
         for filename in completed:
             # TODO this will break with const_pop
             # e.g. data/selection/horse-DOM2-modsnp9876899-n100000000-s100-h0.5-chain1.param.gz
-            species, population, modsnp, n, s, h, chain = os.path.basename(filename).split('-')[0:7]
+            species, population, modsnp, n, s, h, F, chain = os.path.basename(filename).split('-')[0:8]
 
             # trim the prefixes
-            key = (species, population, int(modsnp[6:]), int(n[1:]), int(s[1:]), float(h[1:]))
+            key = (species, population, int(modsnp[6:]), int(n[1:]), int(s[1:]), float(h[1:]), int(F[1:]))
 
-            models[key].append(int(chain[5:]))
+            models[key].append(int(chain[5:6]))
 
         done_tasks = []
         todo_tasks = defaultdict(list)
         final_tasks = []
 
-        for (species, population, modsnp, n, s, h), chains in models.iteritems():
+        for (species, population, modsnp, n, s, h, F), chains in models.iteritems():
 
             # load the metadata for all the completed chains
             for chain in range(1, MCMC_MAX_CHAINS + 1):
 
                 # compose the task to run
-                task = LoadSelectionDiagnostics(species, population, modsnp, n=n, s=s, h=h, chain=chain)
+                task = LoadSelectionDiagnostics(species, population, modsnp, n=n, s=s, h=h, F=F, chain=chain)
 
                 if chain in chains:
                     done_tasks.append(task)
                 else:
                     todo_tasks[chain].append(task)
 
-            final_tasks.append(LoadSelectionPSRF(species, population, modsnp, n=n, s=s, h=h))
+            final_tasks.append(LoadSelectionPSRF(species, population, modsnp, n=n, s=s, h=h, F=F))
 
         # make sure the completed chains have been loaded into the db
         yield done_tasks

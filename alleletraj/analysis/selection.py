@@ -315,6 +315,11 @@ class SelectionRunMCMC(utils.PipelineTask):
     # TODO remove when done with SLURM jobs on the cluster
     # resources = {'SLURM': 2}
 
+    @property
+    def priority(self):
+        """Do chains in numerical order"""
+        return 10 - self.chain
+
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0
 

@@ -987,15 +987,21 @@ class SelectionTidy2Pipeline(luigi.Task):
             # load the metadata for all the completed chains
             for chain in range(1, MCMC_MAX_CHAINS + 1):
 
-                # compose the task to run
-                task = LoadSelectionDiagnostics(species, population, modsnp, n=n, s=s, h=h, F=F, chain=chain)
+                # compose the tasks to run
+                task1 = LoadSelectionDiagnostics(species, population, modsnp, n=n, s=s, h=h, F=F, chain=chain)
+                task2 = SelectionPlot(species, population, modsnp, n=n, s=s, h=h, F=F, chain=chain)
 
                 if chain in chains:
-                    done_tasks.append(task)
+                    done_tasks.append(task1)
+                    done_tasks.append(task2)
                 else:
-                    todo_tasks[chain].append(task)
+                    todo_tasks[chain].append(task1)
+                    todo_tasks[chain].append(task2)
 
-            final_tasks.append(LoadSelectionPSRF(species, population, modsnp, n=n, s=s, h=h, F=F))
+            if len(chains) == MCMC_MAX_CHAINS:
+                done_tasks.append(LoadSelectionPSRF(species, population, modsnp, n=n, s=s, h=h, F=F))
+            else:
+                final_tasks.append(LoadSelectionPSRF(species, population, modsnp, n=n, s=s, h=h, F=F))
 
         # make sure the completed chains have been loaded into the db
         yield done_tasks

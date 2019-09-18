@@ -956,12 +956,7 @@ class SelectionTidyPipeline(utils.PipelineWrapperTask):
 class SelectionTidy2Pipeline(luigi.Task):
     """
     Tidy up all the `selection` jobs that were completed by SLURM.
-
-    :type species: str
-    :type dummy: int
     """
-    species = luigi.OptionalParameter()
-    dummy = luigi.OptionalParameter()
 
     def complete(self):
         return False
@@ -971,7 +966,7 @@ class SelectionTidy2Pipeline(luigi.Task):
         models = defaultdict(list)
 
         # get all the completed models
-        completed = glob.glob('data/selection/{}*.param.gz'.format(self.species or ''))
+        completed = glob.glob('data/selection/*.param.gz')
 
         for filename in completed:
             # TODO this will break with const_pop

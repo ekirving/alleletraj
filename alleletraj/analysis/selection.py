@@ -701,13 +701,18 @@ class SelectionPSRF(utils.PipelineTask):
     def run(self):
         ess_file, psrf_file, diag_file, trace_png, gelman_png = self.output()
 
-        mpsrf_good = []
-        ess_good = []
+        mpsrf = {}
+        mpsrf_chains = []
+        ess_chains = []
         chain = 1
 
-        while not mpsrf_good:
+        while not mpsrf_chains:
             if chain > MCMC_MAX_CHAINS:
-                raise RuntimeError('Failed to converge MCMC chains after {} attempts'.format(MCMC_MAX_CHAINS))
+                print('WARNING: Failed to converge MCMC chains after {} attempts'.format(MCMC_MAX_CHAINS))
+
+                # use the best pair we have
+                mpsrf_chains = min(mpsrf.iterkeys(), key=(lambda key: mpsrf[key]))
+                break
 
             # get the next MCMC chain
             params = self.all_params()
@@ -729,11 +734,11 @@ class SelectionPSRF(utils.PipelineTask):
 
             # enforce the threshold
             if min_ess > MCMC_MIN_ESS:
-                ess_good.append(chain)
+                ess_chains.append(chain)
 
-                if len(ess_good) >= MCMC_NUM_CHAINS:
+                if len(ess_chains) >= MCMC_NUM_CHAINS:
                     # get all possible combinations of the MCMC chains (in sets of size MCMC_NUM_CHAINS)
-                    chain_sets = list(itertools.combinations(ess_good, MCMC_NUM_CHAINS))
+                    chain_sets = list(itertools.combinations(ess_chains, MCMC_NUM_CHAINS))
 
                     params = self.all_params()
                     for chain_set in chain_sets:
@@ -743,18 +748,19 @@ class SelectionPSRF(utils.PipelineTask):
                         mpsrf_file = yield SelectionCalculateMPSRF(**params)
 
                         with mpsrf_file.open('r') as fin:
-                            mpsrf = float(fin.read())
+                            mpsrf[chain_set] = float(fin.read())
 
-                            if mpsrf <= MCMC_MAX_MPSRF:
-                                mpsrf_good = chain_set
-                                break
+                        if mpsrf[chain_set] <= MCMC_MAX_MPSRF:
+                            # we have converged the chains!
+                            mpsrf_chains = chain_set
+                            break
             chain += 1
 
         param_paths = []
 
         # now we have a suitable set, let's finish things off
         params = self.all_params()
-        for chain in mpsrf_good:
+        for chain in mpsrf_chains:
             params['chain'] = chain
 
             # get the path to the MCMC parameter chain
@@ -988,15 +994,12 @@ class SelectionTidy2Pipeline(luigi.Task):
             for chain in range(1, MCMC_MAX_CHAINS + 1):
 
                 # compose the tasks to run
-                task1 = LoadSelectionDiagnostics(species, population, modsnp, n=n, s=s, h=h, F=F, chain=chain)
-                task2 = SelectionPlot(species, population, modsnp, n=n, s=s, h=h, F=F, chain=chain)
+                task = LoadSelectionDiagnostics(species, population, modsnp, n=n, s=s, h=h, F=F, chain=chain)
 
                 if chain in chains:
-                    done_tasks.append(task1)
-                    done_tasks.append(task2)
+                    done_tasks.append(task)
                 else:
-                    todo_tasks[chain].append(task1)
-                    todo_tasks[chain].append(task2)
+                    todo_tasks[chain].append(task)
 
             if len(chains) == MCMC_MAX_CHAINS:
                 done_tasks.append(LoadSelectionPSRF(species, population, modsnp, n=n, s=s, h=h, F=F))

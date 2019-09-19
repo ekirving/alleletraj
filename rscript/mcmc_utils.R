@@ -6,11 +6,18 @@ load_chains <- function(param_files, burn_perc, thin, verbose=TRUE) {
     start <- NA
 
     for (i in param_files) {
-        # load the chain (and cast infinite values to NA)
-        chain <- fread(i, header = T, sep = '\t', drop=c('gen', 'first_nonzero'), na.strings=c('inf', '-inf'))
+        # # load the chain (and cast infinite values to NA)
+        # chain <- fread(i, header = T, sep = '\t', drop=c('gen', 'first_nonzero'), na.strings=c('inf', '-inf'))
+        #
+        # # drop NAs
+        # chain <- na.omit(chain)
 
-        # drop NAs
-        chain <- na.omit(chain)
+        # load the chain
+        chain <- fread(i, header = T, sep = '\t', drop=c('gen', 'first_nonzero'))
+
+        # fix infinite errors
+        chain[chain == 'Inf'] <- .Machine$integer.max
+        chain[chain == '-Inf'] <- -.Machine$integer.max
 
         chain.length <- nrow(chain)
 

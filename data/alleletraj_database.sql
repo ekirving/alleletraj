@@ -7,7 +7,7 @@
 #
 # Host: 127.0.0.1 (MySQL 5.7.21)
 # Database: alleletraj_horse_equcab2_rel38
-# Generation Time: 2019-09-15 10:16:19 +0000
+# Generation Time: 2019-09-19 09:00:46 +0000
 # ************************************************************
 
 
@@ -543,6 +543,7 @@ CREATE TABLE `selection_psrf` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `selection_id` int(11) NOT NULL,
   `mpsrf` float DEFAULT NULL,
+  `chains` varchar(255) DEFAULT NULL,
   `lnL` float DEFAULT NULL,
   `pathlnL` float DEFAULT NULL,
   `alpha1` float DEFAULT NULL,

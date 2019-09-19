@@ -694,12 +694,13 @@ class SelectionPSRF(utils.PipelineTask):
     def output(self):
         yield luigi.LocalTarget('data/selection/{}-chainAll.ess'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}-chainAll.psrf'.format(self.basename))
+        yield luigi.LocalTarget('data/selection/{}-chainAll.chains'.format(self.basename))
         yield luigi.LocalTarget('data/selection/{}-chainAll.diag'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-trace-pt1.png'.format(self.basename))
         yield luigi.LocalTarget('data/pdf/selection/{}-chainAll-gelman-pt1.png'.format(self.basename))
 
     def run(self):
-        ess_file, psrf_file, diag_file, trace_png, gelman_png = self.output()
+        ess_file, psrf_file, chains_file, diag_file, trace_png, gelman_png = self.output()
 
         mpsrf = {}
         mpsrf_chains = []
@@ -767,6 +768,10 @@ class SelectionPSRF(utils.PipelineTask):
             mcmc = yield SelectionRunMCMC(**params)
             param_paths.append(mcmc[0].path)
 
+        # save the chain set so we know which ones we used
+        with chains_file.open('w') as fout:
+            fout.write(','.join([str(c) for c in mpsrf_chains]))
+
         # TODO this should calculate the maximum a posteriori (MAP) based on the combined chains
         with diag_file.temporary_path() as diag_path:
             utils.run_cmd(['Rscript',
@@ -811,7 +816,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
 
     def queries(self):
         # unpack the params
-        ess_file, psrf_file, _, _, _ = self.input()
+        ess_file, psrf_file, chains_file, _, _, _ = self.input()
 
         selection = {
             'population': self.population,
@@ -828,6 +833,10 @@ class LoadSelectionPSRF(utils.MySQLTask):
 
         selection_id = self.dbc.get_record('selection', selection).pop('id')
 
+        # load the chain numbers
+        with chains_file.open('r') as fin:
+            chains = fin.read().strip()
+
         # load the ESS
         with ess_file.open('r') as fin:
             ess = json.load(fin)
@@ -838,12 +847,13 @@ class LoadSelectionPSRF(utils.MySQLTask):
         # load the PSRF
         with psrf_file.open('r') as fin:
             psrf = json.load(fin)
+            psrf['selection_id'] = selection_id
+            psrf['chains'] = chains
 
         for param in psrf:
             if psrf[param] in ('Inf', 'NA', 'NaN'):
                 psrf[param] = None
 
-        psrf['selection_id'] = selection_id
         self.dbc.save_record('selection_psrf', psrf)
 
 

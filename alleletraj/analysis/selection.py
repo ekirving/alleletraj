@@ -857,7 +857,7 @@ class LoadSelectionPSRF(utils.MySQLTask):
         self.dbc.save_record('selection_psrf', psrf)
 
 
-class SelectionPairNeutrals(utils.MySQLTask):  # TODO this task type is misleading
+class SelectionPairNeutrals(utils.MySQLTask):
     """
     Pair the given modSNP with some neutral replicates, and run `selection` on them all.
 
@@ -886,7 +886,6 @@ class SelectionPairNeutrals(utils.MySQLTask):  # TODO this task type is misleadi
         # get the neutral controls for this modsnp
         neutrals = selection_fetch_neutral_snps(self.species, self.population, self.modsnp, self.mispolar)
 
-        # TODO only run neutrals if the target SNP looks interesting
         params = self.all_params()
         for modsnp_id in neutrals:
             params['modsnp'] = modsnp_id

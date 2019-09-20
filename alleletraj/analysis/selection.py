@@ -709,11 +709,12 @@ class SelectionPSRF(utils.PipelineTask):
 
         while not mpsrf_chains:
             if chain > MCMC_MAX_CHAINS:
-                print('WARNING: Failed to converge MCMC chains after {} attempts'.format(MCMC_MAX_CHAINS))
-
-                # use the best pair we have
-                mpsrf_chains = min(mpsrf.iterkeys(), key=(lambda key: mpsrf[key]))
-                break
+                if len(mpsrf) > 0:
+                    # use the best pair we have
+                    mpsrf_chains = min(mpsrf.iterkeys(), key=(lambda key: mpsrf[key]))
+                    break
+                else:
+                    raise RuntimeError('ERROR: No MCMC chains converged after {} attempts'.format(MCMC_MAX_CHAINS))
 
             # get the next MCMC chain
             params = self.all_params()

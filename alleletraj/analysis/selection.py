@@ -707,12 +707,18 @@ class SelectionPSRF(utils.PipelineTask):
         ess_chains = []
         chain = 1
 
+        enforce_ess = True
+
         while not mpsrf_chains:
             if chain > MCMC_MAX_CHAINS:
                 if len(mpsrf) > 0:
                     # use the best pair we have
                     mpsrf_chains = min(mpsrf.iterkeys(), key=(lambda key: mpsrf[key]))
                     break
+                elif enforce_ess:
+                    # find the best set among those that didn't pass the ESS threshold
+                    enforce_ess = False
+                    chain = 1
                 else:
                     raise RuntimeError('ERROR: No MCMC chains converged after {} attempts'.format(MCMC_MAX_CHAINS))
 
@@ -738,7 +744,7 @@ class SelectionPSRF(utils.PipelineTask):
             min_ess = min(ess.values())  # TODO consider replacing with a multivariate ESS
 
             # enforce the threshold
-            if min_ess > MCMC_MIN_ESS:
+            if min_ess > MCMC_MIN_ESS or not enforce_ess:
                 ess_chains.append(chain)
 
                 if len(ess_chains) >= MCMC_NUM_CHAINS:

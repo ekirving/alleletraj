@@ -27,9 +27,7 @@ rsync -avz --partial \
            --exclude '*.gz' \
            --exclude '*.tgz' \
            --exclude 'data/ensembl/' \
-           --exclude 'data/selection/*.log' \
-           --exclude 'data/selection/*.input' \
-           --exclude 'data/selection.*/' \
+           --exclude 'data/selection*/' \
            --exclude 'data/db/' \
            --exclude 'data/pdf/selection/*autocorr*' \
            --exclude 'data/pdf/selection/*trace*' \

@@ -723,9 +723,6 @@ class SelectionPSRF(utils.PipelineTask):
             # load the metrics into the db
             yield LoadSelectionDiagnostics(**params)
 
-            # and plot the trajectory
-            yield SelectionPlot(**params)
-
             # get the ESS of the chain
             with next(diag_task).open('r') as fin:
                 ess = json.load(fin)
@@ -763,6 +760,9 @@ class SelectionPSRF(utils.PipelineTask):
         params = self.all_params()
         for chain in mpsrf_chains:
             params['chain'] = chain
+
+            # plot the trajectory
+            yield SelectionPlot(**params)
 
             # get the path to the MCMC parameter chain
             mcmc = yield SelectionRunMCMC(**params)

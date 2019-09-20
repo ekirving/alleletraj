@@ -719,6 +719,12 @@ class SelectionPSRF(utils.PipelineTask):
             # get the next MCMC chain
             params = self.all_params()
             params['chain'] = chain
+
+            if not SelectionDiagnostics(**params).complete():
+                # skip any chain that either hasn't been run, or failed diagnostics
+                chain += 1
+                continue
+
             diag_task = yield SelectionDiagnostics(**params)
 
             # load the metrics into the db

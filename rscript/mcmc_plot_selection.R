@@ -42,6 +42,13 @@ if (length(paths$traj) != length(paths$time)) {
     paths$time <- paths$time[1:trunc]
 }
 
+# handle truncated final line
+if (length(tail(paths$traj, n=1)[[1]]) != length(tail(paths$time, n=1)[[1]])) {
+    warning("Final line of time and trajectory files are not of equal length")
+    paths$traj <- paths$traj[1:(length(paths$traj)-1)]
+    paths$time <- paths$time[1:(length(paths$time)-1)]
+}
+
 # plot the trajectoy
 pdf(file=pdf_file, width=12, height=7.5)
 plot.posterior.paths(paths, samples$freq, samples$time, samples$size, units, xlim=c(-25000/units,0))

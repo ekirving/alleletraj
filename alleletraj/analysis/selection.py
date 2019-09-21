@@ -313,7 +313,7 @@ class SelectionRunMCMC(utils.PipelineTask):
     chain = luigi.IntParameter()
 
     # TODO remove when done with SLURM jobs on the cluster
-    # resources = {'SLURM': 2}
+    resources = {'SLURM': 2}
 
     @property
     def priority(self):

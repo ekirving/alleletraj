@@ -718,6 +718,7 @@ class SelectionPSRF(utils.PipelineTask):
                 elif enforce_ess:
                     # find the best set among those that didn't pass the ESS threshold
                     enforce_ess = False
+                    ess_chains = []
                     chain = 1
                 else:
                     raise RuntimeError('ERROR: No MCMC chains converged after {} attempts'.format(MCMC_MAX_CHAINS))

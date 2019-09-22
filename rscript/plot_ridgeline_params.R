@@ -20,9 +20,9 @@ source('rscript/mcmc_utils.R')
 args <- commandArgs(trailingOnly = TRUE)
 species <- args[1]
 population <- args[2]
-burn_perc <- strtoi(args[3])
-pop_size <- strtoi(args[4])
-gen_time <- strtoi(args[5])
+burn_perc <- as.numeric(args[3])
+pop_size <- as.numeric(args[4])
+gen_time <- as.numeric(args[5])
 
 # TODO remove when done testing
 # setwd('/Users/Evan/Dropbox/Code/alleletraj')

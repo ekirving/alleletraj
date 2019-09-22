@@ -143,7 +143,7 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
     # joint density plot
     # --------------------------------------------------------------------------
 
-    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-all.pdf'),
+    pdf(file = paste0('data/pdf/plots/', species, '-', population ,'-ridgeline-', param, '-all.pdf'),
         width = 16, height = 4.5)
 
     # built the plot, but don't display it yet
@@ -174,7 +174,7 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
     # classes as ridgelines
     # --------------------------------------------------------------------------
 
-    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-classes.pdf'),
+    pdf(file = paste0('data/pdf/plots/', species, '-', population ,'-ridgeline-', param, '-classes.pdf'),
         width = 16, height = 9)
 
     # built the plot, but don't display it yet
@@ -205,7 +205,7 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
     # traits as ridgelines, facted by class
     # --------------------------------------------------------------------------
 
-    pdf(file = paste0('rscript/pdf/', species, '-', population ,'-ridgeline-', param, '-traits.pdf'),
+    pdf(file = paste0('data/pdf/plots/', species, '-', population ,'-ridgeline-', param, '-traits.pdf'),
         width = 16, height = 9)
 
     # built the plot, but don't display it yet

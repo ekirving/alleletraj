@@ -2,6 +2,7 @@
 
 rsync -avz --partial \
            --exclude '.git*' \
+           --exclude '.Rproj*' \
            --exclude '*.sh' \
            --exclude '*.txt' \
            --exclude '*.py*' \

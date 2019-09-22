@@ -775,8 +775,8 @@ class SelectionPSRF(utils.PipelineTask):
         for chain in mpsrf_chains:
             params['chain'] = chain
 
-            # plot the trajectory
-            yield SelectionPlot(**params)
+            # TODO plot the trajectory
+            # yield SelectionPlot(**params)
 
             # get the path to the MCMC parameter chain
             mcmc = yield SelectionRunMCMC(**params)

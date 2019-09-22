@@ -1,14 +1,14 @@
 #!/usr/bin/env Rscript
 library(data.table, quietly=T)
 
-load_chains <- function(param_files, burn_perc, thin=100, verbose=TRUE) {
+load_chains <- function(param_files, burn_perc, thin=100, drop=c('gen', 'first_nonzero'), verbose=TRUE) {
     chains <- c()
 
     start <- NA
 
     for (i in param_files) {
         # load the chain (and cast infinite values to NA)
-        chain <- fread(i, header = T, sep = '\t', drop=c('gen', 'first_nonzero'), na.strings=c('inf', '-inf'))
+        chain <- fread(i, header = T, sep = '\t', drop=drop, na.strings=c('inf', '-inf'))
 
         # drop NAs
         chain <- na.omit(chain)
@@ -66,8 +66,15 @@ param_file_paths <- function(model) {
 load_models <- function(model) {
     param_files <- param_file_paths(model)
 
+    # ignore all the time params
+    drop <- c('gen', 'sample_time_0', 'sample_time_1', 'sample_time_2',
+              'sample_time_3', 'sample_time_4', 'sample_time_5', 'sample_time_6',
+              'sample_time_7', 'sample_time_8', 'sample_time_9', 'sample_time_10',
+              'sample_time_11', 'sample_time_12', 'sample_time_13', 'sample_time_14',
+              'sample_time_15', 'sample_time_16', 'sample_time_17')
+
     # load all the chains
-    chains.all <- load_chains(param_files, burn_perc)
+    chains.all <- load_chains(param_files, burn_perc, drop=drop, verbose=F)
 
     # merge the replicates
     chains.all <- as.data.frame(rbind(chains.all[[1]], chains.all[[2]]))

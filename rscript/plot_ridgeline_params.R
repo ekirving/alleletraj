@@ -1,5 +1,4 @@
 #!/usr/bin/env Rscript
-
 library(readr, quietly = T)
 library(dplyr, quietly = T)
 library(ggplot2, quietly = T)
@@ -13,13 +12,15 @@ library(forcats, quietly = T)
 library(grid, quietly = T)
 library(gtable, quietly = T)
 
+source('rscript/mcmc_utils.R')
+
 # TODO should density ridges be multiplied by the number of SNPs?
 
 # get the command line arguments
 args <- commandArgs(trailingOnly = TRUE)
 species <- args[1]
 population <- args[2]
-burnin <- strtoi(args[3])
+burn_perc <- strtoi(args[3])
 pop_size <- strtoi(args[4])
 gen_time <- strtoi(args[5])
 
@@ -27,54 +28,51 @@ gen_time <- strtoi(args[5])
 # setwd('/Users/Evan/Dropbox/Code/alleletraj')
 # species <- 'horse'
 # population <- 'DOM2'
-# burnin <- 1000 # i.e. 20%
-# pop_size <- 16000
+# burn_perc <- 0.5
+# pop_size <- 17150
 # gen_time <- 8
 
-# make a helper function to load the param files
-read_tsv_param <- function(filename) {
-
-    params <- suppressMessages(read_tsv(filename, col_names = T))
-    params <- params[(burnin+1):nrow(params),]
-
-    if (nrow(params) < 4000) {
-        return()
-    }
-
-    # enforce a min ESS
-    if (min(effectiveSize(params[,!names(params) %in% c("gen")])) < 100) {
-        return()
-    }
-
-    # extract the modsnp id
-    params$id <- as.integer(str_extract(filename, "(?<=-)[0-9]+"))
-
-    params
-}
-
-# load all the param files
-files <- list.files(path = "selection", pattern = paste(species, population, "(.+).param", sep = '-'), full.names = T)
-mcmc.params <- lapply(files, read_tsv_param) %>% bind_rows()
+# do not use scientific notation
+options(scipen=999)
 
 # connect to the remote server
-mydb <- dbConnect(MySQL(), user = 'root', password = '', dbname = 'alleletraj_horse', host = 'localhost')
+mydb <- dbConnect(MySQL(), user = 'root', password = '', dbname = 'alleletraj_horse_equcab2_rel38', host = 'localhost')
 
-# TODO this is explicitly dropping all non-GWAS hits, which is fine for now but needs updating later
-# fetch the details of the SNP
+# fetch all the good models
+rs <- dbSendQuery(mydb, paste0(
+    "SELECT s.modsnp_id, s.no_modern, s.mispolar, s.const_pop,
+            s.no_age, s.length, s.thin, s.model, s.frac, sp.chains
+       FROM selection s
+       JOIN selection_psrf sp
+         ON sp.selection_id = s.id
+       JOIN modern_snps ms
+         ON ms.id = s.modsnp_id
+       JOIN qtls q
+         ON q.chrom = ms.chrom
+        AND q.site= ms.site
+      WHERE s.population = '", population, "'
+        AND sp.valid = 1
+        AND q.valid = 1"
+))
+
+models <- fetch(rs, n = -1)
+
+# load all the param files
+mcmc.params <- apply(models, 1, load_models) %>% bind_rows()
+
+# fetch the details of each GWAS association
 rs <- dbSendQuery(mydb,
     "SELECT DISTINCT ms.id, t.class, t.name AS trait
        FROM qtls q
        JOIN traits t
          ON t.id = q.trait_id
-       JOIN ensembl_variants ev
-         ON ev.rsnumber = q.peak
        JOIN modern_snps ms
-         ON ms.variant_id = ev.id
-       JOIN qtl_snps qs
-         ON qs.qtl_id = q.id
-        AND qs.modsnp_id = ms.id
+         ON ms.chrom = q.chrom
+        AND ms.site = q.site
       WHERE q.associationType = 'Association'
-        AND q.valid = 1")
+        AND q.valid = 1
+        AND IFNULL(ms.mispolar, 0) = 0"
+)
 
 traits <- fetch(rs, n = -1)
 

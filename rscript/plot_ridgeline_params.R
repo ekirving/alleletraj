@@ -35,8 +35,11 @@ gen_time <- as.numeric(args[5])
 # do not use scientific notation
 options(scipen=999)
 
+# TODO find a better way to do this
+db_name <- if (species == 'horse') 'alleletraj_horse_equcab2_rel38' else 'alleletraj_cattle_umd3.1_rel38'
+
 # connect to the remote server
-mydb <- dbConnect(MySQL(), user = 'root', password = '', dbname = 'alleletraj_horse_equcab2_rel38', host = 'localhost')
+mydb <- dbConnect(MySQL(), user = 'root', password = '', dbname = db_name, host = 'localhost')
 
 # fetch all the good models
 rs <- dbSendQuery(mydb, paste0(

@@ -684,12 +684,12 @@ class SelectionPSRF(utils.PipelineTask):
     # do not retry after failure, as this just chews CPU cycles
     retry_count = 0
 
-    def requires(self):
-        # setup the basic replicate chain requirements, these are extended at runtime depending on quality metrics
-        params = self.all_params()
-        for chain in range(1, MCMC_NUM_CHAINS + 1):
-            params['chain'] = chain
-            yield LoadSelectionDiagnostics(**params)
+    # def requires(self):
+    #     # setup the basic replicate chain requirements, these are extended at runtime depending on quality metrics
+    #     params = self.all_params()
+    #     for chain in range(1, MCMC_NUM_CHAINS + 1):
+    #         params['chain'] = chain
+    #         yield LoadSelectionDiagnostics(**params)
 
     def output(self):
         yield luigi.LocalTarget('data/selection/{}-chainAll.ess'.format(self.basename))

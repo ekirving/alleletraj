@@ -320,17 +320,18 @@ mcmc.params$s1 <- mcmc.params$alpha1 / (2 * pop_size)
 mcmc.params$s2 <- mcmc.params$alpha2 / (2 * pop_size)
 
 # define the limits of the plot
-min_x <- -0.005
-max_x <- 0.015
-brk_w <- 0.005
+min_x <- -0.001
+max_x <- 0.010
+brk_w <- 0.001
+x_breaks <- seq(0, max_x, by = brk_w)
 
 # add a dashed vertical line at 0
 vline <- geom_vline(xintercept = 0, linetype = "dashed", colour = '#c94904')
 
 # plot s1
 plot_ridgeline(param = 's1', xlab = expression(paste("s"[1])), min_x = min_x, 
-               max_x = max_x, brk_w = brk_w, vline = vline)
+               max_x = max_x, brk_w = brk_w, x_breaks = x_breaks, vline = vline)
 
 # plot s2
 plot_ridgeline(param = 's2', xlab = expression(paste("s"[2])), min_x = min_x, 
-               max_x = max_x, brk_w = brk_w, vline = vline)
+               max_x = max_x, brk_w = brk_w, x_breaks = x_breaks, vline = vline)

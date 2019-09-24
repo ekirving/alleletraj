@@ -113,7 +113,7 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
     # TODO consider -ve log10 transform
     # # https://stackoverflow.com/questions/37446064/i-need-ggplot-scale-x-log10-to-give-me-both-negative-and-positive-numbers-as-o
     # signed_log <- scales::trans_new("signed_log", transform=function(x) sign(x)*log(abs(x)), inverse=function(x) sign(x)*exp(abs(x)))
-    # 
+    # # scale_x_continuous(trans=signed_log),
     # # https://stackoverflow.com/questions/14504869/histogram-with-negative-logarithmic-scale-in-r?noredirect=1&lq=1
     # trans_asinh <- scales::trans_new("asinh", transform = function(x) asinh(x),  inverse = function(x) sinh(x))
 

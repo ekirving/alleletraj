@@ -41,9 +41,9 @@ db_name <- if (species == 'horse') 'alleletraj_horse_equcab2_rel38' else 'allele
 # connect to the remote server
 mydb <- dbConnect(MySQL(), user = 'root', password = '', dbname = db_name, host = 'localhost')
 
-# fetch all the good models
+# fetch all the good GWAS models
 rs <- dbSendQuery(mydb, paste0(
-    "SELECT s.modsnp_id, s.no_modern, s.mispolar, s.const_pop,
+    "SELECT DISTINCT s.modsnp_id, s.no_modern, s.mispolar, s.const_pop,
             s.no_age, s.length, s.thin, s.model, s.frac, sp.chains
        FROM selection s
        JOIN selection_psrf sp
@@ -54,6 +54,7 @@ rs <- dbSendQuery(mydb, paste0(
          ON q.chrom = ms.chrom
         AND q.site= ms.site
       WHERE s.population = '", population, "'
+        AND s.gwas = 1
         AND sp.valid = 1
         AND q.valid = 1"
 ))
@@ -63,7 +64,7 @@ models <- fetch(rs, n = -1)
 # load all the param files
 mcmc.params <- apply(models, 1, load_models) %>% bind_rows()
 
-# fetch the details of each GWAS association
+# fetch the details of every GWAS association
 rs <- dbSendQuery(mydb,
     "SELECT DISTINCT ms.id, t.class, t.name AS trait
        FROM qtls q
@@ -72,9 +73,7 @@ rs <- dbSendQuery(mydb,
        JOIN modern_snps ms
          ON ms.chrom = q.chrom
         AND ms.site = q.site
-      WHERE q.associationType = 'Association'
-        AND q.valid = 1
-        AND IFNULL(ms.mispolar, 0) = 0"
+      WHERE q.valid = 1"
 )
 
 traits <- fetch(rs, n = -1)
@@ -90,9 +89,9 @@ mcmc.params$allsnp <- 'GWAS hits'
 
 # count how many SNPs each class and trait has
 mcmc.params <- mcmc.params %>%
-    group_by(class) %>% mutate(class.n = paste0(class, ' (n=', n_distinct(id), ')')) %>%
-    group_by(trait) %>% mutate(trait.n = paste0(trait, ' (n=', n_distinct(id), ')')) %>%
-    group_by(allsnp) %>% mutate(allsnp.n = paste0(allsnp, ' (n=', n_distinct(id), ')'))
+    group_by(class) %>% mutate(class.n = paste0(class, ' (n=', n_distinct(id, trait), ')')) %>%
+    group_by(trait) %>% mutate(trait.n = paste0(trait, ' (n=', n_distinct(id, trait), ')')) %>%
+    group_by(allsnp) %>% mutate(allsnp.n = paste0(allsnp, ' (n=', n_distinct(id, trait), ')'))
 
 # function for plotting the MCMC params
 plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_breaks = NULL,
@@ -264,14 +263,24 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
 # convert diffusion units into calendar years
 mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time
 
+# define the limits of the plot
+min_x <- -50000
+max_x <- 0
+brk_w <- 5000
+lim_x <- abs(min_x) * 3
+bandw <- 1000
+
 # show x-axis label in units of kya
-x_breaks <- seq(-50000, 0, by = 5000)
-x_labels <- x_breaks/1000
+x_breaks <- seq(min_x, max_x, by = brk_w)
+x_labels <- x_breaks / 1000
 
 # add a dashed vertical line for the two main domestication timepoints
-vline <- geom_vline(xintercept = c(-5500, -4000), linetype = "dashed", colour = '#c94904')
+vline <- geom_vline(xintercept = c(-5500, -4000), linetype = "dashed", 
+                    colour = '#c94904')
 
-plot_ridgeline(param = 'ageyrs', xlab = 'kyr BP', min_x = -50000, max_x = 0, brk_w = 5000, lim_x = 150000, x_breaks = x_breaks, x_labels = x_labels, bandwidth = 1000, vline = vline)
+plot_ridgeline(param = 'ageyrs', xlab = 'kyr BP', min_x = min_x, max_x = max_x, 
+               brk_w = brk_w, lim_x = lim_x, x_breaks = x_breaks, 
+               x_labels = x_labels, bandwidth = bandw, vline = vline)
 
 # ------------------------------------------------------------------------------
 # plot the End frequency
@@ -280,11 +289,20 @@ plot_ridgeline(param = 'ageyrs', xlab = 'kyr BP', min_x = -50000, max_x = 0, brk
 # convert end_freq back into an actual frequency
 mcmc.params$freq <- (1 - cos(mcmc.params$end_freq)) / 2
 
+# define the limits of the plot
+min_x <- -0.03
+max_x <- 1
+brk_w <- 0.25
+lim_x <- 0
+
+# show x-axis label in units of 25%
 x_breaks <- seq(0, 1, by = 0.25)
 x_labels <- seq(0, 1, by = 0.25)
 
 # TODO fix issue with negative values in the density estimage due to many near zero value
-plot_ridgeline(param = 'freq', xlab = 'End Frequency', min_x = -0.03, max_x = 1, brk_w = 0.25, lim_x = 0, x_breaks = x_breaks, x_labels = x_labels)
+plot_ridgeline(param = 'freq', xlab = 'End Frequency', min_x = min_x, 
+               max_x = max_x, brk_w = brk_w, lim_x = lim_x, 
+               x_breaks = x_breaks, x_labels = x_labels)
 
 # ------------------------------------------------------------------------------
 # plot the Selection coefficients
@@ -294,8 +312,18 @@ plot_ridgeline(param = 'freq', xlab = 'End Frequency', min_x = -0.03, max_x = 1,
 mcmc.params$s1 <- mcmc.params$alpha1 / (2 * pop_size)
 mcmc.params$s2 <- mcmc.params$alpha2 / (2 * pop_size)
 
+# define the limits of the plot
+min_x <- -0.005
+max_x <- 0.015
+brk_w <- 0.005
+
 # add a dashed vertical line at 0
 vline <- geom_vline(xintercept = 0, linetype = "dashed", colour = '#c94904')
 
-plot_ridgeline(param = 's1', xlab = expression(paste("s"[1])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)
-plot_ridgeline(param = 's2', xlab = expression(paste("s"[2])), min_x = -0.005, max_x =  0.015, brk_w = 0.005, vline = vline)
+# plot s1
+plot_ridgeline(param = 's1', xlab = expression(paste("s"[1])), min_x = min_x, 
+               max_x = max_x, brk_w = brk_w, vline = vline)
+
+# plot s2
+plot_ridgeline(param = 's2', xlab = expression(paste("s"[2])), min_x = min_x, 
+               max_x = max_x, brk_w = brk_w, vline = vline)

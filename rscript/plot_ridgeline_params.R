@@ -267,7 +267,7 @@ mcmc.params$ageyrs <- mcmc.params$age * 2 * pop_size * gen_time
 min_x <- -50000
 max_x <- 0
 brk_w <- 5000
-lim_x <- abs(min_x) * 3
+lim_x <- abs(min_x) * 10
 bandw <- 1000
 
 # show x-axis label in units of kya

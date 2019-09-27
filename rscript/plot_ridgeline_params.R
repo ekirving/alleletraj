@@ -32,6 +32,12 @@ gen_time <- as.numeric(args[5])
 # pop_size <- 17150
 # gen_time <- 8
 
+# species <- 'cattle'
+# population <- 'Dom'
+# burn_perc <- 0.5
+# pop_size <- 19806
+# gen_time <- 6
+
 # do not use scientific notation
 options(scipen=999)
 
@@ -183,8 +189,11 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
     # classes as ridgelines
     # --------------------------------------------------------------------------
 
+    # set the pdf height relative to the number of classes
+    pdf_height <- length(unique(mcmc.params$class.n)) * 1.5
+    
     pdf(file = paste0('data/pdf/plots/', species, '-', population ,'-ridgeline-', param, '-classes.pdf'),
-        width = 16, height = 9)
+        width = 16, height = pdf_height)
 
     # built the plot, but don't display it yet
     g <- ggplot() +
@@ -214,8 +223,11 @@ plot_ridgeline <- function(param, xlab, min_x, max_x, brk_w, lim_x = NULL, x_bre
     # traits as ridgelines, facted by class
     # --------------------------------------------------------------------------
 
+    # set the pdf height relative to the number of traits and classes
+    pdf_height <- (length(unique(mcmc.params$class.n)) * 3 + length(unique(mcmc.params$trait.n))) / 5
+    
     pdf(file = paste0('data/pdf/plots/', species, '-', population ,'-ridgeline-', param, '-traits.pdf'),
-        width = 16, height = 9)
+        width = 16, height = pdf_height)
 
     # built the plot, but don't display it yet
     g <- ggplot() +

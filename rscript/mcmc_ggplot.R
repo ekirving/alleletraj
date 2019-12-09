@@ -19,11 +19,13 @@ traj_file <- paste0(output_prefix, '.traj.gz')
 param_file <- paste0(output_prefix, '.param.gz')
 
 # find the length of the longest trajectory
-max_length <- max(count.fields(time_file, sep = " "))
+traj_lengths <- count.fields(time_file, sep = " ")
+max_traj <- max(traj_lengths)
+num_iter <- length(traj_lengths) - 1
 
 # load the time and trajectory data (and set the number of columns)
-time <- read.table(time_file, sep=" ", fill=TRUE, header = F, col.names=c("gen", 1:(max_length-1)))
-traj <- read.table(traj_file, sep=" ", fill=TRUE, header = F, col.names=c("gen", 1:(max_length-1)))
+time <- tail(read.table(time_file, sep=" ", fill=TRUE, header = F, col.names=c("gen", 1:(max_traj-1))), -(num_iter /2))
+traj <- tail(read.table(traj_file, sep=" ", fill=TRUE, header = F, col.names=c("gen", 1:(max_traj-1))), -(num_iter /2))
 
 # melt the data using "gen" as the key and join the two dataframes
 path <- merge(
@@ -44,7 +46,7 @@ p <- ggplot() +
   geom_point(data=mcmc.params, aes(x=0, y=end_freq, fill=gen), shape=21) +
   # scale_fill_viridis(direction = -1, option="magma") +
   scale_fill_gradient(low = "#ffffff", high = "#ff0000") +
-  labs(title = '', x = 'Time', y = 'Frequency', color = "Path", fill = "Age") +
+  labs(title = '', x = 'Time', y = 'Frequency') +
   theme_bw()
 
 png(filename = paste0(output_prefix, '.png'), width=14, height=7, units='in', res=300)

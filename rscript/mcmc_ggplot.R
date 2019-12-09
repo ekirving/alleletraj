@@ -47,6 +47,8 @@ p <- ggplot() +
   # scale_fill_viridis(direction = -1, option="magma") +
   scale_fill_gradient(low = "#ffffff", high = "#ff0000") +
   labs(title = '', x = 'Time', y = 'Frequency') +
+  scale_x_continuous(limits = c(-1, 0)) +
+  scale_y_continuous(limits = c(0, 1)) +
   theme_bw()
 
 png(filename = paste0(output_prefix, '.png'), width=14, height=7, units='in', res=300)

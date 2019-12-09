@@ -47,7 +47,7 @@ p <- ggplot() +
   labs(title = '', x = 'Time', y = 'Frequency', color = "Path", fill = "Age") +
   theme_bw()
 
-png(filename = paste0(output_prefix, '.png'), width = 16, height = 4.5)
+png(filename = paste0(output_prefix, '.png'), width=14, height=7, units='in', res=300)
 
 # marginal density of age
 ggMarginal(p, margins = 'x', x=age, y=0, type="density")

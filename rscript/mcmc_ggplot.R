@@ -39,6 +39,8 @@ mcmc.params <- read.table(param_file, sep="\t", header=T)
 # untransform the end frequency
 mcmc.params$end_freq <- (1 - cos(mcmc.params$end_freq)) / 2
 
+png(filename = paste0(output_prefix, '.png'), width=14, height=7, units='in', res=300)
+
 p <- ggplot() +
   geom_line(data=path, aes(x=time, y=traj, group=gen, color=gen)) +
   scale_colour_viridis(direction = -1, option="viridis") +
@@ -50,8 +52,6 @@ p <- ggplot() +
   scale_x_continuous(limits = c(-1, 0)) +
   scale_y_continuous(limits = c(0, 1)) +
   theme_bw()
-
-png(filename = paste0(output_prefix, '.png'), width=14, height=7, units='in', res=300)
 
 # marginal density of age
 ggMarginal(p, margins = 'x', x=age, y=0, type="density")

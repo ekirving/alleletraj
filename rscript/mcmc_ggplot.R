@@ -34,7 +34,7 @@ path <- merge(
   by = c('gen', 'variable'))
 
 # load the other parameter samples
-mcmc.params <- read.table(param_file, sep="\t", header=T)
+mcmc.params <- tail(read.table(param_file, sep="\t", header=T), -(num_iter /2))
 
 # untransform the end frequency
 mcmc.params$end_freq <- (1 - cos(mcmc.params$end_freq)) / 2
